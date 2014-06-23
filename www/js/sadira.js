@@ -2,6 +2,11 @@
 // Do what you want with this file.
 
 
+var server_prefix="";
+var sadira_prefix="";
+var widget_prefix="";
+
+
 function set_connexion_status(state, msg){
 
     var cnx_status = document.getElementById("connexion_status");
@@ -18,6 +23,7 @@ var sadira = function(parameters, on_error, on_connect) {
 
     var sad=this;
     
+
     //this.root_widget=new widget.base(); //The dummy widget created at startup time.
     this.page_widget=null; //The main widget.
     this.wsock=null; //The (main) websocket.
@@ -53,6 +59,24 @@ var sadira = function(parameters, on_error, on_connect) {
 		ws_host="wss://"+location.host;
 	}else
 	    ws_host=parameters.server;
+	
+
+    	if(typeof parameters.server_prefix!='undefined')
+	    server_prefix=parameters.server_prefix;
+	else
+	    server_prefix="";
+
+
+    	if(typeof parameters.sadira_prefix!='undefined')
+	    sadira_prefix=parameters.sadira_prefix;
+	else
+	    sadira_prefix="sadira";
+	
+    	if(typeof parameters.widget_prefix!='undefined')
+	    widget_prefix=parameters.widget_prefix;
+	else
+	    widget_prefix=sadira_prefix+"/widgets";
+    
 	//console.log("ws host is " +ws_host + ' protocol is ' +  document.location.protocol );    
 	//set_connexion_status("unknown","Connecting to <pre>" + JSON.stringify(location,null,3) + "</pre>" );
 	

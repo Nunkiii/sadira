@@ -3,7 +3,7 @@ if (typeof module !== 'undefined' && module.exports) nodejs=true; //Checking if 
 
 
 if(nodejs){
-    var bson = require("./bson");
+    var bson = require("./community/bson");
     var srz=require("./serializer");
 }else{
 

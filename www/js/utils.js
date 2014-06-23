@@ -31,7 +31,6 @@ Array.prototype.compare = function (array) {
     return true;
 }
 
-var server_prefix="";
 
 /*
 Object.prototype.getName = function() { 
@@ -214,9 +213,9 @@ function get_server_address(){
     if(hostname=="")hostname=location.host;
 
     if(document.location.protocol == "http:")
-	return "http://"+hostname+"/"+server_prefix;
+	return "http://"+hostname+"/"+sadira_prefix;
     else
-	return "https://"+hostname+"/"+server_prefix;
+	return "https://"+hostname+"/"+sadira_prefix;
 }
 
 
