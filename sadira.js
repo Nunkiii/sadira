@@ -55,6 +55,7 @@ GLOBAL.dump_error =function (err) {
 	    rs+=err.stack;
 	}
     } else {
+	console.log("message: " + err);
 	rs= err;
     }
     return rs;

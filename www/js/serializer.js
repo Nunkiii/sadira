@@ -1,7 +1,7 @@
 var nodejs=false;
 if (typeof module !== 'undefined' && module.exports) nodejs=true; //Checking if we are in Node
 
-var SRZ_MEM_SIZE_MAX=16777216; //16Mb
+var SRZ_MEM_SIZE_MAX=67108864; // 64Mb 16777216; //16Mb
 var SRZ_MEM_CHUNK_SIZE=1024; //1kb
 
 var srz_base=function(){}
@@ -36,8 +36,10 @@ srz_mem.prototype.constructor=srz_mem;
 srz_mem.prototype.initialize=function(buf, chunk_size){
     this.data=buf;
     this.cnkid=0;
-    var sz_data= this.size(); 
-    //if(sz_data=='undefined') throw "Cannot find sz_data in srz_mem serializer config!";
+    var sz_data= this.size();
+//  console.log("INIT sz= " + sz_data + " max " + SRZ_MEM_SIZE_MAX); 
+    if(typeof sz_data=='undefined') throw "Cannot find sz_data in srz_mem serializer config!";
+  
     if(sz_data>SRZ_MEM_SIZE_MAX) throw "Object size too large : " + sz_data + " > " +  SRZ_MEM_SIZE_MAX;
     this.sz_data=sz_data;
     this.chunk_size= typeof chunk_size == 'undefined' ? SRZ_MEM_CHUNK_SIZE : chunk_size;

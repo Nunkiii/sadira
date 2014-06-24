@@ -78,16 +78,22 @@ dialog.prototype.srz_request=function(dgram, result_cb){
 
 
 dialog.prototype.srz_initiate=function(srz, status_cb){
+    console.log("Z");
     srz.oid=Math.random().toString(36).substring(2);
+    console.log("Z");
     srz_setup(this);
+    console.log("Z");
     this.serializers[srz.oid]=srz;
+    console.log("Z");
     var srz_head={type: 'srz', cmd: 'req', oid: srz.oid, sz : srz.size() };
+    console.log("Z");
     if(typeof srz.header!='undefined')
 	for(var h in srz.header) srz_head[h]=srz.header[h];
+    console.log("Z");
     this.send_datagram(srz_head,null,function(error){
-	
+	    console.log("Zweeee  " + error);
     });
-    
+        console.log("Z");
 }
 
 srz_setup=function(dlg){

@@ -5,11 +5,17 @@
 var server_prefix="";
 var sadira_prefix="";
 var widget_prefix="";
-
+var cnx_status=null;
 
 function set_connexion_status(state, msg){
-
-    var cnx_status = document.getElementById("connexion_status");
+  if(!cnx_status)
+      cnx_status = document.getElementById("connexion_status");
+    
+    if(!cnx_status){
+	console.log("No cnx_status dom node provided ! state = "+ state+"["+msg+"]");
+	return;
+    }
+    
     if(cnx_status){
 	cnx_status.className = "connexion "+state;
 	cnx_status.innerHTML=msg;
