@@ -285,6 +285,10 @@ function get_mouse_pos(e){
     return pos;
 }
 
+function hex_color(c) {
+    return rgb2hex(Math.floor( (c[0]*255)), Math.floor( (c[1]*255)), Math.floor( (c[2]*255)) );
+}
+
 template_ui_builders.colormap=function(ui_opts, cmap){
    
 
@@ -383,10 +387,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	for (var i=0;i<this.value.length;i++){
 	    
-	    var r=Math.floor(this.value[i][0]*256);
-	    var g=Math.floor(this.value[i][1]*256);
-	    var b=Math.floor(this.value[i][2]*256);
-	    var a=Math.floor(this.value[i][3]*256);
+	    var r=Math.floor(this.value[i][0]*255);
+	    var g=Math.floor(this.value[i][1]*255);
+	    var b=Math.floor(this.value[i][2]*255);
+	    var a=Math.floor(this.value[i][3]*255);
 	    var f=this.value[i][4]*100;
 
 	    cstr+=",rgba("+r+","+g+","+b+","+a+") "+f+"%";
@@ -515,6 +519,25 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    
 	    left.frac.set_value(start);
 	    right.frac.set_value(end);
+
+	    console.log("Settng color " + hex_color(this.value[cid-1]));
+
+	    left.outcol.set_value(hex_color(this.value[cid-1]));
+	    right.outcol.set_value(hex_color(this.value[cid]));
+
+	    if(cid-2>0){
+		if(this.value[cid-2][4]==start){ //non-blend
+		    left.blend.ui_root.style.display="inline-block";
+		    left.uniform.ui_root.style.display="none";
+		}else{
+		    left.blend.ui_root.style.display="none";
+		    left.uniform.ui_root.style.display="inline-block";
+
+		}
+	    }else{
+		    left.blend.ui_root.style.display="none";
+	    }
+	    
 	}
 	
 	break;

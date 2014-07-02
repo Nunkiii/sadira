@@ -549,13 +549,25 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     ui.appendChild(cui);
     
     cui.addEventListener("change", function() {
+	console.log("Color changed !!!!!");
         ui.style.backgroundColor = cui.value;    
     },false);
     ui.style.backgroundColor = cui.value;    
     
     tpl_item.set_value=function(nv){
-	if(typeof nv !='undefined')tpl_item.value=nv;
+	if(typeof nv !='undefined')
+	    tpl_item.value=nv;
 	cui.value=tpl_item.value;
+	
+	if ("createEvent" in document) {
+	    var evt = document.createEvent("HTMLEvents");
+	    evt.initEvent("change", false, true);
+	    cui.dispatchEvent(evt);
+	}
+	else
+	    cui.fireEvent("onchange");
+
+	//cui.trigger(new Event('change'));
     }
 
     switch (ui_opts.type){

@@ -221,14 +221,14 @@ ul.menu a{
   z-index: inherit;
  }
 
-/* arrows if there are submenus */
+/* arrows if there are submenus 
 
-ul.menu> li > a:after { 
+ul.menu> li li > a:after { 
   content: '▸';
   margin-left:15px;
 }
 
-ul.menu> li > a:after { 
+ul.menu> li li > a:after { 
   content: '▾'; 
   
 }
@@ -237,6 +237,7 @@ ul.menu> li > a:only-child:after {
   content: ''; /* only who have childs */
 }
 
+*/
 
 [class^="icon-"]:before, [class*=" icon-"]:before {
     font-family: "fontello"; /* defined in sadira.css */
