@@ -517,7 +517,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    right.frac.set_value(end);
 	}
 	
-	
 	break;
     default: 
 	throw "Unknown UI type ";

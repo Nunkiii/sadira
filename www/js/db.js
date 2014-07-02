@@ -128,7 +128,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    ui.appendChild(li);
 	}
 	tpl_item.set_value=function(nv){
-	    if(nv)tpl_item.value=nv;
+	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    for(var v=0;v<tpl_item.value.length;v++){
 		tpl_item.inputs[v].innerHTML=Math.floor(tpl_item.value[v]*1000)/1000;
 	    }
@@ -165,7 +165,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	}
 	
 	tpl_item.set_value=function(nv){
-	    if(nv)tpl_item.value=nv;
+	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    for(var v=0;v<tpl_item.value.length;v++){
 		tpl_item.inputs[v].value=tpl_item.value[v];
 	    }
@@ -206,7 +206,7 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
     }
 
     tpl_item.set_value=function(nv){
-	if(nv)tpl_item.value=nv;
+	if(typeof nv !='undefined')tpl_item.value=nv;
 	ui.innerHTML=tpl_item.value;
     }
     return tpl_item.ui;
@@ -252,7 +252,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";
 	tpl_item.set_value=function(nv){
-	    if(nv)tpl_item.value=nv;
+	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    ui.innerHTML=tpl_item.value? "yes":"no";
 	}
 	break;
@@ -260,7 +260,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	var ui=tpl_item.ui=ce("input");
 	ui.type="checkbox";
 	tpl_item.set_value=function(nv){
-	    if(nv)tpl_item.value=nv;
+	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    ui.checked=tpl_item.value;
 	}
 	tpl_item.get_value=function(){
@@ -301,7 +301,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
 	tpl_item.get_value=function(){return tpl_item.value;}
-	tpl_item.set_value=function(nv){if(nv)tpl_item.value=nv; ui.value=tpl_item.value}
+	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.value=tpl_item.value}
 	ui.addEventListener("change",function(){
 	    tpl_item.value=this.value*1.0; 
 	    if(tpl_item.onchange){
@@ -554,7 +554,7 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     ui.style.backgroundColor = cui.value;    
     
     tpl_item.set_value=function(nv){
-	if(nv)tpl_item.value=nv;
+	if(typeof nv !='undefined')tpl_item.value=nv;
 	cui.value=tpl_item.value;
     }
 
