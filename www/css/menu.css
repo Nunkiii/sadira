@@ -1,3 +1,7 @@
+ul{
+  padding:0px;
+  margin: 0px;
+}
 
 .actions > ul {
     float: right;
@@ -8,183 +12,199 @@
 /* header menu style */
 /*********************/
 
-nav > ul, .actions > ul{
+ul.menu{
     list-style-type: none;
-    display: block;
-    font-size: 0.8em;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    z-index: inherit;
 }
 
-nav > ul>li, .actions > ul > li{
-    display: inline-block;
-    padding-left: .5em; 
-    padding-right: .5em; 
-    margin-right: .5em;
-
-    background: transparent; 
+ul.menu>li{
+  display: inline-block;
+  padding-left: .5em; 
+  padding-right: .5em; 
+  margin-right: .5em;
+  background: transparent; 
+  cursor: pointer;
+                                
+  text-shadow: 1px 1px 5px rgba(5, 70, 9, 1.0);
+  color: white;  
 }
 
 /* positioning and display of items and subitems: */
 /* items arranged horizontally with pop-up vertical subitems  */
 
-nav > ul > li { display:inline-block; position:relative;  } /* items */
-nav > ul ul, .actions > ul ul { display:none; position:absolute;  } /* subitems */
-nav > ul > li li, .actions > ul > li li { display:block; } /* subitems */
+ul.menu > li { display:inline-block; position:relative;  } /* items */
+ul.menu ul, .actions > ul ul { display:none; position:absolute;  } /* subitems */
+ul.menu > li li, .actions > ul > li li { display:block; } /* subitems */
 
-/*  nav > ul li:hover > ul { display:block; } /\* subitems hover *\/ */
+/*  ul.menu li:hover > ul { display:block; } /\* subitems hover *\/ */
 
-nav > ul li.hovering > ul, .actions > ul li.hovering > ul  { display:inline-block; } /* subitems hover */
+ul.menu li.hovering > ul, .actions > ul li.hovering > ul  { display:inline-block; } /* subitems hover */
 
 /* style of items */
 
-nav {
-    display: inline-block;
-    vertical-align: middle;
-    max-width: calc(100% - 10px);
+.menu { 
+  margin: 0px;
+  padding: 0px;
+  font-size: 1.5em;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: calc(100% - 10px);
 }
 
 
+ul.menu > li{
 
-nav li, .actions li{ 
-    cursor: pointer; 
-} 
-
-nav > ul, .actions > ul {
-    display: inline-block;
-    position: relative;
-    list-style-type: none;
-    vertical-align: middle;
-    
-    z-index: inherit;
+  text-align:left;
+  /* border-top: 1px solid #079907; */
+  
+  border-bottom: 1px solid springgreen;
+  border-left:0px;
+  border-right:0px;
+  box-shadow: .1em .1em .5em rgba(200, 250, 200, .9);
+  
+  background: transparent; /*rgba(140,240,140,.7);*/
+  
+  display: inline-block;
+  transition: background 0.3s;
+  
+  padding-left:.5em;
+  padding-right:.5em;
+  padding-top:.5em;
+  padding-bottom:.5em;
+  
+  font-weight: bold;
+  z-index: inherit;
+  vertical-align: bottom;
 }
 
- nav > ul > li, .actions > ul > li {
-    text-align:left;
-    /* border-top: 1px solid #079907; */
-    
-    border-bottom: 1px solid orange;
-    border-left:0px;
-    border-right:0px;
-    box-shadow: .1em .1em .5em rgba(200, 200, 10, .9);
-
-    background: rgba(70,40,10,.7);
-
-    display: inline-block;
-    transition: background 0.3s;
-
-    padding-left:.5em;
-    padding-right:.5em;
-    padding-top:.5em;
-    padding-bottom:.5em;
-
-    font-weight: bold;
-    z-index: inherit;
-
-    vertical-align: top;
+ul.menu > ul > li:first-child{
+  border-top:0px;
 }
 
- nav > ul.vertical > li {
+ul.menu.vertical > li {
      display: block;
- }
- 
- 
- nav > ul > li.alone{
-     /* border-top: 2px solid #070799; */
-     border-bottom: 1px solid #999900;
-     /* color: #5555AB; */
- }
- 
- nav > ul > li.forbidden{
-     /* border-top: 2px solid #990707; */
-     border-bottom: 1px solid #990707;
-     /* color: #ffbbbb; */
+}
+
+
+ul.menu > li.alone{
+  /* border-top: 2px solid #070799; */
+  border-bottom: 1px solid #aaffaa;
+  /* color: #5555AB; */
+}
+
+ul.menu > li.forbidden{
+  /* border-top: 2px solid #990707; */
+  border-bottom: 1px solid #aaffaa;
+  /* color: #ffbbbb; */
 }
  
  
- nav > ul  li.hovering, .actions > ul li.hovering {
-     background: rgba(210,200,10,.5);
-     transition: all 0.4s;
-     text-shadow: 1px 1px 5px rgba(45, 30, 9, 1.0);
-     color: white;
-     text-wight: bold;
- }
+ul.menu  li.hovering, .actions > ul li.hovering {
+  background: rgba(110,20,110,.5);
+  transition: all 0.4s;
+  text-shadow: 1px 1px 5px rgba(5, 70, 9, 1.0);
+  color: white;
+  text-weight: bold;
+}
  
- nav > ul > li.alone.hovering{
-     background: rgba(110,100,0,.8);
-     transition: background 0.4s;
-     color: #ffffff;
-     text-shadow: 0 1px 1px rgba(20, 10, 20, .9);
- }
- 
- nav > ul > li.forbidden.hovering{
-     color: #ffbbbb;
-     text-shadow: 0 1px 1px rgba(240, 150, 140, .4);
-     
-     /* -webkit-animation: blink .75s linear infinite; */
-     /* -moz-animation: blink .75s linear infinite; */
+ul.menu > li.alone.hovering{
+  background: rgba(110,200,110,.8);
+  transition: background 0.4s;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(20, 40, 20, .9);
+}
+
+ul.menu > li.forbidden.hovering{
+  color: #ffbbbb;
+  text-shadow: 0 1px 1px rgba(200, 250, 200, .4);
+  
+  /* -webkit-animation: blink .75s linear infinite; */
+  /* -moz-animation: blink .75s linear infinite; */
      /* -ms-animation: blink .75s linear infinite; */
      /* -o-animation: blink .75s linear infinite; */
-     /* animation: blink .75s linear infinite; */
-     cursor : wait; 
+  /* animation: blink .75s linear infinite; */
+  cursor : wait; 
+}
+
+
+ 
+/* rounded corners for first and last child */
+
+ul.menu > li:first-child  {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 2px;
+  border-left: 1px solid springgreen;
+  margin-left: .5em;
  }
  
- 
- 
- /* rounded corners for first and last child */
- 
- nav > ul > li:first-child  {
-     border-top-left-radius: 8px;
-     border-bottom-left-radius: 2px;
-     border-left: 1px solid orange;
- }
- 
- nav > ul > li:last-child  {
-     border-bottom-right-radius: 8px;
-     border-top-right-radius: 2px;
-     border-right: 1px solid orange;
- }
- 
+ul.menu > li:last-child  {
+  border-bottom-right-radius: 8px;
+  border-top-right-radius: 2px;
+  border-right: 1px solid springgreen;
+}
+
  
 
  /* style of subitems */
  
- nav > ul ul { 
-     width:180px;
+ul.menu ul { 
+  width:180px;
+  
+  margin-top:1.8em;
+  margin-left:-.8em;
+  border:0px;
+  border-bottom-left-radius: 0.8em;
+  border-bottom-right-radius: 0.8em;
+  
+  /* border: 1px solid #07aa07; */
+  background: rgba(80,5,90,.5);
+/*  box-shadow:0em 0em .4em rgba(200,240,200,0.9); */
+  z-index: inherit;
+}
 
-     margin-top:.5em;
-     margin-left:-7px;
+ul.menu ul>li:first-child  {
 
-     border-bottom-left-radius: 5px;
-     border-bottom-right-radius: 5px;
-     
-     /* border: 1px solid #07aa07; */
-     background: rgba(80,70,10,.9);
-     box-shadow:0em 0em .4em rgba(240,240,40,0.9);
-     z-index: inherit;
- }
- 
- nav > ul.vertical ul { 
-     margin-left:130px;
-     margin-top:-25px;
- }
- nav > ul.vertical ul ul { 
-     margin-left:1px;
-     margin-top:-25px;
- }
- 
- nav > ul > li li{
-     text-align:left;
-     line-height:2em; 
-     color: white;
-     text-shadow: 1px 1px 1px rgba(0, 0, 0, 1.0);
-     border-top: 1px solid rgba(200,255,200,.4);
- }
- nav > ul > li li:first-child{
-     border-top: 0px;
- }
- 
- /* style of level 3+ subitems */
- 
- nav ul ul ul{
+/*  color: orange;  background : -webkit-linear-gradient(rgba(40,40,40,.3), rgba(100,10,100,.4)); */
+  background : -webkit-linear-gradient(rgba(10,10,10,.2), rgba(80,5,90,0.5) );
+  border-top: 0px;
+}
+ul.menu ul>li:first-child:hover  {
+  background : -webkit-linear-gradient(rgba(10,10,10,.2), rgba(110,20,110,1.0) );
+}
+
+ul.menu ul>li:last-child  {
+  border-radius: 0em 0em 0.8em .8em;
+}
+
+ul.menu.vertical ul { 
+  margin-left:130px;
+  margin-top:-25px;
+}
+ul.menu.vertical ul ul { 
+  margin-left:1px;
+  margin-top:-25px;
+}
+
+ul.menu > li li{
+  padding-top: .3em;
+  padding-bottom: .3em;
+  padding-left: 1em;
+  text-align:left;
+  line-height:2em; 
+  color: white;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 1.0);
+  border-top: 1px solid rgba(200,255,200,.4);
+}
+ul.menu > li li:first-child{
+  border-top: 0px;
+}
+
+/* style of level 3+ subitems */
+
+ul.menu ul ul ul{
      left:180px;
      margin-top:-2em; /* same as line-height */
      border-left: 0px;
@@ -194,161 +214,27 @@ nav > ul, .actions > ul {
  
  /* links */
  
- nav a{
-     display:block; /* all  clickable */
-     padding-left:5px;
-     padding-right:5px;
-     z-index: inherit;
+ul.menu a{
+  display:block; /* all  clickable */
+  padding-left:5px;
+  padding-right:5px;
+  z-index: inherit;
  }
- 
- /*  nav a:hover{ */
- /*     color:#88feaa; */
- /* } */
-  /*  nav > ul ul a:hover{ */
- /* } */
- 
-
-
-
 
 /* arrows if there are submenus */
 
- nav>ul li > a:after { 
-    content: '▸';
-    margin-left:15px;
+ul.menu> li > a:after { 
+  content: '▸';
+  margin-left:15px;
 }
 
- nav>ul > li > a:after { 
-    content: '▾'; 
-    
+ul.menu> li > a:after { 
+  content: '▾'; 
+  
 }
 
- nav>ul li > a:only-child:after {
-    content: ''; /* only who have childs */
-}
-
-
-/**********************/
-/* section.child menu */
-/**********************/
-
-.childs > nav {
-
-    overflow-x: auto; 
-    white-space: nowrap; 
- 
-    font-size: 1.2em;
-}
-
-/* positioning and display of items and subitems: */
-/* items arranged horizontally with buttons controls on hover */
-
-.childs > nav > ul > li { 
-    display: inline-block;
-    font-weight: bold;
-
-    line-height:2em;    
-
-    border-left:1px solid #888;
-    border-radius:.5em .5em .5em .5em;
-
-    box-shadow:1px -1px 1px #ccc;
-    margin-top:0px;
-    margin-right:15px;
-    padding:2px;
-
-} /* items */
-
-
-.childs > nav > ul > li:first-child { 
-    border-bottom-left-radius: 1em;
-} /* items */
-
-
-.childs > nav > ul > li > a{ 
-    padding-right : 2em;
-    
-} /* items */
-
-
-/* style of subitems */
-
-
-.childs > nav > ul > li  ul { 
-
-    /* display:none; */
-
-    background:transparent;
-    box-shadow:none;
-    border: none;
-    width:auto;
-    height:auto;
-    margin:0px;
-    padding:0px;
-    margin-left:-2.7em;
-
-} /* subitems (buttons) */
-
-.childs > nav > ul > li  li { 
-    width:auto;
-    height:auto;
-    display:inline-block; 
-    margin:0px;
-    padding:0px;
-
-} /* subitems (buttons) */
-
-.childs > nav > ul li:hover > ul { display:inline-block; }
-
-
-.childs li.selected{
-    background:#aa2020;
-    color: white;
-}
-
-.childs nav > ul > li li{
-     line-height:inherit; 
- }
-
-.childs > nav > ul > li:hover{
-    /* box-shadow:2px -2px 1px rgba(153,51,69,0.3); */
-    background: rgba(90,10,10,0.8);
-    color: white;
-    transition: background 0.5s;
-    cursor: pointer;
-}
-
-
-
-
-/*  section> nav > ul > li{  */
-/* /\*     display:inline-block; all  clickable *\/ */
-/*      padding:3px 2px 0px 5px;  */
-/*      background: yellow; */
-/* /\*     color: white; *\/ */
-/* /\*     text-decoration:none; *\/ */
-/* }  */
-
-.childs > nav a{
-    display: inline-block;
-}
-
-.childs > nav a:hover{
-    font-weight: bold;
-/*     color:rgb(153,51,69); */
-} 
-
-
-.childs > nav > ul li > a:after { 
-    content: '';
-}
-
-.childs > nav > ul > li > a:after { 
-    content: ''; 
-}
-
- nav>ul li > a:only-child:after {
-    content: ''; 
+ul.menu> li > a:only-child:after {
+  content: ''; /* only who have childs */
 }
 
 

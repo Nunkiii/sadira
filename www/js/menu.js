@@ -98,9 +98,10 @@ menu_item.prototype.remove_item=function(item){
 menu_item.prototype.set_root=function(opts){
     
     this.has_subitems();
-
+    this.ul.className="menu";
     if(typeof opts!='undefined' && typeof   opts.cls!='undefined')
-	this.ul.className=opts.cls;
+	this.ul.className+=" "+opts.cls;
+
     //this.ul.id="nav";
     
 }
