@@ -111,7 +111,9 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 }
 
 template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
+
     var ui=tpl_item.ui=ce("ul");
+
     ui.className="labelled_vector";
     tpl_item.inputs=[];
 
@@ -300,8 +302,10 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
+
 	tpl_item.get_value=function(){return tpl_item.value;}
 	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.value=tpl_item.value}
+
 	ui.addEventListener("change",function(){
 	    tpl_item.value=this.value*1.0; 
 	    if(tpl_item.onchange){
@@ -550,8 +554,16 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     
     cui.addEventListener("change", function() {
 	console.log("Color changed !!!!!");
-        ui.style.backgroundColor = cui.value;    
+        ui.style.backgroundColor = cui.value;
+	tpl_item.value=cui.value;
+
+	if(tpl_item.onchange){
+	    tpl_item.onchange();
+	}
+
+	
     },false);
+
     ui.style.backgroundColor = cui.value;    
     
     tpl_item.set_value=function(nv){

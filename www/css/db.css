@@ -56,8 +56,12 @@ label{
   padding-bottom:.5em;
   display: inline-block;
   width: auto;
+}
+
+.db input[type="number"]{
   max-width: 6em;
 }
+
 
 .db input[type="checkbox"]{
  /* Double-sized Checkboxes */

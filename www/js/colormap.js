@@ -507,6 +507,8 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	    var start=this.value[cid-1][4];
 	    var end=this.value[cid][4];
+	    
+	    
 	    var range=end-start;
 
 	    console.log("color sec : " + cid + " start " + start*1.0 );
@@ -514,29 +516,63 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    this.select_div.style.width=this.domnode.offsetWidth*range-2+"px";
 	    this.select_div.style.left=this.domnode.offsetWidth*start+"px";
 
-	    var left=this.edit_tpl.elements.left.elements;
-	    var right=this.edit_tpl.elements.right.elements;
-	    
-	    left.frac.set_value(start);
-	    right.frac.set_value(end);
+	    var ol=this.edit_tpl.elements.outleft;
+	    var il=this.edit_tpl.elements.inleft;
+	    var ir=this.edit_tpl.elements.inright;
+	    var or=this.edit_tpl.elements.outright;
+
+	    var rng=this.edit_tpl.elements.range;
+
+	    var blendl=this.edit_tpl.elements.blendl;
+	    var blendr=this.edit_tpl.elements.blendr;
+
+	    var uniform=this.edit_tpl.elements.uniform;
+	    var split=this.edit_tpl.elements.split;
+
+	    rng.set_value([start, end]);
 
 	    console.log("Settng color " + hex_color(this.value[cid-1]));
 
-	    left.outcol.set_value(hex_color(this.value[cid-1]));
-	    right.outcol.set_value(hex_color(this.value[cid]));
+	    ol.set_value(hex_color(this.value[cid-1]));
+	    or.set_value(hex_color(this.value[cid]));
 
 	    if(cid-2>0){
 		if(this.value[cid-2][4]==start){ //non-blend
-		    left.blend.ui_root.style.display="inline-block";
-		    left.uniform.ui_root.style.display="none";
+		    blendl.ui_root.style.display="inline-block";
+		    uniform.ui_root.style.display="none";
+		    il.ui_root.style.display="inline-block";
+		    il.set_value(hex_color(this.value[cid-1]));
+		    ol.set_value(hex_color(this.value[cid-2]));
 		}else{
-		    left.blend.ui_root.style.display="none";
-		    left.uniform.ui_root.style.display="inline-block";
-
+		    blendl.ui_root.style.display="none";
+		    uniform.ui_root.style.display="inline-block";
+		    il.ui_root.style.display="none";
 		}
 	    }else{
-		    left.blend.ui_root.style.display="none";
+		blendl.ui_root.style.display="none";
+		ol.set_value(hex_color(this.value[cid-1]));
 	    }
+
+
+	    if(cid+1<this.value.length){
+		if(this.value[cid+1][4]==end){ //non-blend
+		    blendr.ui_root.style.display="inline-block";
+		    uniform.ui_root.style.display="none";
+		    ir.ui_root.style.display="inline-block";
+		    ir.set_value(hex_color(this.value[cid]));
+		    or.set_value(hex_color(this.value[cid+1]));
+		}else{
+		    blendr.ui_root.style.display="none";
+		    uniform.ui_root.style.display="inline-block";
+		    ir.ui_root.style.display="none";
+		    or.set_value(hex_color(this.value[cid]));
+		}
+	    }else{
+		blendr.ui_root.style.display="none";
+		or.set_value(hex_color(this.value[cid]));
+		ir.ui_root.style.display="none";
+	    }
+
 	    
 	}
 	
