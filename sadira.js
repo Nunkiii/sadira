@@ -494,8 +494,9 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 //Main HTTP request handling function
 
 _sadira.prototype.handle_request= function(request, response){
+
     var headers ={};
-    
+    console.log("REQ ON");
     if(request.method=='POST') {
 	sadira.process_post_request(request, response, headers);
     }else
@@ -505,6 +506,8 @@ _sadira.prototype.handle_request= function(request, response){
     else{
 	console.log("Unhandled request");
     }    
+
+    console.log("REQ OFF");
 }
 
 //Creates the http servers 
@@ -620,34 +623,25 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
     });
 }
 
-_sadira.prototype.initialize_dialogs=function(){
+
+_sadira.prototype.initialize_handlers=function(packname){
     var sad=this;
     var cwd=process.cwd();
-    for(w=0;w<sad.options.dialogs.length;w++){
-	var dialog_file = sad.options.dialogs[w];
-	console.log("Init dialog ["+dialog_file+"]");
-	var wpack=require(cwd+"/"+dialog_file);
-	var initf=wpack.init_dialog;
-	
+    var pkg=sad.options[packname];
+    for(w=0;w<pkg.length;w++){
+	var pkg_file = pkg[w].file;
+	console.log("Init "+packname+" : ["+pkg_file+"]");
+	var wpack=require(cwd+"/"+pkg_file);
+
+	var initf=wpack.init;
+
 	if(typeof initf != 'undefined')
-	    initf();
+	    initf(pkg[w]);
+	else{
+	    console.log("No pkg init function!");
+	}
     }
 }
-
-_sadira.prototype.initialize_handlers=function(){
-    var sad=this;
-    var cwd=process.cwd();
-    for(w=0;w<sad.options.handlers.length;w++){
-	var dialog_file = sad.options.handlers[w];
-	console.log("Init handler ["+dialog_file+"]");
-	var wpack=require(cwd+"/"+dialog_file);
-	var initf=wpack.init_handler;
-	
-	if(typeof initf != 'undefined')
-	    initf();
-    }
-}
-
 
 
 //Main global sadira instance
@@ -661,8 +655,8 @@ try{
     GLOBAL.post_handlers = {};
     GLOBAL.dialog_handlers = {};
 
-    sadira.initialize_dialogs();
-    sadira.initialize_handlers();
+    sadira.initialize_handlers("handlers");
+    sadira.initialize_handlers("dialogs");
 
     sadira.start();
 }
