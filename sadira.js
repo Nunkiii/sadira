@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
-// Do what you want with this file.
 
 var fs = require("fs");
 var http = require('http');
@@ -12,11 +11,6 @@ var url = require("url");
 var path = require("path");
 var BSON=bson().BSON;
 
-// var session=require('./session')
-// var events=require('./events');
-
-
-//var aurora=require('./aurora');
 
 //The various content types we handle and their associated mime types. 
 //The second boolean array member is used to specify a cache http header is appended for this file type.
@@ -88,7 +82,7 @@ var _sadira = function(){
     var sad=this;
 
     var argv = require('minimist')(process.argv.slice(2));
-    console.dir(argv);
+    //console.dir(argv);
     
     sad.options={
 	http_port: 9999, 
@@ -107,7 +101,7 @@ var _sadira = function(){
     if(typeof argv['cf'] != 'undefined' ) {
 	try{
 	    var cfpath=argv['cf'];
-	    console.log("Parsing json config file ["+ cfpath+ "]");
+	    //console.log("Parsing json config file ["+ cfpath+ "]");
 	    option_string=fs.readFileSync(cfpath);
 	}
 	catch(e){
@@ -121,7 +115,7 @@ var _sadira = function(){
     
     if(option_string){
 	try{
-	    console.log("Parsing ["+option_string+"]");
+	    //console.log("Parsing ["+option_string+"]");
 	    var jcmdline =JSON.parse(option_string);
 	    for(var p in jcmdline) 
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
@@ -141,11 +135,10 @@ var _sadira = function(){
 //    sad.ncpu = require('os').cpus().length;
     sad.ncpu = 1; //Using a single thread for now.
 
+    sad.html_rootdir=process.cwd()+'/www'; //This is the root directory for all the served files.
 
-    
 
-
-    if(sad.cluster.isMaster) console.log("Options are " + JSON.stringify(sad.options, null, 4));
+    if(sad.cluster.isMaster) console.log("Master: options are " + JSON.stringify(sad.options, null, 4));
     //Creating event master
     //this.event_master=new events.event_manager();	
 } 
@@ -378,8 +371,9 @@ _sadira.prototype.error_404=function(response, uri, cb){
     fs.readFile("www/404.html", "binary", function(err, file) {
 	
 	if(err) {        
-	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("File not found. And there is also a bug in sadira : " + err);
+	    response.writeHead(404, {"Content-Type": "text/plain"});
+	    response.write("404.html file not found, but this is a true 404 Error : not found :  " + uri);
+	    cb();
 	    return;
 	}
 	
@@ -426,62 +420,6 @@ _sadira.prototype.message=function(md, reply){
 
 }
 
-/*
-//Creates the global events (Those who are sent to all sessions)
-
-_sadira.prototype.create_events=function(){
-    this.event_master.create_event("messages");
-}
-*/
-
-//Sends a message event to all connected widgets.
-
-_sadira.prototype.broadcast_message=function(message_text){
-    this.send_process_message("event_master", { cmd : "send_event", event : "messages", time: (new Date()).getTime(), message: message_text });
-}
-
-
-//Checks if the session cookie is set. 
-//If not, creates a new user-session and sets the session cookie.
-
-_sadira.prototype.check_user_session= function(headers, sid){
-
-    if(this.cluster.isWorker){
-	//console.log('Checking session with master...');
-    }
-
-    // for(var i=0;i<request.cookies.length;i++){
-    // 	if(request.cookies[i].name=='sadira_session'){
-    // 	    sid=request.cookies[i].value;
-    // 	}
-    // }
-    //console.log(ncook + " cookies : ", JSON.stringify(cookies));
-
-    var s=null;
-
-    if(sid==null){
-	
-	console.log('New connexion : setting up a new cookie !');
-	s = this.create_user_session();
-	if(headers)
-	    headers['Set-Cookie']= 'sadira_session='+ s.session_id;
-	
-    }else{
-	
-	s = this.get_user_session(sid);
-	
-	if(s==null){
-	    s = this.create_user_session(sid);
-	    console.log('Cannot find the user session ' + sid + ' ? setting up a new one : ' + s.session_id);
-	    if(headers)
-		headers['Set-Cookie']= 'sadira_session='+ s.session_id;
-	}
-    }
-    
-    return s;
-    
-    //return headers;
-}
 
 //Processing of all the HTTP GET requests
 
@@ -498,12 +436,11 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 
     //From here the server is behaving as a simple file server.
     
-    var html_rootdir=process.cwd()+'/html'; //This is the root directory for all the served files.
 
     //Here we should detect if the user is not trying to get something like ../../etc/passwd  
     //It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 
-    var filename = path.join(html_rootdir, uri); 
+    var filename = path.join(this.html_rootdir, uri); 
     
     path.exists(filename, function(exists) {
 	
@@ -558,26 +495,6 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 
 _sadira.prototype.handle_request= function(request, response){
     var headers ={};
-
-    /*
-    var sad=this;
-    var sid=null;
-    
-    request.headers.cookie && request.headers.cookie.split(';').forEach(function( cookie ) {
-     	var parts = cookie.split('=');
-     	//cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim();
-	
-	if(parts[ 0 ].trim() == "sadira_session")
-	    sid = ( parts[ 1 ] || '' ).trim();
-	
-     	//ncook++;
-    });
-
-    //attach the user session to the request so that handlers know who is requesting !
-
-    request.session=sadira.check_user_session(headers, sid); 
-    request.session.session_last_activity=(new Date()).getTime();    
-    */
     
     if(request.method=='POST') {
 	sadira.process_post_request(request, response, headers);
@@ -654,41 +571,9 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 	cnx.dialogs=new DLG.dialog_manager(cnx); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
 
 	var user_session=null;
-
-	//console.log("Request : " + jstringify(request));
-	/*
-	function get_session_from_cookie(cookies){
-	    for(var i=0;i<cookies.length;i++){
-		if(cookies[i].name=='sadira_session'){
-		    return cookies[i].value;
-		}
-	    }
-	    return null;
-	}
-
-	var sid=get_session_from_cookie(request.cookies);
-	
-	if(sid==null){
-	    
-	}
-
-
-	user_session=sad.session_slave.check_user_session(null, sid);
-
-	if(sid==null || user_session==null){
-	    console.log("No sadira cookie/session, closing the websocket!");
-	    send_alert_message(cnx,"You must accept our session cookie for this web-interface to function, sorry");
-	    cnx.close();
-	    return;
-	}
-	*/
 	cnx.request=request;
 	
-	//user_session.add_socket(cnx);
-	
 	// Incoming message from web client
-
-	
 
 	cnx.on('message', function(message) {
 	    
@@ -698,14 +583,11 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 
 		var dgram=new DGM.datagram();
 		
-		if (message.type === 'utf8') { 
-		    console.log("UTFFF [" + message.utf8Data+"]");
+		if (message.type === 'utf8') { //Ascii
 		    dgram.set_header(JSON.parse(message.utf8Data));
-		    console.log("UTFFF");
 		}
 		else if (message.type === 'binary') { //Binary
 		    //console.log('received bin message size=' + message.binaryData.length + ' bytes.');
-		    
 		    dgram.deserialize(message.binaryData);
 		    
 		}else{
@@ -718,8 +600,7 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 	    }
 	    
 	    catch (e){
-		
-		console.log("DGRAM EXCEPTION : "+ dump_error(e));
+		console.log("Datagram read error : "+ dump_error(e));
 		return;
 	    }
 	    
@@ -732,13 +613,8 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 	// socket disconnected
 	
 	cnx.on('close', function(closeReason, description) {
+	    cnx=null;
 	    return;
-
-	    if(user_session!=null){
-		user_session.remove_socket(cnx, closeReason, description);
-	    }
-	    else
-		console.log('Bug while closing socket cnx : session is null ! ');
 	});
 	
     });
@@ -746,12 +622,26 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 
 _sadira.prototype.initialize_dialogs=function(){
     var sad=this;
-
+    var cwd=process.cwd();
     for(w=0;w<sad.options.dialogs.length;w++){
 	var dialog_file = sad.options.dialogs[w];
 	console.log("Init dialog ["+dialog_file+"]");
-	var wpack=require(dialog_file);
+	var wpack=require(cwd+"/"+dialog_file);
 	var initf=wpack.init_dialog;
+	
+	if(typeof initf != 'undefined')
+	    initf();
+    }
+}
+
+_sadira.prototype.initialize_handlers=function(){
+    var sad=this;
+    var cwd=process.cwd();
+    for(w=0;w<sad.options.handlers.length;w++){
+	var dialog_file = sad.options.handlers[w];
+	console.log("Init handler ["+dialog_file+"]");
+	var wpack=require(cwd+"/"+dialog_file);
+	var initf=wpack.init_handler;
 	
 	if(typeof initf != 'undefined')
 	    initf();
@@ -764,26 +654,20 @@ _sadira.prototype.initialize_dialogs=function(){
 
 
 try{
+
     GLOBAL.sadira = new _sadira();
+
     GLOBAL.get_handlers = {};
     GLOBAL.post_handlers = {};
     GLOBAL.dialog_handlers = {};
 
     sadira.initialize_dialogs();
-/*    
-    var geths = require('./get_handlers.js');
-    var posts = require('./post_handlers.js');
-
-    var widgets=require('./widgets.js');
-    var dialogs=require('./dialogs.js');
-    
-    widgets.initialize_widgets();
-    dialogs.initialize_dialogs();
-*/
+    sadira.initialize_handlers();
 
     sadira.start();
 }
 
 catch (e){
     console.log('Very bad error at startup, cannot start sadira : ' + dump_error(e) );
+    process.exit(1);
 }
