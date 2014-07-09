@@ -1,4 +1,4 @@
-/* Quarklib, 2003-2014, PG Sprimont. */
+/* Quarklib, 2001-2014, PG Sprimont. */
 
 function hex2rgb(hex) {
   
@@ -163,10 +163,12 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     cmap.domnode.className="colormap";
     
     switch (ui_opts.type){
+
     case "short":
 	cmap.ui=cmap.domnode;
-      break;
+	break;
     case "edit": 
+	
 	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
 	
 	var o=[etpl.elements.outleft,etpl.elements.outright];
@@ -175,23 +177,54 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	var rng=etpl.elements.range;
 	var uniform=etpl.elements.uniform;
 	var split=etpl.elements.split;
+	var selected_section;
 
+	rng.onchange=function(){
+	    
+	}
+    
 	function select_section(cid){
-	    if(cmap.selected_section!=cid){
+	    if(selected_section!=cid){
 		cmap.display_color_section(cid);
 		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
 	    }
 	}
 
+	function update_range(){
+	    
+	}
+	
+	split.onclick=function(){
+	    var cid=selected_section;
+	    var newc=[0,0,0,0,0];
+	    for(var c=0;c<5;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid][c]);
+	    cmap.value.splice(cid,0,newc);
+	    cmap.update_colors();
+	    cmap.display_color_section(cid);
+	}
+
 	b[0].onchange=function(){
+	    var cid=selected_section;
+
 	    if(this.value){
-		console.log("blending left");
+		var newc=[0,0,0,0,cmap.value[cid-1][4]];
+		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid-2][c]);
+		cmap.value.splice(cid-2,1);
+		cmap.value[cid-2]=newc;
+		cmap.display_color_section(cid-1);
+	    }else{
+		var newc=[0,0,0,0,cmap.value[cid-1][4]];
+		for(var c=0;c<4;c++) newc[c]=cmap.value[cid-1][c];
+		cmap.value.splice(cid-2,0,newc);
+		cmap.display_color_section(cid);
 	    }
+	    cmap.update_colors();
+
 	}
 
 	b[1].onchange=function(){
-	    var cid=cmap.selected_section;
-	    
+	    var cid=selected_section;
+
 	    if(this.value){
 		var newc=[0,0,0,0,cmap.value[cid][4]];
 		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid][c]+cmap.value[cid+1][c]);
@@ -247,9 +280,11 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    
 
 	}, true);
-	
+
+
 	cmap.display_color_section = function (cid){
-	    this.selected_section=cid; 
+
+	    selected_section=cid; 
 
 	    var start=this.value[cid-1][4];
 	    var end=this.value[cid][4];
@@ -262,11 +297,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    this.select_div.style.width=this.domnode.offsetWidth*range-2+"px";
 	    this.select_div.style.left=this.domnode.offsetWidth*start+"px";
 
-
 	    rng.set_value([start, end]);
-
-	    console.log("Settng color " + hex_color(this.value[cid-1]));
 	    
+	    
+
 	    for(var d=0;d<2;d++){	    
 		o[d].si=-1;
 		i[d].si=-1;
@@ -277,28 +311,31 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	    var blend=[true,true];
 	    uniform.ui_root.style.display="none";
+	    console.log("CID= " + cid);
+
+	    if(cid-1>0) b[0].ui_root.style.display="inline-block";
+	    else b[0].ui_root.style.display="none";
+	    if(cid+1<this.value.length) b[1].ui_root.style.display="inline-block";
+	    else b[1].ui_root.style.display="none"; 
 
 	    if(cid-2>0){
-		b[0].ui_root.style.display="inline-block";
 		if(this.value[cid-2][4]==start){ 
 		    blend[0]=false; 
 		    o[0].si=cid-2;
 		    i[0].si=cid-1;
 		}else o[0].si=cid-1;
 	    } else{
-		b[0].ui_root.style.display="none";
 		o[0].si=cid-1;
 	    }
 
 	    if(cid+1<this.value.length){
-		b[1].ui_root.style.display="inline-block";
 		if( this.value[cid+1][4]==end) { 
 		    blend[1]=false;
 		    i[1].si=cid;
 		    o[1].si=cid+1;
 		}else o[1].si=cid;
 	    }else{
-		b[1].ui_root.style.display="none";
+		
 		o[1].si=cid;
 	    }
 	    
