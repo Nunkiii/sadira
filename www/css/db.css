@@ -29,6 +29,10 @@ label{
   margin: .1em;
 } 
 
+.db .disabled { 
+  display: none;
+} 
+
 .root{
   display: inline-block;
   font-weight: bold;
