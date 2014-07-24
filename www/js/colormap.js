@@ -43,7 +43,15 @@ function hex_color(c) {
 
 template_ui_builders.colormap=function(ui_opts, cmap){
     
+    
+    var o,i,
+    b,
+    rng,
+    uniform,
+    split;
+
     cmap.color_sections = [];
+
     cmap.domnode=ce('div');
     
     cmap.mousexstart=0;
@@ -53,48 +61,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     cmap.selected_element=null;
     cmap.selected_section=0;
 
-    
-
-/*   
-    cmap.domnode.onmousemove = function(e) {
-	if(cmap.mousemove){
-	    cmap.mouse_object.update_mouse(e);
-	    cmap.update_callback();
-	}
-    }
-    cmap.domnode.onmouseup = function(e) {
-	//console.log("Mouse UP ???");
-	if(cmap.mousemove){
-	    //console.log("Mouse UP !");
-	    cmap.mouse_done(e);	    
-	}
-    }
-
-    cmap.mouse_done = function(e){
-	
-	//console.log("Mouse done ...");
-	if(this.mouse_object!=null){
-	    console.log("Mouse done ..." + this.mouse_object.debug() );
-	    this.mouse_object.update_mouse(e);
-	    this.mousemove=0;
-	    this.mouse_object=null;
-	    this.update_callback();
-	}
-    }
-    
-    cmap.select_element=function(e){
-	//console.log("Selecting "+ e.debug());
-	e.update_color_selection();
-	this.selected_element=e;
-    }
-    
-    cmap.move=function(x,y,w,h){
-	this.domnode.marginLeft=x+'px';
-	this.domnode.marginTop=y+'px';
-	this.domnode.style.width=w+'px';
-	this.domnode.style.height=h+'px';
-    }
-  */
 
     cmap.set_hex_color = function(cid, color){
 	var rbgc=hex2rgb(color);
@@ -106,7 +72,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     
   
     cmap.write_gradient_css_string=function(){
-	console.log("writing css gradient nc=" +this.value.length );
+
 	var cstr='linear-gradient(to right';
 
 	for (var i=0;i<this.value.length;i++){
@@ -131,6 +97,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	return;
 	}
 	console.log("Display " + this.value.length + " colors....");
+
 	this.domnode.innerHTML="Hello Colormap!";	
 	//this.domnode.style.width=200+"px";
 	//this.domnode.style.height=40+"px";
@@ -158,8 +125,80 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	
     }
 
+    cmap.display_color_section = function (cid){
+	
+	if(typeof rng=='undefined') return;
 
-    console.log("Hello cmap build!");
+	selected_section=cid; 
+	
+	var start=this.value[cid-1][4];
+	var end=this.value[cid][4];
+	
+	
+	var range=end-start;
+	
+	console.log("color sec : " + cid + " start " + start*1.0 );
+	
+	this.select_div.style.width=this.domnode.offsetWidth*range-2+"px";
+	this.select_div.style.left=this.domnode.offsetWidth*start+"px";
+	
+	rng.set_value([start, end]);
+	
+	for(var d=0;d<2;d++){	    
+	    o[d].si=-1;
+	    i[d].si=-1;
+	}
+	
+	//ol.set_value(hex_color(this.value[cid-1]));
+	//or.set_value(hex_color(this.value[cid]));
+	
+	var blend=[true,true];
+	uniform.ui_root.style.display="none";
+	
+	b[0].enable(cid-1>0);
+	b[1].enable(cid+1<this.value.length);
+
+	rng.inputs[0].enable(cid-1>0);
+	rng.inputs[1].enable(cid+1<this.value.length);
+	
+	if(cid-2>0){
+	    if(this.value[cid-2][4]==start){ 
+		blend[0]=false; 
+		o[0].si=cid-2;
+		i[0].si=cid-1;
+	    }else o[0].si=cid-1;
+	} else{
+	    o[0].si=cid-1;
+	}
+	
+	if(cid+1<this.value.length){
+	    if( this.value[cid+1][4]==end) { 
+		blend[1]=false;
+		i[1].si=cid;
+		o[1].si=cid+1;
+	    }else o[1].si=cid;
+	}else{
+	    
+	    o[1].si=cid;
+	}
+	
+	
+	for(var d=0;d<2;d++){
+	    
+	    o[d].enable(o[d].si>=0);
+	    i[d].enable(i[d].si>=0);
+
+	    if(o[d].si>=0)
+		o[d].set_value(hex_color(this.value[o[d].si]));
+	    
+	    if(i[d].si>=0)
+		i[d].set_value(hex_color(this.value[i[d].si]));
+
+	    b[d].set_value(blend[d]);
+	}
+	
+    }
+    
     cmap.domnode.className="colormap";
     
     switch (ui_opts.type){
@@ -171,20 +210,28 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	
 	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
 	
-	var o=[etpl.elements.outleft,etpl.elements.outright];
-	var i=[etpl.elements.inleft,etpl.elements.inright];
-	var b=[etpl.elements.blendl,etpl.elements.blendr];
-	var rng=etpl.elements.range;
-	var uniform=etpl.elements.uniform;
-	var split=etpl.elements.split;
-	var selected_section;
+	o=[etpl.elements.outleft,etpl.elements.outright];
+	i=[etpl.elements.inleft,etpl.elements.inright];
+	b=[etpl.elements.blendl,etpl.elements.blendr];
+	rng=etpl.elements.range;
+	uniform=etpl.elements.uniform;
+	split=etpl.elements.split;
+	
 
-	rng.onchange=function(){
+	rng.onchange=function(id){
+	    var cid=selected_section;
+	    var bn=[0,1];
 	    
+	    if(cid>1) bn[0]=cmap.value[cid-1][4];
+	    if(cid<cmap.value.length) bn[1]=cmap.value[cid+1][4];
+	    
+	    cmap.value[cid-1][4]=this.value[0];
+	    cmap.value[cid][4]=this.value[1];
+	    cmap.update_colors();	    
 	}
     
 	function select_section(cid){
-	    if(selected_section!=cid){
+	    if(cmap.selected_section!=cid){
 		cmap.display_color_section(cid);
 		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
 	    }
@@ -215,7 +262,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    }else{
 		var newc=[0,0,0,0,cmap.value[cid-1][4]];
 		for(var c=0;c<4;c++) newc[c]=cmap.value[cid-1][c];
-		cmap.value.splice(cid-2,0,newc);
+		cmap.value.splice(cid-1,0,newc);
 		cmap.display_color_section(cid);
 	    }
 	    cmap.update_colors();
@@ -275,87 +322,14 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 		console.log("Bug here ! cid=" + cid);
 		return;
 	    }
-
+	    
 	    select_section(cid);
 	    
-
+	    
 	}, true);
+	
 
-
-	cmap.display_color_section = function (cid){
-
-	    selected_section=cid; 
-
-	    var start=this.value[cid-1][4];
-	    var end=this.value[cid][4];
-	    
-	    
-	    var range=end-start;
-
-	    console.log("color sec : " + cid + " start " + start*1.0 );
-
-	    this.select_div.style.width=this.domnode.offsetWidth*range-2+"px";
-	    this.select_div.style.left=this.domnode.offsetWidth*start+"px";
-
-	    rng.set_value([start, end]);
-	    
-	    
-
-	    for(var d=0;d<2;d++){	    
-		o[d].si=-1;
-		i[d].si=-1;
-	    }
-
-	    //ol.set_value(hex_color(this.value[cid-1]));
-	    //or.set_value(hex_color(this.value[cid]));
-
-	    var blend=[true,true];
-	    uniform.ui_root.style.display="none";
-	    console.log("CID= " + cid);
-
-	    if(cid-1>0) b[0].ui_root.style.display="inline-block";
-	    else b[0].ui_root.style.display="none";
-	    if(cid+1<this.value.length) b[1].ui_root.style.display="inline-block";
-	    else b[1].ui_root.style.display="none"; 
-
-	    if(cid-2>0){
-		if(this.value[cid-2][4]==start){ 
-		    blend[0]=false; 
-		    o[0].si=cid-2;
-		    i[0].si=cid-1;
-		}else o[0].si=cid-1;
-	    } else{
-		o[0].si=cid-1;
-	    }
-
-	    if(cid+1<this.value.length){
-		if( this.value[cid+1][4]==end) { 
-		    blend[1]=false;
-		    i[1].si=cid;
-		    o[1].si=cid+1;
-		}else o[1].si=cid;
-	    }else{
-		
-		o[1].si=cid;
-	    }
-	    
-		
-	    for(var d=0;d<2;d++){
-		if(o[d].si>=0){
-		    o[d].ui_root.style.display="inline-block"; 
-		    o[d].set_value(hex_color(this.value[o[d].si]));
-		}else o[d].ui_root.style.display="none";
-		    
-		if(i[d].si>=0){
-		    i[d].ui_root.style.display="inline-block"; 
-		    i[d].set_value(hex_color(this.value[i[d].si]));
-		} else i[d].ui_root.style.display="none";
-		
-		b[d].set_value(blend[d]);
-	    }
-	    
-	}
-
+	
 	break;
     default: 
 	throw "Unknown UI type ";
