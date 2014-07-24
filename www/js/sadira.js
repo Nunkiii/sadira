@@ -5,6 +5,7 @@
 var server_prefix="";
 var sadira_prefix="";
 var widget_prefix="";
+
 var cnx_status=null;
 
 function set_connexion_status(state, msg){
@@ -32,31 +33,19 @@ var sadira = function(parameters, on_error, on_connect) {
 
     //this.root_widget=new widget.base(); //The dummy widget created at startup time.
     this.page_widget=null; //The main widget.
-    this.wsock=null; //The (main) websocket.
-    
+
     //Making link to the WebSocket server and handling of the socket events
     
     this.initiate_connexion = function(on_error, on_connect){
-
-	window.WebSocket = window.WebSocket || window.MozWebSocket;
-	
-	//Checking web socket support 
-	
-	if (!window.WebSocket) {
-	    var emsg="Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser";
-	    set_connexion_status("error", emsg);
-            return on_error(emsg);
-	}
 	
 	//Checking web storage support 
 	
 	if(typeof(Storage)=="undefined"){ 
-	    var emsg="Sorry, you are using a (very) old browser without web storage support, we cannot continue.<br>Please install a modern web browser ";
+	    var emsg="Sorry, you need a browser with webstorage support. ";
 	    set_connexion_status("error", emsg);
             return on_error(emsg);
 	}
 	
-	var ws_host;
 
 	if(typeof parameters.server=='undefined'){
 	    if(document.location.protocol == "http:")
@@ -87,24 +76,43 @@ var sadira = function(parameters, on_error, on_connect) {
 	//set_connexion_status("unknown","Connecting to <pre>" + JSON.stringify(location,null,3) + "</pre>" );
 	
 	set_connexion_status("unknown","Connecting to " + ws_host + " ..." );
+
+	var wsock=null; //The (main) web(rtc)socket.
+
+	if(!parameters.mode) parameters.mode="webrtc"; 
 	
-	wsock = new WebSocket(ws_host);
-	
-	wsock.binaryType = "arraybuffer";
-	
-	wsock.set_status = function (e){
-	    var m=""; if(typeof e != 'undefined') m=e;
-	    var status_string="Unknown state";
-	    switch(this.readyState){
-	    case 0: set_connexion_status("error","Not connected "+m);break;
-	    case 1: set_connexion_status("success","Connected to " + ws_host + " " + m);break;
-	    case 2: set_connexion_status("unknown","Closing connection ... "+m);break;
-	    case 3: set_connexion_status("warning","Connection closed"+m);break;
-	    default: set_connexion_status("error","Unknown state?" +m);break;
-		
-	    }
+	if(parameters.mode=="webrtc"){
+
+	    var datachannel_opts = {
+		ordered: false, // do not guarantee order
+		maxRetransmitTime: 3000, // in milliseconds
+	    };
+
+	    wsock=newRTCPeerConnexion('http://localhost');
+
+	    /*
+	    socket.on('news', function (data) {
+		console.log(data);
+		socket.emit('my other event', { my: 'data' });
+	    });
+	    */
+
+	}else{
+
+	    window.WebSocket = window.WebSocket || window.MozWebSocket;
 	    
+	//Checking web socket support 
+	    
+	    if (!window.WebSocket) {
+		var emsg="Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser";
+		set_connexion_status("error", emsg);
+		return on_error(emsg);
+	    }
+
+	    wsock = new WebSocket(ws_host);
+	    wsock.binaryType = "arraybuffer";
 	}
+	
 	
 	wsock.onclose = function () {
 	    this.set_status();
