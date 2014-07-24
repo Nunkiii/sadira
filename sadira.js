@@ -88,8 +88,8 @@ var _sadira = function(){
 	http_port: 9999, 
 	https_port: 8888, 
 	raw_port: 7777,
-	websocket_service : true,
-	webrtc_service : true,
+	websocket : true,
+	webrtc : true,
 	dialogs : [],
 	get_handlers : [],
 	post_handlers : []
@@ -145,13 +145,15 @@ var _sadira = function(){
 
 
 _sadira.prototype.start = function (){
+
     var sad=this;
 
     try{
 	//Starting cluster
-	console.log("Starting cluster");
 
 	if (sad.cluster.isMaster) { //This is the main thread
+	    
+	    console.log("Master process : Starting workers");
 	    
 	    //sad.create_events();
 	    // We create the session master 
@@ -165,7 +167,7 @@ _sadira.prototype.start = function (){
 	    if(sad.options.https_port) f+=1;
 
 	    // Fork workers.
-	    console.log("Starting cluster on " + sad.ncpu + " core(s) (f "+f+")...");
+	    console.log("Starting  on " + sad.ncpu + " core(s) (f "+f+")...");
 	    
 	    for (var i = 0; i < sad.ncpu; i++) {
 
@@ -233,6 +235,7 @@ _sadira.prototype.start = function (){
 	    //We create a slave session manager for this thread.
 	    
 	    //sad.session_slave=new session.slave(sad);
+	    console.log("Slave " + sad.cluster.worker.id + " starting ...");
 	    
 	    process.on('message', function(m){ //Handling messages sent to workers
 
@@ -273,6 +276,8 @@ _sadira.prototype.start = function (){
 	    //console.log("Worker "+ sad.cluster.worker.id + " created" );
 	    
 	    sad.create_http_server();
+	    sad.create_websocket_server();
+	    sad.create_webrtc_server();
 	    
 	    /*
 	    sad.send_process_message("session_master", "Hello Master ! All good ?", function (reply){
@@ -526,40 +531,105 @@ _sadira.prototype.create_http_server = function(){
 	};
 
 	this.https_server = require("https").createServer(sad.ssl_data, sad.handle_request).listen(parseInt(sad.options.https_port, 10));
-	sad.create_websocket_server('https');
     }
     if(sad.options.http_port){
 	this.http_server = require("http").createServer(sad.handle_request).listen(parseInt(sad.options.http_port, 10));
-	this.create_websocket_server('http');
     }
     
 }
 
 /**
+ * Creation of the WebRTC server.
+ */
+
+_sadira.prototype.create_webrtc_server=function() {
+
+    var sad=this;
+    
+    if(!sad.options.websocket) return;
+    
+    console.log("Create webRTC server...");
+
+    if(!sad.options.webrtc_port) sad.options.webrtc_port=7777 ;    
+    var io = require('socket.io').listen(sad.options.webrtc_port);
+
+    
+    io.sockets.on('connection', function (cnx) {
+	//socket.emit('news', { hello: 'world' });
+	
+    cnx.dialogs=new DLG.dialog_manager(cnx); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
+
+    cnx.on('message', function (data) {
+      
+      try{
+	
+	//console.log("Incoming message, creating datagram");
+	
+	var dgram=new DGM.datagram();
+	
+	if (message.type === 'utf8') { //Ascii
+	  dgram.set_header(JSON.parse(message.utf8Data));
+	}
+	else if (message.type === 'binary') { //Binary
+	  //console.log('received bin message size=' + message.binaryData.length + ' bytes.');
+	  dgram.deserialize(message.binaryData);
+	  
+	}else{
+	  throw "Unhandled socket message type " + message.type;
+	}
+	//console.log("process datagram " + JSON.stringify(dgram.header));
+	
+	cnx.dialogs.process_datagram(dgram);
+		//console.log("process datagram done");
+      }
+      
+      catch (e){
+	console.log("Datagram read error : "+ dump_error(e));
+		return;
+      }
+	    
+      //var msg_content=m.header.data;
+      //console.log("MESG:" + JSON.stringify(msg_content));
+      
+      
+    });
+    
+    // socket disconnected
+    
+    cnx.on('close', function(closeReason, description) {
+      cnx=null;
+      return;
+    });
+    
+  });
+}  
+
+
+/**
  * Creation of the WebSocket server.
  */
 
-
-
-_sadira.prototype.create_websocket_server=function(http_protocol) {
+_sadira.prototype.create_websocket_server=function() {
 
     var sad=this;
     var webSocketServer = require('websocket').server;
     
     console.log("Create websocket server");
     
-    if(http_protocol=='http')
+    if(sad.http_server){
 	this.ws_server= new webSocketServer({
 	    // WebSocket server is tied to a HTTP server. WebSocket request is just
 	    // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
 	    httpServer: sad.http_server
 	});
-    else
+    }
+    
+    if(sad.https_server){
 	this.ws_server= new webSocketServer({
     	    httpServer: sad.https_server
 	});
+    }
 
-    console.log("CWS created OK");
     // This callback function is called every time someone
     // tries to connect to the WebSocket server
     
@@ -573,7 +643,7 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 
 	cnx.dialogs=new DLG.dialog_manager(cnx); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
 
-	var user_session=null;
+//	var user_session=null;
 	cnx.request=request;
 	
 	// Incoming message from web client
@@ -621,6 +691,7 @@ _sadira.prototype.create_websocket_server=function(http_protocol) {
 	});
 	
     });
+
 }
 
 
@@ -628,6 +699,8 @@ _sadira.prototype.initialize_handlers=function(packname){
     var sad=this;
     var cwd=process.cwd();
     var pkg=sad.options[packname];
+    if(!pkg) return;
+
     for(w=0;w<pkg.length;w++){
 	var pkg_file = pkg[w].file;
 	console.log("Init "+packname+" : ["+pkg_file+"]");
