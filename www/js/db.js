@@ -106,6 +106,41 @@ template_ui_builders.default_after=function(ui_opts, tpl_item){
     }
 }
 
+template_ui_builders.double=function(ui_opts, tpl_item){
+    //console.log("double builder :  " + JSON.stringify(ui_opts));
+    switch (ui_opts.type){
+    case "short":
+	var ui=tpl_item.ui=ce("span");
+	ui.className="value";
+	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.innerHTML=Math.floor(tpl_item.value*1000)/1000;}
+	break;
+    case "edit": 
+	var ui=tpl_item.ui=ce("input");
+	if(ui_opts.input_type)
+	    ui.type=ui_opts.input_type;
+	else
+	    ui.type="number";
+	if(tpl_item.min) ui.min=tpl_item.min;
+	if(tpl_item.max) ui.max=tpl_item.max;
+	if(tpl_item.step) ui.step=tpl_item.step;
+
+	tpl_item.get_value=function(){return tpl_item.value;}
+	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.value=tpl_item.value}
+
+	ui.addEventListener("change",function(){
+	    tpl_item.value=this.value*1.0; 
+	    if(tpl_item.onchange){
+		tpl_item.onchange();
+	    }
+	},false);
+	break;
+    default: 
+	throw "Unknown UI type ";
+    }
+    return tpl_item.ui;
+}
+
+
 template_ui_builders.vector=function(ui_opts, tpl_item){
 
 }
@@ -113,72 +148,52 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
     var ui=tpl_item.ui=ce("ul");
-
+    
     ui.className="labelled_vector";
     tpl_item.inputs=[];
-
-    switch (ui_opts.type){
-    case "short":
-	for(var v=0;v<tpl_item.value.length;v++){
-	    var li=ce("li"), label=ce("label"), val=ce("span");
-	    tpl_item.inputs.push(val);
-	    val.className="value";
-	    //val.innerHTML=tpl_item.value[v];
-	    label.innerHTML=tpl_item.value_labels[v];
-	    label.appendChild(val);
-	    li.appendChild(label);
-	    ui.appendChild(li);
-	}
-	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    for(var v=0;v<tpl_item.value.length;v++){
-		tpl_item.inputs[v].innerHTML=Math.floor(tpl_item.value[v]*1000)/1000;
+    
+    for(var v=0;v<tpl_item.value.length;v++){
+	var li=ce("li"), label=ce("label"); 
+	tpl_item.inputs[v]={ 
+	    id : v,
+	    type : "double",
+	    name : tpl_item.value_labels[v],
+	    min : tpl_item.min, 
+	    max : tpl_item.max, 
+	    step : tpl_item.step, 
+	    value : tpl_item.value[v],
+	    container : { 
+		add_child : function(e,nui){ui.appendChild(nui);},
+		replace_child : function(nui,oui){
+		    ui.replaceChild(nui, oui);
+		    console.log("UL container Replaced UI!");
+		}
+	    },
+	    
+	    onchange : function(v){
+		tpl_item.value[this.id]=this.value;
+		if(tpl_item.onchange) tpl_item.onchange(this.id);
 	    }
-	    //ui.innerHTML=tpl_item.value? "yes":"no";
-	}
+	    
+	}; 
 	
-	break;
-    case "edit":
-	for(var v=0;v<tpl_item.value.length;v++){
-	    var li=ce("li"), label=ce("label"), inp=ce("input");
-	    tpl_item.inputs.push(inp);
-	    if(ui_opts.input_type)
-		inp.type=ui_opts.input_type;
-	    else
-		inp.type="number";
-
-	    inp.v=v;
-
-	    if(tpl_item.min) inp.min=tpl_item.min;
-	    if(tpl_item.max) inp.max=tpl_item.max;
-	    if(tpl_item.step) inp.step=tpl_item.step;
-
-	    inp.value=tpl_item.value[v];
-	 
-	    inp.onchange=function(){
-		tpl_item.value[this.v]=this.value*1.0;
-		if(tpl_item.onchange) tpl_item.onchange();
-	    }
-	    label.innerHTML=tpl_item.value_labels[v];
-	    label.appendChild(inp);
-	    li.appendChild(label);
-
-	    ui.appendChild(li);
-	}
 	
-	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    for(var v=0;v<tpl_item.value.length;v++){
-		tpl_item.inputs[v].value=tpl_item.value[v];
-	    }
-	    //ui.innerHTML=tpl_item.value? "yes":"no";
-	}
-	break;
-    default:
-	throw "Unknown UI type ";
+	var vui=create_ui(ui_opts, tpl_item.inputs[v]);
+	ui.appendChild(vui);
     }
     
-    
+    tpl_item.set_value=function(nv){
+	console.log("TPLI set value " + JSON.stringify(nv));
+	if(typeof nv !='undefined'){
+	    this.value=nv;
+	    for(var v=0;v<this.inputs.length;v++){
+		console.log("TPLI set value " + JSON.stringify(this.value[v]));
+		tpl_item.inputs[v].set_value(this.value[v]);
+	    }
+	}
+	//ui.innerHTML=tpl_item.value? "yes":"no";
+    }
+
     return tpl_item.ui;
     
 }
@@ -285,39 +300,6 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 
 
 
-template_ui_builders.double=function(ui_opts, tpl_item){
-    //console.log("double builder :  " + JSON.stringify(ui_opts));
-    switch (ui_opts.type){
-    case "short":
-	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
-	tpl_item.set_value=function(){ui.innerHTML=Math.floor(tpl_item.value*1000)/1000;}
-	break;
-    case "edit": 
-	var ui=tpl_item.ui=ce("input");
-	if(ui_opts.input_type)
-	    ui.type=ui_opts.input_type;
-	else
-	    ui.type="number";
-	if(tpl_item.min) ui.min=tpl_item.min;
-	if(tpl_item.max) ui.max=tpl_item.max;
-	if(tpl_item.step) ui.step=tpl_item.step;
-
-	tpl_item.get_value=function(){return tpl_item.value;}
-	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.value=tpl_item.value}
-
-	ui.addEventListener("change",function(){
-	    tpl_item.value=this.value*1.0; 
-	    if(tpl_item.onchange){
-		tpl_item.onchange();
-	    }
-	},false);
-	break;
-    default: 
-	throw "Unknown UI type ";
-    }
-    return tpl_item.ui;
-}
 
 template_ui_builders.action=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("input"); ui.type="button";
@@ -553,7 +535,7 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     ui.appendChild(cui);
     
     cui.addEventListener("change", function() {
-	console.log("Color changed !!!!!");
+
         ui.style.backgroundColor = cui.value;
 	tpl_item.value=cui.value;
 
@@ -621,6 +603,7 @@ function create_item_ui(ui_opts, tpl_node){
 
 function create_ui(global_ui_opts, tpl_root, depth){
 
+
     if(!depth){
 	depth=0;
     }
@@ -653,6 +636,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.appendChild(ui_name); 
     ui_name.innerHTML=tpl_root.name;
 
+    tpl_root.enable=function(state){
+	if(!state)
+	    this.ui_root.add_class("disabled");
+	else
+	    this.ui_root.remove_class("disabled");
+    }
 
     function rebuild(){
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
@@ -712,8 +701,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(!tpl_root.elements) return ui_root;
 
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
-    var ui_childs={};
-
+    var ui_childs=tpl_root.ui_childs={};
+    
     switch(cvtype){
     case "div":
 	ui_childs.div=ce("div"); 
