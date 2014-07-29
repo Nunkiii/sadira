@@ -2,6 +2,10 @@ function ce(n){
   return document.createElement(n);
 }
 
+function cc(n, parent){
+  return parent.appendChild(document.createElement(n));
+}
+
 // Array Remove 
 
 Array.prototype.remove = function(from, to) {
