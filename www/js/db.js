@@ -183,16 +183,22 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
     }
     
     tpl_item.set_value=function(nv){
-	console.log("TPLI set value " + JSON.stringify(nv));
+	//console.log("TPLI set value " + JSON.stringify(nv));
 	if(typeof nv !='undefined'){
 	    this.value=nv;
 	    for(var v=0;v<this.inputs.length;v++){
-		console.log("TPLI set value " + JSON.stringify(this.value[v]));
+		//console.log("TPLI set value " + JSON.stringify(this.value[v]));
 		tpl_item.inputs[v].set_value(this.value[v]);
 	    }
 	}
+
+	
+	//if(tpl_item.onchange) tpl_item.onchange();
+	
 	//ui.innerHTML=tpl_item.value? "yes":"no";
     }
+
+
 
     return tpl_item.ui;
     
@@ -318,8 +324,78 @@ template_ui_builders.action=function(ui_opts, tpl_item){
 
 template_ui_builders.vector=function(ui_opts, tpl_item){
 
-    //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
     var ui=tpl_item.ui=ce("div"); ui.className="plot_container";
+ //   var ui=tpl_item.ui=ce("ul");
+//    ui.className="vector";
+    
+    tpl_item.cuts={ 
+	id : 0,
+	type : "labelled_vector",
+	name : "Data bounds",
+	value_labels : ["Low","High"],
+	min : tpl_item.min, 
+	max : tpl_item.max, 
+	step : tpl_item.step, 
+	value : [0, 0],
+	ui_opts: {root_classes : [], editable : true},
+	/*
+	container : { 
+	    add_child : function(e,nui){ui.appendChild(nui);},
+	    replace_child : function(nui,oui){
+		ui.replaceChild(nui, oui);
+		console.log("UL container Replaced UI!");
+	    }
+	},
+
+	onchange : function(v){
+	    tpl_item.value[this.id]=this.value;
+	    if(tpl_item.onchange) tpl_item.onchange(this.id);
+	}*/
+    };
+    
+	/*,
+	    
+	    }; 
+	*/
+	
+    ui.appendChild(create_ui(ui_opts, tpl_item.cuts));
+
+    function brushed() {
+	
+	tpl_item.cuts.value[0]=brush.extent()[0];
+	tpl_item.cuts.value[1]=brush.extent()[1];
+	tpl_item.cuts.set_value();
+
+	svg.select(".brush").call(brush);
+	
+	if(brg!=null){
+	    
+	    //cmap.domnode.style.width=(brg[1].getBBox().width+0.0)+'px';
+	    //cmap.domnode.style.marginLeft=(brg[1].getBBox().x+xmarg)+'px';
+		
+	    
+	    var bid=0;
+	    
+	    brg.selectAll("rect").each(function(){
+		// brg.each(function(){
+		//console.log("BRUSH "+bid+": x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
+		if(bid==1){
+		    //cmap.domnode.style.width=(this.getBBox().width+0.0)+'px';
+		   // cmap.domnode.style.marginLeft=(this.getBBox().x+xmarg)+'px';
+		    
+		}
+		bid++;
+		
+	    });	       	
+	    
+	}else
+	    console.log("brg is NULL !");
+	
+	//	    fv.cmap.display();
+    }
+
+    //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
+
     var margin = ui_opts.margin;
     var width = ui_opts.width - margin.left - margin.right;
     var height = ui_opts.height- margin.top - margin.bottom;
@@ -329,15 +405,13 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     
     var xAxis = d3.svg.axis().scale(x).orient("bottom");    
     var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
-	
     var brush = d3.svg.brush().x(x).on("brushend", brushed);
-	
     var area = d3.svg.area().interpolate("step-before")
 	.x(function(d) { return x(d.x); })
 	.y0(height)
 	.y1(function(d) { return y(d.n); });
     
-
+    
 	
     var bn=d3.select(ui);
 	//d3.select("svg").remove();
@@ -352,15 +426,27 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     svg.attr("height", height + margin.top + margin.bottom);
 
     context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
-    var histo=lay.histo;
-    if(x_domain==null){
-	x_domain=[histo[0].x*1.0,histo[histo.length-1].x*1.0];
+
+
+    tpl_item.set_value=function(v){
+	if(typeof v!='undefined')tpl_item.value=v;
+	this.redraw();
     }
+
+    tpl_item.redraw=function(){
+
+	var histo=this.value;
+	if(histo.length==0) return;
+	
+	var x_domain=null;
+	
+	if(x_domain==null){
+	    x_domain=[histo[0].x*1.0,histo[histo.length-1].x*1.0];
+	}
 	
 	x.domain(x_domain);//
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
-	y.domain(d3.extent(lay.histo, function(d) { return d.n; }));
+	y.domain(d3.extent(histo, function(d) { return d.n; }));
 	
 	
 	
@@ -394,7 +480,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	// 	     });	       
 	
 	var pathsvg=context.append("path")
-	    .datum(lay.histo)
+	    .datum(histo)
 	    .attr("class", "line")
 	//.attr("d", line);
 	    .attr("d", area);
@@ -477,53 +563,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	// gBrush.selectAll("rect").attr("height", height);
 	// gBrush.selectAll(".resize").append("path").attr("d", resizePath);
 	
-	function brushed() {
-	    
-	    // brush.extent();
-	    
-	    //	console.log("Helllo ! " );
-	    cuts.value[0]=lay.p_values[0]=brush.extent()[0];
-	    cuts.value[1]=lay.p_values[1]=brush.extent()[1];
-	    cuts.set_value();
-	    
-	    //console.log("Hello " + lay.p_values[0] + ","+lay.p_values[1]);
-	    update_pvalues();
-	    //low_cut.value=fv.viewer_cuts[0];
-	    //high_cut.value=fv.viewer_cuts[1];
-	    
-	    
-	    svg.select(".brush").call(brush);
-	    
-	    
-	    if(brg!=null){
-		
-		
-		//cmap.domnode.style.width=(brg[1].getBBox().width+0.0)+'px';
-		//cmap.domnode.style.marginLeft=(brg[1].getBBox().x+xmarg)+'px';
-		
-
-		var bid=0;
-		
-		brg.selectAll("rect").each(function(){
-		    
-		    // brg.each(function(){
-		    //console.log("BRUSH "+bid+": x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
-		    if(bid==1){
-			cmap.domnode.style.width=(this.getBBox().width+0.0)+'px';
-			cmap.domnode.style.marginLeft=(this.getBBox().x+xmarg)+'px';
-			
-		    }
-		    bid++;
-		    
-		});	       	
-		
-	    }else
-		console.log("brg is NULL !");
-	    
-	    //	    fv.cmap.display();
-	    
-	}
-
+    }
+    return tpl_item.ui;
 }
 
 
@@ -578,6 +619,7 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
+    
     return tpl_item.ui;
 }
 
@@ -608,6 +650,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	depth=0;
     }
 
+    
     //if(typeof tpl_root.ui_opts == 'undefined' ) tpl_root.ui_opts={type:"short"}; 
 
     if(typeof tpl_root.ui_opts == 'undefined') tpl_root.ui_opts=global_ui_opts;
