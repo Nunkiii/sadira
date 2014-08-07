@@ -175,7 +175,7 @@ label{
 
 
 .db .db {
-  font-size: .9em;
+  font-size: .95em;
   background-color: none; /*rgba(30,30,30,0.3);*/
   padding-top:.5em;
   padding-bottom:.5em;
@@ -361,4 +361,8 @@ label{
   top: 0px;
   height: 3.8em;
   box-shadow : 0px 0px 15px rgba(255,255,255,1.0);
+}
+
+.plot_container > svg { 
+  display: block;
 }
