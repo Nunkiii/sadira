@@ -68,7 +68,8 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	}; 
 	
 	
-	var vui=create_ui(ui_opts, tpl_item.inputs[v]);
+	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
+	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v]);
 	ui.appendChild(vui);
     }
     
@@ -266,16 +267,14 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
 	tpl_item.cuts.value[0]=brush.extent()[0];
 	tpl_item.cuts.value[1]=brush.extent()[1];
+
 	tpl_item.cuts.set_value();
 
 	svg.select(".brush").call(brush);
 	
 	if(brg!=null){
-	    
 	    //cmap.domnode.style.width=(brg[1].getBBox().width+0.0)+'px';
 	    //cmap.domnode.style.marginLeft=(brg[1].getBBox().x+xmarg)+'px';
-		
-	    
 	    var bid=0;
 	    
 	    brg.selectAll("rect").each(function(){
@@ -293,6 +292,9 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	}else
 	    console.log("brg is NULL !");
 	
+	if(tpl_item.selection_change)
+	    tpl_item.selection_change(tpl_item.cuts.value);
+
 	//	    fv.cmap.display();
     }
 

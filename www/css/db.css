@@ -29,6 +29,7 @@ label{
   margin: .1em;
 } 
 
+
 .db .disabled { 
   display: none;
 } 
@@ -44,6 +45,7 @@ label{
 }
 
 .root  > .dbname {
+  font-size: 1.3em;
   text-shadow: 0px 0px 3px rgba(0,0,0,1.0);
   padding-right: .5em;
   padding-left: .2em;
@@ -366,3 +368,28 @@ label{
 .plot_container > svg { 
   display: block;
 }
+
+.slide_button_h:hover{ 
+  color : orange ;
+}
+
+.slide_button_v:hover{ 
+  color : orange;
+}
+
+.slide_button_h{ 
+  padding: .3em;
+  cursor: pointer;
+}
+
+.slide_button_v{ 
+  padding: .3em;
+  cursor: pointer;
+}
+
+.sliding{
+  opacity:1;
+
+  transition: opacity .5s ease-in-out, margin-left .5s ease-in-out;
+}
+

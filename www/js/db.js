@@ -63,19 +63,28 @@ local_templates.prototype.add_templates=function(templates){
 
 local_templates.prototype.substitute_template=function(tpl_item){
   if(tpl_item.type=="template"){
-    var tpl=this.templates[tpl_item.template_name];
-    tpl_item.elements=clone_obj(tpl.elements);
-    for(var o in tpl){
-      switch(o){
+      var tpl=this.templates[tpl_item.template_name];
+      
+      if(typeof tpl_item.elements=='undefined')
+	  tpl_item.elements=clone_obj(tpl.elements);
+      else
+	  for(var o in tpl.elements){
+	      
+	      tpl_item.elements[o]=clone_obj(tpl.elements[o]);
+	  }
+      
+      for(var o in tpl){
+	  switch(o){
 	  case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; break;
 	  case "elements" : break;
 	  default:
-	  tpl_item[o]=tpl[o];
+	      tpl_item[o]=tpl[o];
+	  }
       }
-    }
-    return true;
+      return true;
   }
-  return false;
+    
+    return false;
 }
 
 local_templates.prototype.substitute_templates=function(tpl_item){
@@ -137,9 +146,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(!tpl_root.ui_opts[o])tpl_root.ui_opts[o]=global_ui_opts[o];
 
     var ui_opts=tpl_root.ui_opts;    
-    var ui_root=tpl_root.ui_root=ce("div"); 
+    var ui_root=tpl_root.ui_root=ce("div");     
     
-    var ui_name=tpl_root.ui_name= ui_opts.label ? ce("label") : ce("h1");
+    ui_root.style.display="relative";
+    ui_root.style.zIndex=depth;
+
+    var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
+    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : "false";
+    var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
+
+    //console.log("Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
     
     ui_root.className="db";
     
@@ -153,8 +169,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(typeof ui_opts.name_classes != 'undefined')
 	add_classes(ui_opts.name_classes, ui_name);
-    
-    ui_root.appendChild(ui_name); 
+
     ui_name.innerHTML=tpl_root.name;
 
     tpl_root.enable=function(state){
@@ -181,22 +196,34 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    clickable_zone=ui_root;
 	}
 
-	clickable_zone.addEventListener("click", function(){
-	    console.log("Editable clicked");
+	clickable_zone.addEventListener("click", function(e){
+	    
+	    console.log(tpl_root.name + " : EDITABLE CLICK");
+	    
 	    if(ui_opts.type=="edit"){
 		ui_opts.type="short";
 	    }else{
 		ui_opts.type="edit";
 	    }
+	    
 	    rebuild();
-	}, true);
+	    e.cancelBubble = true;
+	    if (e.stopPropagation){
+		e.stopPropagation();
+		console.log(tpl_root.name + " : editable stop propagation...");
+	    }
+	    
+	    return false;
+	}, false);
     }
     
-    
+    var item_ui;
+
     if(tpl_root.type){
 	try{
 	    
-	    var item_ui=create_item_ui(ui_opts, tpl_root);
+	    item_ui=tpl_root.item_ui=create_item_ui(ui_opts, tpl_root);
+
 	    if(item_ui){
 		if(ui_opts.label){
 		    ui_name.appendChild(item_ui);
@@ -219,19 +246,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //var ne=0; for (var e in tpl_root.elements){ console.log(tpl_root.name + " + E("+ne+")="+e); ne++; }
     //console.log(tpl_root.name + " : -->Nchilds = " + ne);
     
-    if(!tpl_root.elements) return ui_root;
+    //if(!tpl_root.elements) return ui_root;
 
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var ui_childs=tpl_root.ui_childs={};
     
     switch(cvtype){
+	
     case "div":
 	ui_childs.div=ce("div"); 
 	ui_childs.div.className="childs";
 	ui_childs.add_child=function(e,ui){ui_childs.div.appendChild(ui);}
 	ui_childs.replace_child=function(new_ui,ui){
 	    ui_childs.div.replaceChild(new_ui, ui);
-	    console.log("Replaced UI!");
+	    //console.log("Replaced UI!");
 	}
 	break;
     case "tabbed":
@@ -259,10 +287,92 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_childs.add_child(e,ui);
     }
 
+    console.log("----> Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
+
+    if(sliding==true){
+	var slided=true;
+	var disp=ui_childs.div.style.display;
+	var dispi=item_ui?item_ui.style.display:"none";
+//	ui_name.style.zIndex=200;
+	//ui_childs.div.style.zIndex=0;
+	ui_childs.div.add_class("sliding");
+	if(item_ui)item_ui.add_class("sliding");
+	
+	console.log("ENABLE sliding! ");
+
+	var slide_button=cc("span", ui_name);
+	slide_button.style.zIndex=ui_root.style.zIndex+1;
+
+	if(sliding_dir=="v"){
+	    slide_button.className="slide_button_v";
+	    slide_button.innerHTML="▼";
+	}
+	if(sliding_dir=="h"){
+	    slide_button.className="slide_button_h";
+	    slide_button.innerHTML="▶";
+
+	}
+
+	ui_childs.div.addEventListener("transitionstart",function(){
+	    console.log("Ani start ! " + slided );
+	}, false);
+
+	ui_childs.div.addEventListener("transitionend",function(){
+	    console.log("Ani end ! "+ slided );
+	    if(!slided)
+		ui_childs.div.style.display="none";
+	}, false);
+
+	if(item_ui)item_ui.addEventListener("transitionend",function(){
+	    console.log("Ani end ! "+ slided );
+	    if(!slided)
+		item_ui.style.display="none";
+	}, false);
+
+
+	slide_button.addEventListener("click",function(e){
+	    slided=!slided;
+
+	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
+
+	    ui_childs.div.style.display=disp;
+	    if(item_ui)item_ui.style.display=dispi;
+
+	    setTimeout(function(){
+		
+		if(slided){
+		    ui_childs.div.style.marginLeft="0%";
+		    ui_childs.div.style.opacity="1.0";
+		    if(item_ui){
+			item_ui.style.marginLeft="0%";
+			item_ui.style.opacity="1.0";
+		    }
+
+		}else{
+		    ui_childs.div.style.marginLeft="-100%";
+		    ui_childs.div.style.opacity="0.0";
+		    if(item_ui){
+			item_ui.style.marginLeft="-100%";
+			item_ui.style.opacity="0.0";
+		    }
+		}
+		
+	    }, 100);
+	    
+	    e.cancelBubble = true;
+	    
+	    if (e.stopPropagation){
+		e.stopPropagation();
+		console.log(tpl_root.name + " : SLIDE stop propagation...");
+	    }
+
+	    return false;
+	}, false);
+    }
+
+
     return ui_root;
 }
-
-
 
 function attach_menu(tpl_root, menu){
     menu.ul.style.zIndex=20;
