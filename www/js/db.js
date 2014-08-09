@@ -181,6 +181,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 	add_classes(ui_opts.name_classes, ui_name);
     }
+
+    //if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
     
     ui_name.innerHTML=tpl_root.name;
 

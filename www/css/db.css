@@ -143,6 +143,9 @@ label{
   border-radius: .5em;
 }
 
+.db .full{
+  width: 100%;
+}
 
 .db > .childs { 
                 display: inherit; 
