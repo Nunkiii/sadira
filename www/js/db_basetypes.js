@@ -56,7 +56,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 		add_child : function(e,nui){ui.appendChild(nui);},
 		replace_child : function(nui,oui){
 		    ui.replaceChild(nui, oui);
-		    console.log("UL container Replaced UI!");
+		    console.log("LAB VECTOR container Replaced UI!");
 		}
 	    },
 	    

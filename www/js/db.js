@@ -64,19 +64,26 @@ local_templates.prototype.add_templates=function(templates){
 local_templates.prototype.substitute_template=function(tpl_item){
   if(tpl_item.type=="template"){
       var tpl=this.templates[tpl_item.template_name];
+
+      var toup=["elements","ui_opts"];
       
-      if(typeof tpl_item.elements=='undefined')
-	  tpl_item.elements=clone_obj(tpl.elements);
-      else
-	  for(var o in tpl.elements){
-	      
-	      tpl_item.elements[o]=clone_obj(tpl.elements[o]);
-	  }
-      
+      for(var ti=0;ti< toup.length;ti++){
+	  var t=toup[ti];
+	  console.log("Check " + t + " typof " + typeof tpl_item[t] );
+	  if(typeof tpl_item[t]=='undefined')
+	      tpl_item[t]=tpl[t];//clone_obj(tpl[t]);
+	  else
+	      for(var o in tpl[t]){
+		  if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=tpl[t][o]; //clone_obj(tpl[t][o]);
+	      }
+      }
+
       for(var o in tpl){
 	  switch(o){
-	  case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; break;
-	  case "elements" : break;
+	  case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; 
+	      break;
+	  case "elements" : break; 
+	  case "ui_opts" : break;
 	  default:
 	      tpl_item[o]=tpl[o];
 	  }
@@ -136,8 +143,8 @@ function create_item_ui(ui_opts, tpl_node){
 function create_ui(global_ui_opts, tpl_root, depth){
 
     if(!depth){
-	depth=0;
-    }
+	tpl_root.depth=0;
+    }else tpl_root.depth=depth;
     //if(typeof tpl_root.ui_opts == 'undefined' ) tpl_root.ui_opts={type:"short"}; 
 
     if(typeof tpl_root.ui_opts == 'undefined') tpl_root.ui_opts=global_ui_opts;
@@ -152,24 +159,29 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.style.zIndex=depth;
 
     var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
-    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : "false";
+    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
+    var slided = (typeof ui_opts.slided != 'undefined') ? ui_opts.slided : true;
+    var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
+    var ui_childs=tpl_root.ui_childs={};
+    
 
-    //console.log("Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
+    //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
     
     ui_root.className="db";
     
-    if(!ui_opts.label)
-	ui_name.className="dbname";
+    if(!ui_opts.label) ui_name.className="dbname";
     
     if(depth==0) ui_root.className+=" root";
     
     if(typeof ui_opts.root_classes != 'undefined')
 	add_classes(ui_opts.root_classes, ui_root);
     
-    if(typeof ui_opts.name_classes != 'undefined')
+    if(typeof ui_opts.name_classes != 'undefined'){
+	console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 	add_classes(ui_opts.name_classes, ui_name);
-
+    }
+    
     ui_name.innerHTML=tpl_root.name;
 
     tpl_root.enable=function(state){
@@ -180,9 +192,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     function rebuild(){
+	console.log("Rebuild....");
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	var cnt=new_ui.container=tpl_root.container;
-	cnt.replace_child(new_ui, ui_root);
+	
+	if(typeof cnt!="undefined"){
+	    cnt.replace_child(new_ui, ui_root);
+	    ui_root=new_ui;
+	}
+	else{
+	    console.log(tpl_root.name + " cannot rebuild : undef container  " );
+	}
     }
     
     if(ui_opts.editable){
@@ -207,10 +227,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    
 	    rebuild();
+	    
 	    e.cancelBubble = true;
+	    
 	    if (e.stopPropagation){
 		e.stopPropagation();
-		console.log(tpl_root.name + " : editable stop propagation...");
+		//console.log(tpl_root.name + " : editable stop propagation...");
 	    }
 	    
 	    return false;
@@ -248,9 +270,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     //if(!tpl_root.elements) return ui_root;
 
-    var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
-    var ui_childs=tpl_root.ui_childs={};
-    
+    //console.log("Config ["+cvtype+"] add_child for " + tpl_root.name + " type " + tpl_root.type);
+
     switch(cvtype){
 	
     case "div":
@@ -258,19 +279,27 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_childs.div.className="childs";
 	ui_childs.add_child=function(e,ui){ui_childs.div.appendChild(ui);}
 	ui_childs.replace_child=function(new_ui,ui){
+	    console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
 	    ui_childs.div.replaceChild(new_ui, ui);
-	    //console.log("Replaced UI!");
+
 	}
 	break;
     case "tabbed":
-	ui_childs=new tab_widget();
+	tpl_root.ui_childs=ui_childs=new tab_widget();
 	ui_childs.div.className+=" childs";
+	
 	ui_childs.add_child=function(e,ui){
 	    var f=ui_childs.add_frame(e.name); 
-	    e.ui_root.removeChild(e.ui_name);
+	    //e.ui_root.removeChild(e.ui_name);
+	    ui.f=f;
 	    f.div.appendChild(ui);
 	}
-	ui_childs.replace_child=function(new_ui,ui){ui.div.replaceChild(new_ui, ui);}
+	
+	ui_childs.replace_child=function(new_ui,ui){
+	    console.log("TAB replace node " + ui.nodeName + " with node " + new_ui.nodeName);
+	    new_ui.f=ui.f;
+	    ui.f.div.replaceChild(new_ui, ui);
+	}
 	break;
     }
     if(typeof ui_opts.child_classes != 'undefined')
@@ -282,49 +311,104 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var e=tpl_root.elements[e];
 	e.container=ui_childs;
 	var ui=create_ui(global_ui_opts,e, depth+1 );
-	
-	
 	ui_childs.add_child(e,ui);
     }
 
-    console.log("----> Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
+    //console.log("----> Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
 
     if(sliding==true){
-	var slided=true;
+
+	function update_arrows(){
+	    switch(sliding_dir){
+	    case "v":
+		slide_button.className="slide_button_v";
+		slide_button.innerHTML= slided ? "▲" : "▼" ;
+		break;
+	    case "h":
+		slide_button.className="slide_button_h";
+		slide_button.innerHTML= slided ? "◀" : "▶"; 
+		break;
+	    default: break;
+	    }
+	}
+
+	function update_ui(){
+	    var marg;
+	    switch(sliding_dir){
+	    case "h":
+		marg="marginLeft";
+		break;
+	    case "v":
+		marg="marginTop";
+		break;
+	    default: throw("Bug!!here "); return;
+	    };
+
+	    
+	    if(slided){
+		ui_childs.div.style[marg]="0%";
+		ui_childs.div.style.opacity="1.0";
+		if(item_ui){
+		    item_ui.style[marg]="0%";
+		    item_ui.style.opacity="1.0";
+		}
+		
+	    }else{
+		ui_childs.div.style[marg]="-100%";
+		ui_childs.div.style.opacity="0.0";
+		if(item_ui){
+		    item_ui.style[marg]="-100%";
+		    item_ui.style.opacity="0.0";
+		}
+		
+	    }
+	    
+	    update_arrows();
+	}
+
 	var disp=ui_childs.div.style.display;
 	var dispi=item_ui?item_ui.style.display:"none";
+
+	    switch(sliding_dir){
+	    case "h":
+		marg="marginLeft";
+		//disp="inline-block";
+		//dispi="inline-block";
+		break;
+	    case "v":
+		marg="marginTop";
+		//disp="inline-block"; 
+		//dispi="inline-block";
+		// disp="block";
+		// dispi="block";
+		break;
+	    default: throw("Bug!!here "); return;
+	    };
+	
+
+
 //	ui_name.style.zIndex=200;
 	//ui_childs.div.style.zIndex=0;
 	ui_childs.div.add_class("sliding");
 	if(item_ui)item_ui.add_class("sliding");
 	
-	console.log("ENABLE sliding! ");
-
+	//console.log("ENABLE sliding! ");
+	
 	var slide_button=cc("span", ui_name);
 	slide_button.style.zIndex=ui_root.style.zIndex+1;
 
-	if(sliding_dir=="v"){
-	    slide_button.className="slide_button_v";
-	    slide_button.innerHTML="▼";
-	}
-	if(sliding_dir=="h"){
-	    slide_button.className="slide_button_h";
-	    slide_button.innerHTML="▶";
-
-	}
-
 	ui_childs.div.addEventListener("transitionstart",function(){
-	    console.log("Ani start ! " + slided );
+	  //  console.log("Ani start ! " + slided );
 	}, false);
 
 	ui_childs.div.addEventListener("transitionend",function(){
-	    console.log("Ani end ! "+ slided );
+	    //console.log("Ani end ! "+ slided );
 	    if(!slided)
 		ui_childs.div.style.display="none";
 	}, false);
 
 	if(item_ui)item_ui.addEventListener("transitionend",function(){
-	    console.log("Ani end ! "+ slided );
+	    //console.log("Ani end ! "+ slided );
 	    if(!slided)
 		item_ui.style.display="none";
 	}, false);
@@ -333,29 +417,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	slide_button.addEventListener("click",function(e){
 	    slided=!slided;
 
-	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
+	    //console.log(tpl_root.name + "  SLIDE click !  " + slided);
 
 	    ui_childs.div.style.display=disp;
 	    if(item_ui)item_ui.style.display=dispi;
 
 	    setTimeout(function(){
-		
-		if(slided){
-		    ui_childs.div.style.marginLeft="0%";
-		    ui_childs.div.style.opacity="1.0";
-		    if(item_ui){
-			item_ui.style.marginLeft="0%";
-			item_ui.style.opacity="1.0";
-		    }
-
-		}else{
-		    ui_childs.div.style.marginLeft="-100%";
-		    ui_childs.div.style.opacity="0.0";
-		    if(item_ui){
-			item_ui.style.marginLeft="-100%";
-			item_ui.style.opacity="0.0";
-		    }
-		}
+		update_ui();
 		
 	    }, 100);
 	    
@@ -363,11 +431,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    if (e.stopPropagation){
 		e.stopPropagation();
-		console.log(tpl_root.name + " : SLIDE stop propagation...");
+		//console.log(tpl_root.name + " : SLIDE stop propagation...");
 	    }
 
 	    return false;
 	}, false);
+
+	update_ui();
+
+	if(!slided){
+	    if(item_ui) item_ui.style.display="none";
+	    ui_childs.div.style.display="none";
+	}
     }
 
 

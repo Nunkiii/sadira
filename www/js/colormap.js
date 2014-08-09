@@ -63,8 +63,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 
     cmap.set_hex_color = function(cid, color){
+	console.log("set color id " + cid + " col " + JSON.stringify(color));
 	var rbgc=hex2rgb(color);
 	var cv=this.value[cid];
+	
 	cv[0]=rbgc.r/255.0;
 	cv[1]=rbgc.g/255.0;
 	cv[2]=rbgc.b/255.0;
@@ -210,9 +212,9 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	
 	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
 	
-	o=[etpl.elements.outleft,etpl.elements.outright];
-	i=[etpl.elements.inleft,etpl.elements.inright];
-	b=[etpl.elements.blendl,etpl.elements.blendr];
+	o=[etpl.elements.colors.elements.outleft,etpl.elements.colors.elements.outright];
+	i=[etpl.elements.colors.elements.inleft,etpl.elements.colors.elements.inright];
+	b=[etpl.elements.blend.elements.blendl,etpl.elements.blend.elements.blendr];
 	rng=etpl.elements.range;
 	uniform=etpl.elements.uniform;
 	split=etpl.elements.split;
