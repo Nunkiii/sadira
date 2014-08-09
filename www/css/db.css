@@ -23,7 +23,8 @@ label{
   display: inline-block;
   border : 2px solid rgba(0,0,0,0.0);  
   border-radius: .3em;
-  background-color: rgba(130,130,130,0.3);
+  background-color: rgba(30,30,30,0.5);
+  border : 2px solid rgba(50,50,50,0.5);
   vertical-align: top;
   padding: .1em;
   margin: .1em;
@@ -306,7 +307,6 @@ label{
 .column {
   display: block;
   vertical-align: top;  
-  background: rgba(25,35,45,.4);
 }
 .column .root{
   margin:0px;

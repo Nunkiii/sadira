@@ -98,19 +98,28 @@ function create_std_button(button_name, callback){
 //Make a "true" copy of an object as the = in js returns only a reference (pointer).
 //This is stupid?
 
-function clone_obj(o) {
-    
-    var new_obj = (o instanceof Array) ? [] : {};
+function clone_obj(obj) {
+     if(obj == null || typeof(obj) != 'object')
+        return obj;
 
-    for (i in o) {
-	if (i == 'clone') continue; //?
-	if (o[i] && typeof o[i] == "object") {
-	    new_obj[i] = clone_obj(o[i]);//.hyperclone();
-	} else 
-	    new_obj[i] = o[i];
-    } 
+    var temp = obj.constructor(); // changed
 
-    return new_obj;
+    for(var key in obj)
+        temp[key] = clone_obj(obj[key]);
+    return temp;
+  
+
+  var new_obj = (o instanceof Array) ? [] : {};
+  
+  for (i in o) {
+//    if (i == 'clone') continue; //?
+    if (o[i] && typeof o[i] == "object") {
+      new_obj[i] = clone_obj(o[i]);//.hyperclone();
+    } else 
+    new_obj[i] = o[i];
+  } 
+  
+  return new_obj;
 }
 
 //Display JSON avoiding the circular objects.

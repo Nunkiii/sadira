@@ -79,7 +79,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    this.value=nv;
 	}
 	for(var v=0;v<this.inputs.length;v++){
-	    //console.log("TPLI set value " + JSON.stringify(this.value[v]));
+	    console.log("TPLI set value " + JSON.stringify(this.value[v]));
 	    tpl_item.inputs[v].set_value(this.value[v]);
 	}
 	
@@ -89,7 +89,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	//ui.innerHTML=tpl_item.value? "yes":"no";
     }
 
-
+    console.log("Done building LABVEC : " + tpl_item.name);
 
     return tpl_item.ui;
     
@@ -301,6 +301,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
     var margin = ui_opts.margin;
+    
     var width = ui_opts.width - margin.left - margin.right;
     var height = ui_opts.height- margin.top - margin.bottom;
     

@@ -71,10 +71,10 @@ local_templates.prototype.substitute_template=function(tpl_item){
 	  var t=toup[ti];
 	  console.log("Check " + t + " typof " + typeof tpl_item[t] );
 	  if(typeof tpl_item[t]=='undefined')
-	      tpl_item[t]=tpl[t];//clone_obj(tpl[t]);
+	      tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
 	  else
 	      for(var o in tpl[t]){
-		  if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=tpl[t][o]; //clone_obj(tpl[t][o]);
+		  if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
 	      }
       }
 
@@ -85,7 +85,7 @@ local_templates.prototype.substitute_template=function(tpl_item){
 	  case "elements" : break; 
 	  case "ui_opts" : break;
 	  default:
-	      tpl_item[o]=tpl[o];
+	      tpl_item[o]=clone_obj(tpl[o]);
 	  }
       }
       return true;
@@ -105,7 +105,7 @@ local_templates.prototype.build_template=function(template_name){
   var tpl= clone_obj(this.templates[template_name]);
 //  console.log("TPL= " + JSON.stringify(tpl));
   this.substitute_templates(tpl);
-  //console.log("TPL AFTER= " + JSON.stringify(tpl));
+    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
 //  console.log("TPL= " + JSON.stringify(this.templates));
   return tpl;
 }
