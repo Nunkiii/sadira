@@ -147,6 +147,10 @@ label{
   width: 100%;
 }
 
+.db .html_content {
+  padding : 1em;
+}
+
 .db > .childs { 
                 display: inherit; 
                 vertical-align: top;

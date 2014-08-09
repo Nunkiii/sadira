@@ -159,20 +159,12 @@ function is_ascii(str) {
 
 
 function download_url(url, callback) {
-    var request = new XMLHttpRequest;  //We don't want to support IE*
-    // window.ActiveXObject ? 
-    // new ActiveXObject('Microsoft.XMLHTTP') : 
-    
+    var request = new XMLHttpRequest;  
     request.open('GET', url, true);
     
     request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status==200) {
-	    if(callback)
-		callback(request.responseText);
-        }else{
-	    //console.log("URL download failed for " + url + " status="+request.status + " ready state=" + request.readyState);
-	    //if(callback)
-	    //console.log("DOWNLOAD status=" + request.status + ' ready ='+request.readyState);
+	if (request.readyState == 4 && request.status==200) {
+	    callback(null,request.responseText);
 	}
     };
     
@@ -180,8 +172,7 @@ function download_url(url, callback) {
 	request.send(null);
     }
     catch (e){
-	if(callback)
-	    callback("Send ERROR " + e);
+	callback("download_url error : " + e);
     }
 }
 
