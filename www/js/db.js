@@ -21,11 +21,12 @@ function tab_widget(classes){
     this.select_frame=function(f){
 	if(typeof this.selected_frame!='undefined'){
 	    this.selected_frame.div.style.display='none';
-	    this.selected_frame.className="normal_tab";
+	    this.selected_frame.remove_class("selected_tab");
+	    this.selected_frame.add_class("normal_tab");
 	}
 	f.div.style.display='block';
 	this.selected_frame=f;
-	this.selected_frame.className="selected_tab";
+	this.selected_frame.add_class("selected_tab");
 	return f;
     }
 
@@ -161,19 +162,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var ui_name=null;
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
-    if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
-    var slided=ui_opts.slided;
+
+    //if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
+    var slided=(typeof ui_opts.slided == 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
+
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var ui_childs=tpl_root.ui_childs={};
     
 
-    //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
+    console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
     
     ui_root.className="db";
-    
-    
-    
-    
+
     if(depth==0) ui_root.className+=" root";
     
     if(typeof ui_opts.root_classes != 'undefined')
@@ -204,8 +204,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     function rebuild(){
-	//tpl_root.slided=!tpl_root.slided;
-	console.log("Rebuild....  slided = " + tpl_root.slided);
+	//if (typeof tpl_root.sliding != 'undefined') 
+	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
+	console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
 	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	var cnt=new_ui.container=tpl_root.container;
@@ -281,9 +282,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     //var ne=0; for (var e in tpl_root.elements){ console.log(tpl_root.name + " + E("+ne+")="+e); ne++; }
     //console.log(tpl_root.name + " : -->Nchilds = " + ne);
-    
     //if(!tpl_root.elements) return ui_root;
-
     //console.log("Config ["+cvtype+"] add_child for " + tpl_root.name + " type " + tpl_root.type);
 
     switch(cvtype){
@@ -377,7 +376,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }
 	    
-	    if(item_ui)console.log("Update UI slided = " + slided);
+	    if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
 	    
 	    update_arrows();
 

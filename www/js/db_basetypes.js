@@ -1,6 +1,7 @@
 
 template_ui_builders.double=function(ui_opts, tpl_item){
     //console.log("double builder :  " + JSON.stringify(ui_opts));
+    if(typeof ui_opts.type=='undefined') ui_opts.type="short";
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
@@ -28,7 +29,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	},false);
 	break;
     default: 
-	throw "Unknown UI type ";
+	throw "Unknown UI type " + ui_opts.type + " for " + tpl_item.name;
     }
     return tpl_item.ui;
 }
@@ -45,7 +46,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	var li=ce("li"), label=ce("label"); 
 	tpl_item.inputs[v]={ 
 	    id : v,
-	    type : "double",
+	    type : typeof tpl_item.vector_type == 'undefined' ? "double" : tpl_item.vector_type,
 	    name : tpl_item.value_labels[v],
 	    min : tpl_item.min, 
 	    max : tpl_item.max, 
@@ -79,7 +80,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    this.value=nv;
 	}
 	for(var v=0;v<this.inputs.length;v++){
-	    //console.log("TPLI set value " + JSON.stringify(this.value[v]));
+	    console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + tpl_item.inputs[v].name );
 	    tpl_item.inputs[v].set_value(this.value[v]);
 	}
 	
@@ -204,10 +205,10 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
     case "short":
 	var ui=tpl_item.ui=ce("span");
-	ui.className="string_value";
+	ui.className="value";
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.value=tpl_item.value? "yes":"no";
+	    ui.innerHTML=tpl_item.value;
 	}
 	break;
     case "edit": 
@@ -234,6 +235,79 @@ template_ui_builders.string=function(ui_opts, tpl_item){
     return tpl_item.ui;
 }
 
+
+template_ui_builders.date=function(ui_opts, tpl_item){
+
+    switch (ui_opts.type){
+
+    case "short":
+	var ui=tpl_item.ui=ce("span");
+	ui.className="value";
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.innerHTML=tpl_item.value;
+	}
+	break;
+    case "edit": 
+	var ui=tpl_item.ui=ce("input");
+	ui.type="date";
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.value=tpl_item.value;
+	}
+	tpl_item.get_value=function(){
+	    return ui.value;
+	}
+
+	ui.onchange=function(){
+	    tpl_item.value=this.value; 
+	    if(tpl_item.onchange)
+		tpl_item.onchange();
+	}
+	break;
+    default: 
+	throw "Unknown UI type ";
+    }
+    
+    return tpl_item.ui;
+}
+
+
+template_ui_builders.url=function(ui_opts, tpl_item){
+
+    switch (ui_opts.type){
+
+    case "short":
+	var ui=tpl_item.ui=ce("span");
+	ui.className="value";
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.innerHTML=tpl_item.value;
+	}
+	break;
+    case "edit": 
+	var ui=tpl_item.ui=ce("input");
+	ui.type="url";
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.value=tpl_item.value;
+	}
+	tpl_item.get_value=function(){
+	    return ui.value;
+	}
+
+	ui.onchange=function(){
+	    tpl_item.value=this.value; 
+	    if(tpl_item.onchange)
+		tpl_item.onchange();
+	}
+	break;
+    default: 
+	throw "Unknown UI type ";
+    }
+    
+    return tpl_item.ui;
+}
 
 
 template_ui_builders.html=function(ui_opts, tpl_item){
@@ -292,7 +366,7 @@ template_ui_builders.action=function(ui_opts, tpl_item){
 
 template_ui_builders.vector=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("div"); ui.className="plot_container";
+    //var ui=tpl_item.ui=ce("div"); ui.className="plot_container";
     
     //  var ui=tpl_item.ui=ce("ul");
     //  ui.className="vector";
@@ -307,7 +381,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
 
     console.log("Building vector ");
+
     var svg;
+    var brush;
+
     var cuts=tpl_item.cuts = { 
 	id : 0,
 	type : "labelled_vector",
@@ -317,7 +394,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	max : tpl_item.max, 
 	step : tpl_item.step, 
 	value : [0, 0],
-	ui_opts: {root_classes : [], editable : true},
+	ui_opts: {root_classes : [], editable : true, sliding: false},
 	/*
 	container : { 
 	    add_child : function(e,nui){ui.appendChild(nui);},
@@ -332,7 +409,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    if(tpl_item.onchange) tpl_item.onchange(this.id);
 	    }*/
 	elements : {
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:["zoom"]},
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:["zoom"], sliding : false},
 		     onclick : function(){
 			 if(typeof ui_opts.on_range_change!='undefined') ui_opts.on_range_change(cuts.value);
 			 tpl_item.redraw();
@@ -356,11 +433,11 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 		tpl_item.start + tpl_item.value.length*tpl_item.step ];
     /*,
 	    
-	    }; 
-	*/
-	
-    ui.appendChild(create_ui(ui_opts, tpl_item.cuts));
-
+      }; 
+    */
+    
+    var ui = tpl_item.ui = create_ui({}, tpl_item.cuts);
+    
     function brushed() {
 	
 	tpl_item.cuts.value[0]=brush.extent()[0];
@@ -398,22 +475,6 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
-    var margin = ui_opts.margin;
-    
-    var width = ui_opts.width - margin.left - margin.right;
-    var height = ui_opts.height- margin.top - margin.bottom;
-    
-    var x = d3.scale.linear().range([0, width]).domain(cuts.value);
-    var y = d3.scale.sqrt().range([height, 0]);
-    
-    var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);    
-    var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
-    var brush = d3.svg.brush().x(x).on("brushend", brushed);
-
-    var area = d3.svg.area().interpolate("step-before")
-	.x(function(d,i) { return x(tpl_item.start + i*tpl_item.step); })
-	.y0(height)
-	.y1(function(d) { return y(d); });
     
     
     
@@ -421,7 +482,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 //    d3.select("svg").remove();
 
     var brg=null;
-    var xmarg, xw, ymarg;
+//    var xmarg, xw, ymarg;
     
     // if(typeof svg!='undefined')
     // 	if(ui.hasChild(svg))
@@ -430,26 +491,47 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     svg = bn.append('svg');
 	//base_node.appendChild(svg.ownerSVGElement);
 	
-    svg.attr("width", width + margin.left + margin.right);
-    svg.attr("height", height + margin.top + margin.bottom);
-
-    
-
-
     tpl_item.set_value=function(v){
 	if(typeof v!='undefined')tpl_item.value=v;
 	this.redraw();
     }
 
     tpl_item.redraw=function(){
+
+	var margin = ui_opts.margin;
+	var width = ui_opts.width - margin.left - margin.right;
+	var height = ui_opts.height- margin.top - margin.bottom;
+	console.log("UI w,h  = " + width + "," + height);
+	// var width = ui.clientWidth - margin.left - margin.right;
+	// var height = ui.clientHeight- margin.top - margin.bottom;
+	
+	
+	
+	var x = d3.scale.linear().range([0, width]).domain(cuts.value);
+	var y = d3.scale.sqrt().range([height, 0]);
+	
+	var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);    
+	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+	brush = d3.svg.brush().x(x).on("brushend", brushed);
+	
+	var area = d3.svg.area().interpolate("step-before")
+	    .x(function(d,i) { return x(tpl_item.start + i*tpl_item.step); })
+	    .y0(height)
+	    .y1(function(d) { return y(d); });
+	
+	
 	svg.select("g").remove();
+	svg.attr("width", width + margin.left + margin.right);
+	svg.attr("height", height + margin.top + margin.bottom);
+
+
 
 	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
 	var histo=this.value;
 	if(histo.length==0) return;
 	
-	x.domain(this.cuts.value);//
+	x.domain(cuts.value);//
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
 	y.domain(d3.extent(histo, function(d) { return d; }));
 	
