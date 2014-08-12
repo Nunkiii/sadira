@@ -69,7 +69,7 @@ local_templates.prototype.substitute_template=function(tpl_item){
       
       for(var ti=0;ti< toup.length;ti++){
 	  var t=toup[ti];
-	  console.log("Check " + t + " typof " + typeof tpl_item[t] );
+	  //console.log("Check " + t + " typof " + typeof tpl_item[t] );
 	  if(typeof tpl_item[t]=='undefined')
 	      tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
 	  else
@@ -105,7 +105,7 @@ local_templates.prototype.build_template=function(template_name){
   var tpl= clone_obj(this.templates[template_name]);
 //  console.log("TPL= " + JSON.stringify(tpl));
   this.substitute_templates(tpl);
-    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
+//    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
 //  console.log("TPL= " + JSON.stringify(this.templates));
   return tpl;
 }
@@ -158,10 +158,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
 
-    var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
+    var ui_name=null;
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
-    var slided = (typeof ui_opts.slided != 'undefined') ? ui_opts.slided : true;
+    if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
+    var slided=ui_opts.slided;
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var ui_childs=tpl_root.ui_childs={};
     
@@ -170,21 +171,30 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     ui_root.className="db";
     
-    if(!ui_opts.label) ui_name.className="dbname";
+    
+    
     
     if(depth==0) ui_root.className+=" root";
     
     if(typeof ui_opts.root_classes != 'undefined')
 	add_classes(ui_opts.root_classes, ui_root);
     
-    if(typeof ui_opts.name_classes != 'undefined'){
-	console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
-	add_classes(ui_opts.name_classes, ui_name);
+    if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
+    
+    if(typeof tpl_root.name!='undefined'){
+	
+	ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
+	ui_name.innerHTML=tpl_root.name;
+	if(!ui_opts.label) ui_name.className="dbname";
+
+	if(typeof ui_opts.name_classes != 'undefined'){
+	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+	    add_classes(ui_opts.name_classes, ui_name);
+	}
+	
     }
 
-    //if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
-    
-    ui_name.innerHTML=tpl_root.name;
+
 
     tpl_root.enable=function(state){
 	if(!state)
@@ -194,7 +204,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     function rebuild(){
-	console.log("Rebuild....");
+	//tpl_root.slided=!tpl_root.slided;
+	console.log("Rebuild....  slided = " + tpl_root.slided);
+	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	var cnt=new_ui.container=tpl_root.container;
 	
@@ -228,15 +240,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		ui_opts.type="edit";
 	    }
 	    
-	    rebuild();
-	    
 	    e.cancelBubble = true;
 	    
 	    if (e.stopPropagation){
 		e.stopPropagation();
 		//console.log(tpl_root.name + " : editable stop propagation...");
 	    }
-	    
+
+	    rebuild();
+	   	    
 	    return false;
 	}, false);
     }
@@ -345,7 +357,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		break;
 	    default: throw("Bug!!here "); return;
 	    };
-
+	    
 	    
 	    if(slided){
 		ui_childs.div.style[marg]="0%";
@@ -365,7 +377,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }
 	    
+	    if(item_ui)console.log("Update UI slided = " + slided);
+	    
 	    update_arrows();
+
+	    if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
 	}
 
 	var disp=ui_childs.div.style.display;
@@ -417,9 +433,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 
 	slide_button.addEventListener("click",function(e){
+	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
 	    slided=!slided;
 
-	    //console.log(tpl_root.name + "  SLIDE click !  " + slided);
+	    
 
 	    ui_childs.div.style.display=disp;
 	    if(item_ui)item_ui.style.display=dispi;

@@ -133,6 +133,7 @@ function jstringify(object, n){
     if(n) nn=n;
     
     return JSON.stringify(object,function(key, value) {
+	if (typeof value.nodeName != 'undefined' )  return;
 	if (typeof value === 'object' && value !== null) {
 	    if (cache.indexOf(value) !== -1) {
 		// Circular reference found, discard key

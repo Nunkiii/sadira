@@ -79,7 +79,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    this.value=nv;
 	}
 	for(var v=0;v<this.inputs.length;v++){
-	    console.log("TPLI set value " + JSON.stringify(this.value[v]));
+	    //console.log("TPLI set value " + JSON.stringify(this.value[v]));
 	    tpl_item.inputs[v].set_value(this.value[v]);
 	}
 	
@@ -162,6 +162,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 
     switch (ui_opts.type){
 
+
     case "short":
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";
@@ -180,17 +181,18 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	tpl_item.get_value=function(){
 	    return ui.checked;
 	}
-	if(tpl_item.onchange){
-	    ui.onchange=function(){
-		tpl_item.value=this.checked; 
-		tpl_item.onchange();
-	    }
-	}
 	break;
     default: 
 	throw "Unknown UI type ";
     }
     
+    
+    if(tpl_item.onchange){
+	ui.onchange=function(){
+	    tpl_item.value=this.checked; 
+	    tpl_item.onchange();
+	}
+    }
     
     return tpl_item.ui;
 }
@@ -282,7 +284,8 @@ template_ui_builders.action=function(ui_opts, tpl_item){
 	}
     },false);
 
-    tpl_item.ui_root.removeChild(tpl_item.ui_name);
+    if(tpl_item.ui_name)
+	tpl_item.ui_root.removeChild(tpl_item.ui_name);
     
     return ui;
 }
@@ -304,7 +307,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
 
     console.log("Building vector ");
-    
+    var svg;
     var cuts=tpl_item.cuts = { 
 	id : 0,
 	type : "labelled_vector",
@@ -327,10 +330,31 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	onchange : function(v){
 	    tpl_item.value[this.id]=this.value;
 	    if(tpl_item.onchange) tpl_item.onchange(this.id);
-	}*/
+	    }*/
+	elements : {
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:["zoom"]},
+		     onclick : function(){
+			 if(typeof ui_opts.on_range_change!='undefined') ui_opts.on_range_change(cuts.value);
+			 tpl_item.redraw();
+		     }
+		   },  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:["unzoom"]},
+		       onclick : function(){
+			   cuts.set_value([tpl_item.start, 
+					   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
+			   console.log("unzoom to " + JSON.stringify(cuts.value));
+			   if(typeof ui_opts.on_range_change!='undefined') ui_opts.on_range_change(cuts.value);
+			   tpl_item.redraw();
+		       }
+		     }, 
+	    
+	}
     };
     
-	/*,
+    
+    cuts.value=[tpl_item.start, 
+		tpl_item.start + tpl_item.value.length*tpl_item.step ];
+    /*,
 	    
 	    }; 
 	*/
@@ -379,11 +403,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var width = ui_opts.width - margin.left - margin.right;
     var height = ui_opts.height- margin.top - margin.bottom;
     
-    var x = d3.scale.linear().range([0, width]).domain([tpl_item.start, 
-	      tpl_item.start + tpl_item.value.length*tpl_item.step ]);
+    var x = d3.scale.linear().range([0, width]).domain(cuts.value);
     var y = d3.scale.sqrt().range([height, 0]);
     
-    var xAxis = d3.svg.axis().scale(x).orient("bottom");    
+    var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);    
     var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
     var brush = d3.svg.brush().x(x).on("brushend", brushed);
 
@@ -395,18 +418,22 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     
     
     var bn=d3.select(ui);
-	//d3.select("svg").remove();
+//    d3.select("svg").remove();
 
     var brg=null;
     var xmarg, xw, ymarg;
-
-    var svg = bn.append('svg');
+    
+    // if(typeof svg!='undefined')
+    // 	if(ui.hasChild(svg))
+    // 	    ui.removeChild(svg);
+    
+    svg = bn.append('svg');
 	//base_node.appendChild(svg.ownerSVGElement);
 	
     svg.attr("width", width + margin.left + margin.right);
     svg.attr("height", height + margin.top + margin.bottom);
 
-    context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
 
 
     tpl_item.set_value=function(v){
@@ -415,6 +442,9 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
 
     tpl_item.redraw=function(){
+	svg.select("g").remove();
+
+	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
 	var histo=this.value;
 	if(histo.length==0) return;

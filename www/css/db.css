@@ -142,7 +142,17 @@ label{
   padding: .3em;
   border-radius: .5em;
 }
+/*
+.zoom:before {
 
+content : "Zoom In";
+}
+
+.unzoom:before {
+
+content : "Zoom Out";
+}
+*/
 .db .full{
   width: 100%;
 }
