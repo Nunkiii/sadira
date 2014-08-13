@@ -80,7 +80,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    this.value=nv;
 	}
 	for(var v=0;v<this.inputs.length;v++){
-	    console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + tpl_item.inputs[v].name );
+	    //console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + tpl_item.inputs[v].name );
 	    tpl_item.inputs[v].set_value(this.value[v]);
 	}
 	
@@ -90,7 +90,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	//ui.innerHTML=tpl_item.value? "yes":"no";
     }
 
-    console.log("Done building LABVEC : " + tpl_item.name);
+    //console.log("Done building LABVEC : " + tpl_item.name);
 
     return tpl_item.ui;
     
@@ -411,16 +411,17 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	elements : {
 	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:["zoom"], sliding : false},
 		     onclick : function(){
-			 if(typeof ui_opts.on_range_change!='undefined') ui_opts.on_range_change(cuts.value);
+			 if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(cuts.value);
 			 tpl_item.redraw();
 		     }
 		   },  
 	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:["unzoom"]},
 		       onclick : function(){
-			   cuts.set_value([tpl_item.start, 
-					   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
-			   console.log("unzoom to " + JSON.stringify(cuts.value));
-			   if(typeof ui_opts.on_range_change!='undefined') ui_opts.on_range_change(cuts.value);
+			   cuts.set_value([tpl_item.min, tpl_item.max]);
+			   // cuts.set_value([tpl_item.start, 
+			   // 		   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
+			   console.log("unzoom to " + JSON.stringify(cuts.value) + " start = " + tpl_item.start);
+			   if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(cuts.value);
 			   tpl_item.redraw();
 		       }
 		     }, 
@@ -437,6 +438,11 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     */
     
     var ui = tpl_item.ui = create_ui({}, tpl_item.cuts);
+
+    tpl_item.set_range=function(new_range){
+	cuts.set_value(new_range);
+	brush.extent(new_range);
+    };
     
     function brushed() {
 	

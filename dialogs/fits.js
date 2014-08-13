@@ -1,5 +1,29 @@
-var SRZ=require('../html/js/serializer.js');
-var fits=require("../node-fits/build/Release/fits");
+var SRZ=require('../www/js/serializer.js');
+var fits = require('../../node-fits/build/Release/fits.node');
+
+
+var layer_defaults = [ 
+    {
+	colormap : [[0,0,0,1,0],
+		    [.5,0.0,1.0,.5,1.0]],
+	cuts : []
+    },
+    {
+	colormap : [[0,0,0,1,0],
+		    [1.0,1.0,0.0,1.0,1.0]],
+	cuts : []
+    },
+    {
+	colormap : [[0,0,0,1,0],
+		    [0.0,1.0,1.0,1.0,1.0]],
+	cuts : []
+    },
+    {
+	colormap : [[0,0,0,1,0],
+		    [1.0,0.0,0.0,1.0,1.0]],
+	cuts : []
+    }
+];
 
 dialog_handlers.fits = {
 
@@ -22,13 +46,16 @@ dialog_handlers.fits = {
 	dlg.listen("get_data", function(dgram){
 
 	    var imgid=dgram.header.imgid;
-	    console.log("Sending imgid " + imgid);
-	    var f = new fits.file();
+	    var file_name=multi_root+multi_files[dgram.header.imgid][0];
+	    console.log("Sending imgid " + imgid + " : " + file_name);
+
+	    var f = new fits.file(file_name);
 	    //f.file_name="./example_fits_files/m42_40min_red.fits"
 	    //f.file_name="./example_fits_files/example.fits";
-	    f.file_name=multi_root+multi_files[dgram.header.imgid][0];
+	    
 	    f.set_hdu(1);
-
+	    
+	    console.log("read du  image ...");
 	    f.read_image_hdu(function(error, image){
 
 		if(error != null){
@@ -57,14 +84,17 @@ dialog_handlers.fits = {
 		
 		console.log("FIRST DATA IS " + data[0] + ", "+ data[1000]);
 		var srep=new SRZ.srz_mem(data);
-		srep.header={width : image.width(), height: image.height(), name : multi_files[dgram.header.imgid][1] };
+		srep.header={width : image.width(), height: image.height(), name : multi_files[imgid][1],
+			     colormap : layer_defaults[imgid].colormap,
+			     cuts : layer_defaults[imgid].cuts,
+			    };
 		//srep.header={width : 512, height: 512 };
 		
 		console.log("SRZ configured size= " + srep.size());
 		
 		srep.on_done=function(){
 		    console.log("Image data sent!");
-		    dlg.close();
+		    //dlg.close();
 		};
 		
 		dlg.srz_initiate(srep, function(error){

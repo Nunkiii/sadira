@@ -501,7 +501,8 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 _sadira.prototype.handle_request= function(request, response){
 
     var headers ={};
-    console.log("REQ ON");
+    console.log("Incoming request ");
+
     if(request.method=='POST') {
 	sadira.process_post_request(request, response, headers);
     }else
@@ -511,8 +512,6 @@ _sadira.prototype.handle_request= function(request, response){
     else{
 	console.log("Unhandled request");
     }    
-
-    console.log("REQ OFF");
 }
 
 //Creates the http servers 
@@ -530,10 +529,13 @@ _sadira.prototype.create_http_server = function(){
 	    cert: fs.readFileSync('./ssl/keys/cert.pem')
 	};
 
-	this.https_server = require("https").createServer(sad.ssl_data, sad.handle_request).listen(parseInt(sad.options.https_port, 10));
+	console.log("starting https server");
+	sad.https_server = require("https").createServer(sad.ssl_data, sad.handle_request).listen(parseInt(sad.options.https_port, 10));
     }
+
     if(sad.options.http_port){
-	this.http_server = require("http").createServer(sad.handle_request).listen(parseInt(sad.options.http_port, 10));
+	console.log("starting http server");
+	sad.http_server = require("http").createServer(sad.handle_request).listen(parseInt(sad.options.http_port, 10));
     }
     
 }
@@ -546,11 +548,12 @@ _sadira.prototype.create_webrtc_server=function() {
 
     var sad=this;
     
-    if(!sad.options.websocket) return;
+    if(!sad.options.webrtc) return;
     
-    console.log("Create webRTC server...");
+    console.log("Create webRTC server... on " + sad.options.http_port);
 
     if(!sad.options.webrtc_port) sad.options.webrtc_port=7777 ;    
+
     var io = require('socket.io').listen(sad.options.webrtc_port);
 
     
@@ -609,41 +612,19 @@ _sadira.prototype.create_webrtc_server=function() {
  * Creation of the WebSocket server.
  */
 
-_sadira.prototype.create_websocket_server=function() {
 
-    var sad=this;
-    var webSocketServer = require('websocket').server;
-    
-    console.log("Create websocket server");
-    
-    if(sad.http_server){
-	this.ws_server= new webSocketServer({
-	    // WebSocket server is tied to a HTTP server. WebSocket request is just
-	    // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
-	    httpServer: sad.http_server
-	});
-    }
-    
-    if(sad.https_server){
-	this.ws_server= new webSocketServer({
-    	    httpServer: sad.https_server
-	});
-    }
-
-    // This callback function is called every time someone
+_sadira.prototype.handle_websocket_requests=function(ws_server){
+        // This callback function is called every time someone
     // tries to connect to the WebSocket server
     
-    this.ws_server.on('request', function(request) {
+    ws_server.on('request', function(request) {
 	
-	// accept cnx - you should check 'request.origin' to make sure that
-	// client is connecting from your website
-	// (http://en.wikipedia.org/wiki/Same_origin_policy)
-
+	console.log("Connexion request from " + request.origin);
+	
 	var cnx = request.accept(null, request.origin); 
 
 	cnx.dialogs=new DLG.dialog_manager(cnx); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
 
-//	var user_session=null;
 	cnx.request=request;
 	
 	// Incoming message from web client
@@ -653,7 +634,7 @@ _sadira.prototype.create_websocket_server=function() {
 	    try{
 		
 		//console.log("Incoming message, creating datagram");
-
+		
 		var dgram=new DGM.datagram();
 		
 		if (message.type === 'utf8') { //Ascii
@@ -691,6 +672,34 @@ _sadira.prototype.create_websocket_server=function() {
 	});
 	
     });
+
+}
+
+_sadira.prototype.create_websocket_server=function() {
+    
+    var sad=this;
+    if(!sad.options.websocket) return;
+
+    var webSocketServer = require('websocket').server;
+    
+    if(sad.http_server){
+	console.log("Create websocket http server");
+	this.ws_server= new webSocketServer({
+	    // WebSocket server is tied to a HTTP server. WebSocket request is just
+	    // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
+	    httpServer: sad.http_server
+	});
+	sad.handle_websocket_requests(this.ws_server);
+    }
+    
+    if(sad.https_server){
+	console.log("Create websocket https server");
+	this.wss_server= new webSocketServer({
+    	    httpServer: sad.https_server
+	});
+	sad.handle_websocket_requests(this.wss_server);
+    }
+    
 
 }
 

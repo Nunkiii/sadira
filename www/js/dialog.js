@@ -118,10 +118,10 @@ srz_setup=function(dlg){
 		    throw "No serializer oid received!!";
 		status_head.oid=oid;
 		
-		console.log("SRZ request ID=" + oid );
+		console.log("SRZ request ID=" + oid + " func is " + typeof dlg.srz_request);
 		
 		dlg.srz_request(dgram, function(error, srz){
-		    console.log("Ok here...");
+		    console.log("Ok here... srz = " + typeof srz);
 		    
 		    if(error!=null){ 
 			status_head.status=false; status_head.error_message= error;
@@ -134,6 +134,8 @@ srz_setup=function(dlg){
 		    }
 		    dlg.send_datagram(status_head,null,function(error){});
 		});
+
+		
 	    }
 	    catch (e) {
 		status_head.status=false; status_head.error_message= dump_error(e);
@@ -291,7 +293,7 @@ var dialog_manager = function(cnx){
 dialog_manager.prototype.delete_dialog=function(dlg){
     
     
-    //console.log("!D[]"+JSON.stringify(dlg.header)+", remains :\n");
+    console.log("!Delete dialog "+JSON.stringify(dlg.header));
 
     delete this.dialogs[dlg.header.id];
 

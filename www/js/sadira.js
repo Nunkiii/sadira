@@ -55,7 +55,7 @@ var sadira = function(parameters, on_error, on_connect) {
 	}else
 	    ws_host=parameters.server;
 	
-
+	
     	if(typeof parameters.server_prefix!='undefined')
 	    server_prefix=parameters.server_prefix;
 	else
@@ -75,14 +75,15 @@ var sadira = function(parameters, on_error, on_connect) {
 	//console.log("ws host is " +ws_host + ' protocol is ' +  document.location.protocol );    
 	//set_connexion_status("unknown","Connecting to <pre>" + JSON.stringify(location,null,3) + "</pre>" );
 	
-	set_connexion_status("unknown","Connecting to " + ws_host + " ..." );
+	//set_connexion_status("unknown","Connecting to " + ws_host + " ..." );
 
 	var wsock=null; //The (main) web(rtc)socket.
 
-	if(!parameters.mode) parameters.mode="webrtc"; 
+	if(!parameters.mode) 
+	    parameters.mode="websocket"; 
 	
 	if(parameters.mode=="webrtc"){
-
+	    
 	    var datachannel_opts = {
 		ordered: false, // do not guarantee order
 		maxRetransmitTime: 3000, // in milliseconds
@@ -98,14 +99,14 @@ var sadira = function(parameters, on_error, on_connect) {
 	    */
 
 	}else{
-
+	    
 	    window.WebSocket = window.WebSocket || window.MozWebSocket;
 	    
-	//Checking web socket support 
+	    //Checking web socket support 
 	    
 	    if (!window.WebSocket) {
 		var emsg="Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser";
-		set_connexion_status("error", emsg);
+		//set_connexion_status("error", emsg);
 		return on_error(emsg);
 	    }
 
@@ -115,12 +116,12 @@ var sadira = function(parameters, on_error, on_connect) {
 	
 	
 	wsock.onclose = function () {
-	    this.set_status();
+	    //this.set_status();
 	    if(sad.dialogs!='undefined') delete sad.dialogs;
 	};
 	
 	wsock.onopen = function () {
-	    this.set_status();
+	    //this.set_status();
 	    sad.dialogs= new dialog_manager(wsock);
 
 	    //root_widget = new widget.base();
@@ -147,7 +148,7 @@ var sadira = function(parameters, on_error, on_connect) {
 	};
 	
 	wsock.onerror = function (error) {
-	    this.set_status(error);
+	    //this.set_status(error);
 	    on_error(error);
 	    //set_connexion_status("error", "Error: <pre>"+JSON.stringify(error,null,3)+"</pre>");
 	};

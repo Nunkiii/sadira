@@ -63,7 +63,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 
     cmap.set_hex_color = function(cid, color){
-	console.log("set color id " + cid + " col " + JSON.stringify(color));
+	//console.log("set color id " + cid + " col " + JSON.stringify(color));
 	var rbgc=hex2rgb(color);
 	var cv=this.value[cid];
 	
@@ -335,6 +335,11 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	break;
     default: 
 	throw "Unknown UI type ";
+    }
+
+    cmap.set_value=function(v){
+	cmap.value=v;
+	cmap.update_colors();
     }
     
     cmap.display(ui_opts);

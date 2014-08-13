@@ -33,7 +33,8 @@ function tab_widget(classes){
     this.add_frame=function(title){
 
 	var li=nav.appendChild(ce("li"));
-	li.innerHTML=title;
+	//li.innerHTML=title;
+	li.appendChild(title); 
 	li.div=div.appendChild(ce("div"));
 	li.div.className="tab_section";
 	li.div.style.display='none';
@@ -170,7 +171,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var ui_childs=tpl_root.ui_childs={};
     
 
-    console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
+    //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
     
     ui_root.className="db";
 
@@ -302,8 +303,19 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_childs.div.className+=" childs";
 	
 	ui_childs.add_child=function(e,ui){
-	    var f=ui_childs.add_frame(e.name); 
-	    //e.ui_root.removeChild(e.ui_name);
+	    var uin;
+	    if( e.ui_name )
+		uin = e.ui_name;
+	    else {
+		uin =  ce("span");
+		uin.innerHTML="Noname";
+	    }
+
+	    if( uin.parentNode){
+		uin.parentNode.removeChild(uin);
+	    }
+	    var f=ui_childs.add_frame(uin); 
+	    
 	    ui.f=f;
 	    f.div.appendChild(ui);
 	}
@@ -376,7 +388,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }
 	    
-	    if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
+	    //if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
 	    
 	    update_arrows();
 
