@@ -160,10 +160,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
 
-    var ui_name=null;
+
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
-
+    
     //if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
     var slided=(typeof ui_opts.slided == 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
 
@@ -182,18 +182,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
     
-    if(typeof tpl_root.name!='undefined'){
-	
-	ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
-	ui_name.innerHTML=tpl_root.name;
-	if(!ui_opts.label) ui_name.className="dbname";
+//    if(typeof tpl_root.name!='undefined'){
 
-	if(typeof ui_opts.name_classes != 'undefined'){
-	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
-	    add_classes(ui_opts.name_classes, ui_name);
-	}
-	
+    var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
+    ui_name.innerHTML="Hello";
+    if(!ui_opts.label) ui_name.className="dbname";
+    
+    if(typeof ui_opts.name_classes != 'undefined'){
+	//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+	add_classes(ui_opts.name_classes, ui_name);
     }
+
+    tpl_root.set_title=function(title){
+	ui_name.firstChild.data=title;
+//	span.appendChild( document.createTextNode("some new content") );
+    }
+    
+    tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
+    
+ //   }
 
 
 
@@ -208,17 +215,24 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//if (typeof tpl_root.sliding != 'undefined') 
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
 	console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
+
+	var oldroot=tpl_root.ui_root;
+	//tpl_root.parent.ui_childs.div.removeChild(tpl_root.ui_root); //div.appendChild(new_ui);
 	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
-	var cnt=new_ui.container=tpl_root.container;
+
+	tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); //div.appendChild(new_ui);
+
+	var cnt=tpl_root.ui_childs; //new_ui.container=tpl_root.container;
 	
-	if(typeof cnt!="undefined"){
-	    cnt.replace_child(new_ui, ui_root);
-	    ui_root=new_ui;
-	}
-	else{
-	    console.log(tpl_root.name + " cannot rebuild : undef container  " );
-	}
+//	if(typeof cnt!="undefined"){
+
+//	    cnt.replace_child(tpl_root, new_ui);
+	    //ui_root=new_ui;
+	// }
+	// else{
+	//     console.log(tpl_root.name + " cannot rebuild : undef container  " );
+	// }
     }
     
     if(ui_opts.editable){
@@ -256,6 +270,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
     
     var item_ui;
+    var sliding_stuff=[];
+
+
 
     if(tpl_root.type){
 	try{
@@ -269,11 +286,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 		else{
 		    ui_root.appendChild(item_ui);
+		    //ui_childs.div.appendChild(item_ui);
 		    item_ui.className+=" dbitem";
+		    sliding_stuff.push(item_ui);
 		}
 		
 		if(typeof ui_opts.item_classes != 'undefined')
 		    add_classes(ui_opts.item_classes, item_ui);
+		
+
 	    }
 	}
 	catch(e){
@@ -281,27 +302,84 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
     }
 
+
     //var ne=0; for (var e in tpl_root.elements){ console.log(tpl_root.name + " + E("+ne+")="+e); ne++; }
     //console.log(tpl_root.name + " : -->Nchilds = " + ne);
     //if(!tpl_root.elements) return ui_root;
-    //console.log("Config ["+cvtype+"] add_child for " + tpl_root.name + " type " + tpl_root.type);
+
+    //console.log("Config " + tpl_root.name + " child view ["+cvtype+"] type " + tpl_root.type);
 
     switch(cvtype){
 	
     case "div":
+//	ui_childs=tpl_root.ui_childs={};
 	ui_childs.div=ce("div"); 
 	ui_childs.div.className="childs";
 	ui_childs.add_child=function(e,ui){ui_childs.div.appendChild(ui);}
-	ui_childs.replace_child=function(new_ui,ui){
-	    console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(new_ui, ui);
+	if(typeof ui_opts.child_classes != 'undefined')
+	    add_classes(ui_opts.child_classes, ui_childs.div);
+	
+	ui_root.appendChild(ui_childs.div);
+	sliding_stuff.push(ui_childs.div);
 
+    ui_childs.replace_child=function(e,new_ui){
+	var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+	ui_childs.div.replaceChild(new_ui, ui);
+	
+    }
+
+	break;
+    case "bar":
+	//console.log("ui root " + ui_root.nodeName);
+//	ui_childs=tpl_root.ui_childs={};
+	var nav=tpl_root.nav=ce("nav");
+	ui_root.appendChild(nav);
+	ui_childs.div=ce("div");
+	ui_childs.div.className="childs";
+	//tpl_root.ui_root.appendChild(ui_childs.div);
+//	ui_childs.div=item_ui;
+	//ui_childs.div.className="childs";
+	ui_childs.add_child=function(e,ui){
+	    //console.log("BAR add child on " + ui_childs.div.nodeName);
+	    if(e.ui_name){
+		if(e.ui_name.parentNode)
+		    e.ui_name.parentNode.removeChild(e.ui_name);
+		
+		cc("li",nav).appendChild(e.ui_name);
+	    }
+	    if(!e.ui_opts.label)
+		ui_childs.div.appendChild(ui);
 	}
+	ui_childs.replace_child=function(e,new_ui){
+	    var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+	    ui_childs.div.replaceChild(new_ui, ui);
+	    
+	}
+
+	if(typeof ui_opts.child_classes != 'undefined')
+	    add_classes(ui_opts.child_classes, ui_childs.div);
+	
+	ui_root.appendChild(ui_childs.div);
+	
+
+	sliding_stuff.push(nav);
+	sliding_stuff.push(ui_childs.div);
+
+	
+//	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;
+	
 	break;
     case "tabbed":
 	tpl_root.ui_childs=ui_childs=new tab_widget();
 	ui_childs.div.className+=" childs";
+	if(typeof ui_opts.child_classes != 'undefined')
+	    add_classes(ui_opts.child_classes, ui_childs.div);
 	
+	ui_root.appendChild(ui_childs.div);
+	sliding_stuff.push(ui_childs.div);
+
 	ui_childs.add_child=function(e,ui){
 	    var uin;
 	    if( e.ui_name )
@@ -316,33 +394,47 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    var f=ui_childs.add_frame(uin); 
 	    
-	    ui.f=f;
+	    e.f=f;
 	    f.div.appendChild(ui);
 	}
 	
-	ui_childs.replace_child=function(new_ui,ui){
-	    console.log("TAB replace node " + ui.nodeName + " with node " + new_ui.nodeName);
-	    new_ui.f=ui.f;
-	    ui.f.div.replaceChild(new_ui, ui);
+	ui_childs.replace_child=function(e,new_ui){
+
+	    //console.log("TAB replace node " + ui.nodeName + " with node " + new_ui.nodeName);
+	    e.f.div.replaceChild(new_ui, ui);
 	}
 	break;
+    default:
+	throw "NO VALID CHILD VIEW TYPE";
+	break;
     }
-    if(typeof ui_opts.child_classes != 'undefined')
-	add_classes(ui_opts.child_classes, ui_childs.div);
     
-    ui_root.appendChild(ui_childs.div);
+    
 
+    //console.log(tpl_root.name +  " CONF CHILDS " );
+    
     for (var e in tpl_root.elements){
 	var e=tpl_root.elements[e];
 	e.container=ui_childs;
-	var ui=create_ui(global_ui_opts,e, depth+1 );
-	ui_childs.add_child(e,ui);
-    }
+	e.parent=tpl_root;
+	//console.log(tpl_root.name +  " adding child " + e.name + " to childs elem " + ui_childs.div.nodeName);
 
+	var ui=create_ui(global_ui_opts,e, depth+1 );
+	
+
+	ui_childs.add_child(e,ui);
+	//console.log(tpl_root.name +  " adding child " + e.name + " OK!");
+    }
+    //console.log(tpl_root.name +  " CONF CHILDS DONE.");
     //console.log("----> Create UI : " + JSON.stringify(ui_opts) + " SLIDING " + sliding);
 
     if(sliding==true){
-
+	
+	if(tpl_root.parent)
+	    if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
+		if(tpl_root.parent.ui_opts.child_view_type == "bar") 
+		    sliding_stuff.push(ui_root);
+	
 	function update_arrows(){
 	    switch(sliding_dir){
 	    case "v":
@@ -369,41 +461,36 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    default: throw("Bug!!here "); return;
 	    };
 	    
-	    
 	    if(slided){
-		ui_childs.div.style[marg]="0%";
-		ui_childs.div.style.opacity="1.0";
-		if(item_ui){
-		    item_ui.style[marg]="0%";
-		    item_ui.style.opacity="1.0";
-		}
-		
+		sliding_stuff.forEach(function (s){
+		    s.style[marg]="0%";
+		    s.style.opacity="1.0";
+		});
+		ui_name.remove_class("unslided");
+		ui_name.add_class("slided");
 	    }else{
-		ui_childs.div.style[marg]="-100%";
-		ui_childs.div.style.opacity="0.0";
-		if(item_ui){
-		    item_ui.style[marg]="-100%";
-		    item_ui.style.opacity="0.0";
-		}
-		
+		sliding_stuff.forEach(function (s){
+		    s.style[marg]="-100%";
+		    s.style.opacity="0.0";
+		});
+		ui_name.remove_class("slided");
+		ui_name.add_class("unslided");
 	    }
 	    
 	    //if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
 	    
 	    update_arrows();
-
+	    
 	    if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
 	}
 
-	var disp=ui_childs.div.style.display;
-	var dispi=item_ui?item_ui.style.display:"none";
 
-	    switch(sliding_dir){
-	    case "h":
+	switch(sliding_dir){
+	case "h":
 		marg="marginLeft";
 		//disp="inline-block";
 		//dispi="inline-block";
-		break;
+	    break;
 	    case "v":
 		marg="marginTop";
 		//disp="inline-block"; 
@@ -418,39 +505,38 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 //	ui_name.style.zIndex=200;
 	//ui_childs.div.style.zIndex=0;
-	ui_childs.div.add_class("sliding");
-	if(item_ui)item_ui.add_class("sliding");
-	
-	//console.log("ENABLE sliding! ");
-	
+
 	var slide_button=cc("span", ui_name);
 	slide_button.style.zIndex=ui_root.style.zIndex+1;
 
-	ui_childs.div.addEventListener("transitionstart",function(){
-	  //  console.log("Ani start ! " + slided );
-	}, false);
-
-	ui_childs.div.addEventListener("transitionend",function(){
-	    //console.log("Ani end ! "+ slided );
-	    if(!slided)
-		ui_childs.div.style.display="none";
-	}, false);
-
-	if(item_ui)item_ui.addEventListener("transitionend",function(){
-	    //console.log("Ani end ! "+ slided );
-	    if(!slided)
-		item_ui.style.display="none";
-	}, false);
-
+	//ui_childs.div.style.display;
+	//var dispi=item_ui?item_ui.style.display:"none";
+	
+	sliding_stuff.forEach(function (s){
+	    
+	    s.disp_orig=s.style.display;
+	    s.add_class("sliding");
+	    
+	    //console.log("ENABLE sliding! ");
+	    s.addEventListener("transitionstart",function(){
+		//  console.log("Ani start ! " + slided );
+	    }, false);
+	    
+	    s.addEventListener("transitionend",function(){
+		//console.log("Ani end ! "+ slided );
+		if(!slided)
+		    s.style.display="none";
+		if(typeof tpl_root.on_slide != 'undefined') tpl_root.on_slide(slided);
+	    }, false);
+	});
 
 	slide_button.addEventListener("click",function(e){
 	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
 	    slided=!slided;
-
 	    
-
-	    ui_childs.div.style.display=disp;
-	    if(item_ui)item_ui.style.display=dispi;
+	    sliding_stuff.forEach(function (s){
+		s.style.display=s.disp_orig;
+	    });
 
 	    setTimeout(function(){
 		update_ui();
@@ -470,8 +556,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	update_ui();
 
 	if(!slided){
-	    if(item_ui) item_ui.style.display="none";
-	    ui_childs.div.style.display="none";
+	    sliding_stuff.forEach(function (s){
+		s.style.display="none";
+	    });
+	    
 	}
     }
 

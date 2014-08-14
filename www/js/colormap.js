@@ -92,19 +92,26 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	return this.gradient_css_string;
     }
 
+    cmap.on_slide=function(slided){
+	console.log("CMAP slided !!");
+	console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
+	cmap.domnode.style.width=cmap.ui_root.clientWidth;
+    }
+
     cmap.display=function(ui_opts){
 	
 	if(this.value.length<2){
 	    console.log("Not enough colours to display");
 	return;
 	}
-	console.log("Display " + this.value.length + " colors....");
+	console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
 
-	this.domnode.innerHTML="Hello Colormap!";	
-	//this.domnode.style.width=200+"px";
+	//this.domnode.innerHTML="Hello Colormap!";	
+
+	
 	//this.domnode.style.height=40+"px";
-	this.domnode.style.background=this.write_gradient_css_string();
 
+	this.domnode.style.background=this.write_gradient_css_string();
 
 	if(ui_opts.type=="edit"){
 	    var sd=this.select_div=ce("div");

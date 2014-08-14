@@ -52,7 +52,8 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    max : tpl_item.max, 
 	    step : tpl_item.step, 
 	    value : tpl_item.value[v],
-
+	    parent : { ui_childs : { div : ui } },
+	    /*
 	    container : { 
 		add_child : function(e,nui){ui.appendChild(nui);},
 		replace_child : function(nui,oui){
@@ -60,7 +61,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 		    console.log("LAB VECTOR container Replaced UI!");
 		}
 	    },
-	    
+	    */
 	    onchange : function(v){
 		tpl_item.value[this.id]=this.value;
 		if(tpl_item.onchange) tpl_item.onchange(this.id);
@@ -358,8 +359,9 @@ template_ui_builders.action=function(ui_opts, tpl_item){
 	}
     },false);
 
-    if(tpl_item.ui_name)
-	tpl_item.ui_root.removeChild(tpl_item.ui_name);
+    //if(tpl_item.ui_name)
+    //	tpl_item.ui_root.removeChild(tpl_item.ui_name);
+    tpl_item.set_title("");
     
     return ui;
 }
@@ -388,13 +390,13 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var cuts=tpl_item.cuts = { 
 	id : 0,
 	type : "labelled_vector",
-	name : "Data bounds",
+	name : "Selection",
 	value_labels : ["Low","High"],
 	min : tpl_item.min, 
 	max : tpl_item.max, 
 	step : tpl_item.step, 
 	value : [0, 0],
-	ui_opts: {root_classes : [], editable : true, sliding: false},
+	ui_opts: {root_classes : [], child_classes : ["inline"], item_classes : ["full"], editable : false, sliding: false},
 	/*
 	container : { 
 	    add_child : function(e,nui){ui.appendChild(nui);},
@@ -505,7 +507,9 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     tpl_item.redraw=function(){
 
 	var margin = ui_opts.margin;
-	var width = ui_opts.width - margin.left - margin.right;
+	var width = cuts.ui.clientWidth //ui_opts.width 
+	    - margin.left - margin.right - 30;
+	
 	var height = ui_opts.height- margin.top - margin.bottom;
 	console.log("UI w,h  = " + width + "," + height);
 	// var width = ui.clientWidth - margin.left - margin.right;

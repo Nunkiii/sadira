@@ -10,9 +10,9 @@ label{
 
 
 .value{
-  font-size: 1.0em;
-  padding: .5em;
-  margin-left: .5em;
+/*  font-size: 1.0em;  */
+  /*padding: .5em;*/
+/*  margin-left: .5em; */
   vertical-align: middle;
 }
 
@@ -27,6 +27,7 @@ label{
   border : 2px solid rgba(50,50,50,0.5);
   padding: .1em;
   margin: .1em;
+  vertical-align: top;
 } 
 
 .db .disabled { 
@@ -35,7 +36,7 @@ label{
 
 .root{
   display: inline-block;
-  font-weight: bold;
+  font-weight: normal;
   font-size: .8em;
 }
 
@@ -93,11 +94,15 @@ label{
   color: white;
 }
 .db input[type="button"], .db input[type="file"]{
-  padding: .4em;
-  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) );
-  border-radius: .3em;
+  margin: 0px;
+  padding: 0px;
+  background: none;
   color: white;
-  text-shadow : 0px 0px 2px rgba(250,250,250,.8);
+/*  padding: .4em; */
+/*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
+  border-radius: .3em;
+/*  color: white; */
+ /* text-shadow : 0px 0px 2px rgba(250,250,250,.8); */
   cursor: pointer;
 }
 .db input[type="button"]:hover{
@@ -138,7 +143,8 @@ content : "Zoom Out";
 }
 */
 .db .full{
-  width: 100%;
+  overflow: hidden;
+  width: calc(100% - .2em);
 }
 
 .db .html_content {
@@ -171,11 +177,11 @@ content : "Zoom Out";
 .db label{
   font-size: 1.1em;
   color: white;
-  padding-left: .4em;
+/*  padding-left: .4em; */
 }
 
 .db label>input{
-  margin-left: .5em;
+/*  margin-left: .5em; */
 }
 
 .db > .childs .dbname { 
@@ -199,11 +205,21 @@ content : "Zoom Out";
 
 .dbname {
   vertical-align: middle;
-  text-shadow: 1px 0px 0px rgba(255,255,255,1.0);
+  color: white;
+  font-size: 1em;
+/*  text-shadow: 2px 0px 0px rgba(255,255,255,1.0); */
+}
+
+
+.slided{
+  /*border: 1px solid rgba(228,20,228,0.8);*/
+  text-shadow : 1px 0px 1em rgba(255,20,20,1.0);
+/*  color: rgba(230,20,30,1.0); */
 }
 
 .db .dbname{
-  color : rgba(200,255,200,0.0);
+  vertical-align: middle;
+/*  color : rgba(200,255,200,0.0); */
 }
 
 .db .db .dbname{
@@ -319,6 +335,25 @@ content : "Zoom Out";
 
 }
 
+.db > nav{
+  list-style-type: none;
+  display : inline-block;
+  vertical-align: middle;
+}
+
+.db > nav > li{
+  display: inline-block;
+  vertical-align: middle;
+  border: 2px solid rgba(0,0,0,0);
+  border-radius: .3em;
+  box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  
+  padding-left : .5em;
+  padding-right : .5em;
+  padding-top : .2em;
+  padding-bottom : .2em;
+  margin: .3em;
+}
+
 .column {
   display: block;
   vertical-align: top;  
@@ -353,8 +388,10 @@ content : "Zoom Out";
  
   list-style-type: none;
   display: block;
-  clear: both; 
-  overflow : hidden;
+  overflow-x : auto;
+  /*  max-width: 100%;  /*calc(100% - 10px);*/
+  line-height: 1.5em;
+  white-space : nowrap;
 }
 
 .tab_section  {
@@ -366,9 +403,9 @@ content : "Zoom Out";
    
 .tab_widget> nav > li{
   color: white;
-  text-shadow : 1px 1px 2px rgba(0,0,0,1.0);
+  /*text-shadow : 1px 1px 2px rgba(0,0,0,1.0);*/
   text-align:center;
-  display: inline-block;
+  display: table-cell;
   padding-left: .8em;
   padding-right: .8em;
   padding-top: .3em;
@@ -388,10 +425,10 @@ content : "Zoom Out";
 }
 
 .colormap {
+  height: 2em;
+  min-width: 2em;
   position: relative;
-  height: 3em;
-  width: auto;
-  display : block;
+  vertical-align: middle;
 }
 
 .colormap_select_div{
