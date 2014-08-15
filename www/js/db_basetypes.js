@@ -52,16 +52,15 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    max : tpl_item.max, 
 	    step : tpl_item.step, 
 	    value : tpl_item.value[v],
-	    parent : { ui_childs : { div : ui } },
-	    /*
-	    container : { 
-		add_child : function(e,nui){ui.appendChild(nui);},
-		replace_child : function(nui,oui){
-		    ui.replaceChild(nui, oui);
-		    console.log("LAB VECTOR container Replaced UI!");
+	    parent : { 
+		ui_childs : { 
+		    add_child : function(e,nui){ui.appendChild(nui);},
+		    replace_child : function(nui,oui){
+			ui.replaceChild(nui, oui);
+			console.log("LAB VECTOR container Replaced UI!");
+		    }
 		}
 	    },
-	    */
 	    onchange : function(v){
 		tpl_item.value[this.id]=this.value;
 		if(tpl_item.onchange) tpl_item.onchange(this.id);
@@ -98,6 +97,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 }
 
 template_ui_builders.local_file=function(ui_opts, tpl_item){
+
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
@@ -386,72 +386,39 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     var svg;
     var brush;
+    var selection=tpl_item.elements.selection;
+    
+    selection.value=[tpl_item.start, 
+		     tpl_item.start + tpl_item.value.length*tpl_item.step ];
 
-    var cuts=tpl_item.cuts = { 
-	id : 0,
-	type : "labelled_vector",
-	name : "Selection",
-	value_labels : ["Low","High"],
-	min : tpl_item.min, 
-	max : tpl_item.max, 
-	step : tpl_item.step, 
-	value : [0, 0],
-	ui_opts: {root_classes : [], child_classes : ["inline"], item_classes : ["full"], editable : false, sliding: false},
-	/*
-	container : { 
-	    add_child : function(e,nui){ui.appendChild(nui);},
-	    replace_child : function(nui,oui){
-		ui.replaceChild(nui, oui);
-		console.log("UL container Replaced UI!");
-	    }
-	},
 
-	onchange : function(v){
-	    tpl_item.value[this.id]=this.value;
-	    if(tpl_item.onchange) tpl_item.onchange(this.id);
-	    }*/
-	elements : {
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:["zoom"], sliding : false},
-		     onclick : function(){
-			 if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(cuts.value);
-			 tpl_item.redraw();
-		     }
-		   },  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:["unzoom"]},
-		       onclick : function(){
-			   cuts.set_value([tpl_item.min, tpl_item.max]);
-			   // cuts.set_value([tpl_item.start, 
-			   // 		   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
-			   console.log("unzoom to " + JSON.stringify(cuts.value) + " start = " + tpl_item.start);
-			   if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(cuts.value);
-			   tpl_item.redraw();
-		       }
-		     }, 
-	    
-	}
+    tpl_item.elements.zoom.onclick=function(){
+	if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(selection.value);
+	tpl_item.redraw();
     };
+    tpl_item.elements.unzoom.onclick = function(){
+	selection.set_value([tpl_item.min, tpl_item.max]);
+	// cuts.set_value([tpl_item.start, 
+	// 		   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
+	console.log("unzoom to " + JSON.stringify(selection.value) + " start = " + tpl_item.start);
+	if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(selection.value);
+	tpl_item.redraw();
+    }
+
     
-    
-    cuts.value=[tpl_item.start, 
-		tpl_item.start + tpl_item.value.length*tpl_item.step ];
-    /*,
-	    
-      }; 
-    */
-    
-    var ui = tpl_item.ui = create_ui({}, tpl_item.cuts);
 
     tpl_item.set_range=function(new_range){
-	cuts.set_value(new_range);
+	selection.set_value(new_range);
 	brush.extent(new_range);
     };
+
     
     function brushed() {
 	
-	tpl_item.cuts.value[0]=brush.extent()[0];
-	tpl_item.cuts.value[1]=brush.extent()[1];
-
-	tpl_item.cuts.set_value();
+	selection.value[0]=brush.extent()[0];
+	selection.value[1]=brush.extent()[1];
+	
+	selection.set_value();
 
 	svg.select(".brush").call(brush);
 	
@@ -476,7 +443,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    console.log("brg is NULL !");
 	
 	if(tpl_item.selection_change)
-	    tpl_item.selection_change(tpl_item.cuts.value);
+	    tpl_item.selection_change(selection.value);
 
 	//	    fv.cmap.display();
     }
@@ -484,8 +451,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
     
-    
-    
+    var ui=tpl_item.ui=ce("div");
+
     var bn=d3.select(ui);
 //    d3.select("svg").remove();
 
@@ -507,7 +474,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     tpl_item.redraw=function(){
 
 	var margin = ui_opts.margin;
-	var width = cuts.ui.clientWidth //ui_opts.width 
+	var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
 	    - margin.left - margin.right - 30;
 	
 	var height = ui_opts.height- margin.top - margin.bottom;
@@ -517,7 +484,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
 	
 	
-	var x = d3.scale.linear().range([0, width]).domain(cuts.value);
+	var x = d3.scale.linear().range([0, width]).domain(selection.value);
 	var y = d3.scale.sqrt().range([height, 0]);
 	
 	var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);    
@@ -534,14 +501,12 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	svg.attr("width", width + margin.left + margin.right);
 	svg.attr("height", height + margin.top + margin.bottom);
 
-
-
 	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
 	var histo=this.value;
 	if(histo.length==0) return;
 	
-	x.domain(cuts.value);//
+	x.domain(selection.value);//
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
 	y.domain(d3.extent(histo, function(d) { return d; }));
 	
@@ -558,7 +523,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
 	xsvg.each(function(){
 	    //	 console.log("XAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
-	    xw=this.getBBox().width;
+	    //xw=this.getBBox().width;
 	});	       
 	
 	
@@ -611,7 +576,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//			   
 	//base_node.appendChild(fv.cmap.domnode);
 	//		   brush.extent([data[0].pixvalue*1.0,data[data.length-1].pixvalue*1.0]);
-	brush.extent(cuts.value);//[fv.viewer_cuts[0],fv.viewer_cuts[1]]);
+	brush.extent(selection.value);//[fv.viewer_cuts[0],fv.viewer_cuts[1]]);
 	
 	function resizePath(d) {
 	    var e = +(d == "e"),

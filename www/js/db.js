@@ -30,21 +30,38 @@ function tab_widget(classes){
 	return f;
     }
 
-    this.add_frame=function(title){
+    this.add_frame=function(e){
+	var  uin;
+	if( e.ui_name )
+	    uin = e.ui_name;
+	else {
+	    uin =  ce("span");
+	    uin.innerHTML="Noname";
+	}
+	
+	if( uin.parentNode){
+	    uin.parentNode.removeChild(uin);
+	}
 
 	var li=nav.appendChild(ce("li"));
-	//li.innerHTML=title;
-	li.appendChild(title); 
-	li.div=div.appendChild(ce("div"));
-	li.div.className="tab_section";
-	li.div.style.display='none';
-	this.frames.push(li);
+	e.f=li;
+
+	li.appendChild(uin); 
 	
-	li.onclick=function(){
-	    console.log("Click!!");
-	    lm.select_frame(this); //xd.fullscreen(false);
-	}
-	if(this.frames.length==1) this.select_frame(li);
+	if(!e.ui_opts.label){
+	    //console.log("Paaa LABEL!!" + e.name);
+	    li.div=div.appendChild(ce("div"));
+	    li.div.className="tab_section";
+	    li.div.style.display='none';
+	    this.frames.push(li);
+	    li.onclick=function(){
+		console.log("Click!!");
+		lm.select_frame(this); //xd.fullscreen(false);
+	    }
+	    li.div.appendChild(e.ui_root);
+	    if(this.frames.length==1) this.select_frame(li);
+	    
+	}//else console.log("LAAABELLL " + e.name);
 
 	return li;
     }
@@ -220,8 +237,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//tpl_root.parent.ui_childs.div.removeChild(tpl_root.ui_root); //div.appendChild(new_ui);
 	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
-
-	tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); //div.appendChild(new_ui);
+	
+	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); 
+	tpl_root.parent.ui_childs.replace_child(tpl_root.ui_root, oldroot); 
 
 	var cnt=tpl_root.ui_childs; //new_ui.container=tpl_root.container;
 	
@@ -322,12 +340,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.appendChild(ui_childs.div);
 	sliding_stuff.push(ui_childs.div);
 
-    ui_childs.replace_child=function(e,new_ui){
-	var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	ui_childs.div.replaceChild(new_ui, ui);
-	
-    }
+	ui_childs.replace_child=function(nui,ui){
+	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+	    ui_childs.div.replaceChild(nui, ui);
+	}
 
 	break;
     case "bar":
@@ -351,8 +368,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(!e.ui_opts.label)
 		ui_childs.div.appendChild(ui);
 	}
-	ui_childs.replace_child=function(e,new_ui){
-	    var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	ui_childs.replace_child=function(new_ui,ui){
+	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
 	    ui_childs.div.replaceChild(new_ui, ui);
 	    
@@ -379,29 +396,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	ui_root.appendChild(ui_childs.div);
 	sliding_stuff.push(ui_childs.div);
-
+	
 	ui_childs.add_child=function(e,ui){
-	    var uin;
-	    if( e.ui_name )
-		uin = e.ui_name;
-	    else {
-		uin =  ce("span");
-		uin.innerHTML="Noname";
-	    }
-
-	    if( uin.parentNode){
-		uin.parentNode.removeChild(uin);
-	    }
-	    var f=ui_childs.add_frame(uin); 
-	    
-	    e.f=f;
-	    f.div.appendChild(ui);
+	    var f=ui_childs.add_frame(e);
+	    ui.f=f;
+	    //f.div.appendChild(ui);
 	}
 	
-	ui_childs.replace_child=function(e,new_ui){
+	ui_childs.replace_child=function(new_ui,ui){
 
 	    //console.log("TAB replace node " + ui.nodeName + " with node " + new_ui.nodeName);
-	    e.f.div.replaceChild(new_ui, ui);
+	    ui.f.div.replaceChild(new_ui, ui);
 	}
 	break;
     default:
@@ -553,7 +558,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    return false;
 	}, false);
 
-	update_ui();
 
 	if(!slided){
 	    sliding_stuff.forEach(function (s){
@@ -561,7 +565,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    });
 	    
 	}
+
+	update_ui();
+
     }
+
+
+    if(tpl_root.ui_opts.label){ 
+	ui_childs.div.style.display="none";
+    }
+
+    
 
 
     return ui_root;

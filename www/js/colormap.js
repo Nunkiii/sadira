@@ -51,9 +51,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     split;
 
     cmap.color_sections = [];
-
     cmap.domnode=ce('div');
-    
     cmap.mousexstart=0;
     cmap.lastfrac=0;
     cmap.mousemove=0;
@@ -61,15 +59,22 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     cmap.selected_element=null;
     cmap.selected_section=0;
 
+    var cmap_plot=cmap.cmap_plot=ce('div');
+    cmap_plot.appendChild(cmap.domnode);
+
+    var d3plot=d3.select(cmap.cmap_plot);
+    var svg = d3plot.append('svg');
 
     cmap.set_hex_color = function(cid, color){
 	//console.log("set color id " + cid + " col " + JSON.stringify(color));
 	var rbgc=hex2rgb(color);
 	var cv=this.value[cid];
-	
-	cv[0]=rbgc.r/255.0;
-	cv[1]=rbgc.g/255.0;
-	cv[2]=rbgc.b/255.0;
+	if(typeof cv != 'undefined'){
+	    cv[0]=rbgc.r/255.0;
+	    cv[1]=rbgc.g/255.0;
+	    cv[2]=rbgc.b/255.0;
+	}else
+	    console.log("Error : color " + cid + " NC = " + this.value.length);
     }
     
   
@@ -93,9 +98,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     }
 
     cmap.on_slide=function(slided){
-	console.log("CMAP slided !!");
-	console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
-	cmap.domnode.style.width=cmap.ui_root.clientWidth;
+	//console.log("CMAP slided !!");
+	//console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
+	//cmap.domnode.style.width=cmap.ui_root.clientWidth;
+	//cmap.display(ui_opts);
     }
 
     cmap.display=function(ui_opts){
@@ -104,12 +110,16 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    console.log("Not enough colours to display");
 	return;
 	}
-	console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
-
 	//this.domnode.innerHTML="Hello Colormap!";	
 
-	
+	var width=cmap.parent.ui_root.clientWidth-20;//cmap.ui_root.clientWidth;
 	//this.domnode.style.height=40+"px";
+
+	console.log(cmap.name + " display " + this.value.length + " colors. w = " + width);
+	
+	if(width>0)
+	    this.domnode.style.width=width+"px";
+
 
 	this.domnode.style.background=this.write_gradient_css_string();
 
@@ -120,7 +130,26 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    select_section(1);
 	}
 
+	var xscale = d3.scale.linear().range([0, width]).domain([0,1]);
+	var xaxis = d3.svg.axis().scale(xscale).orient("bottom").ticks(10);    
+	var margin={left:0,right:0,top:0,bottom:0};
+	var axis_height=50;
 	
+
+	svg.select("g")
+	    .remove();
+	
+	svg.attr("width", width ).attr("height",axis_height);
+	    
+	
+	var context = svg.append("g");//.attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+
+	var axesvg=context.append("g")
+	    .attr("class", "x axis")
+	    .call(xaxis)
+	    .append("text")
+	    .attr("transform", "translate(0," + (axis_height-10) + ")")
+	    .text("Normalised pixel value");
 
 	if(this.update_callback)
 	    this.update_callback();
@@ -213,7 +242,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     switch (ui_opts.type){
 
     case "short":
-	cmap.ui=cmap.domnode;
+	cmap.ui=cmap.cmap_plot;//domnode;
 	break;
     case "edit": 
 	
@@ -308,7 +337,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
 	cmap.ui=edit_node;
-	edit_node.prependChild(cmap.domnode);
+	edit_node.prependChild(cmap.cmap_plot);
 
 	
 	cmap.domnode.addEventListener("click", function(e){

@@ -3,6 +3,11 @@ h1,ul{
   padding: 0px;
 }
 
+.db> h1 {
+
+  display: inline-block;
+}
+
 label{ 
   margin: 0px;
   padding: 0px;
@@ -20,7 +25,7 @@ label{
   margin: 0px;
   padding: 0px;
   font-family : sans-serif;
-  color: white;
+  font-size: 1.5em;
   display: inline-block;
   border : 2px solid rgba(0,0,0,0.0);  
   border-radius: .3em;
@@ -91,13 +96,11 @@ label{
 
 .db input[type="file"]{
   background: none;
-  color: white;
 }
 .db input[type="button"], .db input[type="file"]{
   margin: 0px;
   padding: 0px;
   background: none;
-  color: white;
 /*  padding: .4em; */
 /*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
   border-radius: .3em;
@@ -118,7 +121,6 @@ label{
 }
 .db .newline {
   display: block; 
-  width: 100%;
 }
 
 .dbitem{
@@ -127,7 +129,7 @@ label{
 
 .db span.dbitem{
   font-size: 1.0em;
-  background: #222;
+  background: #aaa;
   padding: .3em;
   border-radius: .5em;
 }
@@ -142,9 +144,10 @@ content : "Zoom In";
 content : "Zoom Out";
 }
 */
+
 .db .full{
   overflow: hidden;
-  width: calc(100% - .2em);
+/*  width: calc(100% - .2em); */
 }
 
 .db .html_content {
@@ -176,7 +179,6 @@ content : "Zoom Out";
 
 .db label{
   font-size: 1.1em;
-  color: white;
 /*  padding-left: .4em; */
 }
 
@@ -205,7 +207,6 @@ content : "Zoom Out";
 
 .dbname {
   vertical-align: middle;
-  color: white;
   font-size: 1em;
 /*  text-shadow: 2px 0px 0px rgba(255,255,255,1.0); */
 }
@@ -213,7 +214,7 @@ content : "Zoom Out";
 
 .slided{
   /*border: 1px solid rgba(228,20,228,0.8);*/
-  text-shadow : 1px 0px 1em rgba(255,20,20,1.0);
+  text-shadow : 1px 0px 1em rgba(5,220,100,1.0);
 /*  color: rgba(230,20,30,1.0); */
 }
 
@@ -223,20 +224,20 @@ content : "Zoom Out";
 }
 
 .db .db .dbname{
-  color : rgba(250,250,250,1.0);
+  color : rgba(25,25,25,1.0);
   font-size: 1em;
 }
 
 .db .db .db .dbname{
-  color : rgba(200,200,200,1.0);
+  color : rgba(20,40,40,1.0);
 }
 
 .db .db .db .db .dbname{
-  color : rgba(180,180,180,1.0);
+  color : rgba(30,30,30,1.0);
 }
 
 .db .db .db .db .db .dbname{
-  color : rgba(150,150,150,1.0);
+  color : rgba(40,40,40,1.0);
 }
 
 
@@ -347,11 +348,14 @@ content : "Zoom Out";
   border: 2px solid rgba(0,0,0,0);
   border-radius: .3em;
   box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  
+
+  /*
   padding-left : .5em;
   padding-right : .5em;
   padding-top : .2em;
   padding-bottom : .2em;
   margin: .3em;
+*/
 }
 
 .column {
@@ -380,18 +384,14 @@ content : "Zoom Out";
 
 
 .tab_widget{ 
-  clear: both; 
-  padding-left : 1em;
 }
 
 .tab_widget >nav{
- 
+  width: 100%;
   list-style-type: none;
-  display: block;
   overflow-x : auto;
-  /*  max-width: 100%;  /*calc(100% - 10px);*/
   line-height: 1.5em;
-  white-space : nowrap;
+  white-space : wrap;
 }
 
 .tab_section  {
@@ -402,10 +402,9 @@ content : "Zoom Out";
 }
    
 .tab_widget> nav > li{
-  color: white;
   /*text-shadow : 1px 1px 2px rgba(0,0,0,1.0);*/
   text-align:center;
-  display: table-cell;
+  display: inline-block;
   padding-left: .8em;
   padding-right: .8em;
   padding-top: .3em;
@@ -417,7 +416,7 @@ content : "Zoom Out";
 }
 
 .tab_widget> nav > li.selected_tab{
-  background: rgba(210,250,255,0.3);
+  background: rgba(10,250,55,0.3);
 }
 
 .tab_widget > nav > li:hover{
@@ -440,7 +439,7 @@ content : "Zoom Out";
 }
 
 .plot_container > svg { 
-  display: block;
+  display: inline-block;
 }
 
 .slide_button_h:hover{ 
@@ -455,14 +454,14 @@ content : "Zoom Out";
 
 .slide_button_h{ 
   color: rgba(0,0,0,0);
-  text-shadow: 0px 0px 3px rgba(255,255,255,1.0);
+  text-shadow: 0px 0px 3px rgba(55,55,55,1.0);
   padding: .4em;
   cursor: pointer;
 }
 
 .slide_button_v{ 
   color: rgba(0,0,0,0);
-  text-shadow: 0px 0px 3px rgba(255,255,255,1.0);
+  text-shadow: 0px 0px 3px rgba(55,55,55,1.0);
   padding: .4em;
   cursor: pointer;
 }
@@ -475,7 +474,7 @@ content : "Zoom Out";
 
 .axis path, .axis line {
     fill: none;
-    stroke: #eee; 
+    stroke: #222; 
     shape-rendering: crispEdges;
 }
 
@@ -483,12 +482,11 @@ content : "Zoom Out";
 /*   color: white; */
 font-size: .7em;
 font-weight: normal;
-stroke: white; 
+stroke: #222; 
 }
 
 .line {
-  fill: purple;
-  fill-opacity: 1.0;
+  fill: rgba(20,250,70,.9);
   stroke: block;
   stroke-width: 1px;
 }
@@ -501,7 +499,7 @@ stroke: white;
 }
 
 .brush rect.extent {
-  fill: white;
+  fill: black;
   fill-opacity: .1;
 }
 
