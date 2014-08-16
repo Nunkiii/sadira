@@ -21,53 +21,6 @@ function console_write_info(txt){
 var user={name:"Web visitor", level: -1};
 
 ////////////////////////////////////////////////////////////////////////////
-//
-// Generic AJAX GET call for ASCII data. 
-
-function xhr_query(query, result_cb){
-
-    var xhr = new XMLHttpRequest();    
-
-    xhr.upload.addEventListener("error", function(ev){
-	result_cb("Error uploading data");
-    }, false);
-
-    xhr.addEventListener("error", function(ev){
-	result_cb("Error getting data");
-    }, false);
-    
-    xhr.onload = function() {
-	result_cb(null,xhr.responseText);
-    };
-    xhr.open("GET", query,true);
-    xhr.send();
-}
-
-////////////////////////////////////////////////////////////////////////////
-//AJAX request, parsing the result as JSON.
-
-function json_query(query, result_cb){
-    xhr_query(query,function(error, text_data){
-	if(error) 
-	    return result_cb(error);
-	else{
-	    try{
-		//console.log("DATA IN ["+text_data+"]");
-		var data=JSON.parse(text_data);
-		if(data.error){
-		    return result_cb("Server reported error : " + data.error);
-		}
-		result_cb(null,data);
-	    }
-	    catch (e){
-		result_cb("JSON Parse error " + e + "Received data is ["+text_data+"]");
-		return;
-	    }
-	}
-    });
-}
-
-////////////////////////////////////////////////////////////////////////////
 //Functions related to login/logout of the user
 
 var orig_login_color;

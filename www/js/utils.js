@@ -158,6 +158,109 @@ function is_ascii(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
 
+////////////////////////////////////////////////////////////////////////////
+//
+// Generic AJAX GET call for ASCII data. 
+
+function xhr_query(query, result_cb, opts){
+
+    var xhr = new XMLHttpRequest();    
+    var method="GET";
+    
+    //xhr.open("GET", query,true);
+    
+    if ("withCredentials" in xhr) {
+	// Check if the XMLHttpRequest object has a "withCredentials" property.
+	// "withCredentials" only exists on XMLHTTPRequest2 objects.
+    } else if (typeof XDomainRequest != "undefined") {
+	
+	// Otherwise, check if XDomainRequest.
+	// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+	xhr = new XDomainRequest();
+	
+    } else {
+	console.log("CORS NOT SUPPORTED !");
+	// Otherwise, CORS is not supported by the browser.
+	return null;
+    }
+    
+    
+    if(typeof opts!='undefined'){
+	
+	console.log("XHR have options..");
+	
+	if(typeof opts.method!='undefined')
+	    method = opts.method; 
+	
+	if(typeof opts.type!='undefined')
+	    ;//xhr.responseType = opts.type; //"arraybuffer"
+
+	if(typeof opts.progress != 'undefined'){
+	    console.log("XHR Add progresss ");
+	    xhr.addEventListener("progress", opts.progress, false);
+	}
+	
+    }
+    
+    xhr.upload.addEventListener("error", function(ev){
+	result_cb("Error ajax upload : ");
+    }, false);
+    
+    xhr.addEventListener("error", function(ev){
+	result_cb("Error ajax : ");
+    }, false);
+    
+    xhr.addEventListener("load", function(ev){
+	
+	//console.log("Response Type [" + xhr.responseType + "] status ["+xhr.status+"] : " + xhr.statusText );
+
+	if(xhr.status==200){
+	    /*
+	    if(xhr.responseType=='arraybuffer'){
+		console.log("Received bytes "+ xhr.response.byteLength);
+	    }else
+		console.log("Received txt "+ xhr.responseText);
+	    */
+	    result_cb(null, (xhr.responseType=='arraybuffer') ?  xhr.response :  xhr.responseText);
+	}
+	else
+	    result_cb(xhr.responseText,null);
+    },false);
+    
+    xhr.open(method, query, true);
+    xhr.send();
+
+    return xhr;
+
+
+    
+}
+
+////////////////////////////////////////////////////////////////////////////
+//AJAX request, parsing the result as JSON.
+
+function json_query(query, result_cb, opts){
+
+    xhr_query(query,function(error, text_data){
+	if(error) 
+	    return result_cb(error);
+	else{
+	    try{
+		//console.log("DATA IN ["+text_data+"]");
+		var data=JSON.parse(text_data);
+		if(data.error){
+		    return result_cb("Server reported error : " + data.error);
+		}
+		result_cb(null,data);
+	    }
+	    catch (e){
+		result_cb("JSON parse error " + e);
+		return;
+	    }
+	}
+    }, opts);
+}
+
 
 function download_url(url, callback) {
     var request = new XMLHttpRequest;  

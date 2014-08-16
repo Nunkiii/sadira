@@ -97,6 +97,144 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	return this.gradient_css_string;
     }
 
+        cmap.domnode.className="colormap";
+    
+    switch (ui_opts.type){
+
+    case "short":
+	cmap.ui=cmap.cmap_plot;//domnode;
+	break;
+    case "edit": 
+	
+	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
+	
+	o=[etpl.elements.colors.elements.outleft,etpl.elements.colors.elements.outright];
+	i=[etpl.elements.colors.elements.inleft,etpl.elements.colors.elements.inright];
+	b=[etpl.elements.blend.elements.blendl,etpl.elements.blend.elements.blendr];
+	rng=etpl.elements.range;
+	uniform=etpl.elements.uniform;
+	split=etpl.elements.split;
+	
+
+	rng.onchange=function(id){
+	    var cid=selected_section;
+	    var bn=[0,1];
+	    
+	    if(cid>1) bn[0]=cmap.value[cid-1][4];
+	    if(cid<cmap.value.length) bn[1]=cmap.value[cid+1][4];
+	    
+	    cmap.value[cid-1][4]=this.value[0];
+	    cmap.value[cid][4]=this.value[1];
+	    cmap.update_colors();	    
+	}
+    
+	cmap.select_section=function(cid){
+	    if(cmap.selected_section!=cid){
+		cmap.display_color_section(cid);
+		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
+	    }
+	}
+OB
+	function update_range(){
+	    
+	}
+	
+	split.onclick=function(){
+	    var cid=selected_section;
+	    var newc=[0,0,0,0,0];
+	    for(var c=0;c<5;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid][c]);
+	    cmap.value.splice(cid,0,newc);
+	    cmap.update_colors();
+	    cmap.display_color_section(cid);
+	}
+
+	b[0].onchange=function(){
+	    var cid=selected_section;
+
+	    if(this.value){
+		var newc=[0,0,0,0,cmap.value[cid-1][4]];
+		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid-2][c]);
+		cmap.value.splice(cid-2,1);
+		cmap.value[cid-2]=newc;
+		cmap.display_color_section(cid-1);
+	    }else{
+		var newc=[0,0,0,0,cmap.value[cid-1][4]];
+		for(var c=0;c<4;c++) newc[c]=cmap.value[cid-1][c];
+		cmap.value.splice(cid-1,0,newc);
+		cmap.display_color_section(cid);
+	    }
+	    cmap.update_colors();
+
+	}
+
+	b[1].onchange=function(){
+	    var cid=selected_section;
+
+	    if(this.value){
+		var newc=[0,0,0,0,cmap.value[cid][4]];
+		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid][c]+cmap.value[cid+1][c]);
+		cmap.value.splice(cid,1);
+		cmap.value[cid]=newc;
+	    }else{
+		var newc=[0,0,0,0,cmap.value[cid][4]];
+		for(var c=0;c<4;c++) newc[c]=cmap.value[cid][c];
+		cmap.value.splice(cid,0,newc);
+	    }
+	    cmap.update_colors();
+	    cmap.display_color_section(cid);
+	}
+
+	for(var d=0;d<2;d++){
+	    i[d].onchange=function(){
+		cmap.set_hex_color(this.si, this.value);
+		cmap.update_colors();
+	    }
+	    o[d].onchange=function(){
+		cmap.set_hex_color(this.si, this.value);
+		cmap.update_colors();
+	    }
+	}
+
+	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
+	cmap.ui=edit_node;
+	edit_node.prependChild(cmap.cmap_plot);
+
+	
+	cmap.domnode.addEventListener("click", function(e){
+	    
+	    var screen_pix=[];
+	    
+	    if(e.offsetX) {screen_pix=[e.offsetX, e.offsetY];}
+	    else if(e.layerX){ screen_pix=[e.layerX, e.layerY]};
+	    
+	    for(var p=0;p<2;p++)if(screen_pix[p]<0) screen_pix[p]=0;
+	    
+	    var frac=screen_pix[0]/cmap.domnode.offsetWidth;
+	    var cid;
+	    for(cid=0;cid<cmap.value.length;cid++){
+		//console.log("f="+frac+" cmvf:"+ cmap.value[cid][4] + " cid="+cid);
+		if(frac <= cmap.value[cid][4]) break;
+	    }
+	    if(cid==0)cid=1;
+	    if(cid==cmap.value.length){
+		console.log("Bug here ! cid=" + cid);
+		return;
+	    }
+	    
+	    cmap.select_section(cid);
+	    
+	    
+	}, true);
+	
+
+	
+	break;
+    default: 
+	throw "Unknown UI type ";
+    }
+
+
+    
     cmap.on_slide=function(slided){
 	//console.log("CMAP slided !!");
 	//console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
@@ -111,6 +249,14 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	return;
 	}
 	//this.domnode.innerHTML="Hello Colormap!";	
+	
+	if(ui_opts.type=="edit"){
+	    var sd=this.select_div=ce("div");
+	    sd.className="colormap_select_div";
+	    this.domnode.appendChild(this.select_div);
+	    cmap.select_section(1);
+	}
+
 
 	var width=cmap.parent.ui_root.clientWidth-20;//cmap.ui_root.clientWidth;
 	//this.domnode.style.height=40+"px";
@@ -122,13 +268,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 
 	this.domnode.style.background=this.write_gradient_css_string();
-
-	if(ui_opts.type=="edit"){
-	    var sd=this.select_div=ce("div");
-	    sd.className="colormap_select_div";
-	    this.domnode.appendChild(this.select_div);
-	    select_section(1);
-	}
 
 	var xscale = d3.scale.linear().range([0, width]).domain([0,1]);
 	var xaxis = d3.svg.axis().scale(xscale).orient("bottom").ticks(10);    
@@ -143,7 +282,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    
 	
 	var context = svg.append("g");//.attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
-
+	
 	var axesvg=context.append("g")
 	    .attr("class", "x axis")
 	    .call(xaxis)
@@ -237,142 +376,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	
     }
     
-    cmap.domnode.className="colormap";
-    
-    switch (ui_opts.type){
-
-    case "short":
-	cmap.ui=cmap.cmap_plot;//domnode;
-	break;
-    case "edit": 
-	
-	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
-	
-	o=[etpl.elements.colors.elements.outleft,etpl.elements.colors.elements.outright];
-	i=[etpl.elements.colors.elements.inleft,etpl.elements.colors.elements.inright];
-	b=[etpl.elements.blend.elements.blendl,etpl.elements.blend.elements.blendr];
-	rng=etpl.elements.range;
-	uniform=etpl.elements.uniform;
-	split=etpl.elements.split;
-	
-
-	rng.onchange=function(id){
-	    var cid=selected_section;
-	    var bn=[0,1];
-	    
-	    if(cid>1) bn[0]=cmap.value[cid-1][4];
-	    if(cid<cmap.value.length) bn[1]=cmap.value[cid+1][4];
-	    
-	    cmap.value[cid-1][4]=this.value[0];
-	    cmap.value[cid][4]=this.value[1];
-	    cmap.update_colors();	    
-	}
-    
-	function select_section(cid){
-	    if(cmap.selected_section!=cid){
-		cmap.display_color_section(cid);
-		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
-	    }
-	}
-
-	function update_range(){
-	    
-	}
-	
-	split.onclick=function(){
-	    var cid=selected_section;
-	    var newc=[0,0,0,0,0];
-	    for(var c=0;c<5;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid][c]);
-	    cmap.value.splice(cid,0,newc);
-	    cmap.update_colors();
-	    cmap.display_color_section(cid);
-	}
-
-	b[0].onchange=function(){
-	    var cid=selected_section;
-
-	    if(this.value){
-		var newc=[0,0,0,0,cmap.value[cid-1][4]];
-		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid-2][c]);
-		cmap.value.splice(cid-2,1);
-		cmap.value[cid-2]=newc;
-		cmap.display_color_section(cid-1);
-	    }else{
-		var newc=[0,0,0,0,cmap.value[cid-1][4]];
-		for(var c=0;c<4;c++) newc[c]=cmap.value[cid-1][c];
-		cmap.value.splice(cid-1,0,newc);
-		cmap.display_color_section(cid);
-	    }
-	    cmap.update_colors();
-
-	}
-
-	b[1].onchange=function(){
-	    var cid=selected_section;
-
-	    if(this.value){
-		var newc=[0,0,0,0,cmap.value[cid][4]];
-		for(var c=0;c<4;c++) newc[c]=.5*(cmap.value[cid][c]+cmap.value[cid+1][c]);
-		cmap.value.splice(cid,1);
-		cmap.value[cid]=newc;
-	    }else{
-		var newc=[0,0,0,0,cmap.value[cid][4]];
-		for(var c=0;c<4;c++) newc[c]=cmap.value[cid][c];
-		cmap.value.splice(cid,0,newc);
-	    }
-	    cmap.update_colors();
-	    cmap.display_color_section(cid);
-	}
-
-	for(var d=0;d<2;d++){
-	    i[d].onchange=function(){
-		cmap.set_hex_color(this.si, this.value);
-		cmap.update_colors();
-	    }
-	    o[d].onchange=function(){
-		cmap.set_hex_color(this.si, this.value);
-		cmap.update_colors();
-	    }
-	}
-
-	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
-	cmap.ui=edit_node;
-	edit_node.prependChild(cmap.cmap_plot);
-
-	
-	cmap.domnode.addEventListener("click", function(e){
-	    
-	    var screen_pix=[];
-	    
-	    if(e.offsetX) {screen_pix=[e.offsetX, e.offsetY];}
-	    else if(e.layerX){ screen_pix=[e.layerX, e.layerY]};
-	    
-	    for(var p=0;p<2;p++)if(screen_pix[p]<0) screen_pix[p]=0;
-	    
-	    var frac=screen_pix[0]/cmap.domnode.offsetWidth;
-	    var cid;
-	    for(cid=0;cid<cmap.value.length;cid++){
-		//console.log("f="+frac+" cmvf:"+ cmap.value[cid][4] + " cid="+cid);
-		if(frac <= cmap.value[cid][4]) break;
-	    }
-	    if(cid==0)cid=1;
-	    if(cid==cmap.value.length){
-		console.log("Bug here ! cid=" + cid);
-		return;
-	    }
-	    
-	    select_section(cid);
-	    
-	    
-	}, true);
-	
-
-	
-	break;
-    default: 
-	throw "Unknown UI type ";
-    }
-
     cmap.set_value=function(v){
 	cmap.value=v;
 	cmap.update_colors();

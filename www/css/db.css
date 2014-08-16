@@ -1,13 +1,6 @@
-h1,ul{
-  margin: 0px;
-  padding: 0px;
+
+h1 {
 }
-
-.db> h1 {
-
-  display: inline-block;
-}
-
 label{ 
   margin: 0px;
   padding: 0px;
@@ -25,15 +18,29 @@ label{
   margin: 0px;
   padding: 0px;
   font-family : sans-serif;
-  font-size: 1.5em;
+  font-size: medium;
   display: inline-block;
   border : 2px solid rgba(0,0,0,0.0);  
   border-radius: .3em;
-  border : 2px solid rgba(50,50,50,0.5);
   padding: .1em;
   margin: .1em;
   vertical-align: top;
 } 
+
+
+.db  h1 {
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+  font-weight: medium;
+  font-size: small;
+
+}
+
+.db ul{
+  padding : 0px;
+  margin: 0px;
+}
 
 .db .disabled { 
   display: none;
@@ -42,7 +49,6 @@ label{
 .root{
   display: inline-block;
   font-weight: normal;
-  font-size: .8em;
 }
 
 
@@ -76,7 +82,7 @@ label{
 
 .db .color_container{
 /*  float: left;*/
-  border: 1px solid rgba(200,20,200,0.7);*/
+  border: 1px solid rgba(200,200,200,0.7);*/
 }
 
 .db .color_container > input[type="color"]{
@@ -98,10 +104,11 @@ label{
   background: none;
 }
 .db input[type="button"], .db input[type="file"]{
+  background: #104020;
+  color: white;
   margin: 0px;
   padding: 0px;
-  background: none;
-/*  padding: .4em; */
+  padding: .2em;
 /*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
   border-radius: .3em;
 /*  color: white; */
@@ -109,27 +116,32 @@ label{
   cursor: pointer;
 }
 .db input[type="button"]:hover{
-  background: linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) );
+  background: orange; 
+  text-shadow : 0px 0px 2px rgba(0,0,0,1); 
+/*  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) ); */
 }
 
-.db > h1{
+.newline {
   display: inline-block; 
 }
 
-.db > h1.newline{
-  display: block; 
+.db .newline > h1{
+  display: inline-block; 
 }
-.db .newline {
-  display: block; 
+
+.newline > .dbitem{
+  display: inline-block;
+  margin-left: 1em;
 }
+
+
 
 .dbitem{
   display: inline-block;
 }
 
 .db span.dbitem{
-  font-size: 1.0em;
-  background: #aaa;
+  background: #222;
   padding: .3em;
   border-radius: .5em;
 }
@@ -155,8 +167,8 @@ content : "Zoom Out";
 }
 
 .db > .childs { 
-                display: inherit; 
-                vertical-align: top;
+  display: inherit; 
+  vertical-align: top;
 /*  background-color: rgba(200,200,255,0.8);*/
 } 
 
@@ -193,28 +205,31 @@ content : "Zoom Out";
   padding: .2em;
 
 }
-
+/*
 .db .db > .childs .dbname { 
   margin-left: .2em;
   margin-right: .2em;
   padding: .2em;
 
 }
-
+*/
 .db .db {
-  font-size : .98em;
+  font-size : 95%;
 }
 
 .dbname {
   vertical-align: middle;
-  font-size: 1em;
 /*  text-shadow: 2px 0px 0px rgba(255,255,255,1.0); */
 }
 
 
 .slided{
-  /*border: 1px solid rgba(228,20,228,0.8);*/
-  text-shadow : 1px 0px 1em rgba(5,220,100,1.0);
+  border-radius: .7em;
+  background: linear-gradient(to bottom, rgba(10,10,10,.7), rgba(80,80,80,0.8) ); 
+/*  background:  rgba(60,70,50,0.8); */
+  /*box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  */
+  text-shadow : 0px 0px 5px orange;
+  font-weight : bold;
 /*  color: rgba(230,20,30,1.0); */
 }
 
@@ -223,6 +238,7 @@ content : "Zoom Out";
 /*  color : rgba(200,255,200,0.0); */
 }
 
+/*
 .db .db .dbname{
   color : rgba(25,25,25,1.0);
   font-size: 1em;
@@ -239,7 +255,7 @@ content : "Zoom Out";
 .db .db .db .db .db .dbname{
   color : rgba(40,40,40,1.0);
 }
-
+*/
 
 .column .db  {
   margin: 0px;
@@ -273,20 +289,23 @@ content : "Zoom Out";
 }
 
 
+.db .editable .dbname:hover{
+  text-shadow : 0px 0px 5px rgba(30,80,255,1.0);
+}
+.db .un_editable .dbname:hover{
+  text-shadow : 0px 0px 5px rgba(255,80,55,1.0);
+}
+
 .db .editable:hover{
-  border : 2px dashed #ddd;
+  border : 2px dashed rgba(20,80,200,0.9);
   cursor: pointer;
 }
 
 .db .un_editable:hover{
-  border : 2px dashed rgba(120,150,200,0.8);
+  border : 2px dashed rgba(50,50,50,0.8);
   cursor: pointer;
 }
 
-.newline > .dbitem{
-  display: block;
-  margin-left: 1em;
-}
 
 .flat{
   margin: 0px;
@@ -345,17 +364,13 @@ content : "Zoom Out";
 .db > nav > li{
   display: inline-block;
   vertical-align: middle;
-  border: 2px solid rgba(0,0,0,0);
-  border-radius: .3em;
-  box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  
+}
 
-  /*
+.db > nav > li .dbname{
   padding-left : .5em;
   padding-right : .5em;
-  padding-top : .2em;
-  padding-bottom : .2em;
-  margin: .3em;
-*/
+  padding-bottom : .1em;
+  padding-top : .1em;
 }
 
 .column {
@@ -392,26 +407,38 @@ content : "Zoom Out";
   overflow-x : auto;
   line-height: 1.5em;
   white-space : wrap;
+  border-left : 2px solid rgba(20,25,25,0.8); 
+  border-top : 2px solid rgba(20,25,25,0.8); 
+  border-radius : 1em 0em 0em 0em;
 }
 
 .tab_section  {
   
-  border : 2px solid rgba(210,250,255,0.3); 
-  border-top : 2px solid rgba(210,250,255,0.3);                                  
+  border : 2px solid rgba(20,25,35,0.8); 
+  border-top : 2px solid rgba(10,20,20,0.9);                                  
   border-radius : 0em 1em .2em .2em;
+}
+
+.tab_section > div > div > div {
+ /* background : rgba(200,250,200,0.2); */
+  border-bottom: 2px solid rgba(10,20,20,0.9);                                  
+  border-right: 2px solid rgba(10,20,20,0.9);                                  
+  margin-top : 1em;
+  margin-bottom : 1em;
+  padding: .5em;
 }
    
 .tab_widget> nav > li{
   /*text-shadow : 1px 1px 2px rgba(0,0,0,1.0);*/
   text-align:center;
   display: inline-block;
-  padding-left: .8em;
-  padding-right: .8em;
-  padding-top: .3em;
-  padding-bottom: .3em;
-  /* background: rgba(180,20,244,0.1); */
+  padding-left: .2em;
+  padding-right: .2em;
+  /* padding-top: .1em;
+  padding-bottom: .1em;
+   background: rgba(180,20,244,0.1); */
   margin-right: 0.2em;
-  border-radius : .2em .2em 0em 0em;
+  border-radius : 1em 1em 0em 0em;
   cursor: pointer;
 }
 
@@ -420,7 +447,8 @@ content : "Zoom Out";
 }
 
 .tab_widget > nav > li:hover{
-  background: rgba(200,8,200,0.8);
+  background: rgba(100,255,100,0.8);
+  text-shadow: 0px 0px 2px black;
 }
 
 .colormap {
@@ -454,14 +482,14 @@ content : "Zoom Out";
 
 .slide_button_h{ 
   color: rgba(0,0,0,0);
-  text-shadow: 0px 0px 3px rgba(55,55,55,1.0);
+  text-shadow: 0px 0px 3px rgba(155,155,155,1.0);
   padding: .4em;
   cursor: pointer;
 }
 
 .slide_button_v{ 
   color: rgba(0,0,0,0);
-  text-shadow: 0px 0px 3px rgba(55,55,55,1.0);
+  text-shadow: 0px 0px 3px rgba(155,155,155,1.0);
   padding: .4em;
   cursor: pointer;
 }
@@ -474,7 +502,7 @@ content : "Zoom Out";
 
 .axis path, .axis line {
     fill: none;
-    stroke: #222; 
+    stroke: white; 
     shape-rendering: crispEdges;
 }
 
@@ -482,12 +510,12 @@ content : "Zoom Out";
 /*   color: white; */
 font-size: .7em;
 font-weight: normal;
-stroke: #222; 
+stroke: white; 
 }
 
 .line {
   fill: rgba(20,250,70,.9);
-  stroke: block;
+  stroke: white;
   stroke-width: 1px;
 }
 
@@ -499,12 +527,41 @@ stroke: #222;
 }
 
 .brush rect.extent {
-  fill: black;
-  fill-opacity: .1;
+  fill: orange;
+  fill-opacity: .2;
 }
 
 .brush .resize path {
   fill: #eee;
-  stroke: black;
+  stroke: white;
 }
 
+.hscroll {
+
+  white-space: nowrap;
+  overflow-x:auto;
+  width: 25em;
+  
+}
+
+.squeeze {
+  margin: 0px;
+  padding : 0px;
+}
+
+.db .squeeze .dbname{
+  padding : 0px;
+}
+
+.db .squeeze .dbitem {
+  margin: 0px;
+  padding : 0px;
+}
+
+
+.clickable{
+  cursor : pointer;
+}
+.clickable:hover{
+  border : 2px dashed #333;
+}

@@ -30,6 +30,13 @@ var content_types = {
     '.ttf'  : ['application/x-font-ttf', true]
 };
 
+GLOBAL.cors_headers = {
+    'Access-Control-Allow-Origin' : '*',
+    'Access-Control-Allow-Credentials' : true,
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+};
+
 
 process.on('SIGTERM', function(){
     console.log('SIGTERM received, terminating !');
@@ -426,6 +433,13 @@ _sadira.prototype.message=function(md, reply){
 }
 
 
+//Processing of all the HTTP OPTIONS requests
+
+_sadira.prototype.process_options_request=function(request, response, headers){
+    response.writeHead(200, cors_headers);
+    response.end();
+}
+
 //Processing of all the HTTP GET requests
 
 _sadira.prototype.process_get_request=function(request, response, headers){
@@ -502,16 +516,17 @@ _sadira.prototype.handle_request= function(request, response){
 
     var headers ={};
     console.log("Incoming request ");
-
-    if(request.method=='POST') {
-	sadira.process_post_request(request, response, headers);
-    }else
-	if(request.method=='GET') {
-	    sadira.process_get_request(request, response, headers);
-	}
-    else{
-	console.log("Unhandled request");
-    }    
+    
+    switch (request.method){
+    case 'POST':
+	return sadira.process_post_request(request, response, headers);
+    case 'GET' :
+	return sadira.process_get_request(request, response, headers);
+    case 'OPTIONS':
+	return sadira.process_options_request(request, response, headers);
+    };
+    
+    console.log("Unhandled request " + request.method);
 }
 
 //Creates the http servers 
