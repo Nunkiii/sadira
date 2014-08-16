@@ -77,11 +77,17 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    console.log("Error : color " + cid + " NC = " + this.value.length);
     }
     
-  
+    cmap.select_section=function(cid){
+	if(cmap.selected_section!=cid){
+	    cmap.display_color_section(cid);
+	    //console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
+	}
+    }
+    
     cmap.write_gradient_css_string=function(){
-
+	//if(!this.value) return;
 	var cstr='linear-gradient(to right';
-
+	
 	for (var i=0;i<this.value.length;i++){
 	    
 	    var r=Math.floor(this.value[i][0]*255);
@@ -128,12 +134,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    cmap.update_colors();	    
 	}
     
-	cmap.select_section=function(cid){
-	    if(cmap.selected_section!=cid){
-		cmap.display_color_section(cid);
-		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
-	    }
-	}
 OB
 	function update_range(){
 	    
@@ -254,6 +254,7 @@ OB
 	    var sd=this.select_div=ce("div");
 	    sd.className="colormap_select_div";
 	    this.domnode.appendChild(this.select_div);
+	    
 	    cmap.select_section(1);
 	}
 

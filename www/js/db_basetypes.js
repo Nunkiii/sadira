@@ -145,9 +145,9 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 	};
 	tpl_item.set_value=function(nv){
 	    if(typeof nv!='undefined')tpl_item.value=nv;
-	    ui.innerHTML=nv;
-	    console.log("Bytesize setting val : " + tpl_item.value + " nv = " + nv);
-	    //ui.innerHTML=tpl_item.format_number(tpl_item.value);
+	    //ui.innerHTML=nv;
+	    //console.log("Bytesize setting val : " + tpl_item.value + " nv = " + nv);
+	    ui.innerHTML=tpl_item.format_number(tpl_item.value);
 	}
 	break;
     case "edit": 

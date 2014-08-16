@@ -193,7 +193,7 @@ function xhr_query(query, result_cb, opts){
 	    method = opts.method; 
 	
 	if(typeof opts.type!='undefined')
-	    ;//xhr.responseType = opts.type; //"arraybuffer"
+	    xhr.responseType = opts.type; //"arraybuffer"
 
 	if(typeof opts.progress != 'undefined'){
 	    console.log("XHR Add progresss ");
