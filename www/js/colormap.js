@@ -134,7 +134,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    cmap.update_colors();	    
 	}
     
-OB
 	function update_range(){
 	    
 	}
