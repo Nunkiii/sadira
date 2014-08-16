@@ -388,7 +388,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_childs.replace_child=function(new_ui,ui){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(new_ui, ui);
+	    if(ui.parentNode===ui_childs.div)
+		ui_childs.div.replaceChild(new_ui, ui);
 	    
 	}
 //	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;

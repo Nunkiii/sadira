@@ -537,11 +537,9 @@ stroke: white;
 }
 
 .hscroll {
-
   white-space: nowrap;
   overflow-x:auto;
   width: 25em;
-  
 }
 
 .squeeze {
