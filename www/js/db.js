@@ -1,3 +1,20 @@
+function new_event(tpl_item, event_name){
+
+    if(typeof tpl_item.event_callbacks=='undefined'){
+	tpl_item.event_callbacks={};
+	tpl_item.listen=function(event_name, cb){
+	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') throw "No such event " + event_name ;
+	    tpl_item.event_callbacks[event_name].push(cb);
+	};
+	tpl_item.trigger=function(event_name, data){
+	    var cbs=tpl_item.event_callbacks[event_name];
+	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
+	    cbs.forEach(function(cb){cb(data);});
+	}
+    }
+    tpl_item.event_callbacks[event_name]=[];
+}
+
 function add_classes(classes, class_node){
 
     if(!class_node || !classes) return;
@@ -514,27 +531,31 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
 
 	function update_ui(){
-	    var marg;
+	    var marg=[];
 	    switch(sliding_dir){
 	    case "h":
-		marg="marginLeft";
+		marg[0]="marginLeft";
+		marg[1]="marginLeft";
 		break;
 	    case "v":
-		marg="marginTop";
+		marg[0]="marginTop";
+		marg[1]="marginBottom";
 		break;
 	    default: throw("Bug!!here "); return;
 	    };
 	    
 	    if(slided){
 		sliding_stuff.forEach(function (s){
-		    s.style[marg]="0%";
+		    s.style[marg[0]]="0%";
+		    s.style[marg[1]]="0%";
 		    s.style.opacity="1.0";
 		});
 		ui_name.remove_class("unslided");
 		ui_name.add_class("slided");
 	    }else{
 		sliding_stuff.forEach(function (s){
-		    s.style[marg]="-100%";
+		    s.style[marg[0]]="-100%";
+		    s.style[marg[1]]="-100%";
 		    s.style.opacity="0.0";
 		});
 		ui_name.remove_class("slided");
