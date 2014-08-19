@@ -40,7 +40,9 @@ function tab_widget(classes){
 	}
 	
 	if( uin.parentNode){
-	    uin.parentNode.removeChild(uin);
+	    //uin.parentNode.removeChild(uin);
+	    var nn=ce("h1"); nn.add_class("section_title"); nn.innerHTML=uin.innerHTML;//.name;
+	    uin.parentNode.replaceChild(nn,uin);
 	}
 
 	var li=nav.appendChild(ce("li"));
@@ -377,10 +379,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		on_ui_childs_ready();
 	    }
 	    if(e.ui_name){
-		if(e.ui_name.parentNode)
-		    e.ui_name.parentNode.removeChild(e.ui_name);
+		
+		if(e.ui_name.parentNode){
+		    var nn=ce("h1"); nn.add_class("section_title"); nn.innerHTML=e.name;
+		    e.ui_name.parentNode.replaceChild(nn,e.ui_name);
+		    ;//e.ui_name.parentNode.removeChild(e.ui_name);
+		}
 		
 		cc("li",nav).appendChild(e.ui_name);
+		//cc("li",nav).innerHTML=e.name;
 	    }
 	    if(!e.ui_opts.label)
 		ui_childs.div.appendChild(ui);
