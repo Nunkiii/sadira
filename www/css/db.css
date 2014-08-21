@@ -429,6 +429,12 @@ nav{
   padding-bottom: .3em;                      
 }
 
+.nodeco{ 
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .column {
   display: block;
   vertical-align: top;  
@@ -458,12 +464,13 @@ nav{
   border-bottom: 1px solid rgba(100,255,100,0.9);                                 
   border-radius : .2em .2em 0em 0em;
 */
-  margin: 0;
+  margin-top: .5em;
   padding: 0;
   vertical-align: top;
 }
 
 .tab_widget >nav{
+
   display: block;
 /*  max-width:95%;*/
   list-style-type: none;

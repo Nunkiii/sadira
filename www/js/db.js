@@ -317,7 +317,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     
     if(typeof tpl_root.clicked != 'undefined'){
-	console.log("CLICKABLE found! " + tpl_root.name);
+	//console.log("CLICKABLE found! " + tpl_root.name);
 	var clickable_zone;
 	clickable_zone=ui_root;
 	ui_root.className+=" clickable";
