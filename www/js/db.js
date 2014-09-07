@@ -42,8 +42,10 @@ function tab_widget(classes){
 	    this.selected_frame.add_class("normal_tab");
 	}
 	f.div.style.display='block';
+	
 	this.selected_frame=f;
 	this.selected_frame.add_class("selected_tab");
+	
 	return f;
     }
 
@@ -616,7 +618,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	});
 
 	slide_button.addEventListener("click",function(e){
-	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
+	    //console.log(tpl_root.name + "  SLIDE click !  " + slided);
 	    slided=!slided;
 	    
 	    sliding_stuff.forEach(function (s){

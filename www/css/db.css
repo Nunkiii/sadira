@@ -17,7 +17,6 @@
   border: 0px;
 }
 
-
 .value{
 /*  font-size: 1.0em;  */
   /*padding: .5em;*/
@@ -27,29 +26,28 @@
 
 .db  { 
   margin: 0px;
-  padding: .5em;
+/*  padding: .5em;*/
   font-family : sans-serif;
-  font-size: medium;
+/*  font-size: medium;*/
   font-family: Ubuntu;
 
-  display: inline-block;
+  display: block; 
   border : 2px solid rgba(0,0,0,0.0);  
   border-radius: .3em;
-  vertical-align: top;
+/*  vertical-align: top;*/
 
-  max-width: calc(100% - 1.5em);
-  
+  max-width: calc(100% - 10px);
 
 } 
 
+.dbitem{
+
+}
 
 .db  h1 {
   display: inline-block;
-  margin: 0px;
-  padding: 0px;
-  font-weight: medium;
-  font-size: small;
-
+/*  font-weight: medium;*/
+  font-size: 1em; 
 }
 
 .db ul{
@@ -69,14 +67,17 @@
 
 .db input{
   border: none; 
+ /* line-height: 2em; */
+  padding: .3em;
+  border-radius: .5em;
  /* background-color: rgba(30,30,30,.3);
-  color: white; */
+  color: white; 
   margin: .1em;
-  padding: .2em;
   padding-top:.5em;
   padding-bottom:.5em;
+*/
   display: inline-block;
-  width: auto;
+text-align: center;
   vertical-align: middle;
 }
 
@@ -137,7 +138,7 @@
 }
 
 .newline {
-  display: inline-block; 
+  display: block; 
 }
 
 .db .newline > h1{
@@ -153,6 +154,20 @@
 
 .dbitem{
   display: inline-block;
+/*  margin-left : .5em;
+  line-height: 2em; */
+  
+  text-align : left;
+
+}
+
+.dbitem > .db{
+  display: inline-block;
+}
+
+.dbname { 
+  display : inline-block; 
+/*  padding: .3em; */
 }
 
 .db span.dbitem{
@@ -178,13 +193,31 @@ content : "Zoom Out";
 }
 
 .db .html_content {
+  text-align: left;
   padding : 1em;
+  display: block;
 }
 
-.db > .childs { 
-  display: inherit; 
+.db > .childs .dbname{ 
+/*  vertical-align: top;*/
+
+}
+
+.db .inline { 
+  display: inline-block;
   vertical-align: top;
-  
+}
+
+.db .inline > .childs .db{ 
+/*  display: inline-block; */
+}
+
+
+.db > .childs .db{ 
+/*display: inline-block;*/
+                      }
+
+.db > .childs { 
 /*  background-color: rgba(200,200,255,0.8);*/
 } 
 
@@ -226,12 +259,13 @@ content : "Zoom Out";
 }
 */
 .childs{
+  display: inline-block;
   max-width: calc(100% - .5em);
 }
 
 .db .db {
-  font-size : 95%;
-  margin-top: 1em;
+  font-size : 98%;
+/*  margin-top: 1em; */
 }
 
 .dbname {
@@ -239,21 +273,22 @@ content : "Zoom Out";
 }
 
 .db .section_title{
-  width: calc( 100% - 1.5em);
-  text-align: center;
-  display: inline-block;
-  font-size: 1.3em;
+/*  width: calc( 100% - 1.5em);*/
+  text-align: left;
+  display: inline; 
+/*font-size: 1.3em;*/
+/*line-height: 2em;*/
   padding-right: .7em;
-  padding-left: .7em;
+/*  padding-left: .7em;*/
   padding-top: .2em;
   padding-bottom: .2em;
-  margin-right: 1em;
+/*  margin-right: 1em;*/
 
   color: rgba(40,255,120,1.0);
   text-shadow: 0px 0px 1px white;
   font-weight: bold;
-  vertical-align: middle;
- background: rgba(30,30,30,.6);
+  vertical-align: top;
+/* background: rgba(30,30,30,.6);*/
 /*  background: linear-gradient(to bottom, rgba(10,10,10,.7), rgba(80,80,80,0.8) );  */
   border-radius: .2em;
 }
@@ -265,13 +300,20 @@ content : "Zoom Out";
   /*box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  */
   text-shadow : 0px 0px 5px springgreen;
   font-weight : bold;
+  vertical-align: top;
+
 /*  color: rgba(230,20,30,1.0); */
 }
 
 .db .dbname{
-  vertical-align: middle;
+/*  vertical-align: middle; */
 /*  color : rgba(200,255,200,0.0); */
 }
+
+.db .dbname .slided {
+}
+
+
 
 /*
 .db .db .dbname{
@@ -379,12 +421,14 @@ content : "Zoom Out";
   display: inline-block;
 } 
 
+
+
 /*.number_fixed_size > .dbitem > li > label > .value{ */
 .number_fixed_size .value{
   margin-left: 1em; 
   padding: 0px;
-  display: inline-block;
-  width: 3em;
+  min-width: 3em;
+  max-width: 5em;
 }
 
 .db > *{
@@ -406,7 +450,7 @@ nav{
   line-height: 1.2em;
   white-space : nowrap;
   
-  max-width: calc(100% - 1.5em);
+  /*max-width: calc(100% - 1.5em);*/
   overflow: -moz-scrollbars-none;
   background: linear-gradient(to bottom, rgba(10,10,10,.7), rgba(80,80,80,0.8) );             
 }
@@ -422,7 +466,7 @@ nav{
 }
 
 .db > nav > li .dbname{
-  font-size: 1.2em;
+  /*font-size: 1.2em;*/
   padding-left : .5em;
   padding-right : .5em;
   padding-top: .3em;                      
@@ -515,14 +559,13 @@ nav{
 }
 
 .tab_widget> nav > li .dbname{
-  font-size: 1.1em;
+/*  font-size: 1.1em; */
   padding-top: .5em;
   padding-bottom: .5em;
   padding-left: .5em;
   padding-right: .5em;
-                    
 
-                               }
+}
 
 .tab_widget> nav > li.selected_tab{
   background: rgba(100,255,100,0.9);
@@ -580,6 +623,7 @@ nav{
 
 .sliding{
   /*display: block;*/
+
   opacity:1;
   background: none;
   transition: opacity 1.0s ease-in-out, margin-left .4s ease-in-out, margin-right .4s ease-in-out, margin-top .4s ease-in-out, margin-bottom .4s ease-in-out;
@@ -658,6 +702,9 @@ stroke: white;
   white-space: nowrap;
   overflow-x:auto;
   width: 50%;
+}
+.hscroll_item {
+  white-space: normal;
 }
 
 .squeeze {

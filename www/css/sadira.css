@@ -92,17 +92,20 @@ footer{
     /* padding-top:10px; */
 }
 
-.childs aside{
-    
-    overflow-y:scroll;
-    max-height:5em;
-    padding:.5em;
-    border: 1px dashed orange;
-    font-size:0.8em;
-    text-shadow: 1px 1px 0px rgba(0, 0, 0, 1.0);
-    border-radius: .3em;
-    margin-top:5px;
-}
+.childs{
+         display: block;
+         overflow-y:scroll;
+         max-height:5em;
+         padding:.5em;
+         border: 1px dashed orange;
+         font-size:0.8em;
+         text-shadow: 1px 1px 0px rgba(0, 0, 0, 1.0);
+         border-radius: .3em;
+         margin-top:5px;
+         border: 5px solid red;
+         }
+
+
 
 body > article:first-child > header{
 }

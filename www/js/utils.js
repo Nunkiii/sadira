@@ -522,3 +522,11 @@ var dump_error =function (err) {
     }
     return rs;
 }
+
+function css(selector, property, value) {
+    for (var i=0; i<document.styleSheets.length;i++) {//Loop through all styles
+        //Try add rule
+        try { document.styleSheets[i].insertRule(selector+ ' {'+property+':'+value+'}', document.styleSheets[i].cssRules.length);
+        } catch(err) {try { document.styleSheets[i].addRule(selector, property+':'+value);} catch(err) {}}//IE
+    }
+}

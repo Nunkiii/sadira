@@ -37,13 +37,14 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("ul");
+    var ui=tpl_item.ui=ce("div");
     
     ui.className="labelled_vector";
     tpl_item.inputs=[];
     
     for(var v=0;v<tpl_item.value.length;v++){
-	var li=ce("li"), label=ce("label"); 
+	//var li=ce("li");
+	var label=ce("label"); 
 	tpl_item.inputs[v]={ 
 	    id : v,
 	    type : typeof tpl_item.vector_type == 'undefined' ? "double" : tpl_item.vector_type,
