@@ -354,7 +354,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     case "div":
 //	ui_childs=tpl_root.ui_childs={};
 	
-	ui_childs.add_child=function(e,ui){
+	ui_childs.add_child=function(e,ui,prep){
 	    if(typeof ui_childs.div=='undefined'){
 		ui_childs.div=ce("div"); 
 		ui_childs.div.className="childs";
@@ -368,7 +368,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		on_ui_childs_ready();
 	    }
 
-	    ui_childs.div.appendChild(ui);
+	    prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	}
 
 

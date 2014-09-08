@@ -29,16 +29,33 @@ dialog_handlers.fits = {
 
     test_get_data : function (dlg, status_cb){
 	
-	var multi_root="./example_fits_files/multiband/Cat's Eye Nebula/";
-	var multi_files=[
-	    ["hst_05403_01_wfpc2_f953n_pc_sci.fits","Filter 953nm"],
-	    ["hst_05403_01_wfpc2_f658n_pc_sci.fits","Filter 658nm"],
-	    ["hst_05403_01_wfpc2_f588n_pc_sci.fits","Filter 588nm"],
-	    ["hst_05403_01_wfpc2_f631n_pc_sci.fits","Filter 631nm"],
-	    ["hst_05403_01_wfpc2_f673n_pc_sci.fits","Filter 673nm"],
-	    
-	];
+	var data_files = {
+	    catseye : {
+		multi_root : "./example_fits_files/multiband/Cat's Eye Nebula/",
+		multi_files : [
+		    ["hst_05403_01_wfpc2_f953n_pc_sci.fits","Filter 953nm"],
+		    ["hst_05403_01_wfpc2_f658n_pc_sci.fits","Filter 658nm"],
+		    ["hst_05403_01_wfpc2_f588n_pc_sci.fits","Filter 588nm"],
+		    ["hst_05403_01_wfpc2_f631n_pc_sci.fits","Filter 631nm"],
+		    ["hst_05403_01_wfpc2_f673n_pc_sci.fits","Filter 673nm"]
+		],
+		crop : {x: 220, y: 220, w:512, h:512},
+		du : 1
+		
+	    },
+	    M42 : {
+		multi_root : "./example_fits_files/multiband/M42/",
+		multi_files : [ 
+		    ["m42_40min_red.fits","Hubble Red"],
+		    ["m42_40min_ir.fits","Hubble InfraRed"]
+		]
+	    }
+	};
+
+	console.log("DLG header : " + JSON.stringify(dlg.header));
 	
+	var what = dlg.header.what;
+
 	status_cb();
 	
 	//dlg.send_datagram({type : "tags", tags: multi_files}, null, function(error){});
@@ -46,14 +63,17 @@ dialog_handlers.fits = {
 	dlg.listen("get_data", function(dgram){
 
 	    var imgid=dgram.header.imgid;
-	    var file_name=multi_root+multi_files[dgram.header.imgid][0];
+	    var df=data_files[what];
+
+	    var file_name=df.multi_root+df.multi_files[dgram.header.imgid][0];
 	    console.log("Sending imgid " + imgid + " : " + file_name);
 
 	    var f = new fits.file(file_name);
 	    //f.file_name="./example_fits_files/m42_40min_red.fits"
 	    //f.file_name="./example_fits_files/example.fits";
 	    
-	    f.set_hdu(1);
+	    if(typeof df.du != 'undefined')
+		f.set_hdu(df.du);
 	    
 	    console.log("read du  image ...");
 	    f.read_image_hdu(function(error, image){
@@ -63,9 +83,10 @@ dialog_handlers.fits = {
 		    return;
 		}
 
-		console.log("Cropping");
-
-		image.crop({x: 220, y: 220, w:512, h:512});
+		if(typeof df.crop != 'undefined'){
+		    console.log("Cropping");
+		    image.crop({x: 220, y: 220, w:512, h:512});
+		}
 		//image.crop({ w:1024, h:1024});
 		//image.crop({ w:2048, h:2048});
 
@@ -84,7 +105,7 @@ dialog_handlers.fits = {
 		
 		console.log("FIRST DATA IS " + data[0] + ", "+ data[1000]);
 		var srep=new SRZ.srz_mem(data);
-		srep.header={width : image.width(), height: image.height(), name : multi_files[imgid][1],
+		srep.header={width : image.width(), height: image.height(), name : data_files[what].multi_files[imgid][1],
 			     colormap : layer_defaults[imgid].colormap,
 			     cuts : layer_defaults[imgid].cuts,
 			    };

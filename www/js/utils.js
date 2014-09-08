@@ -2,8 +2,8 @@ function ce(n){
   return document.createElement(n);
 }
 
-function cc(n, parent){
-  return parent.appendChild(document.createElement(n));
+function cc(n, parent, prep){
+  return prep ? parent.prependChild(document.createElement(n)) : parent.appendChild(document.createElement(n));
 }
 
 // Array Remove 
@@ -79,7 +79,7 @@ HTMLElement.prototype.add_class = function(class_name) {
     this.className +=' '+class_name;
 };
 
-HTMLElement.prototype.prependChild = function(child) { this.insertBefore(child, this.firstChild); };
+HTMLElement.prototype.prependChild = function(child) { return this.insertBefore(child, this.firstChild); };
 
 function insertAfter(referenceNode, newNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
