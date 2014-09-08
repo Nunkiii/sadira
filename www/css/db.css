@@ -198,6 +198,14 @@ content : "Zoom Out";
   display: block;
 }
 
+.db .childs .inline .db { 
+ display : inline-block;
+}
+
+.db .childs .inline .newline{ 
+ display : block;
+}
+
 .db > .childs .dbname{ 
 /*  vertical-align: top;*/
 
@@ -272,10 +280,10 @@ content : "Zoom Out";
   vertical-align: middle;
 }
 
-.db .section_title{
+h1.section_title{
 /*  width: calc( 100% - 1.5em);*/
   text-align: left;
-  display: inline; 
+  display: inline-block; 
 /*font-size: 1.3em;*/
 /*line-height: 2em;*/
   padding-right: .7em;
@@ -701,7 +709,7 @@ stroke: white;
 .hscroll {
   white-space: nowrap;
   overflow-x:auto;
-  width: 50%;
+/*  width: 50%; */
 }
 .hscroll_item {
   white-space: normal;

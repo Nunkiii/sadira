@@ -358,6 +358,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(typeof ui_childs.div=='undefined'){
 		ui_childs.div=ce("div"); 
 		ui_childs.div.className="childs";
+		if(typeof ui_opts.child_classes != 'undefined'){
+		    console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+		    add_classes(ui_opts.child_classes, ui_childs.div);
+		}
+		
 		ui_root.appendChild(ui_childs.div);
 		sliding_stuff.push(ui_childs.div);
 		on_ui_childs_ready();
@@ -365,8 +370,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    ui_childs.div.appendChild(ui);
 	}
-	if(typeof ui_opts.child_classes != 'undefined')
-	    add_classes(ui_opts.child_classes, ui_childs.div);
+
 
 	ui_childs.replace_child=function(nui,ui){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
