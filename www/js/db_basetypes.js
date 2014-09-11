@@ -237,6 +237,51 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 }
 
 
+template_ui_builders.password=function(ui_opts, tpl_item){
+
+    switch (ui_opts.type){
+
+    case "short":
+	var ui=tpl_item.ui=ce("span");
+	ui.className="value";
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.innerHTML=tpl_item.value;
+	}
+	break;
+    case "edit": 
+	var ui=tpl_item.ui=ce("span");
+	var pui=cc("input",ui); cc("span",ui).innerHTML="show";
+	var show=cc("input",ui); show.type="checkbox";
+	pui.type="password";
+	show.onclick=function(){
+	    pui.type= show.checked ? "text" : "password";
+	    console.log("pt = " + pui.type);
+
+	}
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    pui.value=tpl_item.value;
+	}
+	tpl_item.get_value=function(){
+	    return pui.value;
+	}
+
+	if(tpl_item.onchange){
+	    pui.onchange=function(){
+		tpl_item.value=this.value; 
+		tpl_item.onchange();
+	    }
+	}
+	break;
+    default: 
+	throw "Unknown UI type ";
+    }
+    
+    return tpl_item.ui;
+}
+
+
 template_ui_builders.date=function(ui_opts, tpl_item){
 
     switch (ui_opts.type){
