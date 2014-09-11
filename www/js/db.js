@@ -102,34 +102,34 @@ local_templates.prototype.add_templates=function(templates){
 }
 
 local_templates.prototype.substitute_template=function(tpl_item){
-  if(tpl_item.type=="template"){
-      var tpl=this.templates[tpl_item.template_name];
-
-      var toup=["elements","ui_opts"];
-      
-      for(var ti=0;ti< toup.length;ti++){
-	  var t=toup[ti];
-	  //console.log("Check " + t + " typof " + typeof tpl_item[t] );
-	  if(typeof tpl_item[t]=='undefined')
-	      tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
-	  else
-	      for(var o in tpl[t]){
-		  if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
-	      }
-      }
-
-      for(var o in tpl){
-	  switch(o){
-	  case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; 
-	      break;
-	  case "elements" : break; 
-	  case "ui_opts" : break;
-	  default:
-	      tpl_item[o]=clone_obj(tpl[o]);
-	  }
-      }
-      return true;
-  }
+    if(tpl_item.type=="template"){
+	var tpl=this.templates[tpl_item.template_name];
+	
+	var toup=["elements","ui_opts"];
+	
+	for(var ti=0;ti< toup.length;ti++){
+	    var t=toup[ti];
+	    //console.log("Check " + t + " typof " + typeof tpl_item[t] );
+	    if(typeof tpl_item[t]=='undefined')
+		tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
+	    else
+		for(var o in tpl[t]){
+		    if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
+		}
+	}
+	
+	for(var o in tpl){
+	    switch(o){
+	    case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; 
+		break;
+	    case "elements" : break; 
+	    case "ui_opts" : break;
+	    default:
+		tpl_item[o]=clone_obj(tpl[o]);
+	    }
+	}
+	return true;
+    }
     
     return false;
 }
@@ -142,12 +142,15 @@ local_templates.prototype.substitute_templates=function(tpl_item){
 }
 
 local_templates.prototype.build_template=function(template_name){
-  var tpl= clone_obj(this.templates[template_name]);
-//  console.log("TPL= " + JSON.stringify(tpl));
-  this.substitute_templates(tpl);
-//    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
-//  console.log("TPL= " + JSON.stringify(this.templates));
-  return tpl;
+    if(typeof this.templates[template_name] === 'undefined') 
+	throw "Unknown template " + template_name;
+
+    var tpl= clone_obj(this.templates[template_name]);
+    //  console.log("TPL= " + JSON.stringify(tpl));
+    this.substitute_templates(tpl);
+    //    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
+    //  console.log("TPL= " + JSON.stringify(this.templates));
+    return tpl;
 }
 
 template_ui_builders={};
