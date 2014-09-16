@@ -163,6 +163,7 @@ function server_query(what, params, result_cb, json){
     if(typeof json!='undefined' && json==true) uri+="&json=1"
     for(var p=0;p<params.length;p++) uri+="&p"+p+"="+params[p];
     //console.log("sending uri["+uri+"]");
+
     xhr.open("GET", uri,true);
     xhr.send();
 }

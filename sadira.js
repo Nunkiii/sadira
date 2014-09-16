@@ -93,7 +93,7 @@ var _sadira = function(){
     
     sad.options={
 	http_port: 9999, 
-	https_port: 8888, 
+//	https_port: 8888, 
 	raw_port: 7777,
 	websocket : true,
 	webrtc : true,
@@ -327,8 +327,8 @@ _sadira.prototype.execute_command = function (command_type, request, response ){
 	    //console.log(" pel "+p+" : " +path_parts[p]);
 	    path_build+=path_parts[p];
 	    
-	    if (typeof eval(path_build) == "undefined") {
-		throw "undefined object";
+	    if (typeof eval(path_build) === "undefined") {
+		throw "undefined object ("+ path_build+ ")";
 	    } else {
 		
 		if (typeof eval(path_build+".process") != "undefined") {

@@ -186,17 +186,17 @@ function xhr_query(query, result_cb, opts){
     
     
     if(typeof opts!='undefined'){
-	
-	console.log("XHR have options..");
+    
+	//console.log("XHR have options..");
 	
 	if(typeof opts.method!='undefined')
 	    method = opts.method; 
 	
 	if(typeof opts.type!='undefined')
 	    xhr.responseType = opts.type; //"arraybuffer"
-
+	
 	if(typeof opts.progress != 'undefined'){
-	    console.log("XHR Add progresss ");
+	    //console.log("XHR Add progresss ");
 	    xhr.addEventListener("progress", opts.progress, false);
 	}
 	
