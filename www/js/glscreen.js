@@ -51,8 +51,11 @@ template_ui_builders.glscreen=function(ui_opts, gls){
     gls.h=0;
     gls.bbig=null;
 
-    var ui=gls.canvas = ce("canvas"); ui.id="glscreen";
-    
+    var ui=gls.ui=ce("div");//ui.add_class("glscreen");
+    var canvas=gls.canvas=cc("canvas",ui); canvas.add_class("glscreen_3d");
+    //var ui=ui3d;
+    var canvas2d=gls.canvas2d=cc("canvas",ui); canvas2d.add_class("glscreen_2d");
+
     var mouseon = false;
     var mouse_start={};
     var t_start=[];
@@ -72,11 +75,11 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 	return screen_pix;
     }
     
-    ui.addEventListener('mousemove', function(e){
+    canvas2d.addEventListener('mousemove', function(e){
 	gls.trigger("cursor_move",{ cursor : get_screen_position(e)});
     }, true);
 
-    ui.addEventListener('mousedown', function(e) {
+    canvas2d.addEventListener('mousedown', function(e) {
 	e.preventDefault();
 	//var lastX = e.pageX;
 	var start_pos = get_screen_position(e);
@@ -107,12 +110,12 @@ template_ui_builders.glscreen=function(ui_opts, gls){
     }, false);
 
 
-    addWheelListener(ui, function(e){
+    addWheelListener(canvas2d, function(e){
 	gls.trigger("wheel",e);
     });
     
     gls.webgl_start=function(options, cb){
-	var gl=gls.gl=ui.getContext('experimental-webgl');
+	var gl=gls.gl=gls.canvas.getContext('experimental-webgl');
 	
 	if(!gl)
 	    return cb("WebGL support lacking on your browser, you cannot use this application, sorry!");
@@ -123,8 +126,13 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 	if (!floatTextures)
 	    return cb('WebGL is working, but it does not provide floating point texture on your system !\n\n :< \n\nTry with another video device &| drivers!');
 	gls.resize=function(w,h){
-	    ui.width=w;
-	    ui.height=h;
+	    canvas.width=w;
+	    canvas.height=h;
+	    canvas2d.height=h;
+	    canvas2d.width=w;
+
+	    //canvas.focus();
+
 	    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 	    gls.trigger("resize", { w : w, h: h} );
 	    console.log("resize gl " + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
