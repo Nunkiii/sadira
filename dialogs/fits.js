@@ -46,13 +46,13 @@ dialog_handlers.fits = {
 	    M42 : {
 		multi_root : "./example_fits_files/multiband/M42/",
 		multi_files : [ 
-		    ["m42_40min_red.fits","Hubble Red"],
-		    ["m42_40min_ir.fits","Hubble InfraRed"]
+		    ["m42_40min_red.fits","M42 Red"],
+		    ["m42_40min_ir.fits","M42 InfraRed"]
 		]
 	    }
 	};
 
-	console.log("DLG header : " + JSON.stringify(dlg.header));
+	//console.log("DLG header : " + JSON.stringify(dlg.header));
 	
 	var what = dlg.header.what;
 
@@ -71,61 +71,75 @@ dialog_handlers.fits = {
 	    var f = new fits.file(file_name);
 	    //f.file_name="./example_fits_files/m42_40min_red.fits"
 	    //f.file_name="./example_fits_files/example.fits";
+	    //reading primary header unit to be sent along the data.
 	    
-	    if(typeof df.du != 'undefined')
-		f.set_hdu(df.du);
-	    
-	    console.log("read du  image ...");
-	    f.read_image_hdu(function(error, image){
-
-		if(error != null){
-		    console.log("Error read image " + error);
+	    f.get_headers(function(error, headers){
+		
+		if(error){
+		    console.log("Bad things happened : " + error);
 		    return;
 		}
+		
+		console.log("FITS Headers : " + JSON.stringify(headers,null,5));
+		
+		if(typeof df.du != 'undefined')
+		    f.set_hdu(df.du);
+		
+		console.log("read du  image ...");
+		f.read_image_hdu(function(error, image){
+		    
+		    if(error != null){
+			console.log("Error read image " + error);
+			return;
+		    }
+		    
+		    if(typeof df.crop != 'undefined'){
+			console.log("Cropping");
+			image.crop({x: 220, y: 220, w:512, h:512});
+		    }
+		    //image.crop({ w:1024, h:1024});
+		    //image.crop({ w:2048, h:2048});
 
-		if(typeof df.crop != 'undefined'){
-		    console.log("Cropping");
-		    image.crop({x: 220, y: 220, w:512, h:512});
-		}
-		//image.crop({ w:1024, h:1024});
-		//image.crop({ w:2048, h:2048});
+		    
+		    console.log("Getting data");
+		    var data=image.get_data();
+		    
+		    console.log("OK, Loaded " + typeof(image));
+		    
+		    // var data=new Buffer(64); //image.get_data();
+		    // var dv
+		    // data.writeFloatLE(3.14, 0);
+		    // data.writeFloatLE(2.00, 4);
+		    
+		    // console.log("Loaded image....DATA = "+ data);
+		    
+		    console.log("FIRST DATA IS " + data[0] + ", "+ data[1000]);
+		    var srep=new SRZ.srz_mem(data);
 
-
-		console.log("Getting data");
-		var data=image.get_data();
-		
-		console.log("OK, Loaded " + typeof(image));
-		
-		// var data=new Buffer(64); //image.get_data();
-		// var dv
-		// data.writeFloatLE(3.14, 0);
-		// data.writeFloatLE(2.00, 4);
-		
-		// console.log("Loaded image....DATA = "+ data);
-		
-		console.log("FIRST DATA IS " + data[0] + ", "+ data[1000]);
-		var srep=new SRZ.srz_mem(data);
-		srep.header={width : image.width(), height: image.height(), name : data_files[what].multi_files[imgid][1],
-			     colormap : layer_defaults[imgid].colormap,
-			     cuts : layer_defaults[imgid].cuts,
+		    srep.header={width : image.width(), height: image.height(), name : data_files[what].multi_files[imgid][1],
+				 colormap : layer_defaults[imgid].colormap,
+				 cuts : layer_defaults[imgid].cuts,
 			    };
-		//srep.header={width : 512, height: 512 };
+		    //srep.header={width : 512, height: 512 };
 		
-		console.log("SRZ configured size= " + srep.size());
+		    console.log("SRZ configured size= " + srep.size());
 		
-		srep.on_done=function(){
-		    console.log("Image data sent!");
+		    srep.on_done=function(){
+			console.log("Image data sent!");
 		    //dlg.close();
-		};
+		    };
+		    
+		    dlg.srz_initiate(srep, function(error){
+			if(error) console.log("SRZ error : " + error);
+		    });
+		    
 		
-		dlg.srz_initiate(srep, function(error){
-		    if(error) console.log("SRZ error : " + error);
 		});
 		
-		
 	    });
-	});
 	    
+	});
+	
     },
 
     test_get_multi_data : function (dlg, status_cb){

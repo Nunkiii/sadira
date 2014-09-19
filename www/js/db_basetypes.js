@@ -124,7 +124,7 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.value=tpl_item.value;
+	    //ui.value=tpl_item.value;
 	}
 	
 	break;
