@@ -36,7 +36,7 @@
   border-radius: .3em;
 /*  vertical-align: top;*/
 
-  max-width: calc(100% - 2px);
+  max-width: calc(100% - 5px);
 
 } 
 
@@ -120,20 +120,21 @@ text-align: center;
   background: none;
 }
 .db input[type="button"], .db input[type="file"]{
-  background: #104020;
-  color: white;
+  background: springgreen;
+  color: black;
   margin: 0px;
-  padding: 0px;
-  padding: .2em;
+  padding: .5em;
+  text-wight: bold;
 /*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
-  border-radius: .3em;
+  border-radius: .4em;
 /*  color: white; */
- /* text-shadow : 0px 0px 2px rgba(250,250,250,.8); */
+  text-shadow : 0px 0px 2px rgba(250,250,250,.8);
   cursor: pointer;
 }
 .db input[type="button"]:hover{
-  background: orange; 
-  text-shadow : 0px 0px 2px rgba(0,0,0,1); 
+  background: darkgreen; 
+  color: white;
+/*  text-shadow : 0px 0px 2px rgba(0,0,0,1);  */
 /*  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) ); */
 }
 
@@ -207,8 +208,11 @@ content : "Zoom Out";
 }
 
 .db > .childs .dbname{ 
-/*  vertical-align: top;*/
-
+  /*  vertical-align: top;*/
+  font-weight: bold;
+  font-style: italic;
+  padding-right: .5em;
+                     
 }
 
 .db .inline { 
@@ -463,10 +467,15 @@ nav{
   background: linear-gradient(to bottom, rgba(10,10,10,.7), rgba(80,80,80,0.8) );             
 }
 
-::-webkit-scrollbar {  
+.db > nav::-webkit-scrollbar {  
     display: none; 
 }
 
+/*
+::-webkit-scrollbar {  
+    display: none; 
+}
+*/
 .db > nav > li{
   display: inline-block;
   vertical-align: middle;
@@ -534,6 +543,10 @@ nav{
   border-top : 2px solid rgba(20,25,25,0.8); 
   border-radius : 1em 0em 0em 0em;*/
   margin: 0;
+}
+
+.tab_widget > nav::-webkit-scrollbar {  
+    display: none; 
 }
 
 .tab_section  {
@@ -736,3 +749,11 @@ stroke: white;
 .clickable:hover{
   border : 2px dashed #333;
 }
+
+.text{ 
+  max-height: 20em;
+  max-width: calc( 100% - 2em);
+  overflow : scroll;
+  background-color: white;
+  color: black;
+} 

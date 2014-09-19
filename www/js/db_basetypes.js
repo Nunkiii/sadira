@@ -104,6 +104,10 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 	var ui=tpl_item.ui=ce("span");
 	ui.className="local_file";
 	ui.innerHTML=tpl_item.value;
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.innerHTML=tpl_item.value;
+	}
 
 	break;
     case "edit": 
@@ -117,15 +121,17 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 		tpl_item.onchange(evt);
 	    }
 	}, false);
+
+	tpl_item.set_value=function(nv){
+	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    ui.value=tpl_item.value;
+	}
+	
 	break;
     default: 
 	throw "Unknown UI type ";
     }
 
-    tpl_item.set_value=function(nv){
-	if(typeof nv !='undefined')tpl_item.value=nv;
-	ui.innerHTML=tpl_item.value;
-    }
     return tpl_item.ui;
 }
 
@@ -188,14 +194,11 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	throw "Unknown UI type ";
     }
     
-    
-    if(tpl_item.onchange){
-	ui.onchange=function(){
-	    tpl_item.value=this.checked; 
+    ui.onchange=function(){
+	tpl_item.value=this.checked; 
+	if(tpl_item.onchange)
 	    tpl_item.onchange();
-	}
     }
-    
     return tpl_item.ui;
 }
 
@@ -222,17 +225,46 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	tpl_item.get_value=function(){
 	    return ui.value;
 	}
-	if(tpl_item.onchange){
-	    ui.onchange=function(){
-		tpl_item.value=this.value; 
+
+	ui.onchange=function(){
+	    tpl_item.value=this.value; 
+	    if(tpl_item.onchange)
 		tpl_item.onchange();
-	    }
 	}
 	break;
     default: 
 	throw "Unknown UI type ";
     }
     
+    return tpl_item.ui;
+}
+
+
+template_ui_builders.text=function(ui_opts, tpl_item){
+
+    var ui=tpl_item.ui=ce("div");
+    ui.add_class("text");
+    tpl_item.set_value=function(nv){
+	if(typeof nv !='undefined')tpl_item.value=nv;
+	ui.innerHTML=tpl_item.value;
+    }
+
+    tpl_item.append=function(txt){
+	tpl_item.value+=txt;
+	tpl_item.set_value();
+	tpl_item.ui.scrollTop = tpl_item.ui.scrollHeight;
+    }
+    switch (ui_opts.type){
+    case "edit": 
+	ui.setAttribute("contentEditable",true);
+	ui.onchange=function(){
+	    tpl_item.value=this.value; 
+	    if(tpl_item.onchange)
+		tpl_item.onchange();
+	}
+	break;
+    default: break;
+    }
     return tpl_item.ui;
 }
 

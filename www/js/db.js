@@ -15,6 +15,43 @@ function new_event(tpl_item, event_name){
     tpl_item.event_callbacks[event_name]=[];
 }
 
+
+
+//This configures an HTML element to be editable and performs the DB action required.
+//All parameters are given as HTML tag property attributes.
+
+function setup_editable(tpl_item, el){
+
+    if(typeof el === 'undefined') el = tpl_item.ui;
+
+    //console.log("setting edit for " + el.tagName);
+    
+    function kp_handler(ev){
+
+	ev = ev || window.event;
+	var code = ev.which || ev.keyCode;
+
+	if (code == 13) { // Return key pressed
+	    if (typeof ev.preventDefault != "undefined") {
+		ev.preventDefault();
+	    } else {
+		ev.returnValue = false;
+	    }
+	}
+    }
+    
+    if (typeof el.addEventListener != "undefined") {
+	el.addEventListener("keypress", kp_handler, false);
+	//el.addEventListener("keydown", kp_handler, false);
+	//console.log("attached event listeneer");
+    } else if (typeof el.attachEvent != "undefined") {
+	el.attachEvent("onkeypress", kp_handler);
+
+    }
+    
+}
+
+
 function add_classes(classes, class_node){
 
     if(!class_node || !classes) return;
