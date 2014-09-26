@@ -1,18 +1,26 @@
 function new_event(tpl_item, event_name){
 
-    if(typeof tpl_item.event_callbacks=='undefined'){
-	tpl_item.event_callbacks={};
+    if(typeof tpl_item.event_callbacks==='undefined'){
+	tpl_item.event_callbacks=[];
 	tpl_item.listen=function(event_name, cb){
-	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') throw "No such event " + event_name ;
+	    //console.log("Adding listen func to "+event_name+"!");
+	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') 
+		throw "No such event " + event_name ;
 	    tpl_item.event_callbacks[event_name].push(cb);
 	};
 	tpl_item.trigger=function(event_name, data){
 	    var cbs=tpl_item.event_callbacks[event_name];
 	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
-	    cbs.forEach(function(cb){cb(data);});
+	    //console.log("Trigger " + event_name +" to " + cbs.length +" client funcs....");
+
+	    cbs.forEach(function(cb){
+		cb(data);
+	    });
 	}
     }
-    tpl_item.event_callbacks[event_name]=[];
+    //console.log("Creating callback on " + tpl_item.name);
+    if(typeof tpl_item.event_callbacks[event_name]==='undefined')
+	tpl_item.event_callbacks[event_name]=[];
 }
 
 
@@ -59,34 +67,56 @@ function add_classes(classes, class_node){
 	class_node.className+=" "+classes[c];
 }
 
-function tab_widget(classes){
+function tab_widget(parent){
 
     var div=this.div=ce("div"); 
     div.className="tab_widget";
-    add_classes(classes,div)
+//    add_classes(classes,div)
 
     var nav=this.nav=ce("nav");
     var lm=this;
 
+    new_event(parent,"element_selected");
+    
     div.appendChild(this.nav);
 
-    this.frames=[];
+    //this.frames=[];
+    var nframes=0;
+//    var last_sel_frame;
 
     this.select_frame=function(f){
 	if(typeof this.selected_frame!='undefined'){
 	    this.selected_frame.div.style.display='none';
 	    this.selected_frame.remove_class("selected_tab");
 	    this.selected_frame.add_class("normal_tab");
+//	    last_sel_frame=this.selected_frame;
 	}
 	f.div.style.display='block';
-	
 	this.selected_frame=f;
 	this.selected_frame.add_class("selected_tab");
-	
 	return f;
     }
+    
+    this.remove_child=function(e){
+	
+	//if(e.ui_root.f === this.selected_frame)
+	var prev=e.ui_root.f.previousSibling;
+	while(prev && prev.nodeName!="LI"){
+	    prev=prev.previousSibling;
+	}
+	if(prev) 
+	    console.log("Found prev " + prev.nodeName + " fdiv? " + prev.div);
+	if(prev) 
+	    this.select_frame(prev);
+
+	div.removeChild(e.ui_root.f.div);
+	nav.removeChild(e.ui_root.f);
+	nframes--;
+    }
+
 
     this.add_frame=function(e){
+	/*
 	var  uin;
 	if( e.ui_name )
 	    uin = e.ui_name;
@@ -100,25 +130,28 @@ function tab_widget(classes){
 	    var nn=ce("h1"); nn.add_class("section_title"); nn.innerHTML=uin.innerHTML;//.name;
 	    uin.parentNode.replaceChild(nn,uin);
 	}
-
+*/
 	var li=nav.appendChild(ce("li"));
-	e.f=li;
-
-	li.appendChild(uin); 
+//	e.f=li;
+//	li.appendChild(uin); 
+	li.appendChild(e.ui_name); 
 	
 	if(!e.ui_opts.label){
 	    //console.log("Paaa LABEL!!" + e.name);
 	    li.div=div.appendChild(ce("div"));
 	    li.div.className="tab_section";
 	    li.div.style.display='none';
-	    this.frames.push(li);
+	    //this.frames.push(li);
 	    li.onclick=function(){
-		console.log("Click!!");
+		//console.log("Click!!");
 		lm.select_frame(this); //xd.fullscreen(false);
+		parent.trigger("element_selected", e);
 	    }
 	    li.div.appendChild(e.ui_root);
-	    if(this.frames.length==1) this.select_frame(li);
-	    
+	    nframes++;
+	    //if(this.frames.length==1) 
+	    this.select_frame(li);
+
 	}//else console.log("LAAABELLL " + e.name);
 
 	return li;
@@ -138,15 +171,16 @@ local_templates.prototype.add_templates=function(templates){
   }
 }
 
-local_templates.prototype.substitute_template=function(tpl_item){
-    if(tpl_item.type=="template"){
-	var tpl=this.templates[tpl_item.template_name];
+local_templates.prototype.update_template=function(tpl_item, tpl){
+    var toup=["elements","ui_opts"];
+    
+    //console.log("Subst template for " + tpl.template_name +" : " + tpl_item.name + " tname is " + tpl_item.template_name);
+    
+    for(var ti=0;ti< toup.length;ti++){
+	var t=toup[ti];
+	//console.log("Check " + t + " typof " + typeof tpl_item[t] );
 	
-	var toup=["elements","ui_opts"];
-	
-	for(var ti=0;ti< toup.length;ti++){
-	    var t=toup[ti];
-	    //console.log("Check " + t + " typof " + typeof tpl_item[t] );
+	if(typeof tpl[t]!='undefined'){
 	    if(typeof tpl_item[t]=='undefined')
 		tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
 	    else
@@ -154,37 +188,65 @@ local_templates.prototype.substitute_template=function(tpl_item){
 		    if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
 		}
 	}
-	
-	for(var o in tpl){
-	    switch(o){
-	    case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; 
-		break;
-	    case "elements" : break; 
-	    case "ui_opts" : break;
-	    default:
-		tpl_item[o]=clone_obj(tpl[o]);
-	    }
-	}
-	return true;
     }
     
+    for(var o in tpl){
+	switch(o){
+	case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; 
+	    break;
+	case "elements" : break; 
+	case "ui_opts" : break;
+	default:
+	    tpl_item[o]=clone_obj(tpl[o]);
+	}
+    }
+}
+
+local_templates.prototype.substitute_template=function(tpl_item){
+    //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
+
+    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined'){
+	var tpl=this.templates[tpl_item.template_name];
+	if(typeof tpl==='undefined')
+	    throw "Unknwon template " + tpl_item.template_name;
+
+	if(typeof tpl.template_name !='undefined'){
+	    var tpls=this.templates[tpl.template_name];
+	    if(typeof tpls==='undefined')
+		throw "Unknwon template " + tpl.template_name;
+	    this.update_template(tpl_item, tpls);
+	}
+	this.update_template(tpl_item, tpl);
+	return true;
+    }
     return false;
 }
 
-local_templates.prototype.substitute_templates=function(tpl_item){
-  this.substitute_template(tpl_item);
-  for (var e in tpl_item.elements){
-    this.substitute_templates(tpl_item.elements[e]);
-  }
+local_templates.prototype.substitute_templates=function(tpl){
+    this.substitute_template(tpl);
+    for (var e in tpl.elements){
+	this.substitute_templates(tpl.elements[e]);
+    }
+    //console.log("TPL " + tpl.name + " events : " + tpl.events);
+    if(typeof tpl.events!='undefined'){
+	//console.log("Setting up events for " + tpl.name + " type " + tpl.type);
+	tpl.events.forEach(function(e){ 
+	    //console.log("Create event " + e + " for " + tpl.name);
+	    new_event(tpl,e); 
+	});
+    }//else	console.log("NO events for " + tpl.name + " type " + tpl.type);
+
+
 }
 
 local_templates.prototype.build_template=function(template_name){
     if(typeof this.templates[template_name] === 'undefined') 
 	throw "Unknown template " + template_name;
-
+    
     var tpl= clone_obj(this.templates[template_name]);
     //  console.log("TPL= " + JSON.stringify(tpl));
     this.substitute_templates(tpl);
+
     //    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
     //  console.log("TPL= " + JSON.stringify(this.templates));
     return tpl;
@@ -196,7 +258,7 @@ template_ui_builders.default_before=function(ui_opts, tpl_item){
     tpl_item.get_value=function(){return tpl_item.value; }
 }
 template_ui_builders.default_after=function(ui_opts, tpl_item){
-
+    
     if(typeof tpl_item.set_value != 'undefined' && typeof tpl_item.value != 'undefined'){
 	tpl_item.set_value(tpl_item.value);
     }
@@ -220,7 +282,12 @@ function create_item_ui(ui_opts, tpl_node){
 	throw "Cannot build "+ tpl_node.name+" : unknown object type " + tpl_name +"";
     }
     template_ui_builders.default_before(ui_opts,tpl_node);
+    
     var ui=builder(ui_opts, tpl_node);
+    if(typeof ui==='undefined'){
+	console.log("warning: no UI returned for type " + tpl_name);
+    }
+
     template_ui_builders.default_after(ui_opts,tpl_node);
     return ui;
 }
@@ -249,7 +316,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
     
     //if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
-    var slided=(typeof ui_opts.slided == 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
+    var slided=(typeof ui_opts.slided === 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
 
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var ui_childs=tpl_root.ui_childs={};
@@ -258,8 +325,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
     
     ui_root.className="db";
+    
+   // if(sliding)
+    new_event(tpl_root,"slided");
 
-    if(depth==0) ui_root.className+=" root";
+    if(typeof tpl_root.type!='undefined'){
+	ui_root.setAttribute("data-type", tpl_root.type);
+	if(tpl_root.type==="template")
+	ui_root.setAttribute("data-tpl", tpl_root.template_name);
+    }
+
+    if(depth==0) ui_root.add_class("root");
     
     if(typeof ui_opts.root_classes != 'undefined')
 	add_classes(ui_opts.root_classes, ui_root);
@@ -268,29 +344,75 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
 //    if(typeof tpl_root.name!='undefined'){
 
-    var ui_name;
+    //var ui_name;
+
+    var ico;
+    if(typeof tmaster.icons[tpl_root.type] != 'undefined'){
+	ico= ce("img");
+	ico.src=tmaster.icons[tpl_root.type];
+	ico.className="ico";
+    }else    if(typeof tpl_root.template_name!='undefined' && typeof tmaster.icons[tpl_root.template_name] != 'undefined'){
+	ico= ce("img");
+	ico.src=tmaster.icons[tpl_root.template_name];
+	ico.className="ico";
+    }
+    
     if(typeof tpl_root.name != 'undefined'){
-	ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("h1", ui_root);
-	ui_name.innerHTML="Hello";
-	if(!ui_opts.label) ui_name.className="dbname";
+
+	var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
+	var ui_name_text=cc("span",ui_name);
+	//ui_name.innerHTML="Hello";
+	
+	if(!ui_opts.label) 
+	    ui_name.add_class("dbname");
 	
 	if(typeof ui_opts.name_classes != 'undefined'){
 	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 	    add_classes(ui_opts.name_classes, ui_name);
 	}
+
+  	if(typeof ico!='undefined')
+	    ui_name.prependChild(ico);
+	
+	if(typeof tpl_root.tip != 'undefined'){
+	    //tpl_root.tip_div=cc("div",tpl_root.ui_name);
+	    //tpl_root.tip_div.add_class("tooltip");
+	    tpl_root.ui_name.add_class("tooltip");
+	    //tpl_root.tip_div.innerHTML=tpl_root.name + " : " + tpl_root.tip;
+	    ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
+	    //ui_name.add_class("tooltip");
+	}
+
+	new_event(tpl_root,"name_changed");
 	
 	tpl_root.set_title=function(title){
-	    ui_name.firstChild.data=title;
+	    tpl_root.name=title;
+	    //ui_name.innerHTML=title;
+	    ui_name_text.innerHTML=title;
+	    tpl_root.trigger("name_changed", title);
 	    //	span.appendChild( document.createTextNode("some new content") );
 	}
 	
+	
+	
 	tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
     }
+
+    if(typeof ui_opts.close != 'undefined'){
+	new_event(tpl_root,"close");
+	var close_but = (typeof tpl_root.ui_name=== 'undefined') ? cc("span",tpl_root.ui_root) : cc("span",tpl_root.ui_name);
+	close_but.add_class("close_button");
+	close_but.innerHTML="❌";
+	close_but.addEventListener("click", function(){
+	    tpl_root.trigger("close");
+	});
+	tpl_root.listen("close", function(){
+	    console.log("Closing " + tpl_root.name + " parent " + tpl_root.parent);
+	    tpl_root.parent.ui_childs.remove_child(tpl_root);
+	});
+    }
+    //   }
     
- //   }
-
-
-
     tpl_root.enable=function(state){
 	if(!state)
 	    this.ui_root.add_class("disabled");
@@ -301,7 +423,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     function rebuild(){
 	//if (typeof tpl_root.sliding != 'undefined') 
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
-	console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
+	//console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
 
 	var oldroot=tpl_root.ui_root;
 	//tpl_root.parent.ui_childs.div.removeChild(tpl_root.ui_root); //div.appendChild(new_ui);
@@ -336,7 +458,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	clickable_zone.addEventListener("click", function(e){
 	    
-	    console.log(tpl_root.name + " : EDITABLE CLICK");
+	    //console.log(tpl_root.name + " : EDITABLE CLICK");
 	    
 	    if(ui_opts.type=="edit"){
 		ui_opts.type="short";
@@ -393,18 +515,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
     case "div":
 //	ui_childs=tpl_root.ui_childs={};
-	
+
 	ui_childs.add_child=function(e,ui,prep){
 	    if(typeof ui_childs.div=='undefined'){
 		ui_childs.div=ce("div"); 
 		ui_childs.div.className="childs";
+		
 		if(typeof ui_opts.child_classes != 'undefined'){
-		    console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
 		    add_classes(ui_opts.child_classes, ui_childs.div);
 		}
 		
 		ui_root.appendChild(ui_childs.div);
 		sliding_stuff.push(ui_childs.div);
+		e.parent=tpl_root;
 		on_ui_childs_ready();
 	    }
 
@@ -416,6 +540,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
 	    ui_childs.div.replaceChild(nui, ui);
+	}
+
+	ui_childs.remove_child=function(e){
+	    ui_childs.div.removeChild(e.ui_root);
 	}
 
 	break;
@@ -439,22 +567,40 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		ui_root.appendChild(ui_childs.div);
 		sliding_stuff.push(nav);
 		sliding_stuff.push(ui_childs.div);
+		e.parent=tpl_root;
+
 		on_ui_childs_ready();
 	    }
+
 	    if(e.ui_name){
 		
-		if(e.ui_name.parentNode){
-		    var nn=ce("h1"); nn.add_class("section_title"); nn.innerHTML=e.name;
-		    e.ui_name.parentNode.replaceChild(nn,e.ui_name);
-		    ;//e.ui_name.parentNode.removeChild(e.ui_name);
-		}
+		var liti=cc("li",nav);//
 		
-		cc("li",nav).appendChild(e.ui_name);
+		e.listen("slided", function(slided){
+		    if(slided){
+			e.ui_root.prependChild(e.ui_name);
+			liti.add_class("disabled");
+		    }else{
+			liti.appendChild(e.ui_name);
+			liti.remove_class("disabled");
+		    }
+		})
+
+		liti.appendChild(e.ui_name);
+		e.trigger("slided",e.ui_opts.slided);
+		//liti.innerHTML=e.title;
 		//cc("li",nav).innerHTML=e.name;
 	    }
 	    if(!e.ui_opts.label)
 		ui_childs.div.appendChild(ui);
+
 	}
+	
+	ui_childs.remove_child=function(e){
+	    ui_childs.div.removeChild(e.ui_root);
+	}
+
+
 	ui_childs.replace_child=function(new_ui,ui){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
@@ -466,8 +612,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	break;
     case "tabbed":
-	
-	tpl_root.ui_childs=ui_childs=new tab_widget();
+
+	tpl_root.ui_childs=ui_childs=new tab_widget(tpl_root);
 	ui_childs.div.className+=" childs";
 	
 	if(typeof ui_opts.child_classes != 'undefined')
@@ -480,8 +626,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(typeof tpl_root.ui_childs=='undefined'){
 		
 	    }
-	    var f=ui_childs.add_frame(e);
-	    ui.f=f;
+	    var li=ui_childs.add_frame(e);
+	    ui.f=li;
+	    e.parent=tpl_root;
 	    //f.div.appendChild(ui);
 	}
 	
@@ -491,6 +638,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    ui.f.div.replaceChild(new_ui, ui);
 	}
 	on_ui_childs_ready();
+
 	break;
     default:
 	throw "NO VALID CHILD VIEW TYPE";
@@ -544,19 +692,21 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(typeof ui_opts.item_classes != 'undefined')
 		    add_classes(ui_opts.item_classes, item_ui);
 		
+		if(typeof tpl_root.on_attached != 'undefined')
+		    tpl_root.on_attached();
+
+		
+
 
 	    }
 	}
 	catch(e){
-	    console.log("Error building : " + dump_error(e));
+	    console.log("Error building "+tpl_root.name+" : " + dump_error(e));
 	}
     }
 
-
-
-
     if(sliding==true){
-	
+
 	if(tpl_root.parent)
 	    if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
 		if(tpl_root.parent.ui_opts.child_view_type == "bar") 
@@ -567,6 +717,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    case "v":
 		slide_button.className="slide_button_v";
 		slide_button.innerHTML= slided ? "▲" : "▼" ;
+//▲❌
 		break;
 	    case "h":
 		slide_button.className="slide_button_h";
@@ -611,8 +762,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
 	    
 	    update_arrows();
-	    
-	    if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
+	    //tpl_root.trigger("slided", slided);
+	    //if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
 	}
 
 
@@ -642,6 +793,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	//ui_childs.div.style.display;
 	//var dispi=item_ui?item_ui.style.display:"none";
+
+	new_event(tpl_root, "slided");
 	
 	sliding_stuff.forEach(function (s){
 	    
@@ -657,7 +810,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//console.log("Ani end ! "+ slided );
 		if(!slided)
 		    s.style.display="none";
-		if(typeof tpl_root.on_slide != 'undefined') tpl_root.on_slide(slided);
+		tpl_root.trigger("slided", slided);
+		//if(typeof tpl_root.on_slide != 'undefined') tpl_root.on_slide(slided);
 	    }, false);
 	});
 

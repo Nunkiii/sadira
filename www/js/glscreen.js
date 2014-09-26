@@ -135,7 +135,7 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 
 	    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 	    gls.trigger("resize", { w : w, h: h} );
-	    console.log("resize gl " + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
+	    //console.log("resize gl " + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
 
 	}
 	

@@ -380,18 +380,17 @@ _sadira.prototype.process_post_request=function (request, res, headers){
 
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
-    fs.readFile("www/404.html", "binary", function(err, file) {
+    fs.readFile("sadira/404.html", "binary", function(err, file) {
+
+	response.writeHead(404, {"Content-Type": "text/html"});
 	
 	if(err) {        
-	    response.writeHead(404, {"Content-Type": "text/plain"});
-	    response.write("404.html file not found, but this is a true 404 Error : not found :  " + uri);
+	    response.write("<html><title>404</title><h1>404 Not found!</h1>The "true" 404.html file was not found, however, this is a true 404 Error : the following file is not accessible :<br/><br/><center> " + uri+"</center></html>");
 	    cb();
 	    return;
 	}
 	
 	//response.write("Unavailable resource ["+uri+"] !\n");
-	
-	response.writeHead(404, {"Content-Type": "text/html"});
 	response.write("<html><h1>unknown file " + uri + "</h1>");
 	response.write(file, "binary");
 	response.write("</html>");

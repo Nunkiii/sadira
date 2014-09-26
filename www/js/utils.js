@@ -18,8 +18,6 @@ Array.prototype.compare = function (array) {
     // if the other array is a falsy value, return
     if (!array)
         return false;
-
-    // compare lengths - can save a lot of time
     if (this.length != array.length)
         return false;
 
@@ -76,8 +74,13 @@ HTMLElement.prototype.remove_class = function(class_name) {
 };
 
 HTMLElement.prototype.add_class = function(class_name) {
-    this.className +=' '+class_name;
+    if(!this.has_class(class_name))
+	this.className +=' '+class_name;
 };
+
+HTMLElement.prototype.has_class=function(cls) {
+    return (' ' + this.className + ' ').indexOf(' ' + cls + ' ') > -1;
+}
 
 HTMLElement.prototype.prependChild = function(child) { return this.insertBefore(child, this.firstChild); };
 

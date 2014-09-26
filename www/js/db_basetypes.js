@@ -1,3 +1,26 @@
+template_ui_builders.sadira=function(ui_opts, tpl_item){
+    console.log("Hello sadira builder!");
+}
+
+template_ui_builders.status=function(ui_opts, tpl_item){
+    var ui=ce("span");ui.add_class("status");
+    var flag=cc("span",ui);flag.add_class("flag");
+    var txt=cc("span",ui); 
+
+    tpl_item.set_value=function(nv){
+	if(typeof nv !='undefined')
+	    tpl_item.value=nv; 
+	else nv=tpl_item.value;
+	
+	if(tpl_item.value_labels[nv]!='undefined')
+	    txt.innerHTML=tpl_item.value_labels[nv];
+	else
+	    txt.innerHTML="unknown";
+	flag.style.backgroundColor=tpl_item.value;
+    }
+    tpl_item.set_value();
+    return ui;
+}
 
 template_ui_builders.double=function(ui_opts, tpl_item){
     //console.log("double builder :  " + JSON.stringify(ui_opts));
@@ -148,7 +171,7 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 		val=val/1024.0;
 		id++;
 	    };
-	    return val + " " +u[id]+unit;
+	    return Math.floor(val*100)/100.0 + " " +u[id]+unit;
 	};
 	tpl_item.set_value=function(nv){
 	    if(typeof nv!='undefined')tpl_item.value=nv;
@@ -169,8 +192,8 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 template_ui_builders.bool=function(ui_opts, tpl_item){
 
     switch (ui_opts.type){
-
-
+	
+	
     case "short":
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";
@@ -471,16 +494,37 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 }
 
 
+template_ui_builders.combo=function(ui_opts, combo){
+
+    var ui=combo.ui=ce("select"); 
+    combo.set_options=function(options){
+	console.log("Setting options " + JSON.stringify(options));
+	options.forEach(function(ov){
+	    var o=cc("option",ui); o.value=ov; o.innerHTML=ov;
+	});
+    }
+    new_event(combo,"change");
+    ui.addEventListener("change",function(){
+	combo.trigger("change",ui.selectedIndex);
+    });
+    
+    if(typeof combo.options != 'undefined') 
+	combo.set_options(combo.options);
+
+    return ui;
+}
+
 
 
 template_ui_builders.action=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("input"); ui.type="button";
     ui.value=tpl_item.name;
-
+    new_event(tpl_item,"click");
     ui.addEventListener("click",function(e){
 	if(tpl_item.onclick){
 	    tpl_item.onclick(e);
 	}
+	tpl_item.trigger("click");
     },false);
 
     //if(tpl_item.ui_name)
