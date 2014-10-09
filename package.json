@@ -3,7 +3,7 @@
     "version": "0.0.2-2",
     "description": "Web framework",
     "main": "sadira.js",
-    "dependencies" : {"minimist" : ">=1.1.0", "websocket" : ">=1.0.8", "socket.io" : ">=1.1.0" },
+    "dependencies" : {"minimist" : ">=1.1.0", "websocket" : ">=1.0.8", "socket.io" : ">=1.1.0", "http-proxy" : "*" },
     "scripts": {
 	"test": "echo \"Error: no test specified\" && exit 1"
     },
