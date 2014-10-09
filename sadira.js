@@ -4,6 +4,7 @@
 
 var fs = require("fs");
 var http = require('http');
+var http_proxy = require('http-proxy');
 var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
@@ -318,41 +319,43 @@ _sadira.prototype.execute_command = function (command_type, request, response ){
     var url_parts = url.parse(request.url,true);	
     var path_build=command_type+"_handlers.";
 
-    // var objects={};
-    
     try{	    
 	var path_parts = url_parts.pathname.split("/");
-	
 	for(var p=1;p<path_parts.length;p++){
 	    //console.log(" pel "+p+" : " +path_parts[p]);
 	    path_build+=path_parts[p];
 	    
-	    if (typeof eval(path_build) === "undefined") {
-		throw "undefined object ("+ path_build+ ")";
-	    } else {
+	    try{
 		
-		if (typeof eval(path_build+".process") != "undefined") {
-		    eval(path_build+".process")( url_parts.query, request, response);
-		}
+		if (typeof eval(path_build) === "undefined") {
+		    return false; //throw "undefined object ("+ path_build+ ")";
+		} else {
 		    
-		path_build += ".";
-		
+		    var proc_path= eval(path_build+".process");
+		    
+		    if (typeof proc_path != "undefined") {
+			eval(path_build+".process")( url_parts.query, request, response);
+		    }
+		    
+		    path_build += ".";
+		}
 	    }
-	    
+	    catch (e){
+		return false; //We don't understand the path -> relay to proxy
+	    }
 	}
     }
     
-    catch (e){
-	console.log("Cannot get handler for " + path_build + " : " + e );
-	sadira.error_404(response, "Invalid path", function(){
+    catch (e){ //Error interpreting path
+	console.log("Exception catched while executing handler for " + path_build + " : " + e );
+	sadira.error_404(response, "Invalid path " + path_build + " : " + e , function(){
 	    response.end();
 	});
-	
 	//response.write("Cannot get handler for " + path_build + " : " + e +"\n");
 	
     }
     
-    return;
+    return true;
 }
 
 
@@ -385,7 +388,7 @@ _sadira.prototype.error_404=function(response, uri, cb){
 	response.writeHead(404, {"Content-Type": "text/html"});
 	
 	if(err) {        
-	    response.write("<html><title>404</title><h1>404 Not found!</h1>The "true" 404.html file was not found, however, this is a true 404 Error : the following file is not accessible :<br/><br/><center> " + uri+"</center></html>");
+	    response.write("<html><title>404</title><h1>404 Not found!</h1>The \"true\" 404.html file was not found, however, this is a true 404 Error : the following file is not accessible :<br/><br/><center> " + uri+"</center></html>");
 	    cb();
 	    return;
 	}
@@ -445,16 +448,21 @@ _sadira.prototype.process_get_request=function(request, response, headers){
     
     var sad=this;
     var uri = unescape(url.parse(request.url).pathname);
-    var url_parts = url.parse(request.url,true);	
+
+    //var url_parts = url.parse(request.url,true);	
 
     //console.log('Processing request for ' + uri);
     
-    if(url_parts.search!="") //URL received with ? arguments, transferring the request to the get_handlers
-	return this.execute_command("get", request, response );
+    //if(url_parts.search!="") //URL received with ? arguments, transferring the request to the get_handlers
+
+    if(this.execute_command("get", request, response )) return true;
 
     //From here the server is behaving as a simple file server.
-    
 
+    //Proxying the query to another web service
+    return sad.proxy.web(request, response);
+
+    //Builtin web file server.
     //Here we should detect if the user is not trying to get something like ../../etc/passwd  
     //It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 
@@ -514,7 +522,7 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 _sadira.prototype.handle_request= function(request, response){
 
     var headers ={};
-    console.log("Incoming request ");
+//    console.log("Incoming request ");
     
     switch (request.method){
     case 'POST':
@@ -525,7 +533,7 @@ _sadira.prototype.handle_request= function(request, response){
 	return sadira.process_options_request(request, response, headers);
     };
     
-    console.log("Unhandled request " + request.method);
+    console.log("Unhandled http method : " + request.method);
 }
 
 //Creates the http servers 
@@ -533,6 +541,11 @@ _sadira.prototype.handle_request= function(request, response){
 _sadira.prototype.create_http_server = function(){
     
     var sad=this;
+
+    var proxy = sad.proxy=http_proxy.createServer({
+	target:'http://localhost:8000'
+    });
+    
     
     if(sad.options.https_port){
 	
@@ -703,6 +716,7 @@ _sadira.prototype.create_websocket_server=function() {
 	    // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
 	    httpServer: sad.http_server
 	});
+	console.log("Create websocket http server OK");
 	sad.handle_websocket_requests(this.ws_server);
     }
     
