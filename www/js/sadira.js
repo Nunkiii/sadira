@@ -2,37 +2,20 @@
 // Do what you want with this file.
 
 
-var server_prefix="";
-var sadira_prefix="";
-var widget_prefix="";
-
-var cnx_status=null;
-
-function set_connexion_status(state, msg){
-  if(!cnx_status)
-      cnx_status = document.getElementById("connexion_status");
-    
-    if(!cnx_status){
-	console.log("No cnx_status dom node provided ! state = "+ state+"["+msg+"]");
-	return;
-    }
-    
-    if(cnx_status){
-	cnx_status.className = "connexion "+state;
-	cnx_status.innerHTML=msg;
-    }else
-	console.log("DOM cnx status not found!");
-    return cnx_status;
-}
-
+window.tmaster=new local_templates();
+window.tmaster.add_templates(base_templates);
 
 var sadira = function(parameters, on_error, on_connect) {
 
     var sad=this;
     
 
-    //this.root_widget=new widget.base(); //The dummy widget created at startup time.
-    this.page_widget=null; //The main widget.
+    //Checking web storage support 
+    
+//    if(typeof(Storage)=="undefined"){ 
+//	return cb("Sorry, you need a browser with webstorage support");
+//    }
+    
 
     //Making link to the WebSocket server and handling of the socket events
     
@@ -40,15 +23,13 @@ var sadira = function(parameters, on_error, on_connect) {
 	
 	//Checking web storage support 
 	
-	if(typeof(Storage)=="undefined"){ 
-	    var emsg="Sorry, you need a browser with webstorage support. ";
-	    set_connexion_status("error", emsg);
-            return on_error(emsg);
+	if(typeof(Storage)==="undefined"){ 
+	    console.log("No webstorage support. ");
 	}
 	
 
-	if(typeof parameters.server=='undefined'){
-	    if(document.location.protocol == "http:")
+	if(typeof parameters.server==='undefined'){
+	    if(document.location.protocol === "http:")
 		ws_host="ws://"+location.host;
 	    else //is 'https'
 		ws_host="wss://"+location.host;
@@ -142,7 +123,7 @@ var sadira = function(parameters, on_error, on_connect) {
 		
 	    // });
 	    
-	    on_connect();
+	    on_connect(sad);
 	    //        input.removeAttr('disabled');
 	    //        status.text('Choose name:');
 	};
@@ -184,6 +165,7 @@ var sadira = function(parameters, on_error, on_connect) {
 	this.initiate_connexion(on_error, on_connect);
     
 };
+
 
 function load_main_widget_site(){
     

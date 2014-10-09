@@ -1,8 +1,200 @@
-template_ui_builders.sadira=function(ui_opts, tpl_item){
-    console.log("Hello sadira builder!");
+template_ui_builders.sadira=function(ui_opts, sad){
+    
+    
+    var widget_prefix="widgets";
+    var server_prefix="";
+    
+    new_event(sad,"socket_close");
+    new_event(sad,"socket_error");
+    new_event(sad,"socket_connect");
+
+    var url=sad.elements.url;
+
+    var connect=sad.elements.connect;
+    var status=sad.elements.status;
+    var messages=sad.elements.messages;    
+    
+    
+    if(typeof sad.server_prefix!='undefined')
+	server_prefix=sad.server_prefix;
+    else
+	server_prefix="";
+    
+    if(typeof sad.sadira_prefix!='undefined')
+	sadira_prefix=sad.sadira_prefix;
+    else
+	sadira_prefix="sadira";
+    
+    if(typeof sad.widget_prefix!='undefined')
+	widget_prefix=sad.widget_prefix;
+    else
+	widget_prefix=sadira_prefix+"/widgets";
+
+    console.log("Setting URL " + url.value);
+    if(typeof url.value==='undefined'){
+	var ws_host;
+	if(document.location.protocol == "http:")
+	    ws_host="ws://"+location.host;
+	else //is 'https'
+	    ws_host="wss://"+location.host;
+	
+	
+	url.set_value(ws_host);
+    }
+    
+    
+    var ws_host;
+    ws_host=url.value;
+    
+    sad.listen("socket_connect", function(){
+	status.set_value("green");
+	messages.append("Sadira server connected");
+    });
+	
+    sad.listen("socket_error", function(e){
+	status.set_value("red");
+	messages.append("Socket error " + JSON.stringify(e));
+    });
+    sad.listen("socket_close", function(){
+	status.set_value("blue");
+	messages.append("Sadira server disconnected");
+    });
+    
+    connect.listen("click",function(){
+	sad.connect(function(error){
+	    status.set_value("red");
+		messages.append("Cannot connect : " + e);
+	});
+    });
+    
+    
+    sad.connect=function(cb){
+	
+	//Making link to the WebSocket server and handling of the socket events
+
+	/*
+	//Checking web storage support 
+
+	if(typeof(Storage)=="undefined"){ 
+	    return cb("Sorry, you need a browser with webstorage support");
+	}
+*/
+	
+	var wsock=null; //The (main) web(rtc)socket.
+	var socket_mode="websocket"; 
+	
+	if(socket_mode=="webrtc"){
+	    
+	    var datachannel_opts = {
+		ordered: false, // do not guarantee order
+		maxRetransmitTime: 3000, // in milliseconds
+	    };
+	    
+	    wsock=newRTCPeerConnexion('http://localhost');
+	    
+	    /*
+	      socket.on('news', function (data) {
+	      console.log(data);
+	      socket.emit('my other event', { my: 'data' });
+	      });
+	    */
+	    
+	}else{
+	
+	    try {
+		window.WebSocket = window.WebSocket || window.MozWebSocket;
+		
+		//Checking web socket support 
+		
+		if (!window.WebSocket) {
+		    throw { message : "Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser" };
+		}
+
+		wsock = new WebSocket(ws_host);
+		wsock.binaryType = "arraybuffer";
+	    }
+	    catch (e){
+		sad.trigger("socket_error", e.message);
+	    }
+	}
+	
+	sad.wsock=wsock;
+
+	wsock.onclose = function () {
+	    //this.set_status();
+	    if(sad.dialogs!='undefined') 
+		delete sad.dialogs;
+	};
+	
+	wsock.onopen = function () {
+	    if(typeof sad.dialogs=='undefined')
+		sad.dialogs= new dialog_manager(wsock);
+	    
+	    var session_id=localStorage.session_id;
+	    var d={};
+	    
+	    if(typeof session_id != 'undefined') d.session_id=session_id;
+	    
+	    sad.trigger("socket_connect",sad);
+	};
+	
+	wsock.onerror = function (error) {
+	    sad.trigger("socket_error", error);
+	};
+	
+	wsock.onmessage = function (msg) {
+	    
+	    //console.log('received message type = ' + msg.srcElement.binaryType);
+	    
+	    try{		
+		var dgram=new datagram();
+	    
+		if(msg.data instanceof ArrayBuffer){ //Binary
+		    dgram.deserialize(msg.data);
+		}
+		else
+		    dgram.set_header(JSON.parse(msg.utf8Data)); //Text
+		
+		sad.dialogs.process_datagram(dgram);
+	    }
+	    catch(e){
+		//sad.trigger("socket_connect",sad);
+		console.log("Error processing datagram : " + dump_error(e));
+	    } 
+	
+	};
+
+	
+    }
+
+
+}
+
+template_ui_builders.progress=function(ui_opts, prog){
+
+    var ui=prog.ui=ce("progress");
+
+    if(typeof prog.value ==='undefined') prog.value=0.0;
+    if(typeof prog.min ==='undefined') prog.min=0.0;
+    if(typeof prog.max ==='undefined') prog.max=100.0;
+    
+    prog.setup_ui=function(){
+	ui.min=prog.min;
+	ui.max=prog.max;
+	ui.value=prog.value;
+    }
+
+    prog.set_value=function(v){
+	if(typeof v !=='undefined') prog.value=v;
+	if(isFinite(prog.value))
+	    ui.value=prog.value;
+    }
+    prog.setup_ui();
+    return ui;
 }
 
 template_ui_builders.status=function(ui_opts, tpl_item){
+
     var ui=ce("span");ui.add_class("status");
     var flag=cc("span",ui);flag.add_class("flag");
     var txt=cc("span",ui); 
@@ -37,6 +229,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	    ui.type=ui_opts.input_type;
 	else
 	    ui.type="number";
+
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
@@ -57,15 +250,18 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     return tpl_item.ui;
 }
 
-
 template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
     var ui=tpl_item.ui=ce("div");
     
     ui.className="labelled_vector";
     tpl_item.inputs=[];
+
+    if(typeof tpl_item.value==='undefined') tpl_item.value=[];
+    if(typeof tpl_item.value_labels==='undefined') tpl_item.value_labels=[];
     
-    for(var v=0;v<tpl_item.value.length;v++){
+    for(var v=0;v<tpl_item.value_labels.length;v++){
+	if(typeof tpl_item.value[v] === 'undefined') tpl_item.value[v]=0;
 	//var li=ce("li");
 	var label=ce("label"); 
 	tpl_item.inputs[v]={ 
@@ -117,7 +313,22 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
     //console.log("Done building LABVEC : " + tpl_item.name);
 
     return tpl_item.ui;
+}
+
+
+template_ui_builders.login=function(ui_opts, login){
+    var ui=template_ui_builders.password(ui_opts, login);
+
+    var login_ui=ce("div",ui);
+    login_ui.innerHTML="LOGIN HERE HEEEHOOOO!!";
+
+}
+
+
+template_ui_builders.sky_coords=function(ui_opts, skyc){
+    var ui=template_ui_builders.labelled_vector(ui_opts,skyc);
     
+    return ui;
 }
 
 template_ui_builders.local_file=function(ui_opts, tpl_item){
@@ -216,9 +427,12 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
-    
+
+    new_event(tpl_item,"change");
+
     ui.onchange=function(){
 	tpl_item.value=this.checked; 
+	tpl_item.trigger("change", tpl_item.value);
 	if(tpl_item.onchange)
 	    tpl_item.onchange();
     }
@@ -265,18 +479,27 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
 template_ui_builders.text=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("div");
+    var ui=tpl_item.ui=ce("pre");
     ui.add_class("text");
-    tpl_item.set_value=function(nv){
-	if(typeof nv !='undefined')tpl_item.value=nv;
-	ui.innerHTML=tpl_item.value;
-    }
 
+    tpl_item.set_value=function(nv){
+	if(typeof nv !='undefined')
+	    tpl_item.value=nv;
+	if(typeof tpl_item.value !== 'undefined')
+	    ui.innerHTML=tpl_item.value;
+    }
+    
     tpl_item.append=function(txt){
-	tpl_item.value+=txt;
-	tpl_item.set_value();
+	if(typeof tpl_item.value === 'undefined')
+	    tpl_item.set_value(txt);
+	else{
+	    console.log("append text to " + tpl_item.value);
+	    tpl_item.value+=txt;
+	    tpl_item.set_value();
+	}
 	tpl_item.ui.scrollTop = tpl_item.ui.scrollHeight;
     }
+
     switch (ui_opts.type){
     case "edit": 
 	ui.setAttribute("contentEditable",true);
@@ -300,15 +523,19 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.innerHTML=tpl_item.value;
+	    if(typeof nv !='undefined')
+		tpl_item.value=nv;
+	    if(typeof tpl_item.value !== 'undefined')
+		ui.innerHTML=tpl_item.value;
 	}
 	break;
+
     case "edit": 
 	var ui=tpl_item.ui=ce("span");
 	var pui=cc("input",ui); cc("span",ui).innerHTML="show";
 	var show=cc("input",ui); show.type="checkbox";
 	pui.type="password";
+	
 	show.onclick=function(){
 	    pui.type= show.checked ? "text" : "password";
 	    console.log("pt = " + pui.type);
@@ -376,22 +603,28 @@ template_ui_builders.date=function(ui_opts, tpl_item){
 
 template_ui_builders.url=function(ui_opts, tpl_item){
 
-    switch (ui_opts.type){
+    var ui;
+    var type=ui_opts.type ? ui_opts.type : "short";
+    switch (type){
 
     case "short":
-	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
+	ui=tpl_item.ui=ce("span");
+	//ui.className="value";
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.innerHTML=tpl_item.value;
+	    if(typeof nv !='undefined')
+		tpl_item.value=nv;
+	    if(typeof tpl_item.value !=='undefined')
+		ui.innerHTML=tpl_item.value;
 	}
 	break;
     case "edit": 
-	var ui=tpl_item.ui=ce("input");
+	ui=tpl_item.ui=ce("input");
 	ui.type="url";
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.value=tpl_item.value;
+	    if(typeof nv !='undefined')
+		tpl_item.value=nv;
+	    if(typeof tpl_item.value !=='undefined')
+		ui.value=tpl_item.value;
 	}
 	tpl_item.get_value=function(){
 	    return ui.value;
@@ -406,6 +639,7 @@ template_ui_builders.url=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
+    tpl_item.set_value();
     
     return tpl_item.ui;
 }
@@ -519,6 +753,10 @@ template_ui_builders.combo=function(ui_opts, combo){
 template_ui_builders.action=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("input"); ui.type="button";
     ui.value=tpl_item.name;
+
+    if(tpl_item.ui_name!='undefined'){
+	tpl_item.ui_root.removeChild(tpl_item.ui_name);
+    }
     new_event(tpl_item,"click");
     ui.addEventListener("click",function(e){
 	if(tpl_item.onclick){
@@ -529,8 +767,8 @@ template_ui_builders.action=function(ui_opts, tpl_item){
 
     //if(tpl_item.ui_name)
     //	tpl_item.ui_root.removeChild(tpl_item.ui_name);
-    tpl_item.set_title("");
-    
+    //tpl_item.set_title("");
+
     return ui;
 }
 

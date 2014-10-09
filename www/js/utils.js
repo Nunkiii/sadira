@@ -436,7 +436,7 @@ function select(node, selector){
     return null;
 }
 
-//Returns a dom object present in this widget's HTML dom structure based on a selector.
+//Returns all dom object present in this widget's HTML dom structure based on a selector.
 
 function select_all(node, selector){
     return node.querySelectorAll(selector);

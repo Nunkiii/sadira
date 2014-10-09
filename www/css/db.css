@@ -183,21 +183,22 @@
   background: none;
 }
 .db input[type="button"], .db input[type="file"]{
-/*  background: orange; */
-  color: black;
-  margin: 0px;
-  padding: .5em;
-  text-wight: bold;
-/*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
-  border-radius: .4em;
-/*  color: white; */
-  text-shadow : 0px 0px 2px rgba(250,250,250,.8);
-  cursor: pointer;
+    background: rgba(10,10,10,0.2); 
+    color: white;
+    margin: 0px;
+    padding-left: .5em;
+    padding-right: .5em;
+    text-weight: bold;
+    /*  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
+    border-radius: .4em;
+    /*  color: white; */
+    text-shadow : 0px 0px 2px rgba(250,250,250,.8);
+    cursor: pointer;
 }
+
 .db input[type="button"]:hover{
-  background: orange;  
-  color: white;
-/*  text-shadow : 0px 0px 2px rgba(0,0,0,1);  */
+    background: rgba(200,20,20,.2);
+    text-shadow : 0px 0px 2px rgba(250,20,10,1);  
 /*  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) ); */
 }
 
@@ -216,8 +217,10 @@
 
 .dbitem{
   display: inline-block;
-/*  margin-left : .5em;
-  line-height: 2em; */
+  margin-left : .2em;
+/*  line-height: 2em; */
+  padding-left: .5em;
+  padding-right: .5em;
   text-align : left;
 }
 
@@ -240,22 +243,33 @@ div.dbname.slided {
   font-weight: normal;
   color: white; 
   text-shadow : 0px 0px 1px black;
+/*
   padding-top: .5em;
   padding-bottom: .5em;
+*/
 }
 
 div.dbname.unslided {
   color: white; 
-/*  text-shadow : 0px 0px 1px rgba(255,255,255,1.0); */
   font-weight: normal;
+/*  text-shadow : 0px 0px 1px rgba(255,255,255,1.0); 
   padding-top: .5em;
   padding-bottom: .5em;
+*/
 }
 
 
 .db span.dbitem{
-  padding: .3em;
-  border-radius: .5em;
+  padding-left: .3em;
+  padding-right: .3em;
+  border-radius: .2em;
+}
+
+.db [data-type="status"] > span > span{
+  vertical-align: middle;
+  padding-left: .5em;
+}
+.db span.dbitem > .span{
 }
 /*
 .zoom:before {
@@ -294,9 +308,11 @@ content : "Zoom Out";
 }
 
 .childs > .db > .dbname{
-  font-variant: small-caps;
+
   font-weight: bold;
-/*  text-shadow : 0px 0px 1px yellow;*/
+/*
+  font-variant: small-caps;
+  text-shadow : 0px 0px 1px yellow;*/
 }
 
 .childs > .db > .slided{
@@ -369,6 +385,7 @@ content : "Zoom Out";
 .db .db {
     font-size : 98%;
     border : 2px solid rgba(120,120,120,0.0);  
+  background  : rgba(200,200,200,.1);
 /*  margin-top: 1em; 
     padding-left: .5em;
     padding-right: .5em;
@@ -755,7 +772,7 @@ color: white;
 
   opacity:1;
   background: none;
-  transition: opacity 1.0s ease-in-out, margin-left .4s ease-in-out, margin-right .4s ease-in-out, margin-top .4s ease-in-out, margin-bottom .4s ease-in-out;
+  transition: opacity .2s ease-in-out, margin-left .2s ease-in-out, margin-right .2s ease-in-out, margin-top .2s ease-in-out, margin-bottom .2s ease-in-out;
   border-radius: .2em;
 }
 
@@ -858,12 +875,22 @@ stroke: white;
   border : 2px dashed #333;
 }
 
+.db[data-type="text"]{
+  max-height: 25em;
+  word-wrap: break-word;
+}
+
+
+.db[data-type="action"]{
+  display : inline-block;
+}
+
 .text{ 
   max-height: 20em;
-  max-width: 100%: /*calc( 100% - 2em);*/
-  overflow : scroll;
+  width: 100%;
   background-color: white;
   color: black;
+  overflow:auto;
 } 
 
 .status .flag{
