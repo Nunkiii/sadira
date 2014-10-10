@@ -270,24 +270,48 @@ function create_item_ui(ui_opts, tpl_node){
     var tpl_name=tpl_node.type;
     if(typeof tpl_name=='undefined') throw "No valid template name on tpl_node...";
 
-    if(tpl_name=="template"){
-	if(typeof tpl_node.tpl_builder != 'undefined'){
-	    tpl_name=tpl_node.tpl_builder;
-	}else return;
-    }
+    var builders=[];
+
+//    if(tpl_name=="template"){
+    //  }
 
     //console.log("Building ["+tpl_name+"]");//...." + JSON.stringify(tpl_node,null,4));
-    var builder=template_ui_builders[tpl_name];
-    if (!builder){
-	throw "Cannot build "+ tpl_node.name+" : unknown object type " + tpl_name +"";
-    }
-    template_ui_builders.default_before(ui_opts,tpl_node);
-    
-    var ui=builder(ui_opts, tpl_node);
-    if(typeof ui==='undefined'){
-	console.log("warning: no UI returned for type " + tpl_name);
+
+    if(tpl_name!=="template"){
+	var builder=template_ui_builders[tpl_name];
+	if(typeof builder!=='undefined') builders.push(builder);
+    }else{
     }
 
+    if(typeof tpl_node.tpl_builder !== 'undefined'){
+	console.log("Building ["+tpl_name+"] Adding tpl_builder : " + tpl_node.tpl_builder);
+	var builder=template_ui_builders[tpl_node.tpl_builder];
+	if(typeof builder!=='undefined') builders.push(builder);
+	else
+	    console.log("Error : builder not found : " + tpl_node.tpl_builder);
+	//tpl_name=tpl_node.tpl_builder;
+    }//else return;
+
+    //if (builders.length==0){
+	//console.log("Cannot build "+ tpl_node.name+" : no builder for object type " + tpl_name +"");
+	//return;
+//}
+
+    template_ui_builders.default_before(ui_opts,tpl_node);
+    
+    var ui;
+    
+
+
+    for(var b=0;b<builders.length;b++){
+	var bui=builders[b](ui_opts, tpl_node);
+	if(typeof ui==='undefined') ui=bui;
+    }
+    
+    if(typeof ui==='undefined'){
+	//console.log("warning: no UI returned for type " + tpl_name);
+    }
+    
     template_ui_builders.default_after(ui_opts,tpl_node);
     return ui;
 }

@@ -2,26 +2,26 @@
 // Do what you want with this file.
 
 
-GLOBAL.dialog_handlers = {};
+// GLOBAL.dialog_handlers = {};
 
 
-var dialogs = [
-    "sadira",
-    "db",
-    "fits",
-    "sbig"
-];
+// var dialogs = [
+//     "sadira",
+//     "db",
+//     "fits",
+//     "sbig"
+// ];
 
-exports.initialize_dialogs=function(){
+// exports.initialize_dialogs=function(){
     
-    for(w=0;w<dialogs.length;w++){
-	console.log("Init dialogs " + "./dialogs/"+dialogs[w]+".js");
-	var wpack=require("./dialogs/"+dialogs[w]+".js");
-	var initf=wpack.init_dialog;
+//     for(w=0;w<dialogs.length;w++){
+// 	console.log("Init dialogs " + "./dialogs/"+dialogs[w]+".js");
+// 	var wpack=require("./dialogs/"+dialogs[w]+".js");
+// 	var initf=wpack.init_dialog;
 	
-	if(typeof initf != 'undefined')
-	    initf();
-    }
-}
+// 	if(typeof initf != 'undefined')
+// 	    initf();
+//     }
+// }
 
 

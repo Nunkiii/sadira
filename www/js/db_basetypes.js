@@ -30,15 +30,14 @@ template_ui_builders.sadira=function(ui_opts, sad){
     else
 	widget_prefix=sadira_prefix+"/widgets";
 
-    console.log("Setting URL " + url.value);
+    //console.log("Setting URL " + url.value);
     if(typeof url.value==='undefined'){
 	var ws_host;
 	if(document.location.protocol == "http:")
 	    ws_host="ws://"+location.host;
 	else //is 'https'
 	    ws_host="wss://"+location.host;
-	
-	
+
 	url.set_value(ws_host);
     }
     
