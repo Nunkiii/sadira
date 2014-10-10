@@ -1,0 +1,39 @@
+#!/bin/sh
+
+export PATH=$PATH:/usr/local/bin
+export NODE_PATH=$NODE_PATH:/usr/local/lib/node_modules
+
+execdir="/home/fullmoon/prog/dev/XD-1"
+service="sadira/sadira.js --cf ${execdir}/sadira.conf.json"
+logfile="/var/log/sadira/log"
+errfile="/var/log/sadira/stderr"
+outfile="/var/log/sadira/stdout"
+
+echo "start/stop [$service]"
+
+
+start_app(){
+    rm $logfile 2>/dev/null
+    exec forever  --sourceDir=$execdir -p /var/run/forever start -o $outfile -e $errfile -l $logfile $service
+}
+
+stop_app(){
+    exec forever stop --sourceDir=$execdir $service
+}
+
+case "$1" in
+    start)
+	start_app
+	;;
+    
+    stop)
+	stop_app
+	;;
+    
+    restart)
+        stop_app
+        start_app
+	;;
+esac
+
+exit 0
