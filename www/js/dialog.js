@@ -78,30 +78,24 @@ dialog.prototype.srz_request=function(dgram, result_cb){
 
 
 dialog.prototype.srz_initiate=function(srz, status_cb){
-    console.log("Z");
+
     srz.oid=Math.random().toString(36).substring(2);
-    console.log("Z");
     srz_setup(this);
-    console.log("Z");
     this.serializers[srz.oid]=srz;
-    console.log("Z");
     var srz_head={type: 'srz', cmd: 'req', oid: srz.oid, sz : srz.size() };
-    console.log("Z");
-    if(typeof srz.header!='undefined')
+    if(typeof srz.header!=='undefined')
 	for(var h in srz.header) srz_head[h]=srz.header[h];
-    console.log("Z");
     this.send_datagram(srz_head,null,function(error){
-	    console.log("Zweeee  " + error);
+	console.log("Zweeeeror  " + error);
     });
-        console.log("Z");
 }
 
 srz_setup=function(dlg){
-    if(typeof dlg.serializers!='undefined') return;
+    if(typeof dlg.serializers!=='undefined') return;
 //    var dlg=this;
 
     dlg.serializers={};
-    dlg.log("srz setup !");
+//    dlg.log("srz setup !");
 
     dlg.listen('srz', function(dgram){
 
@@ -209,7 +203,7 @@ dialog.prototype.close=function(m){
 }
 
 
-dialog.prototype.connect = function(result_cb){ //Initiate connexion. In result will be given the dialog object.
+dialog.prototype.connect = function(result_cb){ //Initiate connexion. 
     var dlg=this;
     //console.log("DIALOG connect : header = ["+JSON.stringify(this.header)+"]");
 
@@ -270,7 +264,7 @@ dialog.prototype.send_datagram=function(header, data, status_func){
 
     if(typeof dgr.header.close!= 'undefined')
 	if(dgr.header.close==true){
-	    if(typeof this.mgr!= 'undefined')
+	    if(typeof this.mgr!== 'undefined')
 	    this.mgr.delete_dialog(this);
 	}
 }
@@ -355,6 +349,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 		}else{
 		    hshk_head.status=true;
 		    dlg.log("Eval handler [" + hndl_name + "] OK ");
+
 		    if(typeof hhead != 'undefined') for (var hh in hhead) hshk_head[hh]=hhead[hh];
 		    if(typeof hdata != 'undefined') hshk_data=hdata;
 		}
@@ -396,7 +391,35 @@ dialog_manager.prototype.process_datagram=function(dgram){
     
 }
 
+function new_event(tpl_item, event_name){
+
+    if(typeof tpl_item.event_callbacks==='undefined'){
+	tpl_item.event_callbacks=[];
+	tpl_item.listen=function(event_name, cb){
+	    //console.log("Adding listen func to "+event_name+"!");
+	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') 
+		throw "No such event " + event_name ;
+	    tpl_item.event_callbacks[event_name].push(cb);
+	};
+	tpl_item.trigger=function(event_name, data){
+	    var cbs=tpl_item.event_callbacks[event_name];
+	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
+	    //console.log("Trigger " + event_name +" to " + cbs.length +" client funcs....");
+
+	    cbs.forEach(function(cb){
+		cb(data);
+	    });
+	}
+    }
+    //console.log("Creating callback on " + tpl_item.name);
+    if(typeof tpl_item.event_callbacks[event_name]==='undefined')
+	tpl_item.event_callbacks[event_name]=[];
+}
+
+
+
 if(nodejs){
     exports.dialog=dialog;
     exports.dialog_manager=dialog_manager;
+    exports.new_event=new_event;
 }

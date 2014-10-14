@@ -5,7 +5,7 @@ var chat_templates={
     },
     user : {
 	name : "Chat User"
-    }
+    },
     users : {
 	name : "User list"
     },
@@ -14,9 +14,7 @@ var chat_templates={
     }
 };
 
-
-
 (function(){
-  
-
+//  tmaster.add_templates(chat_templates);
+//  console.log("HEllo!");
 })();

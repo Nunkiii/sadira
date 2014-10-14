@@ -73,11 +73,11 @@ if(nodejs){
 	    //console.log('DGRAM: sending data : nbytes= ' + this.size() + " data payload : " + this.data_size());
 	    cnx.sendBytes( this.buffer);
 	    //console.log("SOK");
-
-	    status_cb(null);
+	    if(typeof status_cb!=='undefined')
+		status_cb(null);
 	}
 	catch (e){
-	    if(typeof status_cb!='undefined')
+	    if(typeof status_cb!=='undefined')
 		status_cb(e);
 	    else
 		console.log("send exception " + e);
@@ -94,10 +94,15 @@ else{
 		this.serialize();
 	    //console.log('DGRAM: sending data : nbytes= ' + this.size() + " data payload : " + this.data_size());
 	    cnx.send(this.buffer);
-	    status_cb(null);
+	    if(typeof status_cb!=='undefined')
+		status_cb(null);
 	}
 	catch (e){
-	    status_cb(e);
+	    if(typeof status_cb!=='undefined')
+		status_cb(e);
+	    else
+		console.log("send exception " + e);
+
 	}
     }
 }

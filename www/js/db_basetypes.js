@@ -1,6 +1,5 @@
 template_ui_builders.sadira=function(ui_opts, sad){
     
-    
     var widget_prefix="widgets";
     var server_prefix="";
     
@@ -67,7 +66,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
     });
     
     
-    sad.connect=function(cb){
+    sad.connect=function(){
 	
 	//Making link to the WebSocket server and handling of the socket events
 
@@ -121,19 +120,17 @@ template_ui_builders.sadira=function(ui_opts, sad){
 
 	wsock.onclose = function () {
 	    //this.set_status();
-	    if(sad.dialogs!='undefined') 
+	    if(sad.dialogs!=='undefined') 
 		delete sad.dialogs;
 	};
 	
 	wsock.onopen = function () {
-	    if(typeof sad.dialogs=='undefined')
+	    if(typeof sad.dialogs==='undefined')
 		sad.dialogs= new dialog_manager(wsock);
 	    
 	    var session_id=localStorage.session_id;
 	    var d={};
-	    
 	    if(typeof session_id != 'undefined') d.session_id=session_id;
-	    
 	    sad.trigger("socket_connect",sad);
 	};
 	

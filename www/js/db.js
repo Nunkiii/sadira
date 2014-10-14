@@ -1,28 +1,3 @@
-function new_event(tpl_item, event_name){
-
-    if(typeof tpl_item.event_callbacks==='undefined'){
-	tpl_item.event_callbacks=[];
-	tpl_item.listen=function(event_name, cb){
-	    //console.log("Adding listen func to "+event_name+"!");
-	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') 
-		throw "No such event " + event_name ;
-	    tpl_item.event_callbacks[event_name].push(cb);
-	};
-	tpl_item.trigger=function(event_name, data){
-	    var cbs=tpl_item.event_callbacks[event_name];
-	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
-	    //console.log("Trigger " + event_name +" to " + cbs.length +" client funcs....");
-
-	    cbs.forEach(function(cb){
-		cb(data);
-	    });
-	}
-    }
-    //console.log("Creating callback on " + tpl_item.name);
-    if(typeof tpl_item.event_callbacks[event_name]==='undefined')
-	tpl_item.event_callbacks[event_name]=[];
-}
-
 
 
 //This configures an HTML element to be editable and performs the DB action required.
@@ -142,11 +117,11 @@ function tab_widget(parent){
 	    li.div.className="tab_section";
 	    li.div.style.display='none';
 	    //this.frames.push(li);
-	    li.onclick=function(){
+	    li.addEventListener("click",function(){
 		//console.log("Click!!");
 		lm.select_frame(this); //xd.fullscreen(false);
 		parent.trigger("element_selected", e);
-	    }
+	    });
 	    li.div.appendChild(e.ui_root);
 	    nframes++;
 	    //if(this.frames.length==1) 
@@ -454,7 +429,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	
 	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); 
-	tpl_root.parent.ui_childs.replace_child(tpl_root.ui_root, oldroot); 
+	tpl_root.parent.ui_childs.replace_child(tpl_root, oldroot); 
 
 	var cnt=tpl_root.ui_childs; //new_ui.container=tpl_root.container;
 	
@@ -472,10 +447,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	var clickable_zone;
 	if(ui_opts.type=="edit"){
-	    ui_root.className+=" un_editable";
+	    ui_root.add_class("un_editable");
 	    clickable_zone=ui_name;
 	}else{
-	    ui_root.className+=" editable";
+	    ui_root.add_class("editable");
 	    clickable_zone=ui_root;
 	}
 
@@ -559,10 +534,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
 
 
-	ui_childs.replace_child=function(nui,ui){
+	ui_childs.replace_child=function(nctpl,oldui){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(nui, ui);
+	    ui_childs.div.replaceChild(nctpl.ui_root, oldui);
 	}
 
 	ui_childs.remove_child=function(e){
@@ -602,13 +577,19 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    function nav_include(e){
 		if(e.ui_opts.bar){ 
 		    var liti=cc("li",nav);//
+		    
 		    liti.appendChild(e.ui_root);
+		    e.bar_replace=function(){
+			var newliti=ce("li"); newliti.appendChild(this.ui_root);
+			nav.replaceChild(newliti, liti);
+			liti=newliti;
+		    }
 		}else
 		    nav_include_div(e);
 	    }
 	    function nav_include_sliding(e){
 		
-		var liti=cc("li",nav);//
+		var liti=e.liti=cc("li",nav);//
 		
 		e.listen("slided", function(slided){
 		    if(slided){
@@ -621,11 +602,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		})
 		
 		liti.appendChild(e.ui_name);
+
 		if(!e.ui_opts.label)
 		    ui_childs.div.appendChild(ui);
+
+		e.bar_replace=function(){
+		    var newliti=ce("li"); newliti.appendChild(this.ui_name);
+		    nav.replaceChild(newliti, liti);
+		    liti=newliti;
+		}
 		
 		e.trigger("slided",e.ui_opts.slided);
-		
 	    }
 
 	    if(e.ui_name){
@@ -650,12 +637,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
 
 
-	ui_childs.replace_child=function(new_ui,ui){
+	ui_childs.replace_child=function(new_ctpl,oldui){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    if(ui.parentNode===ui_childs.div)
-		ui_childs.div.replaceChild(new_ui, ui);
-	    
+	    if(typeof new_ctpl.bar_replace!=='undefined')
+		new_ctpl.bar_replace();
+	    if(oldui.parentNode===ui_childs.div)
+		ui_childs.div.replaceChild(new_ctpl.ui_root, oldui);
+
 	}
 //	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;
 	
@@ -681,10 +670,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //f.div.appendChild(ui);
 	}
 	
-	ui_childs.replace_child=function(new_ui,ui){
+	ui_childs.replace_child=function(new_ctpl,oldui){
 
 	    //console.log("TAB replace node " + ui.nodeName + " with node " + new_ui.nodeName);
-	    ui.f.div.replaceChild(new_ui, ui);
+	    ui.f.div.replaceChild(new_ctpl.ui_root, oldui);
 	}
 	on_ui_childs_ready();
 
