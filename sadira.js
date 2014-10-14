@@ -366,7 +366,7 @@ _sadira.prototype.execute_command = function (command_type, request, response ){
 		}
 	    }
 	    catch (e){
-		console.log("Error path " + e);
+		//console.log("Error path " + e);
 		return false; //We don't understand the path -> relay to proxy
 	    }
 	}
@@ -493,14 +493,14 @@ _sadira.prototype.process_get_request=function(request, response, headers){
 
 	if(request.connection.encrypted){
 	    if(sad.options.https_proxy){
-		console.log("Proxy https " + request.url);
+		//console.log("Proxy https " + request.url);
 		sad.https_proxy.web(request, response);
 		return;
 	    }
 	    
 	}else{
 	    if(sad.options.http_proxy){
-		console.log("Proxy http " + request.url);
+		//console.log("Proxy http " + request.url);
 		sad.http_proxy.web(request, response);
 		return;
 	    }
