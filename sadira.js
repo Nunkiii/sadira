@@ -3,9 +3,11 @@
 // Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
 
 var fs = require("fs");
+
 var http = require('http');
 var https = require('https');
 var http_proxy = require('http-proxy');
+
 var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
@@ -96,6 +98,8 @@ function toArrayBuffer(buffer) {
  */
 
 var _sadira = function(){
+
+    console.log("sadira process start");
 
     var sad=this;
 
@@ -332,49 +336,70 @@ _sadira.prototype.start = function (){
 /**
  * This function redirects url management to handlers defined in (get,post)_handlers.js
  * Command-type is either "get" or "post". Request and response are the original objects coming from the http_server requests. 
- * @method execute_command
+ * @method execute_request
  * @param {String} command_type Type of command, either "GET" or "POST"
  * @param {} request The http request object
  * @param {} response
  * @return 
  */
 
-_sadira.prototype.execute_command = function (command_type, request, response ){
+_sadira.prototype.execute_request = function (request, response, result_cb ){
 
+    var sad=this;
+
+    var command_type=request.method;
     var url_parts = url.parse(request.url,true);	
-    var path_build=command_type+"_handlers.";
+    var path_base=command_type+"_handlers";
+    var path_build=path_base;
 
     try{	    
 	var path_parts = url_parts.pathname.split("/");
+
 	for(var p=1;p<path_parts.length;p++){
+	    path_build+= ".";
+	    path_build+=path_parts[p];
+	}
+	var main_proc;
+	try{
+	    main_proc= eval(path_build+".process");
+	    if(!è(main_proc)) 
+		throw("Undefined!!!");
+	}
+	catch (e){
+	    //console.log("Invalid process path -> proxy (" + path_build + ")" + e);
+	    return result_cb(null, false);
+	}
+	result_cb(null,true); //We handle it.
+
+	//First calling the intermediate process funcs 
+
+	path_build=path_base;
+
+	for(var p=1;p<path_parts.length-1;p++){
 	    //console.log(" pel "+p+" : " +path_parts[p]);
+	    path_build += ".";
 	    path_build+=path_parts[p];
 	    
 	    try{
-		
-		if (typeof eval(path_build) === "undefined") {
-		    return false; //throw "undefined object ("+ path_build+ ")";
-		} else {
-		    
-		    var proc_path= eval(path_build+".process");
-		    
-		    if (typeof proc_path != "undefined") {
-			eval(path_build+".process")( url_parts.query, request, response);
-		    }
-		    
-		    path_build += ".";
-		}
+		var proc_path= eval(path_build+".process");
+		if (è(proc_path)) 
+		    proc_path( url_parts.query, request, response);
 	    }
 	    catch (e){
-		//console.log("Error path " + e);
-		return false; //We don't understand the path -> relay to proxy
+		console.log("Error path " + e + " -> ignore !");
+		//result_cb(null,false);
+		
+		//return false; //We don't understand the path -> relay to proxy
 	    }
 	}
+	
+	main_proc( url_parts.query, request, response);
+	
     }
     
     catch (e){ //Error interpreting path
 	console.log("Exception catched while executing handler for " + path_build + " : " + e );
-	sadira.error_404(response, "Invalid path " + path_build + " : " + e , function(){
+	sad.error_404(response, "Invalid path " + path_build + " : " + e , function(){
 	    response.end();
 	});
 	//response.write("Cannot get handler for " + path_build + " : " + e +"\n");
@@ -382,20 +407,6 @@ _sadira.prototype.execute_command = function (command_type, request, response ){
     }
     
     return true;
-}
-
-
-/**
- * Processing of all the HTTP POST requests
- * @method process_post_request
- * @param {} request
- * @param {} res
- * @param {} headers
- * @return CallExpression
- */
-
-_sadira.prototype.process_post_request=function (request, res, headers){
-    return this.execute_command("post", request, res );
 }
 
 
@@ -461,132 +472,134 @@ _sadira.prototype.message=function(md, reply){
 }
 
 
-//Processing of all the HTTP OPTIONS requests
+//Processing HTTP requests
 
-_sadira.prototype.process_options_request=function(request, response, headers){
-    response.writeHead(200, cors_headers);
-    response.end();
-}
-
-//Processing of all the HTTP GET requests
-
-_sadira.prototype.process_get_request=function(request, response, headers){
+_sadira.prototype.handle_request=function(request, response){
     
     var sad=this;
     var uri = unescape(url.parse(request.url).pathname);
 
     //var url_parts = url.parse(request.url,true);	
-
     //console.log('Processing request for ' + uri);
-    
-    //if(url_parts.search!="") //URL received with ? arguments, transferring the request to the get_handlers
+    //if(url_parts.search!="") //URL received with ? arguments
 
-    if(this.execute_command("get", request, response )) return true;
+    sadira.execute_request(request, response, function (error, processed){
 
-    //From here the server is behaving as a simple file server.
-
-    //Proxying the query to another web service
-    
-    try{
-
-	//console.log("Trying proxy... " + request.connection.encrypted );
-
-	if(request.connection.encrypted){
-	    if(sad.options.https_proxy){
-		//console.log("Proxy https " + request.url);
-		sad.https_proxy.web(request, response);
-		return;
-	    }
-	    
-	}else{
-	    if(sad.options.http_proxy){
-		//console.log("Proxy http " + request.url);
-		sad.http_proxy.web(request, response);
-		return;
-	    }
+	if(error!=null){
+	    console.log("exec error " + error);
+	    return;
 	}
-    }
-    catch (e){
-	console.log('Proxy error : ' + e);
-	response.writeHead(500, {"Content-Type": "text/plain"});
-	response.write("Proxy error : " + err + "\n");
-	response.end();
-	return;
-    }
-    
-    //Builtin web file server.
-    //Here we should detect if the user is not trying to get something like ../../etc/passwd  
-    //It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 
-    var filename = path.join(this.html_rootdir, uri); 
-    
-    path.exists(filename, function(exists) {
-	
-	if(!exists) {
-	    console.log('404 not found for uri ' + filename);
-
-	    sad.error_404(response, uri, function() {
-		response.end();
-	    });
-	    
-	    //response.writeHead(404, {"Content-Type": "text/plain"});
-	    //response.write("Unavailable resource ["+uri+"] !\n");
-	    
+	if(processed===true){
+	    console.log("handled !");
 	    return;
 	}
 	
-	if (fs.statSync(filename).isDirectory()) filename += '/index.html';
+	//The request was not handled by custom url handlers.
+	//If enabled, proxying the query to another web service
+	
+	try{
+	    
+	    //console.log("Trying proxy... " + request.connection.encrypted );
+	    
+	    if(request.connection.encrypted){ //https connexion
+		if(sadira.options.https_proxy){
+		    console.log("Proxy https " + request.url);
+		    sadira.https_proxy.web(request, response);
+		    return;
+		}
+	    }else{
+		if(sadira.options.http_proxy){
+		    //console.log("Proxy http " + request.url);
+		    sadira.http_proxy.web(request, response);
+		    return;
+		}
+	    }
+	}
 
-	fs.readFile(filename, "binary", function(err, file) {
+	catch (e){
+	    console.log('Proxy error : ' + e);
+	    response.writeHead(500, {"Content-Type": "text/plain"});
+	    response.write("Proxy error : " + err + "\n");
+	    response.end();
+	    return;
+	}
 
-	    if(err) { 
-		console.log('Error ! ' + err);
-		response.writeHead(500, {"Content-Type": "text/plain"});
-		response.write(err + "\n");
-		response.end();
+	//Builtin web file server.
+	//From here the server is behaving as a simple file server.
+	//Here we should detect if the user is not trying to get something like ../../etc/passwd  
+	//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
+	
+	var filename = path.join(this.html_rootdir, uri); 
+	
+	path.exists(filename, function(exists) {
+	    
+	    if(!exists) {
+		console.log('404 not found for uri ' + filename);
+		
+		sad.error_404(response, uri, function() {
+		    response.end();
+		});
+		
+		//response.writeHead(404, {"Content-Type": "text/plain"});
+		//response.write("Unavailable resource ["+uri+"] !\n");
+		
 		return;
 	    }
-
-	    var content_type = content_types[path.extname(filename)];
+	
+	    if (fs.statSync(filename).isDirectory()) filename += '/index.html';
 	    
-	    if (content_type) {
-		headers["Content-Type"] = content_type[0];
-
-		if(content_type[1] == true){
-		    headers["Cache-Control"]="public,max-age=31536000";
+	    fs.readFile(filename, "binary", function(err, file) {
+		
+		if(err) { 
+		    console.log('Error ! ' + err);
+		    response.writeHead(500, {"Content-Type": "text/plain"});
+		    response.write(err + "\n");
+		    response.end();
+		    return;
 		}
 		
-	    }else
-		console.log("Unknown extension" + path.extname(filename));
-
-	    //console.log('Serving ' + filename +' : headers : ' + JSON.stringify(headers) );
-	    response.writeHead(200, headers);
-	    response.write(file, "binary");
-	    response.end();
-	});
-    });    
-    
-    
+		var content_type = content_types[path.extname(filename)];
+		
+		if (content_type) {
+		    headers["Content-Type"] = content_type[0];
+		    
+		    if(content_type[1] == true){
+			headers["Cache-Control"]="public,max-age=31536000";
+		    }
+		    
+		}else
+		    console.log("Unknown extension" + path.extname(filename));
+		
+		//console.log('Serving ' + filename +' : headers : ' + JSON.stringify(headers) );
+		response.writeHead(200, headers);
+		response.write(file, "binary");
+		response.end();
+	    });
+	});    
+	
+    });
+    return true;
 }
 
 //Main HTTP request handling function
 
-_sadira.prototype.handle_request= function(request, response){
-//    console.log("Incoming request !!! ");
+// _sadira.prototype.handle_request= function(request, response){
+// //    console.log("Incoming request !!! ");
 
-    var headers ={};
+//     var headers ={};
 
-    switch (request.method){
-    case 'POST':
-	return sadira.process_post_request(request, response, headers);
-    case 'GET' :
-	return sadira.process_get_request(request, response, headers);
-    case 'OPTIONS':
-	return sadira.process_options_request(request, response, headers);
-    };
+//     switch (request.method){
+//     case 'POST':
+// 	return sadira.process_post_request(request, response, headers);
+//     case 'GET' :
+// 	return sadira.process_get_request(request, response, headers);
+//     case 'OPTIONS':
+// 	return sadira.process_options_request(request, response, headers);
+//     };
     
-    console.log("Unhandled http method : " + request.method);
-}
+//     console.log("Unhandled http method : " + request.method);
+// }
 
 //Creates the http servers 
 
@@ -886,6 +899,10 @@ _sadira.prototype.initialize_handlers=function(packname){
 try{
 
     GLOBAL.sadira = new _sadira();
+
+    for(var e in sadira){
+	console.log("sadira contains " + e);
+    }
 
     GLOBAL.get_handlers = {};
     GLOBAL.post_handlers = {};
