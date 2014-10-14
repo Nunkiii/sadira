@@ -1,6 +1,7 @@
 var nodejs=false;
 if (typeof module !== 'undefined' && module.exports) nodejs=true; //Checking if we are in Node
 
+GLOBAL.è=function(x){ return ! (typeof x === 'undefined');}
 
 if(nodejs){
     var bson = require("./community/bson");

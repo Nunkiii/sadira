@@ -1,4 +1,3 @@
-function è(x){ return typeof x === 'undefined';}
 
 var chat_engine = function () {
     var ce=this;
