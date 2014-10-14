@@ -139,7 +139,7 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    console.log( "Command line parsing error : " + e);
+	    console.log( "JSON parsing error : " + e);
 	    process.exit(1);
 	}
 	
