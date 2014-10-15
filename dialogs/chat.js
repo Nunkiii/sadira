@@ -1,5 +1,6 @@
 
 var chat_engine = function () {
+
     var ce=this;
 
     this.rooms = {};
@@ -10,7 +11,7 @@ var chat_engine = function () {
 	var user = function(){
 	    this.id = Math.random().toString(36).substring(2);
 	    this.dlg=dlg;
-	    this.nick = typeof meta.nickname === 'undefined' ? "Chatter " + this.id : meta.nickname;
+	    this.nick = è(meta.nickname) ? ("Chatter " + this.id) : meta.nickname;
 //	    this.new_room_message=function(meta){};
 //	    this.new_server_message=function(meta){};
 	};
@@ -30,7 +31,7 @@ var chat_engine = function () {
 	    var r=this;
 
 	    this.id = Math.random().toString(36).substring(2);
-	    this.title = è(meta.title) ? ("Room "+ this.id) : meta.title;
+	    this.title = ù(meta.title) ? ("Room "+ this.id) : meta.title;
 	    this.history = [];
 	    this.users = {};
 	    this.user_join=function(u){
@@ -124,7 +125,7 @@ dialog_handlers.demo = {
 
 	    usr=master_chat.create_user(dlg, dgram.header);
 	    
-	    console.log("Connect : " + JSON.stringify(usr));
+	    console.log("Connect : " + JSON.stringify(usr.id));
 	});
 	
 	dlg.listen("disconnect", function (dgram){

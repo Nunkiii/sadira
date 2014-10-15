@@ -369,7 +369,8 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	    //console.log("Invalid process path -> proxy (" + path_build + ")" + e);
 	    return result_cb(null, false);
 	}
-	result_cb(null,true); //We handle it.
+
+	result_cb(null,true); //We handle it (no return).
 
 	//First calling the intermediate process funcs 
 
@@ -386,10 +387,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		    proc_path( url_parts.query, request, response);
 	    }
 	    catch (e){
-		console.log("Error path " + e + " -> ignore !");
-		//result_cb(null,false);
-		
-		//return false; //We don't understand the path -> relay to proxy
+		//console.log("Error path " + e + " -> ignore !");
 	    }
 	}
 	
@@ -420,7 +418,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
-    fs.readFile("sadira/404.html", "binary", function(err, file) {
+    fs.readFile("www/sadira/404.html", "binary", function(err, file) {
 
 	response.writeHead(404, {"Content-Type": "text/html"});
 	
@@ -893,16 +891,11 @@ _sadira.prototype.initialize_handlers=function(packname){
 }
 
 
-//Main global sadira instance
-
+//Main sadira instance
 
 try{
 
     GLOBAL.sadira = new _sadira();
-
-    for(var e in sadira){
-	console.log("sadira contains " + e);
-    }
 
     GLOBAL.get_handlers = {};
     GLOBAL.post_handlers = {};

@@ -20,7 +20,7 @@ var base_templates={
 		name : "connect"
 	    },
 	    messages : {
-		ui_opts : {sliding : true, slided : false, root_classes : []},
+		ui_opts : {sliding : true, slided : false, root_classes : [], bar : true},
 		name : "Messages",
 		type : "text"
 	    },

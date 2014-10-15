@@ -1,11 +1,13 @@
-var nodejs=false;
-if (typeof module !== 'undefined' && module.exports) nodejs=true; //Checking if we are in Node
+è=function(x){ return (typeof x !== 'undefined');}
+ù=function(x){ return (typeof x === 'undefined');}
 
-GLOBAL.è=function(x){ return ! (typeof x === 'undefined');}
+var nodejs= typeof module !== 'undefined'; //Checking if we are in Node
 
 if(nodejs){
     var bson = require("./community/bson");
     var srz=require("./serializer");
+    GLOBAL.è=è;
+    GLOBAL.ù=ù;
 }else{
 
     /*

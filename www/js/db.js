@@ -557,8 +557,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(typeof ui_childs.div=='undefined'){
 		nav=tpl_root.nav=ce("nav");
 		ui_root.appendChild(nav);
+		
+		if(ui_opts.bar){
+		    nav.appendChild(ui_name);
+		    ui_name.add_class("dbname_bar");
+		}
+
 		ui_childs.div=ce("div");
 		ui_childs.div.className="childs";
+		
 		if(typeof ui_opts.child_classes != 'undefined')
 		    add_classes(ui_opts.child_classes, ui_childs.div);
 		
