@@ -349,7 +349,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     var command_type=request.method;
     var url_parts = url.parse(request.url,true);	
-    var path_base=command_type+"_handlers";
+    var path_base=command_type.toLowerCase()+"_handlers";
     var path_build=path_base;
 
     try{	    
@@ -366,7 +366,8 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		throw("Undefined!!!");
 	}
 	catch (e){
-	    //console.log("Invalid process path -> proxy (" + path_build + ")" + e);
+	    console.log("Invalid process path -> proxy (" + path_build + ")" + e);
+	    
 	    return result_cb(null, false);
 	}
 
