@@ -608,6 +608,12 @@ _sadira.prototype.create_http_server = function(cb){
 
     //Creating proxy with a default target
 
+    function handle_proxy_error(e,req,res){
+	var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
+	console.log(ctype+' proxy error : ' + e );
+	res.writeHead(500, {"Content-Type": "text/plain"});
+	res.end("Sadira " + ctype + " proxy error : " + e + "\n");
+    }
     
     if(sad.options.http_port){ 
 
@@ -618,9 +624,7 @@ _sadira.prototype.create_http_server = function(cb){
 	
 	    sad.http_proxy=http_proxy.createServer(proxy_config);
 
-	    sad.http_proxy.on('error', function(e) {
-		console.log("HTTP proxy error : " + e);
-	    });
+	    sad.http_proxy.on('error', handle_proxy_error);
 	    
 	}
 
@@ -666,10 +670,7 @@ _sadira.prototype.create_http_server = function(cb){
 	
 	    sad.https_proxy=http_proxy.createServer(proxy_config);
 
-	    sad.https_proxy.on('error', function(e) {
-		console.log("HTTPS proxy error : " + e);
-	    });
-
+	    sad.https_proxy.on('error', handle_proxy_error);
 	}
 	
         //Certificates for the https server

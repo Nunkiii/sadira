@@ -600,16 +600,21 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		e.listen("slided", function(slided){
 		    if(slided){
-			e.ui_root.prependChild(e.ui_name);
+			if(è(e.nav))e.nav.prependChild(e.ui_name);
+			else
+			    e.ui_root.prependChild(e.ui_name);
+
 			liti.add_class("disabled");
 		    }else{
+			//if(!ui_opts.bar)
 			liti.appendChild(e.ui_name);
+			    
 			liti.remove_class("disabled");
 		    }
-		})
+		});
 		
 		liti.appendChild(e.ui_name);
-
+		
 		if(!e.ui_opts.label)
 		    ui_childs.div.appendChild(ui);
 
@@ -749,18 +754,19 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(tpl_root.parent)
 	    if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
 		if(tpl_root.parent.ui_opts.child_view_type == "bar") 
+		    //if(!tpl_root.ui_opts.bar) 
 		    sliding_stuff.push(ui_root);
 	
 	function update_arrows(){
 	    switch(sliding_dir){
 	    case "v":
 		slide_button.className="slide_button_v";
-		slide_button.innerHTML= slided ? "▲" : "▼" ;
+		slide_button.innerHTML= slided ? "❌" : "▼" ;
 //▲❌
 		break;
 	    case "h":
 		slide_button.className="slide_button_h";
-		slide_button.innerHTML= slided ? "◀" : "▶"; 
+		slide_button.innerHTML= slided ? "❌" : "▶"; 
 		break;
 	    default: break;
 	    }
