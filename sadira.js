@@ -366,11 +366,9 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		throw("Undefined!!!");
 	}
 	catch (e){
-	    //console.log("Invalid process path -> proxy (" + path_build + ")" + e);
+	    //console.log("Unhandled path -> proxy (" + path_build + ")" + e);
 	    return result_cb(null, false);
 	}
-
-	result_cb(null,true); //We handle it (no return).
 
 	//First calling the intermediate process funcs 
 
@@ -392,14 +390,20 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	}
 	
 	main_proc( url_parts.query, request, response);
+
+	result_cb(null,true); //We handle it (no return).
+
 	
     }
     
     catch (e){ //Error interpreting path
-	console.log("Exception catched while executing handler for " + path_build + " : " + e );
-	sad.error_404(response, "Invalid path " + path_build + " : " + e , function(){
-	    response.end();
-	});
+	//console.log("Exception catched while executing handler for " + path_build + " : " + e );
+	result_cb(null,false); //We handle it (no return).
+
+
+	// sad.error_404(response, "Invalid path " + path_build + " : " + e , function(){
+	//     response.end();
+	// });
 	//response.write("Cannot get handler for " + path_build + " : " + e +"\n");
 	
     }
