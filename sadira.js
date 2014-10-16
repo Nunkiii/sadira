@@ -143,7 +143,7 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    console.log( "Fatal JSON parsing error : " + e);
+	    console.log( "Fatal JSON parsing error : " + dump_error(e));
 	    process.exit(1);
 	}
 	
@@ -366,8 +366,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		throw("Undefined!!!");
 	}
 	catch (e){
-	    console.log("Invalid process path -> proxy (" + path_build + ")" + e);
-	    
+	    //console.log("Invalid process path -> proxy (" + path_build + ")" + e);
 	    return result_cb(null, false);
 	}
 
@@ -503,7 +502,7 @@ _sadira.prototype.handle_request=function(request, response){
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sadira.options.https_proxy){
-		    console.log("Proxy https " + request.url);
+		    //console.log("Proxy https " + request.url);
 		    sadira.https_proxy.web(request, response);
 		    return;
 		}
@@ -610,7 +609,7 @@ _sadira.prototype.create_http_server = function(cb){
 
     function handle_proxy_error(e,req,res){
 	var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
-	console.log(ctype+' proxy error : ' + e );
+	console.log(ctype+' proxy error : ' + dump_error(e) );
 	res.writeHead(500, {"Content-Type": "text/plain"});
 	res.end("Sadira " + ctype + " proxy error : " + e + "\n");
     }
@@ -618,12 +617,12 @@ _sadira.prototype.create_http_server = function(cb){
     if(sad.options.http_port){ 
 
 	if(sad.options.http_proxy){
-	    var proxy_url=sad.options.http_proxy_url;
-	    if(typeof proxy_url === 'undefined') proxy_url = "localhost:8000";
-	    var proxy_config={target : "http://" + proxy_url  };
+
+	    var proxy_config={
+		target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
+	    };
 	
 	    sad.http_proxy=http_proxy.createServer(proxy_config);
-
 	    sad.http_proxy.on('error', handle_proxy_error);
 	    
 	}
@@ -662,11 +661,28 @@ _sadira.prototype.create_http_server = function(cb){
     }
     
     if(sad.options.https_port){
+	
+	if(!è(sad.options.ssl)) throw ("No SSL config found !");
+	if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
+	if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
+	
+	var ssl_data = {
+	    key: fs.readFileSync(sad.options.ssl.key_file),
+	    cert: fs.readFileSync(sad.options.ssl.cert_file)
+	};
+
+
+	if(è(sad.options.ssl.ca_file)) ssl_data.ca=fs.readFileSync(sad.options.ssl.ca_file);
+
+	//console.log("PROXY SSL config : " + JSON.stringify(ssl_data));
 
 	if(sad.options.https_proxy){
-	    var proxy_url=sad.options.https_proxy_url;
-	    if(typeof proxy_url === 'undefined') proxy_url = "localhost:4430";
-	    var proxy_config={target : "https://" + proxy_url  };
+	    var proxy_config={
+		target :  ù(sad.options.https_proxy_url) ? "https://localhost:4430" : "https://" + sad.options.https_proxy_url,
+		https : true,
+		ssl : ssl_data,
+		secure : false
+	    };
 	
 	    sad.https_proxy=http_proxy.createServer(proxy_config);
 
@@ -676,20 +692,21 @@ _sadira.prototype.create_http_server = function(cb){
         //Certificates for the https server
 	try{
 	    
-	    if(!è(sad.options.ssl)) throw ("No SSL config found !");
-	    if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
-	    if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
-
-	    sad.ssl_data = {
-		key: fs.readFileSync(sad.options.ssl.key_file),
-		cert: fs.readFileSync(sad.options.ssl.cert_file)
-	    };
+	    sad.ssl_data = ssl_data;
 	    
 	    var port = parseInt(sad.options.https_port, 10);
 	    
 	    console.log("starting https server on " + port);
 	    
-	    sad.https_server = https.createServer(sad.ssl_data, sad.handle_request);
+	    var https_options = ssl_data;
+	    
+	    https_options.secureProtocol="SSLv3_method";
+	    https_options.rejectUnauthorized=false;
+
+
+	    //console.log("HTTPS config : " + JSON.stringify(https_options));
+
+	    sad.https_server = https.createServer(https_options, sad.handle_request);
 	    sad.https_server.listen(port);
 	    
 	    return cb(null,"OK");
