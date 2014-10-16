@@ -7,14 +7,17 @@ var fs = require("fs");
 var http = require('http');
 var https = require('https');
 var http_proxy = require('http-proxy');
+var passport = require('passport');
+var path = require("path");
+var url = require("url");
 
 var bson = require("./www/js/community/bson");
+
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
-var url = require("url");
-var path = require("path");
-var BSON=bson().BSON;
 
+
+var BSON=bson().BSON;
 
 //Content-types used by the built-in http file server.
 //The second boolean  member is used to specify if a cache http header is appended for this file type.
@@ -34,6 +37,10 @@ var content_types = {
     '.ttf'  : ['application/x-font-ttf', true]
 };
 
+/*
+  Headers to add when allowing cross-origin requests.
+*/
+
 GLOBAL.cors_headers = {
     'Access-Control-Allow-Origin' : '*',
     'Access-Control-Allow-Credentials' : true,
@@ -41,6 +48,9 @@ GLOBAL.cors_headers = {
     'Access-Control-Allow-Headers': 'Content-Type'
 };
 
+/*
+  Replying a cross-origin-friendly json text string and closing connection.
+*/
 
 GLOBAL.reply_json=function(res,data){
     var headers=cors_headers;
@@ -50,12 +60,20 @@ GLOBAL.reply_json=function(res,data){
     res.end();
 }
 
+/*
+  Signal interception routines (dev)
+*/
+
 
 process.on('SIGTERM', function(){
     console.log('SIGTERM received, terminating !');
     process.exit(1);
 });
 
+
+/*
+  describes an error
+*/
 
 GLOBAL.dump_error =function (err) {
     var rs="";
@@ -77,11 +95,11 @@ GLOBAL.dump_error =function (err) {
 
 
 /**
- * Description
+ * Description 
  * @method toArrayBuffer
  * @param {} buffer
  * @return ab
- */
+
 
 function toArrayBuffer(buffer) {
     var ab = new ArrayBuffer(buffer.length);
@@ -91,6 +109,7 @@ function toArrayBuffer(buffer) {
     }
     return ab;
 }
+ */
 
 /**
  * Main framework class. A single instance of this class is created at startup. 
@@ -98,10 +117,10 @@ function toArrayBuffer(buffer) {
  */
 
 var _sadira = function(){
-
-    console.log("sadira process start");
-
     var sad=this;
+
+    //sad.log("sadira process start");
+
 
     var argv = require('minimist')(process.argv.slice(2));
     //console.dir(argv);
@@ -123,11 +142,11 @@ var _sadira = function(){
     if(typeof argv['cf'] != 'undefined' ) {
 	try{
 	    var cfpath=argv['cf'];
-	    //console.log("Parsing json config file ["+ cfpath+ "]");
+	    //sad.log("Parsing json config file ["+ cfpath+ "]");
 	    option_string=fs.readFileSync(cfpath);
 	}
 	catch(e){
-	    console.log( "Fatal error reading config file : " + e);
+	    sad.log( "Fatal error reading config file : " + e);
 	    process.exit(1);
 	}
 	
@@ -137,7 +156,7 @@ var _sadira = function(){
     
     if(option_string){
 	try{
-	    //console.log("Parsing ["+option_string+"]");
+	    //sad.log("Parsing ["+option_string+"]");
 	    var jcmdline =JSON.parse(option_string);
 	    for(var p in jcmdline) 
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
@@ -154,19 +173,24 @@ var _sadira = function(){
     sad.cluster = require('cluster');
     sad.cluster_messages=[]; //Array of active interprocess messages
     
-//    sad.ncpu = require('os').cpus().length;
-    sad.ncpu = 1; //Using a single thread for now.
+    sad.ncpu = require('os').cpus().length; //using number of cpu present in system
+//    sad.ncpu = 1; //Using a single thread for now.
 
     sad.html_rootdir=process.cwd()+'/www'; //This is the root directory for all the served files.
 
 
     if(sad.cluster.isMaster){
-	//console.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
+	//sad.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
     }
     //Creating event master
     //this.event_master=new events.event_manager();	
 } 
 
+_sadira.prototype.log = function (m){
+    var sad=this;
+    console.log((sad.cluster.isMaster ? "master : " :  ("worker " +  this.cluster.worker.id + " : ")) + m);
+    
+}
 
 _sadira.prototype.start = function (){
 
@@ -177,7 +201,7 @@ _sadira.prototype.start = function (){
 
 	if (sad.cluster.isMaster) { //This is the main thread
 	    
-	    console.log("Master process : Starting workers");
+	    sad.log("starting workers ...");
 	    
 	    //sad.create_events();
 	    // We create the session master 
@@ -191,7 +215,7 @@ _sadira.prototype.start = function (){
 	    if(sad.options.https_port) f+=1;
 
 	    // Fork workers.
-	    console.log("Starting  on " + sad.ncpu + " core(s) (f "+f+")...");
+	    sad.log("Starting  on " + sad.ncpu + " core(s) (f "+f+")...");
 	    
 	    for (var i = 0; i < sad.ncpu; i++) {
 
@@ -215,7 +239,7 @@ _sadira.prototype.start = function (){
 			
 		    }
 		    else
-			console.log('MASTER: ERROR unknown message : ' + JSON.stringify(m));
+			sad.log('MASTER: ERROR unknown message : ' + JSON.stringify(m));
 		    //console.log('MASTER: message : ' + JSON.stringify(m));
 		    //this.send({ roba : "Ciao bello worker " + worker.id, worker_id : "I am The Master"} );
 
@@ -224,13 +248,13 @@ _sadira.prototype.start = function (){
 	    }
 	    
 	    sad.cluster.on('exit', function(worker, code, signal) {
-		console.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
+		sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
 		sad.nworkers--;
 	    });
 	    
 	    sad.cluster.on('listening', function(worker, address) {
 
-		//console.log("A worker is now connected to " + address.address + ":" + address.port);
+		//sad.log("A worker is now connected to " + address.address + ":" + address.port);
 
 		worker.online=true;
 		sad.nworkers++;
@@ -238,19 +262,19 @@ _sadira.prototype.start = function (){
 		if(sad.nworkers == f*sad.ncpu){
 
 		    if(sad.use_https==true)
-			console.log("Sadira(SSL): "+ sad.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
+			sad.log("Sadira(SSL): "+ sad.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
 		    
 		    if(sad.use_http==true)
-			console.log("Sadira(CLR): "+ sad.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
+			sad.log("Sadira(CLR): "+ sad.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
 
-		    console.log("Let's rock and roll! (CTRL + C to shutdown)");
+		    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
 		    
 		}
 		
 	    });
 	    
 	    sad.cluster.on('online', function(worker) {
-		//console.log("Yay, the worker "+worker.id +" responded after it was forked");
+		//sad.log("Yay, the worker "+worker.id +" responded after it was forked");
 		
 	    });
 
@@ -263,17 +287,17 @@ _sadira.prototype.start = function (){
 	    sad.initialize_handlers("handlers");
 	    sad.initialize_handlers("dialogs");
 	    
-	    console.log("Slave " + sad.cluster.worker.id + " starting ...");
+	    sad.log("Slave " + sad.cluster.worker.id + " starting ...");
 	    
 	    process.on('message', function(m){ //Handling messages sent to workers
 
 		if(typeof m.id != 'undefined'){
 		    for (var wm in sad.cluster_messages){
-			//console.log(sad.cluster_messages[wm].id + " ==? " + m.id );
+			//sad.log(sad.cluster_messages[wm].id + " ==? " + m.id );
 			if(sad.cluster_messages[wm].id==m.id){
 			    var ans=sad.cluster_messages[wm].answer;
 			    sad.cluster_messages.remove(wm);
-			    console.log("Waiting message queue length is " + sad.cluster_messages.length);
+			    sad.log("Waiting message queue length is " + sad.cluster_messages.length);
 			    return ans(m.data);
 			}
 		    }
@@ -295,17 +319,17 @@ _sadira.prototype.start = function (){
 		    
 		}
 		else
-		    console.log('WORKER: ERROR unknown message : ' + JSON.stringify(m));
+		    sad.log('WORKER: ERROR unknown message : ' + JSON.stringify(m));
 		
 		
-		console.log('Worker ' + sad.cluster.worker.id + ' received message : ' + JSON.stringify(m));
+		sad.log('Worker ' + sad.cluster.worker.id + ' received message : ' + JSON.stringify(m));
 		
 	    });
-	    //console.log("Worker "+ sad.cluster.worker.id + " created" );
+	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
 	    
 	    sad.create_http_server(function(error, ok){
 		if(error!=null){
-		    console.log("Fatal : HTTP create " + error  );
+		    sad.log("Fatal : HTTP create " + error  );
 		    process.exit(1);
 		}
 		//if(error!=null) 
@@ -318,7 +342,7 @@ _sadira.prototype.start = function (){
 	    
 	    /*
 	    sad.send_process_message("session_master", "Hello Master ! All good ?", function (reply){
-		console.log("worker "+sad.cluster.worker.id+" : Got reply from master : " + JSON.stringify(reply));
+		sad.log("worker "+sad.cluster.worker.id+" : Got reply from master : " + JSON.stringify(reply));
 	    });
 	    */
 	    //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
@@ -326,7 +350,7 @@ _sadira.prototype.start = function (){
 	}
     }
     catch (e){
-	console.log("Fatal error while creating http servers : " + dump_error(e));
+	sad.log("Fatal error while initializing sadira : " +e);
 	process.exit(1);
     }
 
@@ -385,7 +409,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		    proc_path( url_parts.query, request, response);
 	    }
 	    catch (e){
-		//console.log("Error path " + e + " -> ignore !");
+		//sad.log("Error path " + e + " -> ignore !");
 	    }
 	}
 	
@@ -397,7 +421,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
     }
     
     catch (e){ //Error interpreting path
-	//console.log("Exception catched while executing handler for " + path_build + " : " + e );
+	//sad.log("Exception catched while executing handler for " + path_build + " : " + e );
 	result_cb(null,false); //We handle it (no return).
 
 
@@ -488,12 +512,12 @@ _sadira.prototype.handle_request=function(request, response){
     sadira.execute_request(request, response, function (error, processed){
 
 	if(error!=null){
-	    console.log("exec error " + error);
+	    sad.log("exec error " + error);
 	    return;
 	}
 
 	if(processed===true){
-	    console.log("handled !");
+	    sad.log("handled !");
 	    return;
 	}
 	
@@ -520,7 +544,7 @@ _sadira.prototype.handle_request=function(request, response){
 	}
 
 	catch (e){
-	    console.log('Proxy error : ' + e);
+	    sad.log('Proxy error : ' + e);
 	    response.writeHead(500, {"Content-Type": "text/plain"});
 	    response.write("Proxy error : " + err + "\n");
 	    response.end();
@@ -584,24 +608,6 @@ _sadira.prototype.handle_request=function(request, response){
     return true;
 }
 
-//Main HTTP request handling function
-
-// _sadira.prototype.handle_request= function(request, response){
-// //    console.log("Incoming request !!! ");
-
-//     var headers ={};
-
-//     switch (request.method){
-//     case 'POST':
-// 	return sadira.process_post_request(request, response, headers);
-//     case 'GET' :
-// 	return sadira.process_get_request(request, response, headers);
-//     case 'OPTIONS':
-// 	return sadira.process_options_request(request, response, headers);
-//     };
-    
-//     console.log("Unhandled http method : " + request.method);
-// }
 
 //Creates the http servers 
 
@@ -613,12 +619,14 @@ _sadira.prototype.create_http_server = function(cb){
 
     function handle_proxy_error(e,req,res){
 	var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
-	console.log(ctype+' proxy error : ' + dump_error(e) );
+	sad.log(ctype+' proxy error : ' + dump_error(e) );
 	res.writeHead(500, {"Content-Type": "text/plain"});
 	res.end("Sadira " + ctype + " proxy error : " + e + "\n");
     }
     
     if(sad.options.http_port){ 
+
+	sad.log("setting up HTTP server on port " + sad.options.http_port + " ...");
 
 	if(sad.options.http_proxy){
 
@@ -626,6 +634,7 @@ _sadira.prototype.create_http_server = function(cb){
 		target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
 	    };
 	
+	    sad.log("\t-> proxy to " + proxy_config.target);
 	    sad.http_proxy=http_proxy.createServer(proxy_config);
 	    sad.http_proxy.on('error', handle_proxy_error);
 	    
@@ -634,17 +643,16 @@ _sadira.prototype.create_http_server = function(cb){
 	
 	var port = parseInt(sad.options.http_port, 10);
 
-	console.log("starting http server on " + port);
 	
 	try{
 	    sad.http_server = http.createServer(sad.handle_request);
 	    sad.http_server.on("error", function (e) {
-		console.log("HTTP server error " + JSON.stringify(e));
+		sad.log("HTTP server error " + JSON.stringify(e));
 		cb(e);
 	    });
 	    
 	    sad.http_server.on("listening", function () {
-		console.log("HTTP server ready");
+		sad.log("HTTP server listening on " + port);
 		if(!sad.options.https_port)  return cb(null,"OK");
 	    });
 
@@ -659,13 +667,15 @@ _sadira.prototype.create_http_server = function(cb){
 
 	}
 	catch (e){
-	    console.log("Fatal error on starting http : " + e);
+	    sad.log("Fatal error on starting http : " + e);
 	    return cb(e);
 	}
     }
     
     if(sad.options.https_port){
 	
+	sad.log("setting up HTTPS server on port " + sad.options.https_port + " ...");
+
 	if(!è(sad.options.ssl)) throw ("No SSL config found !");
 	if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
 	if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
@@ -678,7 +688,7 @@ _sadira.prototype.create_http_server = function(cb){
 
 	if(è(sad.options.ssl.ca_file)) ssl_data.ca=fs.readFileSync(sad.options.ssl.ca_file);
 
-	//console.log("PROXY SSL config : " + JSON.stringify(ssl_data));
+	//sad.log("PROXY SSL config : " + JSON.stringify(ssl_data));
 
 	if(sad.options.https_proxy){
 	    var proxy_config={
@@ -687,7 +697,8 @@ _sadira.prototype.create_http_server = function(cb){
 		ssl : ssl_data,
 		secure : false
 	    };
-	
+
+	    sad.log("\t-> proxy to " + proxy_config.target);	
 	    sad.https_proxy=http_proxy.createServer(proxy_config);
 
 	    sad.https_proxy.on('error', handle_proxy_error);
@@ -700,23 +711,35 @@ _sadira.prototype.create_http_server = function(cb){
 	    
 	    var port = parseInt(sad.options.https_port, 10);
 	    
-	    console.log("starting https server on " + port);
 	    
 	    var https_options = ssl_data;
 	    
 	    https_options.secureProtocol="SSLv3_method";
 	    https_options.rejectUnauthorized=false;
 
-
-	    //console.log("HTTPS config : " + JSON.stringify(https_options));
-
 	    sad.https_server = https.createServer(https_options, sad.handle_request);
 	    sad.https_server.listen(port);
 	    
-	    return cb(null,"OK");
+	    sad.https_server.on("listening", function () {
+		sad.log("HTTPS server listening on " + port);
+		return cb(null,"OK");
+	    });
+
+	    sad.https_server.on("error", function (e) {
+		sad.log("HTTPS server error " + JSON.stringify(e));
+		cb(e);
+	    });
+	    
+	    sad.https_server.on("connection", function (sock) {
+	    });
+
+	    sad.https_server.on("close", function (sock) {
+		cb("HTTPS: socket closed");
+	    });
+
 	}
 	catch (e){
-	    console.log("Couldn't start https server : " + e);
+	    sad.log("Couldn't start https server : " + e);
 	    return cb(e);
 	}
     }
@@ -735,7 +758,7 @@ _sadira.prototype.create_webrtc_server=function() {
     
     if(!sad.options.webrtc) return;
     
-    console.log("Create webRTC server... on " + sad.options.http_port);
+    sad.log("Create webRTC server... on " + sad.options.http_port);
     
     if(!sad.options.webrtc_port) sad.options.webrtc_port=7777 ;    
     
@@ -751,7 +774,7 @@ _sadira.prototype.create_webrtc_server=function() {
       
 	    try{
 		
-		//console.log("Incoming message, creating datagram");
+		//sad.log("Incoming message, creating datagram");
 		
 		var dgram=new DGM.datagram();
 		
@@ -759,25 +782,25 @@ _sadira.prototype.create_webrtc_server=function() {
 		    dgram.set_header(JSON.parse(message.utf8Data));
 		}
 		else if (message.type === 'binary') { //Binary
-		    //console.log('received bin message size=' + message.binaryData.length + ' bytes.');
+		    //sad.log('received bin message size=' + message.binaryData.length + ' bytes.');
 		    dgram.deserialize(message.binaryData);
 		    
 		}else{
 		    throw "Unhandled socket message type " + message.type;
 		}
-		//console.log("process datagram " + JSON.stringify(dgram.header));
+		//sad.log("process datagram " + JSON.stringify(dgram.header));
 		
 		cnx.dialogs.process_datagram(dgram);
-		//console.log("process datagram done");
+		//sad.log("process datagram done");
 	    }
 	    
 	    catch (e){
-		console.log("Datagram read error : "+ dump_error(e));
+		sad.log("Datagram read error : "+ dump_error(e));
 		return;
 	    }
 	    
 	    //var msg_content=m.header.data;
-	    //console.log("MESG:" + JSON.stringify(msg_content));
+	    //sad.log("MESG:" + JSON.stringify(msg_content));
 	    
 	    
 	});
@@ -893,13 +916,13 @@ _sadira.prototype.create_websocket_server=function() {
 
 _sadira.prototype.initialize_handlers=function(packname){
     var sad=this;
-    var cwd=process.cwd();
+    //var cwd=process.cwd();
     var pkg=sad.options[packname];
     if(!pkg) return;
 
     for(w=0;w<pkg.length;w++){
 	var pkg_file = pkg[w].file;
-	//console.log("Init "+packname+" : ["+pkg_file+"]");
+	//sad.log("Init "+packname+" : ["+pkg_file+"]");
 	//var wpack=require(cwd+"/"+pkg_file);
 	var wpack=require(pkg_file);
 
@@ -908,8 +931,9 @@ _sadira.prototype.initialize_handlers=function(packname){
 	if(typeof initf != 'undefined')
 	    initf(pkg[w]);
 	else{
-	    //console.log("No pkg init function!");
+	    //sad.log("No pkg init function!");
 	}
+	//sad.log("Init "+packname+" : ["+pkg_file+"] DONE");
     }
 }
 
@@ -918,12 +942,11 @@ _sadira.prototype.initialize_handlers=function(packname){
 
 try{
 
-    GLOBAL.sadira = new _sadira();
-
     GLOBAL.get_handlers = {};
     GLOBAL.post_handlers = {};
     GLOBAL.dialog_handlers = {};
 
+    GLOBAL.sadira = new _sadira();
     sadira.start();
 }
 

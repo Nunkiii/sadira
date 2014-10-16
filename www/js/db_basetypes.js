@@ -748,9 +748,8 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 template_ui_builders.action=function(ui_opts, action){
 
-    var action_tpl;
-    var action_ui=false;
-    
+    var ui;
+
     if(è(action.elements)){
 
 	action.ui_root.removeChild(action.ui_childs.div);
@@ -760,9 +759,18 @@ template_ui_builders.action=function(ui_opts, action){
 
 	slide_button.className="slide_button_h";
 	//slide_button.innerHTML= slided ? "❌" : "▶"; 
-	slide_button.innerHTML=  "▶"; 
+	slide_button.innerHTML= "▶"; 
 
-	if(è(action.elements.ui)){
+	slide_button.addEventListener("click",function(){
+	    if(è(action.elements.ui))
+		action.ui_root.appendChild(action.elements.ui.ui_root);
+	    
+	    ui=action.ui=ce("input"); ui.type="button";
+	    action.ui_root.appendChild(ui);
+	    slide_button.innerHTML= "❌"; 
+	});
+	
+
 	    action_ui=true;
 	    action_tpl=action.elements.ui;
 	//    action_ui=create_ui({}, action_tpl );
