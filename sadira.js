@@ -373,20 +373,28 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     var command_type=request.method;
     var url_parts = url.parse(request.url,true);	
-    var path_base=command_type.toLowerCase()+"_handlers";
+
+    var path_base=eval(command_type.toLowerCase()+"_handlers");
+
+    //console.log("Path base is " + path_base);
+
     var path_build=path_base;
 
     try{	    
 	var path_parts = url_parts.pathname.split("/");
 
 	for(var p=1;p<path_parts.length;p++){
-	    path_build+= ".";
-	    path_build+=path_parts[p];
+	    //path_build+= ".";
+	    if(path_parts[p]!==""){
+		path_build=path_build[path_parts[p]];
+		//console.log("build " + path_parts[p] + " ok");
+	    }
 	}
 	var main_proc;
+
 	try{
-	    main_proc= eval(path_build+".process");
-	    if(!è(main_proc)) 
+	    main_proc= eval(path_build.process);
+	    if(ù(main_proc)) 
 		throw("Undefined!!!");
 	}
 	catch (e){
@@ -397,19 +405,19 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	//First calling the intermediate process funcs 
 
 	path_build=path_base;
-
+	
 	for(var p=1;p<path_parts.length-1;p++){
-	    //console.log(" pel "+p+" : " +path_parts[p]);
-	    path_build += ".";
-	    path_build+=path_parts[p];
-	    
-	    try{
-		var proc_path= eval(path_build+".process");
-		if (è(proc_path)) 
-		    proc_path( url_parts.query, request, response);
-	    }
-	    catch (e){
-		//sad.log("Error path " + e + " -> ignore !");
+	    if(path_parts[p]!==""){
+		path_build=path_build[path_parts[p]];
+		//console.log("build " + path_parts[p] + " ok");
+		try{
+		    var proc_path= eval(path_build+".process");
+		    if (è(proc_path)) 
+			proc_path( url_parts.query, request, response);
+		}
+		catch (e){
+		    //sad.log("Error path " + e + " -> ignore !");
+		}
 	    }
 	}
 	
@@ -446,7 +454,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
-    fs.readFile("www/sadira/404.html", "binary", function(err, file) {
+    fs.readFile("node-nilde/sadira/404.html", "binary", function(err, file) {
 
 	response.writeHead(404, {"Content-Type": "text/html"});
 	
@@ -511,6 +519,8 @@ _sadira.prototype.handle_request=function(request, response){
 
     sadira.execute_request(request, response, function (error, processed){
 
+	//console.log("Exec rq : e = " + error + " processed ? " + processed);
+
 	if(error!=null){
 	    sad.log("exec error " + error);
 	    return;
@@ -556,14 +566,15 @@ _sadira.prototype.handle_request=function(request, response){
 	//Here we should detect if the user is not trying to get something like ../../etc/passwd  
 	//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 	
-	var filename = path.join(this.html_rootdir, uri); 
+	//console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
+	var filename = path.join(sadira.html_rootdir, uri); 
 	
 	path.exists(filename, function(exists) {
 	    
 	    if(!exists) {
 		console.log('404 not found for uri ' + filename);
 		
-		sad.error_404(response, uri, function() {
+		sadira.error_404(response, uri, function() {
 		    response.end();
 		});
 		
@@ -714,7 +725,7 @@ _sadira.prototype.create_http_server = function(cb){
 	    
 	    var https_options = ssl_data;
 	    
-	    https_options.secureProtocol="SSLv3_method";
+	    //https_options.secureProtocol="SSLv3_method";
 	    https_options.rejectUnauthorized=false;
 
 	    sad.https_server = https.createServer(https_options, sad.handle_request);
