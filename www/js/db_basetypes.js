@@ -747,75 +747,61 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 
 template_ui_builders.action=function(ui_opts, action){
+    
+    var ui=ce("input"); ui.type="button";
+    ui.value=action.name;
 
-    var ui;
+    new_event(action,"click");
+    
+    ui.addEventListener("click",function(e){
+	action.trigger("click");	    
+    },false);
 
     if(è(action.elements)){
-
+	
 	action.ui_root.removeChild(action.ui_childs.div);
 	
-	var slide_button=cc("span", ui_name);
-	slide_button.style.zIndex=ui_root.style.zIndex+1;
-
+	var slide_button=cc("span", action.ui_name);
+	slide_button.style.zIndex=action.ui_root.style.zIndex+1;
+	
 	slide_button.className="slide_button_h";
 	//slide_button.innerHTML= slided ? "❌" : "▶"; 
 	slide_button.innerHTML= "▶"; 
-
+	var slided=false;
+	var cnt=action.ui_name;
 	slide_button.addEventListener("click",function(){
-	    if(è(action.elements.ui))
-		action.ui_root.appendChild(action.elements.ui.ui_root);
-	    
-	    ui=action.ui=ce("input"); ui.type="button";
-	    action.ui_root.appendChild(ui);
-	    slide_button.innerHTML= "❌"; 
+	    if(slided){
+		//if(è(action.elements))
+		cnt.removeChild(action.ui_childs.div);
+		cnt.removeChild(ui);
+		slide_button.innerHTML= "▶"; 
+		
+	    }else{
+		//if(è(action.elements.ui))
+		cnt.appendChild(action.ui_childs.div);
+		cnt.appendChild(ui);
+		slide_button.innerHTML= "❌"; 
+	    }
+	    slided=!slided;
 	});
 	
-
-	    action_ui=true;
-	    action_tpl=action.elements.ui;
+	
+	//action_ui=true;
+	//action_tpl=action.elements.ui;
 	//    action_ui=create_ui({}, action_tpl );
 
-	}
     }else{
-	var ui=action.ui=ce("input"); ui.type="button";
-	ui.value=action.name;
+	//ui=action.ui=ce("input"); ui.type="button";
 	
 	if(action.ui_name!='undefined'){
 	    action.ui_root.removeChild(action.ui_name);
 	}
-
-
+	
+	return ui;
     }	
-
-    new_event(action,"click");
-    var ui_on=false;
-    ui.addEventListener("click",function(e){
-	if(action_ui){
-	    if(!ui_on){
-		console.log("Click");
-		action.ui_root.appendChild(action.ui_childs.div);
-		action.elements.ui.ui_childs.div.appendChild(ui);
-		ui_on=true;
-		return;
-	    }
-	    
-	    ui_on=false;
-	    action.trigger("click");	    
-	    action.ui_root.removeChild(action.ui_childs.div);
-
-	}else{
-	    action.trigger("click");	    
+    
 
 
-	}
-
-    },false);
-
-    //if(action.ui_name)
-    //	action.ui_root.removeChild(action.ui_name);
-    //action.set_title("");
-
-    return ui;
 }
 
 template_ui_builders.vector=function(ui_opts, tpl_item){

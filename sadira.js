@@ -111,6 +111,15 @@ function toArrayBuffer(buffer) {
 }
  */
 
+function dispatcher(name) {
+
+    new_event(this, name);
+
+    
+
+}
+
+
 /**
  * Main framework class. A single instance of this class is created at startup. 
  * @class _sadira
@@ -283,9 +292,6 @@ _sadira.prototype.start = function (){
 	    //We create a slave session manager for this thread.
 	    //sad.session_slave=new session.slave(sad);
 
-	    //Loading handlers only on worker processes
-	    sad.initialize_handlers("handlers");
-	    sad.initialize_handlers("dialogs");
 	    
 	    sad.log("Slave " + sad.cluster.worker.id + " starting ...");
 	    
@@ -348,6 +354,12 @@ _sadira.prototype.start = function (){
 	    //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
 	    
 	}
+
+
+    	//Loading handlers.
+	sad.initialize_handlers("handlers");
+	sad.initialize_handlers("dialogs");
+
     }
     catch (e){
 	sad.log("Fatal error while initializing sadira : " +e);
@@ -413,7 +425,13 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 		try{
 		    var proc_path= eval(path_build+".process");
 		    if (è(proc_path)) 
-			proc_path( url_parts.query, request, response);
+			proc_path(request, response, function (error){
+			    if(error!==null){
+				return result_cb(error, true);
+				
+			    }
+			    
+			});
 		}
 		catch (e){
 		    //sad.log("Error path " + e + " -> ignore !");
@@ -421,15 +439,20 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	    }
 	}
 	
-	main_proc( url_parts.query, request, response);
-
-	result_cb(null,true); //We handle it (no return).
-
+	sad.log("Exec main proc !");
+	main_proc(request, response, function(error){
+	    if(error!==null){
+		return result_cb(error, true);
+		
+	    }
+	    sad.log("Exec main proc done !");
+	    result_cb(null,true); //We handle it (no return).
+	});
 	
     }
     
     catch (e){ //Error interpreting path
-	//sad.log("Exception catched while executing handler for " + path_build + " : " + e );
+	sad.log("Exception catched while executing handler for " + path_build + " : " + e );
 	result_cb(null,false); //We handle it (no return).
 
 
@@ -519,15 +542,15 @@ _sadira.prototype.handle_request=function(request, response){
 
     sadira.execute_request(request, response, function (error, processed){
 
-	//console.log("Exec rq : e = " + error + " processed ? " + processed);
+	console.log("Exec rq : e = " + error + " processed ? " + processed);
 
 	if(error!=null){
-	    sad.log("exec error " + error);
+	    sadira.log("exec error " + error);
 	    return;
 	}
 
 	if(processed===true){
-	    sad.log("handled !");
+	    sadira.log("handled !");
 	    return;
 	}
 	
@@ -721,8 +744,6 @@ _sadira.prototype.create_http_server = function(cb){
 	    sad.ssl_data = ssl_data;
 	    
 	    var port = parseInt(sad.options.https_port, 10);
-	    
-	    
 	    var https_options = ssl_data;
 	    
 	    //https_options.secureProtocol="SSLv3_method";
@@ -937,12 +958,24 @@ _sadira.prototype.initialize_handlers=function(packname){
 	//var wpack=require(cwd+"/"+pkg_file);
 	var wpack=require(pkg_file);
 
-	var initf=wpack.init;
 
-	if(typeof initf != 'undefined')
-	    initf(pkg[w]);
-	else{
-	    //sad.log("No pkg init function!");
+	if(sad.cluster.isMaster){
+	    var initf=wpack.init_master;
+	    
+	    if(è(initf))
+		initf(pkg[w]);
+	    else{
+		//sad.log("No pkg init function!");
+	    }
+	    
+	}else{
+	    var initf=wpack.init;
+	    
+	    if(è(initf))
+		initf(pkg[w]);
+	    else{
+		//sad.log("No pkg init function!");
+	    }
 	}
 	//sad.log("Init "+packname+" : ["+pkg_file+"] DONE");
     }

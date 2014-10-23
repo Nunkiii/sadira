@@ -1,4 +1,20 @@
 
+exports.init=function(){
+    console.log("Client creating dispatcher...");
+
+    
+}
+
+
+exports.init_master=function(){
+    console.log("Master creating master chat !");
+    var master_chat = new chat_engine;
+    
+}
+
+
+
+
 var chat_engine = function () {
 
     var ce=this;
@@ -109,8 +125,6 @@ var chat_engine = function () {
     this.create_room({ title : "Market place" });
 };
 
-var master_chat = new chat_engine;
-
 dialog_handlers.demo = {
     
     chat : function (dlg, status_cb){
@@ -194,3 +208,5 @@ dialog_handlers.demo = {
     }
     
 };
+
+
