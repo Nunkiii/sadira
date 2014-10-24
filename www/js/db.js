@@ -250,7 +250,7 @@ function create_item_ui(ui_opts, tpl_node){
 //    if(tpl_name=="template"){
     //  }
 
-    //console.log("Building ["+tpl_name+"]");//...." + JSON.stringify(tpl_node,null,4));
+    console.log("Building ["+tpl_name+"]");//...." + JSON.stringify(tpl_node,null,4));
 
     if(tpl_name!=="template"){
 	var builder=template_ui_builders[tpl_name];
@@ -320,11 +320,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var ui_childs=tpl_root.ui_childs={};
     
-
+    
     //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
     
     ui_root.className="db";
-    
+
+
    // if(sliding)
     new_event(tpl_root,"slided");
 
@@ -334,41 +335,51 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.setAttribute("data-tpl", tpl_root.template_name);
     }
 
+
     if(depth==0) ui_root.add_class("root");
     
     if(typeof ui_opts.root_classes != 'undefined')
 	add_classes(ui_opts.root_classes, ui_root);
     
+
+
     if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
+
+
     
 //    if(typeof tpl_root.name!='undefined'){
 
     //var ui_name;
 
     var ico;
-    if(typeof tmaster.icons[tpl_root.type] != 'undefined'){
-	ico= ce("img");
-	ico.src=tmaster.icons[tpl_root.type];
-	ico.className="ico";
-    }else    if(typeof tpl_root.template_name!='undefined' && typeof tmaster.icons[tpl_root.template_name] != 'undefined'){
-	ico= ce("img");
-	ico.src=tmaster.icons[tpl_root.template_name];
-	ico.className="ico";
+
+    if(ù(tmaster)) throw("NO TMSATER !!!!");
+
+
+    if(è(tmaster.icons)){
+	if(typeof tmaster.icons[tpl_root.type] != 'undefined'){
+	    ico= ce("img");
+	    ico.src=tmaster.icons[tpl_root.type];
+	    ico.className="ico";
+	}else    if(typeof tpl_root.template_name!='undefined' && typeof tmaster.icons[tpl_root.template_name] != 'undefined'){
+	    ico= ce("img");
+	    ico.src=tmaster.icons[tpl_root.template_name];
+	    ico.className="ico";
+	}
     }
-    
+
     if(typeof tpl_root.name != 'undefined'){
 
 	var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
 	var ui_name_text=cc("span",ui_name);
-	//ui_name.innerHTML="Hello";
-	
-	//if(!ui_opts.label) 
+
 	ui_name.add_class("dbname");
-	
+
 	if(typeof ui_opts.name_classes != 'undefined'){
 	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 	    add_classes(ui_opts.name_classes, ui_name);
 	}
+
 
   	if(typeof ico!='undefined')
 	    ui_name.prependChild(ico);
@@ -390,9 +401,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    tpl_root.trigger("name_changed", title);
 	    //	span.appendChild( document.createTextNode("some new content") );
 	}
-	
-	
-	
 	tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
     }
 
@@ -506,7 +514,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //var ne=0; for (var e in tpl_root.elements){ console.log(tpl_root.name + " + E("+ne+")="+e); ne++; }
     //console.log(tpl_root.name + " : -->Nchilds = " + ne);
     //if(!tpl_root.elements) return ui_root;
-
+    
     //console.log("Config " + tpl_root.name + " child view ["+cvtype+"] type " + tpl_root.type);
 
     switch(cvtype){

@@ -248,21 +248,48 @@ function json_query(query, result_cb, opts){
 	if(error) 
 	    return result_cb(error);
 	else{
+	    var data;
+
 	    try{
 		//console.log("DATA IN ["+text_data+"]");
-		var data=JSON.parse(text_data);
-		if(data.error){
-		    return result_cb("Server reported error : " + data.error);
-		}
-		result_cb(null,data);
+		data=JSON.parse(text_data);
 	    }
 	    catch (e){
-		result_cb("JSON parse error " + e);
-		return;
+		return result_cb("json_query: JSON parse error " + e);
 	    }
+	    
+	    if(data.error){
+		return result_cb("json_query: Server reported error : " + data.error);
+	    }
+	    
+	    result_cb(null,data);
 	}
     }, opts);
 }
+
+var request = function (opts){
+    //this.opts=opts;
+    if(ù(opts.json)) opts.json=true;
+    if(ù(opts.host)) opts.host="";
+    
+    this.build_url_string=function(){
+	this.url_string=opts.host+opts.cmd+"?req="+encodeURIComponent(JSON.stringify(opts.args));
+	return this.url_string;
+    }
+
+    this.execute=function(cb){
+	this.build_url_string();
+	//console.log("XHR QUERY");
+	if(opts.json){
+	    json_query(this.url_string,cb,opts.xhr);
+	}
+	else{
+	    xhr_query(this.url_string,cb,opts.xhr);
+	}
+    }
+  return this;
+};
+
 
 
 function download_url(url, callback) {
