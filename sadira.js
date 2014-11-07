@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
+// Sadira astro-web framework - Written by Pierre Sprimont <nunki@unseen.is> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
 
 var fs = require("fs");
 
@@ -12,30 +12,10 @@ var path = require("path");
 var url = require("url");
 
 var bson = require("./www/js/community/bson");
-
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
-
-
 var BSON=bson().BSON;
 
-//Content-types used by the built-in http file server.
-//The second boolean  member is used to specify if a cache http header is appended for this file type.
-
-var content_types = {
-    '.html': [ "text/html;charset=utf-8", false],
-    '.css':  [ "text/css", false],
-    '.js':   ["text/javascript;charset=utf-8", false],
-    '.jpg':   ["image/jpeg", true],
-    '.JPG':   ["image/jpeg", true],
-    '.jpeg':  [ "image/jpeg", true],
-    '.ico' : ["image/x-icon", true],
-    '.png':   ["image/png", true],
-    '.svg':   ["image/svg+xml", true],
-    '.woff' : ['application/font-woff', true],
-    '.eot'  : ['application/vnd.ms-fontobject', true],
-    '.ttf'  : ['application/x-font-ttf', true]
-};
 
 /*
   Headers to add when allowing cross-origin requests.
@@ -59,6 +39,30 @@ GLOBAL.reply_json=function(res,data){
     res.write(JSON.stringify(data));
     res.end();
 }
+
+/*
+  Retrieve the JSON parsed object from a request's query string argument given by key
+*/
+
+GLOBAL.get_json_parameters=function(req, key){
+    if(ù(key))key="req";
+    var url_parts = url.parse(req.url,true);	
+    return JSON.parse(url_parts.query[key]);
+}
+
+/*
+  Retrieve the BSON parsed object from a request's query string argument given by key
+*/
+
+GLOBAL.get_bson_parameters=function(req, key){
+    if(ù(key))key="req";
+    var url_parts = url.parse(req.url,true);	
+    var b=new Buffer(url_parts.query[key], 'base64');
+
+    console.log("Read buffer ok L=" + b.length);
+    return BSON.deserialize(b);
+}
+
 
 /*
   Signal interception routines (dev)
@@ -126,14 +130,15 @@ function dispatcher(name) {
  */
 
 var _sadira = function(){
+
     var sad=this;
 
     //sad.log("sadira process start");
-
-
     var argv = require('minimist')(process.argv.slice(2));
     //console.dir(argv);
     
+    //Defaults options. Overwritten later by user-given command-line/config-file 
+
     sad.options={
 	http_port: 9999, 
 //	https_port: 8888, 
@@ -142,10 +147,14 @@ var _sadira = function(){
 	webrtc : true,
 	dialogs : [],
 	get_handlers : [],
-	post_handlers : []
-    }; //Defaults options.
-    
+	post_handlers : [],
+	ncpu : require('os').cpus().length, //using number of cpu present in system by default
+	//    ncpu : 1; //Using a single thread by default.
+	html_rootdir : process.cwd()+'/www', //This is the root directory for all the served files.
+	file_server : true
+    }; 
 
+    //Reading the config file if given in --cf
     var option_string=null;
     
     if(typeof argv['cf'] != 'undefined' ) {
@@ -159,11 +168,11 @@ var _sadira = function(){
 	    process.exit(1);
 	}
 	
-    }else if(typeof argv['opts'] != 'undefined' ) {
+    }else if(typeof argv['opts'] != 'undefined' ) { //Reading directly option string from command line --opts 
 	option_string=argv['opts'];
     }
     
-    if(option_string){
+    if(option_string){ //Applying the JSON option_string if we found one
 	try{
 	    //sad.log("Parsing ["+option_string+"]");
 	    var jcmdline =JSON.parse(option_string);
@@ -171,33 +180,27 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    console.log( "Fatal JSON parsing error : " + dump_error(e));
+	    console.log( "FATAL ERROR : Config file JSON parsing error : " + dump_error(e));
 	    process.exit(1);
 	}
-	
     }
 
     if(typeof process.argv[2] != 'undefined'){}	
     
+    //Configuring cluster (multi process spawn with port sharing) and inter-process communications
+
     sad.cluster = require('cluster');
     sad.cluster_messages=[]; //Array of active interprocess messages
     
-    sad.ncpu = require('os').cpus().length; //using number of cpu present in system
-//    sad.ncpu = 1; //Using a single thread for now.
-
-    sad.html_rootdir=process.cwd()+'/www'; //This is the root directory for all the served files.
-
 
     if(sad.cluster.isMaster){
 	//sad.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
     }
-    //Creating event master
-    //this.event_master=new events.event_manager();	
 } 
 
 _sadira.prototype.log = function (m){
     var sad=this;
-    console.log((sad.cluster.isMaster ? "master : " :  ("worker " +  this.cluster.worker.id + " : ")) + m);
+    console.log((sad.cluster.isMaster ? "Master : " :  ("Worker " +  this.cluster.worker.id + " : ")) + m);
     
 }
 
@@ -210,7 +213,7 @@ _sadira.prototype.start = function (){
 
 	if (sad.cluster.isMaster) { //This is the main thread
 	    
-	    sad.log("starting workers ...");
+	    sad.log("starting worker's processes ...");
 	    
 	    //sad.create_events();
 	    // We create the session master 
@@ -223,10 +226,12 @@ _sadira.prototype.start = function (){
 	    if(sad.options.http_port) f+=1;
 	    if(sad.options.https_port) f+=1;
 
-	    // Fork workers.
-	    sad.log("Starting  on " + sad.ncpu + " core(s) (f "+f+")...");
+	    // Forking workers.
+
+	    var ncpu=sad.options.ncpu;
+	    sad.log("Starting  on " + ncpu + " core(s) (f "+f+")...");
 	    
-	    for (var i = 0; i < sad.ncpu; i++) {
+	    for (var i = 0; i < ncpu; i++) {
 
 		var worker=sad.cluster.fork();
 		//worker.worker_id=i;
@@ -268,13 +273,13 @@ _sadira.prototype.start = function (){
 		worker.online=true;
 		sad.nworkers++;
 		
-		if(sad.nworkers == f*sad.ncpu){
+		if(sad.nworkers == f*sad.options.ncpu){
 
 		    if(sad.use_https==true)
-			sad.log("Sadira(SSL): "+ sad.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
+			sad.log("Sadira(SSL): "+ sad.options.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
 		    
 		    if(sad.use_http==true)
-			sad.log("Sadira(CLR): "+ sad.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
+			sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
 
 		    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
 		    
@@ -293,7 +298,7 @@ _sadira.prototype.start = function (){
 	    //sad.session_slave=new session.slave(sad);
 
 	    
-	    sad.log("Slave " + sad.cluster.worker.id + " starting ...");
+	    sad.log("working process id " + sad.cluster.worker.id + " starting ...");
 	    
 	    process.on('message', function(m){ //Handling messages sent to workers
 
@@ -325,10 +330,10 @@ _sadira.prototype.start = function (){
 		    
 		}
 		else
-		    sad.log('WORKER: ERROR unknown message : ' + JSON.stringify(m));
+		    sad.log('error: unknown message : ' + JSON.stringify(m));
 		
 		
-		sad.log('Worker ' + sad.cluster.worker.id + ' received message : ' + JSON.stringify(m));
+		sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
 		
 	    });
 	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
@@ -373,9 +378,8 @@ _sadira.prototype.start = function (){
  * This function redirects url management to handlers defined in (get,post)_handlers.js
  * Command-type is either "get" or "post". Request and response are the original objects coming from the http_server requests. 
  * @method execute_request
- * @param {String} command_type Type of command, either "GET" or "POST"
  * @param {} request The http request object
- * @param {} response
+ * @param {} response output stream
  * @return 
  */
 
@@ -439,28 +443,21 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	    }
 	}
 	
-	sad.log("Exec main proc !");
+	//sad.log("Exec main proc !");
 	main_proc(request, response, function(error){
 	    if(error!==null){
 		return result_cb(error, true);
 		
 	    }
-	    sad.log("Exec main proc done !");
-	    result_cb(null,true); //We handle it (no return).
+	    //sad.log("Exec main proc done !");
+	    result_cb(null,true); //We handle it.
 	});
 	
     }
     
     catch (e){ //Error interpreting path
-	sad.log("Exception catched while executing handler for " + path_build + " : " + e );
-	result_cb(null,false); //We handle it (no return).
-
-
-	// sad.error_404(response, "Invalid path " + path_build + " : " + e , function(){
-	//     response.end();
-	// });
-	//response.write("Cannot get handler for " + path_build + " : " + e +"\n");
-	
+	//sad.log("Exception catched while trying to execute a handler for " + path_build + " : " + e );
+	result_cb(null,false); //We don't handle this.
     }
     
     return true;
@@ -534,7 +531,6 @@ _sadira.prototype.message=function(md, reply){
 _sadira.prototype.handle_request=function(request, response){
     
     var sad=this;
-    var uri = unescape(url.parse(request.url).pathname);
 
     //var url_parts = url.parse(request.url,true);	
     //console.log('Processing request for ' + uri);
@@ -542,15 +538,17 @@ _sadira.prototype.handle_request=function(request, response){
 
     sadira.execute_request(request, response, function (error, processed){
 
-	console.log("Exec rq : e = " + error + " processed ? " + processed);
 
 	if(error!=null){
-	    sadira.log("exec error " + error);
+
+	    sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
+	    
+	    //sadira.log("exec error " + error);
 	    return;
 	}
 
 	if(processed===true){
-	    sadira.log("handled !");
+	   // sadira.log("internally handled !");
 	    return;
 	}
 	
@@ -584,18 +582,46 @@ _sadira.prototype.handle_request=function(request, response){
 	    return;
 	}
 
+
+	if(! sadira.options.file_server ){
+	    response.writeHead(500, {"Content-Type": "text/plain"});
+	    response.write("Don't know what to do with url...");
+	    response.end();
+	    return;
+	}
+
 	//Builtin web file server.
 	//From here the server is behaving as a simple file server.
 	//Here we should detect if the user is not trying to get something like ../../etc/passwd  
 	//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 	
 	//console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
-	var filename = path.join(sadira.html_rootdir, uri); 
+	var uri = unescape(url.parse(request.url).pathname);
+	var filename = path.join(sadira.options.html_rootdir, uri); 
+
+	//Content-types used by the built-in http file server.
+	//The second boolean  member is used to specify if a cache http header is appended for this file type.
+	
+	var content_types = {
+	    '.html': [ "text/html;charset=utf-8", false],
+	    '.css':  [ "text/css", false],
+	    '.js':   ["text/javascript;charset=utf-8", false],
+	    '.jpg':   ["image/jpeg", true],
+	    '.JPG':   ["image/jpeg", true],
+	    '.jpeg':  [ "image/jpeg", true],
+	    '.ico' : ["image/x-icon", true],
+	    '.png':   ["image/png", true],
+	    '.svg':   ["image/svg+xml", true],
+	    '.woff' : ['application/font-woff', true],
+	    '.eot'  : ['application/vnd.ms-fontobject', true],
+	    '.ttf'  : ['application/x-font-ttf', true]
+	};
+	
 	
 	path.exists(filename, function(exists) {
 	    
 	    if(!exists) {
-		console.log('404 not found for uri ' + filename);
+		sad.log('404 not found for uri ' + filename);
 		
 		sadira.error_404(response, uri, function() {
 		    response.end();
@@ -649,8 +675,6 @@ _sadira.prototype.create_http_server = function(cb){
     
     var sad=this;
 
-    //Creating proxy with a default target
-
     function handle_proxy_error(e,req,res){
 	var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
 	sad.log(ctype+' proxy error : ' + dump_error(e) );
@@ -674,11 +698,11 @@ _sadira.prototype.create_http_server = function(cb){
 	    
 	}
 
-	
-	var port = parseInt(sad.options.http_port, 10);
-
-	
 	try{
+
+	    var port = parseInt(sad.options.http_port, 10);
+
+
 	    sad.http_server = http.createServer(sad.handle_request);
 	    sad.http_server.on("error", function (e) {
 		sad.log("HTTP server error " + JSON.stringify(e));

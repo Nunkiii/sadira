@@ -170,27 +170,19 @@ function xhr_query(query, result_cb, opts){
     var xhr = new XMLHttpRequest();    
     var method="GET";
     
-    //xhr.open("GET", query,true);
-    
     if ("withCredentials" in xhr) {
 	// Check if the XMLHttpRequest object has a "withCredentials" property.
 	// "withCredentials" only exists on XMLHTTPRequest2 objects.
     } else if (typeof XDomainRequest != "undefined") {
-	
 	// Otherwise, check if XDomainRequest.
 	// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
 	xhr = new XDomainRequest();
-	
     } else {
-	console.log("CORS NOT SUPPORTED !");
-	// Otherwise, CORS is not supported by the browser.
-	return null;
+	console.log("CORS not supported by your browser! Request could fail...")
+	//return null;
     }
     
-    
-    if(typeof opts!='undefined'){
-    
-	//console.log("XHR have options..");
+    if(è(opts)){
 	
 	if(typeof opts.method!='undefined')
 	    method = opts.method; 
@@ -234,9 +226,6 @@ function xhr_query(query, result_cb, opts){
     xhr.send();
 
     return xhr;
-
-
-    
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -257,11 +246,12 @@ function json_query(query, result_cb, opts){
 	    catch (e){
 		return result_cb("json_query: JSON parse error " + e);
 	    }
-	    
+
+	    /*
 	    if(data.error){
 		return result_cb("json_query: Server reported error : " + data.error);
 	    }
-	    
+	    */
 	    result_cb(null,data);
 	}
     }, opts);
@@ -269,23 +259,50 @@ function json_query(query, result_cb, opts){
 
 var request = function (opts){
     //this.opts=opts;
-    if(ù(opts.json)) opts.json=true;
+
+    if(ù(opts.cmd)) throw "No API command given";
+
+    if(ù(opts.mode)) opts.data_mode="json";
+    if(ù(opts.query_mode)) opts.query_mode="json";
     if(ù(opts.host)) opts.host="";
+    if(ù(opts.key)) opts.key="req";
+
+
+    function ab2b64( buffer ) {
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
+    }
     
-    this.build_url_string=function(){
-	this.url_string=opts.host+opts.cmd+"?req="+encodeURIComponent(JSON.stringify(opts.args));
+    this.build_url_string_json=function(){
+	this.url_string=opts.host+opts.cmd+"?"+opts.key+"="+encodeURIComponent(JSON.stringify(opts.args));
+	return this.url_string;
+    }
+
+    this.build_url_string_bson=function(){
+	var bs=BSON.serialize(opts.args);
+	var b64=ab2b64(bs);
+	console.log("Encoded : BSON length = " + bs.byteLength +" b64 Length= " + b64.length);
+	this.url_string=opts.host+opts.cmd+"?"+opts.key+"="+encodeURIComponent(b64);
 	return this.url_string;
     }
 
     this.execute=function(cb){
-	this.build_url_string();
+	opts.query_mode==="json" ? this.build_url_string_json() : this.build_url_string_bson();
 	//console.log("XHR QUERY");
-	if(opts.json){
+	switch(opts.data_mode){
+	case "json" : 
 	    json_query(this.url_string,cb,opts.xhr);
-	}
-	else{
+	    break;
+	default: 
 	    xhr_query(this.url_string,cb,opts.xhr);
-	}
+	    break;
+	    
+	};
     }
   return this;
 };

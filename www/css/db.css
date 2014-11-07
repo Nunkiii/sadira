@@ -153,12 +153,14 @@ img {
 }
 
 .db input{
-  border: none; 
+
+  border: 1px solid rgba(120,120,120,.5); 
   padding: .3em;
   border-radius: .5em;
   display: inline-block;
   text-align: center;
   vertical-align: middle;
+  box-shadow : 1px 1px 2px rgba(55,205,155,0.8);  
 }
 
 .db input[type="number"]{
@@ -170,7 +172,16 @@ img {
 }
 
 
+.db input[type="radio"]{
+                           margin-left: .1em;
+  margin-right: .4em;
+  border: 3px solid red;
+  box-shadow: none;                       
+}
+
 .db input[type="checkbox"]{
+  border: 0px;
+  box-shadow: none;                       
   -ms-transform: scale(1.5); /* IE */
   -moz-transform: scale(1.5); /* FF */
   -webkit-transform: scale(1.5); /* Safari and Chrome */
@@ -182,6 +193,8 @@ img {
 }
 
 .db .color_container > input[type="color"]{
+  border: 0px;
+  box-shadow: none;                       
   opacity: 0;
   display: block;
   padding: 0px;
@@ -250,12 +263,8 @@ img {
   display : inline-block; 
   padding: .3em; 
   font-size: 1.1em;
-  /* 
-     
-     
-     font-weight: bold;
-  
-  */
+  font-weight: bold;
+
 }
 
 .dbname.slided {
@@ -320,16 +329,16 @@ content : "Zoom Out";
 }
 
 .db > .childs .dbname{
- /* vertical-align: top; */
+ /* vertical-align: top; 
   font-weight: normal;
   font-style: normal;
   padding-right: .5em;
-                     
+                     */
 }
 
 .childs > .db > .dbname{
 
-  font-weight: bold;
+
 /*
   font-variant: small-caps;
   text-shadow : 0px 0px 1px yellow;*/
@@ -521,6 +530,7 @@ h1.section_title{
   padding-top: .5em;
   padding-bottom: .5em;
   margin-bottom: .3em;
+
   /*max-width: calc(100% - 1.5em);*/
 
 /*
@@ -564,11 +574,13 @@ h1.section_title{
   padding-bottom: .5em; 
   padding-top: .5em;
   vertical-align: top;
+
 }
 
 .tab_widget >nav{
 
   display: block;
+
 /*  max-width:95%;*/
   list-style-type: none;
   overflow-x : auto;

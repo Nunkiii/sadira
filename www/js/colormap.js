@@ -82,7 +82,8 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	this.gradient_css_string=cstr;
 	return this.gradient_css_string;
     }
-    
+
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     switch (ui_opts.type){
 	
     case "short":

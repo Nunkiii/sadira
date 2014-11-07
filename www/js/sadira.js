@@ -2,15 +2,17 @@
 
 
 (function(){
-  window.addEventListener("load",function(){
+    
     console.log("Create tmaster...");
     window.tmaster=new local_templates();
     window.tmaster.add_templates(base_templates);
-    window.sadira_login = {
-      
-    };
-    console.log("sadira ready....");
-  });
+    window.sadira = {};
+    new_event(window.sadira,"ready");
+    
+    window.addEventListener("load",function(){
+	console.log("sadira ready....");
+	window.sadira.trigger("ready");
+    });
 })();
 
 

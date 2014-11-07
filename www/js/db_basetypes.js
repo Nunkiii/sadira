@@ -212,7 +212,8 @@ template_ui_builders.status=function(ui_opts, tpl_item){
 
 template_ui_builders.double=function(ui_opts, tpl_item){
     //console.log("double builder :  " + JSON.stringify(ui_opts));
-    if(typeof ui_opts.type=='undefined') ui_opts.type="short";
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
@@ -328,6 +329,7 @@ template_ui_builders.sky_coords=function(ui_opts, skyc){
 }
 
 template_ui_builders.local_file=function(ui_opts, tpl_item){
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
 
     switch (ui_opts.type){
     case "short":
@@ -368,6 +370,7 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 template_ui_builders.bytesize=function(ui_opts, tpl_item){
     template_ui_builders.double(ui_opts, tpl_item);
     var ui=tpl_item.ui;
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     switch (ui_opts.type){
     case "short":
 	tpl_item.format_number=function(v){
@@ -398,6 +401,7 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 
 template_ui_builders.bool=function(ui_opts, tpl_item){
 
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     switch (ui_opts.type){
 	
 	
@@ -438,8 +442,10 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 
 template_ui_builders.string=function(ui_opts, tpl_item){
 
-    switch (ui_opts.type){
+    if(ù(ui_opts.type)) ui_opts.type="short";
 
+    switch (ui_opts.type){
+	
     case "short":
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";
@@ -495,6 +501,8 @@ template_ui_builders.text=function(ui_opts, tpl_item){
 	}
 	tpl_item.ui.scrollTop = tpl_item.ui.scrollHeight;
     }
+    
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
 
     switch (ui_opts.type){
     case "edit": 
@@ -512,6 +520,8 @@ template_ui_builders.text=function(ui_opts, tpl_item){
 
 
 template_ui_builders.password=function(ui_opts, tpl_item){
+    
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
 
     switch (ui_opts.type){
 
@@ -562,6 +572,8 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 
 template_ui_builders.date=function(ui_opts, tpl_item){
 
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+
     switch (ui_opts.type){
 
     case "short":
@@ -600,9 +612,11 @@ template_ui_builders.date=function(ui_opts, tpl_item){
 template_ui_builders.url=function(ui_opts, tpl_item){
 
     var ui;
-    var type=ui_opts.type ? ui_opts.type : "short";
-    switch (type){
 
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+    switch (ui_opts.type){
+
+	
     case "short":
 	ui=tpl_item.ui=ce("span");
 	//ui.className="value";
@@ -647,6 +661,8 @@ template_ui_builders.image_url=function(ui_opts, tpl_item){
     function load_image(){
 	if(typeof tpl_item.value!='undefined') img.src=tpl_item.value;
     }
+
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
 
     switch (ui_opts.type){
     case "short":
@@ -696,7 +712,9 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 	if(typeof nv !='undefined')tpl_item.value=nv;
 	ui.innerHTML=tpl_item.value;
     }
-
+    
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+    
     switch (ui_opts.type){
 	
     case "short":
@@ -752,6 +770,8 @@ template_ui_builders.action=function(ui_opts, action){
     ui.value=action.name;
 
     new_event(action,"click");
+
+    if(è(action.onclick)) action.listen("click", action.onclick);
     
     ui.addEventListener("click",function(e){
 	action.trigger("click");	    
@@ -1096,6 +1116,8 @@ template_ui_builders.color=function(ui_opts, tpl_item){
 
 	//cui.trigger(new Event('change'));
     }
+
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
 
     switch (ui_opts.type){
     case "short":
