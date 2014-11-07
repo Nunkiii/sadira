@@ -279,15 +279,23 @@ var request = function (opts){
     }
     
     this.build_url_string_json=function(){
-	this.url_string=opts.host+opts.cmd+"?"+opts.key+"="+encodeURIComponent(JSON.stringify(opts.args));
+	this.url_string=opts.host+opts.cmd;
+	if(è(opts.args))
+	    this.url_string+="?"+opts.key+"="+encodeURIComponent(JSON.stringify(opts.args));
 	return this.url_string;
     }
 
     this.build_url_string_bson=function(){
-	var bs=BSON.serialize(opts.args);
-	var b64=ab2b64(bs);
-	console.log("Encoded : BSON length = " + bs.byteLength +" b64 Length= " + b64.length);
-	this.url_string=opts.host+opts.cmd+"?"+opts.key+"="+encodeURIComponent(b64);
+
+	this.url_string=opts.host+opts.cmd;
+
+	if(è(opts.args)){
+	    var bs=BSON.serialize(opts.args);
+	    var b64=ab2b64(bs);
+	    console.log("Encoded : BSON length = " + bs.byteLength +" b64 Length= " + b64.length);
+	    this.url_string+="?"+opts.key+"="+encodeURIComponent(b64);
+	}
+
 	return this.url_string;
     }
 
