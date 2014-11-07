@@ -46,49 +46,52 @@ exports.query_table=function(cmd, tname, columns){
     return q;
 }
 
-exports.sql_server_opts={};
-exports.sql_cnx=null;
-exports.sql_connect=function(result_cb) {
-    
-    if(exports.sql_cnx!=null){
-	console.log("sql connexion state is " + exports.sql_cnx.state);
-	if(exports.sql_cnx.state=='authenticated') 
-	    return result_cb(null, exports.sql_cnx);
+
+exports.sql=function(opts){
+  sadira.log("creating sql interface to " + JSON.stringify(opts) );
+  this.sql_cnx= mysql.createConnection(opts);
+  return this;
+}
+
+exports.sql.prototype.sql_connect=function(result_cb) {
+
+    if(è(this.sql_cnx)){
+	console.log("sql connexion state is " + this.sql_cnx.state);
+	if(this.sql_cnx.state=='authenticated') 
+	    return result_cb(null, this.sql_cnx);
     }
     
-    console.log("Opening connection to sql server ... result_cb is " + typeof result_cb );
-    
-    exports.sql_cnx= mysql.createConnection(exports.sql_server_opts);
-    
-    exports.sql_cnx.connect(function(err) { 
+    var me=this;
+
+    this.sql_cnx.connect(function(err) { 
 	if(err) {                   
 	    console.log( (err.fatal ? "Fatal e":"E" ) + "rror when connecting to db : " + JSON.stringify(err));
 	    
 	    if(err.fatal)
 		return result_cb(err);
 	    
-	    setTimeout(exports.sql_connect(function (){} ), 2000); 
+	    setTimeout(me.sql_connect(function (){} ), 2000); 
 	    
 	}else{
-            console.log("CNX OPEN, OK CNX id : " + exports.sql_cnx.threadId);
-	    exports.query("set names utf8",function(err,res){
-		result_cb(null, exports.sql_cnx);
+            //console.log("CNX OPEN, OK CNX id : " + this.threadId);
+	    me.query("set names utf8",function(err,res){
+		result_cb(null, me.sql_cnx);
 	    });	
 	}
     });       
 
-    exports.sql_cnx.on('error', function(err) {
-	console.log('db error', err);
+    this.sql_cnx.on('error', function(err) {
+	sadira.log('SQL server error', err);
 	if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
-	    exports.sql_connect(function (){});                        
+	    me.sql_connect(function (){});                        
 	} else {                                  
 	    result_cb(err);                            
 	}
     });
 }
 
-exports.query=function(q, cb){
-    exports.sql_connect(function(err, sql_cnx) {
+exports.sql.prototype.query=function(q, cb){
+    this.sql_connect(function(err, sql_cnx) {
 	if(err)
 	    return cb("Error connecting to MySQL : " + err); 
 	var query = sql_cnx.query(q,function(err, result) {
@@ -104,13 +107,13 @@ exports.query=function(q, cb){
     });
 }
 
-exports.create_template=function(table, cb){
+exports.sql.prototype.create_template=function(table, cb){
 
     exports.query("describe "+table+" ", function(error, result){
 	console.log("Result : " + JSON.stringify(result, null,4));
     });
-
-    exports.query("select * from "+table+" limit 1", function(error, result){
+    
+    this.query("select * from "+table+" limit 1", function(error, result){
 	//console.log("Result is : " + JSON.stringify(result));
 	if(error) return cb(error);
 	var r=result[0];

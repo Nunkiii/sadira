@@ -3,10 +3,8 @@
 // Sadira astro-web framework - Written by Pierre Sprimont <nunki@unseen.is> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
 
 var fs = require("fs");
-
 var http = require('http');
 var https = require('https');
-var http_proxy = require('http-proxy');
 var passport = require('passport');
 var path = require("path");
 var url = require("url");
@@ -15,7 +13,6 @@ var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
 var BSON=bson().BSON;
-
 
 /*
   Headers to add when allowing cross-origin requests.
@@ -59,21 +56,19 @@ GLOBAL.get_bson_parameters=function(req, key){
     var url_parts = url.parse(req.url,true);	
     var b=new Buffer(url_parts.query[key], 'base64');
 
-    console.log("Read buffer ok L=" + b.length);
+//    console.log("Read buffer ok L=" + b.length);
     return BSON.deserialize(b);
 }
 
 
 /*
-  Signal interception routines (dev)
+  Signal interception routines
 */
-
 
 process.on('SIGTERM', function(){
     console.log('SIGTERM received, terminating !');
     process.exit(1);
 });
-
 
 /*
   describes an error
@@ -116,11 +111,7 @@ function toArrayBuffer(buffer) {
  */
 
 function dispatcher(name) {
-
     new_event(this, name);
-
-    
-
 }
 
 
@@ -138,7 +129,6 @@ var _sadira = function(){
     //console.dir(argv);
     
     //Defaults options. Overwritten later by user-given command-line/config-file 
-
     sad.options={
 	http_port: 9999, 
 //	https_port: 8888, 
@@ -474,7 +464,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
-    fs.readFile("node-nilde/sadira/404.html", "binary", function(err, file) {
+    fs.readFile("/sadira/404.html", "binary", function(err, file) {
 
 	response.writeHead(404, {"Content-Type": "text/html"});
 	
@@ -526,7 +516,7 @@ _sadira.prototype.message=function(md, reply){
 }
 
 
-//Processing HTTP requests
+//Main function handling all incoming HTTP requests.
 
 _sadira.prototype.handle_request=function(request, response){
     
@@ -539,7 +529,7 @@ _sadira.prototype.handle_request=function(request, response){
     sadira.execute_request(request, response, function (error, processed){
 
 
-	if(error!=null){
+	if(error!==null){
 
 	    sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
 	    
@@ -585,7 +575,7 @@ _sadira.prototype.handle_request=function(request, response){
 
 	if(! sadira.options.file_server ){
 	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Don't know what to do with url...");
+	    response.write("Don't know what to do with your request! (internal FS is OFF)...");
 	    response.end();
 	    return;
 	}
@@ -688,6 +678,7 @@ _sadira.prototype.create_http_server = function(cb){
 
 	if(sad.options.http_proxy){
 
+	    var http_proxy = require('http-proxy');
 	    var proxy_config={
 		target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
 	    };
@@ -749,6 +740,9 @@ _sadira.prototype.create_http_server = function(cb){
 	//sad.log("PROXY SSL config : " + JSON.stringify(ssl_data));
 
 	if(sad.options.https_proxy){
+
+	    var http_proxy = require('http-proxy');
+
 	    var proxy_config={
 		target :  ù(sad.options.https_proxy_url) ? "https://localhost:4430" : "https://" + sad.options.https_proxy_url,
 		https : true,
@@ -1015,10 +1009,11 @@ try{
     GLOBAL.dialog_handlers = {};
 
     GLOBAL.sadira = new _sadira();
+
     sadira.start();
 }
 
 catch (e){
-    console.log('Very bad error at startup, cannot start sadira : ' + dump_error(e) );
+    console.log('FATAL error at startup, cannot start sadira : ' + dump_error(e) );
     process.exit(1);
 }

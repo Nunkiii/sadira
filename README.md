@@ -4,10 +4,9 @@ qk/sadira
 Qk/Sadira is aimed to be an ECMAScript(JS)/C++ scientific-oriented application framework running on Node.js servers and web-browsers. Its goal is to provide to existing data processing applications: 
 
 * a JavaScript object data model based on templates,
-* an HTML graphical user interface engine,
+* an HTML graphical user interface toolkit,
 * a peer to peer, dialog based JavaScript communication system and binary protocol for data exchange,
 * serialization of objects in databases, files, web-storage.
-
 
 #Scope
 
@@ -19,15 +18,15 @@ From this renewed viewpoint, *sadira* is the latest implementation of the *quark
 
 A pure web application has the natural advantage to be  *installation-free*, web-storage beeing used for local serialization :  for example, to recover the UI state. Furthermore, web applications are natively *multi-platform*, code needs ony be written once.
 
-This work is curently realised at the **INAF, IASF-Bologna**, in Italy, funded by the GLORIA project, a EU commission program. 
+This work is curently realised at the **INAF, IASF-Bologna**, in Italy, funded by the GLORIA project, an EU commission program. 
 
 ##Design
 
 ###HTTP server
 
-Sadira uses Node's http facilities to communicate with the outside world. The sadira web servers handles the HTTP requests the following way : The URL part of the request is translated into a potential javascript handler. If this handler routine doesn't exist, the request is either forwarded to another web-server (like apache), by the help of the http-proxy node library, or simply processed by a *very* basic file server. 
+Sadira uses Node's http facilities to communicate with the outside world. The sadira web servers handles the HTTP requests the following way : The URL part of the request is translated into a potential javascript handler. If this handler routine doesn't exist, the request is either forwarded to another web-server (like apache), by the help of the http-proxy node library, or simply processed by a *very* basic file server, so sadira can run as a standalone service.
 
-The various request handlers are provided by plugins, that can be dynamically added/removed from the server's available services.
+The various request handlers are provided by the user, they can be dynamically added/removed from the server's available services.
 
 ###Communication
 
@@ -39,7 +38,7 @@ The actual support of webRTC and particulary the datachannel part is still very 
 
 For performance and bandwidth usage reasons, data often need to be exchanged in binary form. ArrayBuffer support in web browser opened the way to custom binary handling of data. *Sadira* uses the BSON format to encode the data of JavaScript objects transfered within dialogs in a binary efficient way. 
 
-Large binary messages need to be serialized in packets, sometimes asynchronously, to avoid congestionning, which is also a feature of the sadira dialogs.
+Large binary messages need to be serialized in packets, sometimes asynchronously (in case of UDP), to avoid congestionning, which is also a feature of the sadira dialogs.
 
 
 ###Grammar and Vocabulary: *Templates*
@@ -49,18 +48,16 @@ Templates are stuctured data field assemblies describing a project's data, proce
 	  var example_template = {};
 
 
-Some properties have a special meaning. To specify child objects, the *elements* object property must be used : 
+Some properties have a special meaning. Child objects are attached to the *elements* object property : 
 
 	  var example_template = {
 	      elements : {
 	      	       child1 : {},
 		       child2 : {}
 	      }
-
 	  };
 
-	  
-
+	 
 
 ####Talking : *Dialogs*
 
