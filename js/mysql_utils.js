@@ -48,7 +48,7 @@ exports.query_table=function(cmd, tname, columns){
 
 
 exports.sql=function(opts){
-  sadira.log("creating sql interface to " + JSON.stringify(opts) );
+  sadira.log("Creating new sql interface to " + JSON.stringify(opts) );
   this.sql_cnx= mysql.createConnection(opts);
   return this;
 }

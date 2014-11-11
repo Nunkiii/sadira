@@ -198,11 +198,11 @@ function xhr_query(query, result_cb, opts){
     }
     
     xhr.upload.addEventListener("error", function(ev){
-	result_cb("Error ajax upload : ");
+	result_cb("Error ajax upload : " + xhr.statusText);
     }, false);
     
     xhr.addEventListener("error", function(ev){
-	result_cb("Error ajax : ");
+	result_cb("Error download  (" + xhr.statusText + ")");
     }, false);
     
     xhr.addEventListener("load", function(ev){
@@ -219,11 +219,16 @@ function xhr_query(query, result_cb, opts){
 	    result_cb(null, (xhr.responseType=='arraybuffer') ?  xhr.response :  xhr.responseText);
 	}
 	else
-	    result_cb(xhr.responseText,null);
+	    result_cb("XHTTP Error :" + xhr.statusText,null);
     },false);
-    
-    xhr.open(method, query, true);
-    xhr.send();
+
+    try{
+	xhr.open(method, query, true);
+	xhr.send();
+    }
+    catch (e){
+	result_cb("XHTTP Error :" + e.toString());
+    }
 
     return xhr;
 }
@@ -256,6 +261,37 @@ function json_query(query, result_cb, opts){
 	}
     }, opts);
 }
+
+////////////////////////////////////////////////////////////////////////////
+//AJAX request, parsing the result as JSON.
+
+function bson_query(query, result_cb, opts){
+    opts.type="arraybuffer";
+
+    xhr_query(query,function(error, qdata){
+	if(error) 
+	    return result_cb(error);
+	else{
+	    var data;
+
+	    try{
+		//console.log("DATA IN ["+text_data+"]");
+		data=BSON.deserialize(qdata);
+	    }
+	    catch (e){
+		return result_cb("json_query: JSON parse error " + e);
+	    }
+
+	    /*
+	    if(data.error){
+		return result_cb("json_query: Server reported error : " + data.error);
+	    }
+	    */
+	    result_cb(null,data);
+	}
+    }, opts);
+}
+
 
 var request = function (opts){
     //this.opts=opts;

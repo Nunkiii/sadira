@@ -136,10 +136,13 @@ dialog_handlers.demo = {
 	});
 
 	dlg.listen("connect", function (dgram){
-
-	    usr=master_chat.create_user(dlg, dgram.header);
 	    
-	    console.log("Connect : " + JSON.stringify(usr.id));
+	    if(è(master_chat)){
+		usr=master_chat.create_user(dlg, dgram.header);
+	    
+		console.log("Connect : " + JSON.stringify(usr.id));
+	    }else
+		console.log("bug: no masterchat");
 	});
 	
 	dlg.listen("disconnect", function (dgram){

@@ -43,8 +43,14 @@ GLOBAL.reply_json=function(res,data){
 
 GLOBAL.get_json_parameters=function(req, key){
     if(ù(key))key="req";
-    var url_parts = url.parse(req.url,true);	
-    return JSON.parse(url_parts.query[key]);
+    try{
+	
+	var url_parts = url.parse(req.url,true);	
+	return JSON.parse(url_parts.query[key]);
+    }
+    catch (e){
+	return {};
+    }
 }
 
 /*
@@ -53,11 +59,16 @@ GLOBAL.get_json_parameters=function(req, key){
 
 GLOBAL.get_bson_parameters=function(req, key){
     if(ù(key))key="req";
-    var url_parts = url.parse(req.url,true);	
-    var b=new Buffer(url_parts.query[key], 'base64');
+    try{
+	var url_parts = url.parse(req.url,true);	
+	var b=new Buffer(url_parts.query[key], 'base64');
+	return BSON.deserialize(b);
+    }
+    catch (e){
+	return {};
+    }
 
 //    console.log("Read buffer ok L=" + b.length);
-    return BSON.deserialize(b);
 }
 
 
@@ -124,6 +135,16 @@ var _sadira = function(){
 
     var sad=this;
 
+    //Configuring cluster (multi process spawn with port sharing) and inter-process communications
+
+    sad.cluster = require('cluster');
+    sad.cluster_messages=[]; //Array of active interprocess messages
+    
+
+    if(sad.cluster.isMaster){
+	//sad.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
+    }
+
     //sad.log("sadira process start");
     var argv = require('minimist')(process.argv.slice(2));
     //console.dir(argv);
@@ -154,7 +175,7 @@ var _sadira = function(){
 	    option_string=fs.readFileSync(cfpath);
 	}
 	catch(e){
-	    sad.log( "Fatal error reading config file : " + e);
+	    console.log( "Fatal error reading config file : " + e);
 	    process.exit(1);
 	}
 	
@@ -170,22 +191,13 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    console.log( "FATAL ERROR : Config file JSON parsing error : " + dump_error(e));
+	    sad.log( "FATAL ERROR : Config file JSON parsing error : " + dump_error(e));
 	    process.exit(1);
 	}
     }
 
     if(typeof process.argv[2] != 'undefined'){}	
     
-    //Configuring cluster (multi process spawn with port sharing) and inter-process communications
-
-    sad.cluster = require('cluster');
-    sad.cluster_messages=[]; //Array of active interprocess messages
-    
-
-    if(sad.cluster.isMaster){
-	//sad.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
-    }
 } 
 
 _sadira.prototype.log = function (m){
@@ -401,7 +413,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	try{
 	    main_proc= eval(path_build.process);
 	    if(ù(main_proc)) 
-		throw("Undefined!!!");
+		throw("Main proc undefined!!!");
 	}
 	catch (e){
 	    //console.log("Unhandled path -> proxy (" + path_build + ")" + e);
@@ -414,8 +426,9 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	
 	for(var p=1;p<path_parts.length-1;p++){
 	    if(path_parts[p]!==""){
+		//console.log("building " + path_parts[p] + "...");
 		path_build=path_build[path_parts[p]];
-		//console.log("build " + path_parts[p] + " ok");
+		//console.log("building " + path_parts[p] + " ok");
 		try{
 		    var proc_path= eval(path_build+".process");
 		    if (è(proc_path)) 
@@ -434,14 +447,20 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	}
 	
 	//sad.log("Exec main proc !");
-	main_proc(request, response, function(error){
-	    if(error!==null){
-		return result_cb(error, true);
+	try{
+	    main_proc(request, response, function(error){
 		
-	    }
-	    //sad.log("Exec main proc done !");
+		if(error!==null){
+		    return result_cb(error, true);
+		    
+		}
+		//sad.log("Exec main proc done !");
 	    result_cb(null,true); //We handle it.
-	});
+	    });
+	}
+	catch (e){
+	    return result_cb(e, true);
+	}
 	
     }
     
@@ -530,10 +549,13 @@ _sadira.prototype.handle_request=function(request, response){
 
 
 	if(error!==null){
-
-	    sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
 	    
-	    //sadira.log("exec error " + error);
+	    //sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
+	    sadira.log("handler exec error " + error);
+	    
+	    response.writeHead(500, {"Content-Type": "text/plain"});
+	    response.write("Error while handling API url : " + error + "\n");
+	    response.end();
 	    return;
 	}
 
