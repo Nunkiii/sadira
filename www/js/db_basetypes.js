@@ -7,6 +7,8 @@ template_ui_builders.sadira=function(ui_opts, sad){
     new_event(sad,"socket_error");
     new_event(sad,"socket_connect");
 
+    console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
+
     var url=sad.elements.url;
 
     var connect=sad.elements.connect;
@@ -45,29 +47,30 @@ template_ui_builders.sadira=function(ui_opts, sad){
     ws_host=url.value;
     
     sad.listen("socket_connect", function(){
+	sad.online=true;
 	status.set_value("green");
 	messages.append("Sadira server connected");
     });
 	
     sad.listen("socket_error", function(e){
+	sad.online=false;
 	status.set_value("red");
 	messages.append("Socket error " + JSON.stringify(e));
     });
     sad.listen("socket_close", function(){
+	sad.online=false;
 	status.set_value("blue");
 	messages.append("Sadira server disconnected");
     });
     
     connect.listen("click",function(){
-	sad.connect(function(error){
-	    status.set_value("red");
-		messages.append("Cannot connect : " + e);
-	});
+	sad.connect();
     });
     
     
     sad.connect=function(){
-	
+
+	if(sad.online) return;
 	//Making link to the WebSocket server and handling of the socket events
 
 	/*
@@ -384,7 +387,7 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 	throw "Unknown UI type ";
     }
 
-    //tpl_item.status=
+    tpl_item.ui=ui;
 
     return tpl_item.ui;
 }
@@ -672,6 +675,8 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 	    if(typeof tpl_item.value !=='undefined')
 		ui.innerHTML=tpl_item.value;
 	}
+
+	tpl_item.set_value();
 	break;
     case "edit": 
 
@@ -780,12 +785,14 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 		    tpl_item.onchange();
 	    }
 	}
+	tpl_item.set_default_value();
+	
 	break;
     default: 
 	throw "Unknown UI type ";
     }
 
-    tpl_item.set_default_value();
+
     
     return tpl_item.ui;
     
@@ -905,12 +912,20 @@ template_ui_builders.action=function(ui_opts, action){
     var ui=ce("input"); ui.type="button";
     ui.value=action.name;
 
+
+    action.disable_element=function(dis){
+	if(dis)
+	    ui.setAttribute("disabled",true);
+	else
+	    ui.removeAttribute("disabled");
+    }
+
     new_event(action,"click");
 
     if(è(action.onclick)) action.listen("click", action.onclick);
     
     ui.addEventListener("click",function(e){
-	action.trigger("click");	    
+	action.trigger("click", action);	    
     },false);
 
     var wait_icon;

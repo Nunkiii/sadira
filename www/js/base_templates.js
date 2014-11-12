@@ -11,7 +11,7 @@ var base_templates={
 		type : "url",
 		ui_opts : { editable : true, root_classes : ["inline"], bar : true},
 		
-		//value : "ws://sadira.iasfbo.inaf.it:9999"
+		default_value : "ws://sadira.iasfbo.inaf.it:9999"
 		//value : "ws://localhost:9999"
 	    },
 	    connect : {

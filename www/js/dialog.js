@@ -61,12 +61,13 @@ dialog.prototype.set_header = function(header){
 
 dialog.prototype.add_serializer=function(srz){
     this.serializers[srz.oid]=srz;
-    for(var s in this.serializers){this.log("srz list after add: "+JSON.stringify(this.serializers[s].oid)); }
+
+//    for(var s in this.serializers){this.log("srz list after add: "+JSON.stringify(this.serializers[s].oid)); }
 }
 
 
 dialog.prototype.get_serializer=function(oid){
-    for(var s in this.serializers){console.log("srz ID : "+this.serializers[s].oid); }
+  //  for(var s in this.serializers){console.log("srz ID : "+this.serializers[s].oid); }
     return this.serializers[oid];
 }
 
@@ -115,13 +116,13 @@ srz_setup=function(dlg){
 		console.log("SRZ request ID=" + oid + " func is " + typeof dlg.srz_request);
 		
 		dlg.srz_request(dgram, function(error, srz){
-		    console.log("Ok here... srz = " + typeof srz);
+		    //console.log("Ok here... srz = " + typeof srz);
 		    
 		    if(error!=null){ 
 			status_head.status=false; status_head.error_message= error;
 		    }
 		    else{
-			console.log("Ok got serializer...");
+			//console.log("Ok got serializer...");
 			srz.oid=oid;
 			status_head.status=true;
 			dlg.add_serializer(srz);

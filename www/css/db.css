@@ -257,6 +257,11 @@ font-style: "italic"
 opacity: .2;
 }
 
+.masked{
+     opacity: .2;
+}
+
+
 .db input[type="button"]:hover{
     color: white;
     background: rgba(20,20,200,.4);
@@ -440,14 +445,15 @@ content : "Zoom Out";
   margin-right: 1em;
 }
 
-.db .inline > .childs .db{ 
-/*  display: inline-block;  */
-}
-
-
 .db > .childs .db{ 
-  /*display: inline-block;*/
+  /*display: inline-block;
   margin-bottom: 1em;
+*/
+
+}
+.db.inline > .childs .db{ 
+  /*display: inline-block;*/
+  margin: 0px;
 }
 
 .db .db > .childs { 
@@ -673,6 +679,13 @@ h1.section_title{
 font-size : 1.0em;
 color: white;
  }
+
+.db.inline{  
+margin: 0px;
+font-size : .8em;
+color: black;
+ }
+
 
 .db > nav > li.disabled { 
 display: none;
@@ -982,10 +995,19 @@ stroke: black;
 .db[data-type="double"] .dbname{
    display : inline-block;
 }
+.db[data-type="angle"] .dbname{
+   display : inline-block;
+}
+.db[data-type="bool"] .dbname{
+   display : inline-block;
+}
 .db[data-type="date"] .dbname{
    display : inline-block;
 }
 .db[data-type="bytesize"] .dbname{
+   display : inline-block;
+}
+.db[data-type="status"] .dbname{
    display : inline-block;
 }
 

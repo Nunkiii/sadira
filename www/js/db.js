@@ -381,6 +381,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	});
     }
     //   }
+
+
+    new_event(tpl_root, "selected");
+    //console.log("Created selected event on " + e.name);
+
+
     
     tpl_root.enable=function(state){
 	if(!state)
@@ -772,7 +778,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		e.li.addEventListener("click",function(){
 		    //console.log("Click!!");
 		    select_frame(e); //xd.fullscreen(false);
-		    e.parent.trigger("element_selected", e);
+		    if(è(e.parent))
+			e.parent.trigger("element_selected", e);
+		    else
+			console.log("No parent??");
+		    e.trigger("selected");
 		});
 		//e.tabdiv.appendChild(e.ui_root);
 		nframes++;
@@ -1039,7 +1049,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     }
 
+    
+    tpl_root.disable_rec=function(dis, rec){
 
+	if(è(this.disable_element)) this.disable_element(dis);
+	if(rec && è(tpl_root.elements))
+	    for(var e in tpl_root.elements){
+		tpl_root.elements[e].disable_rec(dis, rec);
+	    };
+	
+    }
+    
+    tpl_root.disable=function(dis,rec){
+	if(ù(rec))rec=true;
+	if(dis)
+	    ui_root.add_class("masked");
+	else
+	    ui_root.remove_class("masked");    
+	tpl_root.disable_rec(dis,rec);
+    };
 
     return ui_root;
 }
