@@ -6,8 +6,8 @@ template_ui_builders.sadira=function(ui_opts, sad){
     new_event(sad,"socket_close");
     new_event(sad,"socket_error");
     new_event(sad,"socket_connect");
-
-    console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
+    
+    //console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
 
     var url=sad.elements.url;
 
@@ -1053,19 +1053,28 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 		     tpl_item.start + tpl_item.value.length*tpl_item.step ];
 
 
-    tpl_item.elements.zoom.onclick=function(){
-	if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(selection.value);
+    tpl_item.elements.zoom.listen("click",function(){
+	if(typeof tpl_item.on_range_change!='undefined') 
+	    tpl_item.on_range_change(selection.value);
 	tpl_item.redraw();
-    };
-    tpl_item.elements.unzoom.onclick = function(){
+    });
+
+
+    tpl_item.elements.unzoom.listen("click",function(){
 	selection.set_value([tpl_item.min, tpl_item.max]);
 	// cuts.set_value([tpl_item.start, 
 	// 		   tpl_item.start + tpl_item.value.length*tpl_item.step ]);
 	console.log("unzoom to " + JSON.stringify(selection.value) + " start = " + tpl_item.start);
-	if(typeof tpl_item.on_range_change!='undefined') tpl_item.on_range_change(selection.value);
-	tpl_item.redraw();
-    }
 
+	if(typeof tpl_item.on_range_change!='undefined') 
+	    tpl_item.on_range_change(selection.value);
+
+	tpl_item.redraw();
+    });
+    
+    tpl_item.listen("slided", function(){
+	tpl_item.elements.unzoom.trigger("click");
+    });
     
 
     tpl_item.set_range=function(new_range){

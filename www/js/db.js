@@ -249,6 +249,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     child_container.prototype.childs={};
 
     child_container.prototype.add_child_com=function(child){
+
+	child.parent=tpl_root;
+
 	if(ù(child.ui_views)){
 	    child.ui_views={};
 	}
@@ -529,6 +532,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	ui_childs.add_child=function(e,ui,prep){
 	    if(!add_child_common(e,ui,prep)) return;
+
+	    this.add_child_com(e);
+
 	    if(typeof ui_childs.div=='undefined'){
 		ui_childs.div=ce("div"); 
 		ui_childs.div.className="childs";
@@ -567,9 +573,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//ui_childs.div.className="childs";
 	var nav;
 	ui_childs.add_child=function(e,ui,prep){
-
+	    
+	    
 	    if(!add_child_common(e,ui,prep)) return;
-
+	    
+	    this.add_child_com(e);
 	    //console.log("BAR add child on " + ui_childs.div.nodeName);
 	    if(typeof ui_childs.div=='undefined'){
 		nav=tpl_root.nav=ce("nav");
@@ -673,8 +681,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(typeof new_ctpl.bar_replace!=='undefined')
 		new_ctpl.bar_replace();
 
-	    if(oldui.parentNode===ui_childs.div)
-		ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
+	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+
+	    // if(oldui.parentNode===ui_childs.div)
+	    // 	ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
 
 	}
 //	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;
@@ -705,7 +715,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var selected_frame;
 
 	var select_frame=function(f){
-	    console.log("Select Frame !!");
+	    console.log("Select tab/radio child " + f.name);
 
 	    if(typeof selected_frame!='undefined'){
 		selected_frame.ui_root.style.display='none';
@@ -727,6 +737,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    selected_frame.li.add_class("selected");
 
 	    if(è(f.rad)) f.rad.checked=true;
+
+	    if(è(f.parent))
+		f.parent.trigger("element_selected", f);
+	    else
+		console.log("No parent??");
+	    f.trigger("selected");
+
 
 	    return f;
 	}
@@ -778,11 +795,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		e.li.addEventListener("click",function(){
 		    //console.log("Click!!");
 		    select_frame(e); //xd.fullscreen(false);
-		    if(è(e.parent))
-			e.parent.trigger("element_selected", e);
-		    else
-			console.log("No parent??");
-		    e.trigger("selected");
+
 		});
 		//e.tabdiv.appendChild(e.ui_root);
 		nframes++;
@@ -793,6 +806,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }//else console.log("LAAABELLL " + e.name);
 	    
+	    e.listen("name_changed", function(new_title){
+		set_frame_name(e);
+	    });
+
 	    return e.li;
 	}
 	

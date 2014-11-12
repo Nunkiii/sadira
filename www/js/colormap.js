@@ -283,7 +283,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	edit_node.prependChild(cmap.cmap_plot);
 	var sd=cmap.select_div=ce("div");
 	sd.className="colormap_select_div";
+
 	cmap.domnode.appendChild(sd);
+
+	
 	cmap.select_section(0);
 
 	
@@ -291,7 +294,9 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     default: 
 	throw "Unknown UI type ";
     }
-    
+
+    cmap.domnode.style.background=cmap.write_gradient_css_string();
+
     cmap.on_slide=function(slided){
 	//console.log("CMAP slided !!");
 	//console.log(cmap.name + " display " + this.value.length + " colors. w = " + cmap.parent.ui_root.clientWidth);
@@ -332,6 +337,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    console.log("Not enough colours to display");
 	    return;
 	}
+	cmap.domnode.style.background=cmap.write_gradient_css_string();
+
+	cmap.draw_cmap_axis();
+
 	//this.domnode.innerHTML="Hello Colormap!";	
 	//var width=cmap.cmwidth=cmap.parent.ui_root.clientWidth-20;//cmap.ui_root.clientWidth;
 	
@@ -345,7 +354,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	//     this.domnode.style.width="5em";
 	
 	//cmap.update_colors();
-	//this.domnode.style.background=this.write_gradient_css_string();
+	
 	//this.draw_cmap_axis();
 	/*
 	if(this.update_callback)
@@ -372,7 +381,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     cmap.on_attached=function(){
 	console.log("Attached!");
 	//cmap.display();
-	cmap.draw_cmap_axis();
     }
     
     cmap.set_value=function(v){
