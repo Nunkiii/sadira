@@ -1,24 +1,18 @@
 
-exports.init=function(){
-    console.log("Client creating dispatcher...");
-
-    
+exports.init=function(pkg, app){
+    console.log("Chat module slave: init...");
+    app.dialog("/demo/chat", demo_chat);
 }
 
-
-exports.init_master=function(){
-    console.log("Master creating master chat !");
+exports.init_master=function(pkg, app){
+    console.log("Chat module master: creating master of the chat !");
     var master_chat = new chat_engine;
-    
 }
-
-
-
 
 var chat_engine = function () {
-
+    
     var ce=this;
-
+    
     this.rooms = {};
     this.users = {};
 
@@ -125,91 +119,88 @@ var chat_engine = function () {
     this.create_room({ title : "Market place" });
 };
 
-dialog_handlers.demo = {
+
+function demo_chat (dlg, status_cb){
+	
+    var usr;
     
-    chat : function (dlg, status_cb){
-	
-	var usr;
-
-	dlg.cnx.listen("closed", function(cr){
-	    console.log("Chat : connexion closed " + cr);
-	});
-
-	dlg.listen("connect", function (dgram){
-	    
-	    if(è(master_chat)){
-		usr=master_chat.create_user(dlg, dgram.header);
-	    
-		console.log("Connect : " + JSON.stringify(usr.id));
-	    }else
-		console.log("bug: no masterchat");
-	});
-	
-	dlg.listen("disconnect", function (dgram){
-
-	});
-	
-	dlg.listen("message", function (dgram){
-	    master_chat.message(dgram.header);
-	});
-
-	dlg.listen("nickchange", function (dgram){
-
-	});
-
-	dlg.listen("enter_room", function (dgram){
-	    var r=master_chat.get_room(dgram.header);
-	    if(r==null){
-		console.log("error no such room " + hd.room_id);
-		return;
-	    }
-	    
-	    r.user_join(usr);
- 
-	});
-
-	dlg.listen("leave_room", function (dgram){
-	    var r=master_chat.get_room(dgram.header);
-	    if(r===null){
-		console.log("error no such room " + hd.room_id);
-		return;
-	    }
-	    
-	    r.user_leave(usr.id);
-	});
-
-	dlg.listen("room_list", function (dgram){
-	    var rooms=[];
-	    for (var r in master_chat.rooms) {
-		rooms.push({ id : master_chat.rooms[r].id, title : master_chat.rooms[r].title }); 
-	    }
-	    dlg.send_datagram("room_list", rooms, null, function(error){});
-	});
-
-	dlg.listen("user_list", function (dgram){
-	    var users=[];
-	    function list_users(ulist){
-		for(var u in ulist) 
-		    users.push({ id : ulist[u].id, nick : ulist[u].nick});
-		dlg.send_datagram("user_list", users, null, function(error){});
-	    }
-	    var r=master_chat.get_room(dgram.header);
-
-	    list_users(r === null ? master_chat.users : r.users);
-	});
-	
-
-	dlg.listen("kill_room", function (dgram){
-
-	});
-
-	dlg.listen("create_room", function (dgram){
-	    master_chat.create_room(dgram.header);
-	});
-
-	status_cb();
-    }
+    dlg.cnx.listen("closed", function(cr){
+	console.log("Chat : connexion closed " + cr);
+    });
     
-};
+    dlg.listen("connect", function (dgram){
+	
+	if(è(master_chat)){
+	    usr=master_chat.create_user(dlg, dgram.header);
+	    
+	    console.log("Connect : " + JSON.stringify(usr.id));
+	}else
+	    console.log("bug: no masterchat");
+    });
+    
+    dlg.listen("disconnect", function (dgram){
+	
+    });
+    
+    dlg.listen("message", function (dgram){
+	master_chat.message(dgram.header);
+    });
+    
+    dlg.listen("nickchange", function (dgram){
+	
+    });
+    
+    dlg.listen("enter_room", function (dgram){
+	var r=master_chat.get_room(dgram.header);
+	if(r==null){
+	    console.log("error no such room " + hd.room_id);
+	    return;
+	    }
+	
+	r.user_join(usr);
+	
+    });
+    
+    dlg.listen("leave_room", function (dgram){
+	var r=master_chat.get_room(dgram.header);
+	if(r===null){
+	    console.log("error no such room " + hd.room_id);
+	    return;
+	}
+	
+	r.user_leave(usr.id);
+    });
+    
+    dlg.listen("room_list", function (dgram){
+	var rooms=[];
+	for (var r in master_chat.rooms) {
+	    rooms.push({ id : master_chat.rooms[r].id, title : master_chat.rooms[r].title }); 
+	}
+	dlg.send_datagram("room_list", rooms, null, function(error){});
+    });
+    
+    dlg.listen("user_list", function (dgram){
+	var users=[];
+	function list_users(ulist){
+	    for(var u in ulist) 
+		users.push({ id : ulist[u].id, nick : ulist[u].nick});
+	    dlg.send_datagram("user_list", users, null, function(error){});
+	}
+	var r=master_chat.get_room(dgram.header);
+	
+	list_users(r === null ? master_chat.users : r.users);
+    });
+    
+    
+    dlg.listen("kill_room", function (dgram){
+	
+    });
+    
+    dlg.listen("create_room", function (dgram){
+	master_chat.create_room(dgram.header);
+    });
+    
+    status_cb();
+}
 
 

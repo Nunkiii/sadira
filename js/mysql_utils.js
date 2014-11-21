@@ -48,7 +48,7 @@ exports.query_table=function(cmd, tname, columns){
 
 
 exports.sql=function(opts){
-  sadira.log("Creating new sql interface to " + JSON.stringify(opts) );
+  console.log("Creating new sql interface to " + JSON.stringify(opts) );
   this.sql_cnx= mysql.createConnection(opts);
   return this;
 }
@@ -81,7 +81,7 @@ exports.sql.prototype.sql_connect=function(result_cb) {
     });       
 
     this.sql_cnx.on('error', function(err) {
-	sadira.log('SQL server error', err);
+	console.log('SQL server error', err);
 	if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
 	    me.sql_connect(function (){});                        
 	} else {                                  

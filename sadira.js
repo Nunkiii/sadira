@@ -26,7 +26,7 @@ GLOBAL.cors_headers = {
 };
 
 /*
-  Replying a cross-origin-friendly json text string and closing connection.
+  Replyes a cross-origin-friendly json text string and closes connection.
 */
 
 GLOBAL.reply_json=function(res,data){
@@ -135,6 +135,11 @@ var _sadira = function(){
 
     var sad=this;
 
+
+    this.get_handlers = {};
+    this.post_handlers = {};
+    this.dialog_handlers = {};
+
     //Configuring cluster (multi process spawn with port sharing) and inter-process communications
 
     sad.cluster = require('cluster');
@@ -196,7 +201,7 @@ var _sadira = function(){
 	}
     }
 
-    if(typeof process.argv[2] != 'undefined'){}	
+    //if(typeof process.argv[2] != 'undefined'){}	
     
 } 
 
@@ -205,6 +210,63 @@ _sadira.prototype.log = function (m){
     console.log((sad.cluster.isMaster ? "Master : " :  ("Worker " +  this.cluster.worker.id + " : ")) + m);
     
 }
+
+/* Connect-like api loading */
+
+_sadira.prototype.handle_api = function (api_root, path, api_cb){
+    var path_parts = path.split("/");
+    for(var p=1;p<path_parts.length;p++){
+
+	console.log("Handling get api root : " + api_root + " looking " + path_parts[p]);
+	var api_child = api_root[path_parts[p]];
+
+	if(ù(api_child)){
+	    api_child=api_root[path_parts[p]]={};
+	}
+	api_root=api_child;
+    }
+    var api_funcs=api_root.__apis;
+    if(ù(api_funcs))  api_funcs=api_root.__apis=[];
+    api_root.__apis.push(api_cb);    
+}
+
+_sadira.prototype.get = function (path, api_cb){
+    this.handle_api(this.get_handlers, path, api_cb);
+}
+
+_sadira.prototype.post = function (path, api_cb){
+    this.handle_api(this.post_handlers, path, api_cb);
+}
+
+_sadira.prototype.dialog = function (path, api_cb){
+    var api_root=this.dialog_handlers;
+    var path_parts = path.split(".");
+    for(var p=0;p<path_parts.length;p++){
+	console.log("Handling dialog path : " + path + " looking " + path_parts[p]);
+	var api_child = api_root[path_parts[p]];
+	if(ù(api_child)){
+	    api_child=api_root[path_parts[p]]={};
+	}
+	api_root=api_child;
+    }
+    api_root.__api=api_cb;
+}
+
+/* Connect-like middleware function loading */
+
+_sadira.prototype.use=function ( a1, a2){
+    var path, api_cb;
+
+    if(ù(a2)) {
+	path="/";
+	api_cb=a1;
+    }else{
+	path=a1; api_cb=a2;
+    }
+
+    this.get(path, api_cb);
+}
+
 
 _sadira.prototype.start = function (){
 
@@ -369,7 +431,7 @@ _sadira.prototype.start = function (){
 
     }
     catch (e){
-	sad.log("Fatal error while initializing sadira : " +e);
+	sad.log("Fatal error while initializing sadira : " +dump_error(e));
 	process.exit(1);
     }
 
@@ -389,87 +451,73 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     var sad=this;
 
-    var command_type=request.method;
+    var command_type=request.method, path_base;
+    
+    switch(request.method){
+    case "GET" : path_base=this.get_handlers; break;
+    case "POST" : path_base=this.post_handlers; break;
+    default : return result_cb(null,false);
+    };
+    
     var url_parts = url.parse(request.url,true);	
-
-    var path_base=eval(command_type.toLowerCase()+"_handlers");
-
     //console.log("Path base is " + path_base);
 
     var path_build=path_base;
-
+    var handler_vector=[];
+    
     try{	    
+
 	var path_parts = url_parts.pathname.split("/");
 
 	for(var p=1;p<path_parts.length;p++){
 	    //path_build+= ".";
 	    if(path_parts[p]!==""){
 		path_build=path_build[path_parts[p]];
+		handler_vector.push(path_build.__apis);
 		//console.log("build " + path_parts[p] + " ok");
 	    }
 	}
-	var main_proc;
-
-	try{
-	    main_proc= eval(path_build.process);
-	    if(ù(main_proc)) 
-		throw("Main proc undefined!!!");
-	}
-	catch (e){
-	    //console.log("Unhandled path -> proxy (" + path_build + ")" + e);
-	    return result_cb(null, false);
-	}
-
-	//First calling the intermediate process funcs 
-
-	path_build=path_base;
-	
-	for(var p=1;p<path_parts.length-1;p++){
-	    if(path_parts[p]!==""){
-		//console.log("building " + path_parts[p] + "...");
-		path_build=path_build[path_parts[p]];
-		//console.log("building " + path_parts[p] + " ok");
-		try{
-		    var proc_path= eval(path_build+".process");
-		    if (è(proc_path)) 
-			proc_path(request, response, function (error){
-			    if(error!==null){
-				return result_cb(error, true);
-				
-			    }
-			    
-			});
-		}
-		catch (e){
-		    //sad.log("Error path " + e + " -> ignore !");
-		}
-	    }
-	}
-	
-	//sad.log("Exec main proc !");
-	try{
-	    main_proc(request, response, function(error){
-		
-		if(error!==null){
-		    return result_cb(error, true);
-		    
-		}
-		//sad.log("Exec main proc done !");
-	    result_cb(null,true); //We handle it.
-	    });
-	}
-	catch (e){
-	    return result_cb(e, true);
-	}
-	
     }
     
     catch (e){ //Error interpreting path
 	//sad.log("Exception catched while trying to execute a handler for " + path_build + " : " + e );
 	result_cb(null,false); //We don't handle this.
     }
+
     
-    return true;
+    var a,d=0,level_apis, hvl=handler_vector.length,lal;
+
+    function process_next_level(){
+	if(d==hvl)return;
+	level_apis=handler_vector[d]; d++;
+	if(ù(level_apis)) {
+	    return process_next_level();
+	}
+	lal=level_apis.length;
+	a=0; process_next_api();
+    }
+
+    function process_next_api(){
+	try{
+	    if(a==lal) process_next_level();
+	    var api=level_apis[a]; a++;
+	    level_apis[api](request, response, function(error){
+		if(è(error)) return result_cb(error, true);
+		process_next_api();
+	    });	
+	}
+	catch (e){
+	    result_cb(e, true);
+	}
+    }
+    
+    
+
+    if(handler_vector.length>0){
+	console.log("["+url_parts.pathname+"] -> exec handler vector D="+handler_vector.length);
+	process_next_level();
+    }
+	
 }
 
 
@@ -539,19 +587,14 @@ _sadira.prototype.message=function(md, reply){
 
 _sadira.prototype.handle_request=function(request, response){
     
-    var sad=this;
+    var sad=this.sadira;
 
-    //var url_parts = url.parse(request.url,true);	
-    //console.log('Processing request for ' + uri);
-    //if(url_parts.search!="") //URL received with ? arguments
-
-    sadira.execute_request(request, response, function (error, processed){
-
+    sad.execute_request(request, response, function (error, processed){
 
 	if(error!==null){
 	    
 	    //sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
-	    sadira.log("handler exec error " + error);
+	    sad.log("handler exec error " + error);
 	    
 	    response.writeHead(500, {"Content-Type": "text/plain"});
 	    response.write("Error while handling API url : " + error + "\n");
@@ -572,15 +615,15 @@ _sadira.prototype.handle_request=function(request, response){
 	    //console.log("Trying proxy... " + request.connection.encrypted );
 	    
 	    if(request.connection.encrypted){ //https connexion
-		if(sadira.options.https_proxy){
+		if(sad.options.https_proxy){
 		    //console.log("Proxy https " + request.url);
 		    sadira.https_proxy.web(request, response);
 		    return;
 		}
 	    }else{
-		if(sadira.options.http_proxy){
+		if(sad.options.http_proxy){
 		    //console.log("Proxy http " + request.url);
-		    sadira.http_proxy.web(request, response);
+		    sad.http_proxy.web(request, response);
 		    return;
 		}
 	    }
@@ -595,9 +638,9 @@ _sadira.prototype.handle_request=function(request, response){
 	}
 
 
-	if(! sadira.options.file_server ){
+	if(! sad.options.file_server ){
 	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Don't know what to do with your request! (internal FS is OFF)...");
+	    response.write("Really sorry : I don't know what to do with your request ! (No proxy & internal FS is OFF) ... Maybe, come back later?");
 	    response.end();
 	    return;
 	}
@@ -609,7 +652,7 @@ _sadira.prototype.handle_request=function(request, response){
 	
 	//console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
 	var uri = unescape(url.parse(request.url).pathname);
-	var filename = path.join(sadira.options.html_rootdir, uri); 
+	var filename = path.join(sad.options.html_rootdir, uri); 
 
 	//Content-types used by the built-in http file server.
 	//The second boolean  member is used to specify if a cache http header is appended for this file type.
@@ -635,7 +678,7 @@ _sadira.prototype.handle_request=function(request, response){
 	    if(!exists) {
 		sad.log('404 not found for uri ' + filename);
 		
-		sadira.error_404(response, uri, function() {
+		sad.error_404(response, uri, function() {
 		    response.end();
 		});
 		
@@ -717,6 +760,8 @@ _sadira.prototype.create_http_server = function(cb){
 
 
 	    sad.http_server = http.createServer(sad.handle_request);
+	    sad.http_server.sadira=sad;
+
 	    sad.http_server.on("error", function (e) {
 		sad.log("HTTP server error " + JSON.stringify(e));
 		cb(e);
@@ -790,6 +835,7 @@ _sadira.prototype.create_http_server = function(cb){
 	    https_options.rejectUnauthorized=false;
 
 	    sad.https_server = https.createServer(https_options, sad.handle_request);
+	    sad.https_server.sadira=sad;
 	    sad.https_server.listen(port);
 	    
 	    sad.https_server.on("listening", function () {
@@ -896,24 +942,20 @@ _sadira.prototype.create_webrtc_server=function() {
 _sadira.prototype.handle_websocket_requests=function(ws_server){
         // This callback function is called every time someone
     // tries to connect to the WebSocket server
-    
+    var sad=this;
+
     ws_server.on('request', function(request) {
 	
-	console.log("WS: Connexion request from " + request.origin);
-	
+	console.log("websocket: Connexion request from " + request.origin);
+
+	//Configuration of the new incoming connexion:
 	var cnx = request.accept(null, request.origin); 
-
-	cnx.dialogs=new DLG.dialog_manager(cnx); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
+	cnx.dialogs=new DLG.dialog_manager(cnx, sad); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
 	cnx.request=request;
-	
-	// Incoming message from web client
-	
 	DLG.new_event(cnx, "closed");
-
-	cnx.on('message', function(message) {
-	    
+	
+	cnx.on('message', function(message) {// Incoming message from web client
 	    try{
-		
 		//console.log("Incoming message, creating datagram");
 		
 		var dgram=new DGM.datagram();
@@ -938,11 +980,8 @@ _sadira.prototype.handle_websocket_requests=function(ws_server){
 		console.log("Datagram read error : "+ dump_error(e));
 		return;
 	    }
-	    
 	    //var msg_content=m.header.data;
 	    //console.log("MESG:" + JSON.stringify(msg_content));
-	    
-	    
 	});
 	
 	// socket disconnected
@@ -1003,7 +1042,7 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    var initf=wpack.init_master;
 	    
 	    if(è(initf))
-		initf(pkg[w]);
+		initf(pkg[w],sad);
 	    else{
 		//sad.log("No pkg init function!");
 	    }
@@ -1012,7 +1051,7 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    var initf=wpack.init;
 	    
 	    if(è(initf))
-		initf(pkg[w]);
+		initf(pkg[w],sad);
 	    else{
 		//sad.log("No pkg init function!");
 	    }
@@ -1025,14 +1064,8 @@ _sadira.prototype.initialize_handlers=function(packname){
 //Main sadira instance
 
 try{
-
-    GLOBAL.get_handlers = {};
-    GLOBAL.post_handlers = {};
-    GLOBAL.dialog_handlers = {};
-
-    GLOBAL.sadira = new _sadira();
-
-    sadira.start();
+    var sa=exports.sadira = new _sadira();
+    sa.start();
 }
 
 catch (e){
