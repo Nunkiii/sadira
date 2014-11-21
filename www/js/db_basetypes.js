@@ -850,6 +850,7 @@ template_ui_builders.image_url=function(ui_opts, tpl_item){
 template_ui_builders.html=function(ui_opts, tpl_item){
 
     var ui=tpl_item.ui=ce("div");
+    
     ui.className="html_content";
     tpl_item.set_value=function(nv){
 	if(typeof nv !='undefined')tpl_item.value=nv;

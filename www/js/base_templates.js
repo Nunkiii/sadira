@@ -10,8 +10,9 @@ var base_templates={
 		name : "Server address",
 		type : "url",
 		ui_opts : { editable : true, root_classes : ["inline"], bar : true},
-		
-		value : "ws://sadira.iasfbo.inaf.it"
+	
+		//value : "ws://sadira.iasfbo.inaf.it"
+		value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },
 	    connect : {
@@ -32,6 +33,35 @@ var base_templates={
 		value_labels : { blue : "not connected", green : "connected", red : "error"}
 	    }
 	}
+    },
+
+    process : {
+	name : "Process",
+	elements : {
+	    uptime : {
+		name : "Uptime",
+		type : "double"
+	    },
+	    memuse : {
+		name : "Memory use",
+		type : "bytesize"
+	    }
+	}
+    },
+
+    sysmon : {
+	name : "Sadira system monitor",
+	elements : {
+	    cnx : {
+		type : "template",
+		template_name : "sadira",
+		name : "Link"
+	    },
+	    workers : {
+		name : "Workers"
+	    }
+	}
+
     }
 };
 

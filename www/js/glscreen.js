@@ -51,7 +51,7 @@ template_ui_builders.glscreen=function(ui_opts, gls){
     gls.h=0;
     gls.bbig=null;
 
-    var ui=gls.ui=ce("div");//ui.add_class("glscreen");
+    var ui=gls.ui=ce("div");ui.add_class("glscreen");
     var canvas=gls.canvas=cc("canvas",ui); canvas.add_class("glscreen_3d");
     //var ui=ui3d;
     var canvas2d=gls.canvas2d=cc("canvas",ui); canvas2d.add_class("glscreen_2d");
@@ -128,8 +128,10 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 	gls.resize=function(w,h){
 	    canvas.width=w;
 	    canvas.height=h;
-	    canvas2d.height=h;
+
 	    canvas2d.width=w;
+	    canvas2d.height=h;
+	    
 
 	    //canvas.focus();
 

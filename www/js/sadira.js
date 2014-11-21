@@ -1,9 +1,8 @@
 // Sadira astro-web framework - Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013) - INAF/IASF Bologna, Italy.
 
-
 (function(){
     
-    console.log("Create tmaster...");
+    console.log("Create template master...");
     window.tmaster=new local_templates();
     window.tmaster.add_templates(base_templates);
     window.sadira = {};
@@ -13,7 +12,9 @@
 	console.log("sadira ready....");
 	window.sadira.trigger("ready");
     });
+
 })();
+
 
 
 // var sadira = function(parameters, on_error, on_connect) {

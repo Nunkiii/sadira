@@ -279,9 +279,10 @@ dialog.prototype.listen=function(type, callback){
 }
 
 
-var dialog_manager = function(cnx){
+var dialog_manager = function(cnx, sad){
     this.dialogs={};
     this.cnx=cnx;
+    this.sadira=sad;
 }
 
 
@@ -330,17 +331,16 @@ dialog_manager.prototype.process_datagram=function(dgram){
 	try{
 	    var hndl_name=header.handler;
 	    if(typeof hndl_name=='undefined')throw "No handler defined on init datagram "; 
-	    var hndl=eval('dialog_handlers.'+hndl_name);
 	    
-	    if(typeof hndl=='undefined')throw "No handler found for init datagram handler ["+hndl_name+"]"; 
-	    
-	    
+	    var hndl=eval("dmgr.sadira.dialog_handlers."+hndl_name+".__api");
+	    if(ù(hndl))throw "No handler found for ["+hndl_name+"]"; 
 	    
 	    hndl(dlg, function(error, hhead, hdata){
 
 		var hshk_data=null;
 
 		if(typeof error!= 'undefined' && error!=null){ 
+
 		    hshk_head.status=false;
 		    hshk_head.close=true;
 		    hshk_head.error_message=error;
@@ -348,6 +348,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 		    dlg.log("Eval handler [" + hndl_name + "] error : " + error);
 	    
 		}else{
+
 		    hshk_head.status=true;
 		    dlg.log("Eval handler [" + hndl_name + "] OK ");
 
@@ -356,6 +357,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 		}
 		
 		dlg.send_datagram(hshk_head, hshk_data, function(error){
+
 		    if(error){
 			dlg.log("Error sending datagram : " + dump_error(error));
 		    }else
@@ -369,7 +371,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 	    hshk_head.status=false;
 	    hshk_head.close=true;
 	    hshk_head.error_message=e+"";
-	    dlg.log("Init exception " + dump_error(e));
+	    dlg.log("Dialog failed " + dump_error(e));
 	    dlg.send_datagram(hshk_head, null, function(error){} );
 	    delete dlg;
 	}
@@ -408,7 +410,7 @@ function new_event(tpl_item, event_name){
 	    //console.log("Trigger " + event_name +" to " + cbs.length +" client funcs....");
 
 	    cbs.forEach(function(cb){
-		cb(data);
+		cb.call(tpl_item,data);
 	    });
 	}
     }
