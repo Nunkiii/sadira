@@ -48,52 +48,84 @@ exports.query_table=function(cmd, tname, columns){
 
 
 exports.sql=function(opts){
-  console.log("Creating new sql interface to " + JSON.stringify(opts) );
-  this.sql_cnx= mysql.createConnection(opts);
-  return this;
+    console.log("Creating new sql interface to " + JSON.stringify(opts) );
+    this.opts=opts;
+    return this;
 }
 
 exports.sql.prototype.sql_connect=function(result_cb) {
 
-    if(è(this.sql_cnx)){
-	console.log("sql connexion state is " + this.sql_cnx.state);
-	if(this.sql_cnx.state=='authenticated') 
-	    return result_cb(null, this.sql_cnx);
-    }
     
     var me=this;
+    
+    console.log("Connecting to SQL database ...");
 
-    this.sql_cnx.connect(function(err) { 
-	if(err) {                   
-	    console.log( (err.fatal ? "Fatal e":"E" ) + "rror when connecting to db : " + JSON.stringify(err));
-	    
-	    if(err.fatal)
-		return result_cb(err);
-	    
-	    setTimeout(me.sql_connect(function (){} ), 2000); 
-	    
+    function try_connect(){
+	
+	if(è(me.timeout)){
+	    console.log("Clear timeout....");
+	    clearTimeout(me.timeout);
+	}
+	
+	if(è(me.sql_cnx)){
+	    console.log("sql connexion state is " + me.sql_cnx.state);
+	    if(me.sql_cnx.state=='authenticated') 
+		return result_cb(null, me.sql_cnx);
+	    else{
+		delete me.sql_cnx;
+		me.sql_cnx= mysql.createConnection(me.opts);
+	    }
 	}else{
-            //console.log("CNX OPEN, OK CNX id : " + this.threadId);
-	    me.query("set names utf8",function(err,res){
-		result_cb(null, me.sql_cnx);
-	    });	
+	    me.sql_cnx= mysql.createConnection(me.opts);
 	}
-    });       
+	
+	me.sql_cnx.on('error', function(err) {
+	    
 
-    this.sql_cnx.on('error', function(err) {
-	console.log('SQL server error', err);
-	if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
-	    me.sql_connect(function (){});                        
-	} else {                                  
-	    result_cb(err);                            
-	}
-    });
+	    // if(err.code === 'PROTOCOL_CONNECTION_LOST') 
+
+	    // if(err.fatal)
+	    // 	delete me.sql_cnx;
+	    // }
+	    
+	    console.log('SQL server error', err);
+
+	    me.timeout=setTimeout(try_connect, 2000); 
+	    // } else {                                  
+	    // 	result_cb(err);                            
+	    // }
+	});
+
+	me.sql_cnx.connect(function(err) { 
+	    if(err) {                   
+		console.log( (err.fatal ? "Fatal e":"E" ) + "rror when connecting to SQL server : " + JSON.stringify(err));
+		
+		if(err.fatal){
+		    delete me.sql_cnx;
+		    //return result_cb(err);
+		}
+		
+		
+		me.timeout=setTimeout(try_connect, 2000); 
+		
+	    }else{
+		console.log("CNX OPEN, OK CNX id : " + this.threadId);
+		me.query("set names utf8",function(err,res){
+		    result_cb(null, me.sql_cnx);
+		});	
+	    }
+	});       
+	
+    }
+
+    try_connect();
 }
 
 exports.sql.prototype.query=function(q, cb){
     this.sql_connect(function(err, sql_cnx) {
 	if(err)
-	    return cb("Error connecting to MySQL : " + err); 
+	    return cb("SQL query error : " + err); 
+
 	var query = sql_cnx.query(q,function(err, result) {
 	    if(err){
 		return cb(err); 
