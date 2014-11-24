@@ -5,7 +5,6 @@
 var fs = require("fs");
 var http = require('http');
 var https = require('https');
-var passport = require('passport');
 var path = require("path");
 var url = require("url");
 
@@ -216,17 +215,21 @@ _sadira.prototype.log = function (m){
 _sadira.prototype.handle_api = function (api_root, path, api_cb){
     var path_parts = path.split("/");
     for(var p=1;p<path_parts.length;p++){
-
-	console.log("Handling get api root : " + api_root + " looking " + path_parts[p]);
-	var api_child = api_root[path_parts[p]];
-
-	if(ù(api_child)){
-	    api_child=api_root[path_parts[p]]={};
+	var ppp=path_parts[p];
+	if(ppp!==""){
+	    //console.log("Handling get api root : " + api_root + " looking [" + ppp + "]");
+	    var api_child = api_root[ppp];
+	    
+	    if(ù(api_child)){
+		api_child=api_root[path_parts[p]]={};
+	    }
+	    api_root=api_child;
 	}
-	api_root=api_child;
     }
     var api_funcs=api_root.__apis;
     if(ù(api_funcs))  api_funcs=api_root.__apis=[];
+    console.log("Attached API to path ["+path+"] API CB is func ? " + typeof api_cb);
+
     api_root.__apis.push(api_cb);    
 }
 
@@ -265,6 +268,7 @@ _sadira.prototype.use=function ( a1, a2){
     }
 
     this.get(path, api_cb);
+    this.post(path, api_cb);
 }
 
 
@@ -402,6 +406,24 @@ _sadira.prototype.start = function (){
 	    });
 	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
 	    
+	    var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
+
+	    passport.use(new LocalStrategy(
+		function(username, password, done) {
+		    return done(null,false, { message : "User checking draft error !" });
+		}
+	    ));
+	    
+	    
+	    sad.use(passport.initialize());
+	    sad.use(passport.session());
+
+	 
+	    sad.post('/login',passport.authenticate('local'));
+	    sad.post('/login', function(req,res,next){
+		console.log("Login called After....");
+	    });
+
 	    sad.create_http_server(function(error, ok){
 		if(error!=null){
 		    sad.log("Fatal : HTTP create " + error  );
@@ -464,7 +486,8 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     var path_build=path_base;
     var handler_vector=[];
-    
+    handler_vector.push(path_build.__apis);
+
     try{	    
 
 	var path_parts = url_parts.pathname.split("/");
@@ -491,6 +514,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	if(d==hvl)return;
 	level_apis=handler_vector[d]; d++;
 	if(ù(level_apis)) {
+	    console.log("Level "+(d)+" has no api to exec.");
 	    return process_next_level();
 	}
 	lal=level_apis.length;
@@ -499,9 +523,11 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     function process_next_api(){
 	try{
-	    if(a==lal) process_next_level();
+	    if(a==lal) return process_next_level();
 	    var api=level_apis[a]; a++;
-	    level_apis[api](request, response, function(error){
+	    console.log("Level "+ (d)+"/"+hvl+" : execute API "+a+"/"+lal + " api type " + typeof api);
+	    
+	    api(request, response, function(error){
 		if(è(error)) return result_cb(error, true);
 		process_next_api();
 	    });	
@@ -594,7 +620,7 @@ _sadira.prototype.handle_request=function(request, response){
 	if(error!==null){
 	    
 	    //sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
-	    sad.log("handler exec error " + error);
+	    sad.log("Error while handling ["+request.url+"] : " + dump_error(error));
 	    
 	    response.writeHead(500, {"Content-Type": "text/plain"});
 	    response.write("Error while handling API url : " + error + "\n");
