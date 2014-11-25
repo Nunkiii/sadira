@@ -304,7 +304,7 @@ function create_item_ui(ui_opts, tpl_node){
     }//else return;
 
     if (builders.length==0){
-	console.log("Cannot build "+ tpl_node.name+" : no builder for object type " + tpl_name +"");
+	//console.log("Cannot build "+ tpl_node.name+" : no builder for object type " + tpl_name +"");
 	//return;
     }
 

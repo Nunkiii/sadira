@@ -298,7 +298,7 @@ var request = function (opts){
 
     if(ù(opts.cmd)) throw "No API command given";
 
-    if(ù(opts.mode)) opts.data_mode="json";
+    if(ù(opts.data_mode)) opts.data_mode="json";
     if(ù(opts.query_mode)) opts.query_mode="json";
     if(ù(opts.host)) opts.host="";
     if(ù(opts.key)) opts.key="req";
@@ -337,7 +337,7 @@ var request = function (opts){
 
     this.execute=function(cb){
 	opts.query_mode==="json" ? this.build_url_string_json() : this.build_url_string_bson();
-	//console.log("XHR QUERY");
+	console.log("XHR QUERY " +this.url_string);
 	switch(opts.data_mode){
 	case "json" : 
 	    json_query(this.url_string,cb,opts.xhr);

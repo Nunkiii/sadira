@@ -1,4 +1,4 @@
-è=function(x){ return (typeof x !== 'undefined');}
+è=function(x){ return ((typeof x !== 'undefined') && x!==null);}
 ù=function(x){ return (typeof x === 'undefined');}
 
 var nodejs= typeof module !== 'undefined'; //Checking if we are in Node

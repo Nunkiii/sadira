@@ -30,9 +30,11 @@ GLOBAL.cors_headers = {
 
 GLOBAL.reply_json=function(res,data){
     var headers=cors_headers;
+    var jstring=JSON.stringify(data);
     headers.content_type='application/json';
+    headers["Content-Length"]=jstring.length;
     res.writeHead(200, headers);
-    res.write(JSON.stringify(data));
+    res.write(jstring);
     res.end();
 }
 
