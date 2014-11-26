@@ -58,17 +58,17 @@ exports.sql.prototype.sql_connect=function(result_cb) {
     
     var me=this;
     
-    console.log("Connecting to SQL database ...");
+    //console.log("Connecting to SQL database ...");
 
     function try_connect(){
 	
 	if(è(me.timeout)){
-	    console.log("Clear timeout....");
+	    //console.log("Clear timeout....");
 	    clearTimeout(me.timeout);
 	}
 	
 	if(è(me.sql_cnx)){
-	    console.log("sql connexion state is " + me.sql_cnx.state);
+	    //console.log("sql connexion state is " + me.sql_cnx.state);
 	    if(me.sql_cnx.state=='authenticated') 
 		return result_cb(null, me.sql_cnx);
 	    else{

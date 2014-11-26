@@ -412,12 +412,14 @@ function create_action_menu(base_node){
 var hostname="";
 
 function get_server_address(){
-    if(hostname=="")hostname=location.host;
+    return  document.location.protocol + "//" + location.host;
 
-    if(document.location.protocol == "http:")
-	return "http://"+hostname+"/"+sadira_prefix;
-    else
-	return "https://"+hostname+"/"+sadira_prefix;
+    // if(hostname=="")hostname=location.host;
+
+    // if(document.location.protocol == "http:")
+    // 	return "http://"+hostname+"/"+sadira_prefix;
+    // else
+    // 	return "https://"+hostname+"/"+sadira_prefix;
 }
 
 

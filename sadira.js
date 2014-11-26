@@ -533,7 +533,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	try{
 	    if(a==lal) return process_next_level();
 	    var api=level_apis[a]; a++;
-	    console.log("Level "+ (d)+"/"+hvl+" : execute API "+a+"/"+lal + " api type " + typeof api);
+	    //console.log("Level "+ (d)+"/"+hvl+" : execute API "+a+"/"+lal + " api type " + typeof api);
 	    handled++;
 	    api(request, response, function(error){
 		if(è(error)) return result_cb(error, true);
@@ -619,7 +619,7 @@ _sadira.prototype.message=function(md, reply){
 
 _sadira.prototype.handle_request=function(request, response){
 
-    console.log("Handling " + request.url);
+//    console.log("Handling " + request.url);
     var sad=this.sadira;
 
     sad.execute_request(request, response, function (error, processed){
@@ -649,13 +649,13 @@ _sadira.prototype.handle_request=function(request, response){
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
-		    console.log("Proxy https " + request.url);
+		    //console.log("Proxy https " + request.url);
 		    sad.https_proxy.web(request, response);
 		    return;
 		}
 	    }else{
 		if(sad.options.http_proxy){
-		    console.log("Proxy http " + request.url);
+		    //console.log("Proxy http " + request.url);
 		    sad.http_proxy.web(request, response);
 		    return;
 		}
@@ -683,7 +683,7 @@ _sadira.prototype.handle_request=function(request, response){
 	//Here we should detect if the user is not trying to get something like ../../etc/passwd  
 	//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
 	
-	console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
+	//console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
 	var uri = unescape(url.parse(request.url).pathname);
 	var filename = path.join(sad.options.html_rootdir, uri); 
 
