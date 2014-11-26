@@ -31,7 +31,7 @@ GLOBAL.cors_headers = {
 GLOBAL.reply_json=function(res,data){
     var headers=cors_headers;
     var jstring=JSON.stringify(data);
-    headers.content_type='application/json';
+    headers["Content-Type"]='application/json';
     headers["Content-Length"]=jstring.length;
     res.writeHead(200, headers);
     res.write(jstring);
@@ -408,6 +408,7 @@ _sadira.prototype.start = function (){
 	    });
 	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
 	    
+/*
 	    var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 
 	    passport.use(new LocalStrategy(
@@ -425,6 +426,7 @@ _sadira.prototype.start = function (){
 	    sad.post('/login', function(req,res,next){
 		console.log("Login called After....");
 	    });
+*/
 
 	    sad.create_http_server(function(error, ok){
 		if(error!=null){
@@ -490,6 +492,8 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
     var handler_vector=[];
     handler_vector.push(path_build.__apis);
 
+    return result_cb(null,false);
+
     try{	    
 
 	var path_parts = url_parts.pathname.split("/");
@@ -510,13 +514,15 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
     }
 
     
-    var a,d=0,level_apis, hvl=handler_vector.length,lal;
+    var a,d=0,level_apis, hvl=handler_vector.length,lal,handled=0;
 
     function process_next_level(){
-	if(d==hvl)return;
+	if(d==hvl){
+	    return (handled>0)? result_cb(null, true) : result_cb(null, false);
+	}
 	level_apis=handler_vector[d]; d++;
 	if(ù(level_apis)) {
-	    console.log("Level "+(d)+" has no api to exec.");
+	    //console.log("Level "+(d)+" has no api to exec.");
 	    return process_next_level();
 	}
 	lal=level_apis.length;
@@ -528,23 +534,21 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 	    if(a==lal) return process_next_level();
 	    var api=level_apis[a]; a++;
 	    console.log("Level "+ (d)+"/"+hvl+" : execute API "+a+"/"+lal + " api type " + typeof api);
-	    
+	    handled++;
 	    api(request, response, function(error){
 		if(è(error)) return result_cb(error, true);
 		process_next_api();
 	    });	
 	}
 	catch (e){
-	    result_cb(e, true);
+	    return result_cb(e, true);
 	}
     }
-    
-    
 
-    if(handler_vector.length>0){
+    if(hvl>0){
 	console.log("["+url_parts.pathname+"] -> exec handler vector D="+handler_vector.length);
 	process_next_level();
-    }
+    }else result_cb(null, false);
 	
 }
 
@@ -640,17 +644,17 @@ _sadira.prototype.handle_request=function(request, response){
 	
 	try{
 	    
-	    //console.log("Trying proxy... " + request.connection.encrypted );
+	    sad.log("proxy request https? " + request.connection.encrypted );
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
-		    //console.log("Proxy https " + request.url);
-		    sadira.https_proxy.web(request, response);
+		    console.log("Proxy https " + request.url);
+		    sad.https_proxy.web(request, response);
 		    return;
 		}
 	    }else{
 		if(sad.options.http_proxy){
-		    //console.log("Proxy http " + request.url);
+		    console.log("Proxy http " + request.url);
 		    sad.http_proxy.web(request, response);
 		    return;
 		}
@@ -658,9 +662,9 @@ _sadira.prototype.handle_request=function(request, response){
 	}
 
 	catch (e){
-	    sad.log('Proxy error : ' + e);
+	    sad.log('Proxy error : ' + dump_error(e));
 	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Proxy error : " + err + "\n");
+	    response.write("Sadira : proxy error : " + e + "\n");
 	    response.end();
 	    return;
 	}
@@ -668,7 +672,7 @@ _sadira.prototype.handle_request=function(request, response){
 
 	if(! sad.options.file_server ){
 	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Really sorry : I don't know what to do with your request ! (No proxy & internal FS is OFF) ... Maybe, come back later?");
+	    response.write("Really sorry : I don't know what to do with your request ! (No proxy & internal FS is OFF)");
 	    response.end();
 	    return;
 	}
@@ -715,8 +719,9 @@ _sadira.prototype.handle_request=function(request, response){
 		
 		return;
 	    }
-	
-	    if (fs.statSync(filename).isDirectory()) filename += '/index.html';
+
+	    var fstat=fs.statSync(filename);
+	    if (fstat.isDirectory()) filename += '/index.html';
 	    
 	    fs.readFile(filename, "binary", function(err, file) {
 		
@@ -739,7 +744,8 @@ _sadira.prototype.handle_request=function(request, response){
 		    
 		}else
 		    console.log("Unknown extension" + path.extname(filename));
-		
+
+		headers["Content-Length"]=fstat.size;
 		//console.log('Serving ' + filename +' : headers : ' + JSON.stringify(headers) );
 		response.writeHead(200, headers);
 		response.write(file, "binary");
