@@ -1080,7 +1080,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     tpl_item.set_range=function(new_range){
 	selection.set_value(new_range);
-	brush.extent(new_range);
+	if(è(brush))brush.extent(new_range);
     };
 
     
@@ -1149,11 +1149,21 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    - margin.left - margin.right - 30;
 	
 	var height = ui_opts.height- margin.top - margin.bottom;
+
+	var s=window.getComputedStyle(tpl_item.parent.ui_root,null);
+	
+	width=get_inner_dim(s,false)-margin.left-margin.right;
+	height=get_inner_dim(s,true)-margin.top-margin.bottom;
+
 	console.log("UI w,h  = " + width + "," + height);
+	if(width<10 || height < 10){
+	    console.log("No room to draw histogram!");
+	    return;
+	}
+	//width=200; height=200;
+	
 	// var width = ui.clientWidth - margin.left - margin.right;
 	// var height = ui.clientHeight- margin.top - margin.bottom;
-	
-	
 	
 	var x = d3.scale.linear().range([0, width]).domain(selection.value);
 	var y = d3.scale.sqrt().range([height, 0]);
@@ -1175,7 +1185,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
 	var histo=this.value;
-	if(histo.length==0) return;
+	if(histo.length==0){
+	    console.log("No vector data !");
+	    return;
+	}
 	
 	x.domain(selection.value);//
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);

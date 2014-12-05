@@ -210,12 +210,12 @@ function xhr_query(query, result_cb, opts){
 	//console.log("Response Type [" + xhr.responseType + "] status ["+xhr.status+"] : " + xhr.statusText );
 
 	if(xhr.status==200){
-	    /*
+
 	    if(xhr.responseType=='arraybuffer'){
-		console.log("Received bytes "+ xhr.response.byteLength);
+		console.log("Received Binary bytes "+ xhr.response.byteLength);
 	    }else
-		console.log("Received txt "+ xhr.responseText);
-	    */
+		console.log("Received Text length "+ xhr.responseText.length);
+
 	    result_cb(null, (xhr.responseType=='arraybuffer') ?  xhr.response :  xhr.responseText);
 	}
 	else
@@ -249,7 +249,7 @@ function json_query(query, result_cb, opts){
 		data=JSON.parse(text_data);
 	    }
 	    catch (e){
-		return result_cb("json_query: JSON parse error " + e);
+		return result_cb("json_query: JSON parse error " + e + " ("+text_data+")");
 	    }
 
 	    /*

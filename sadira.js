@@ -25,17 +25,47 @@ GLOBAL.cors_headers = {
 };
 
 /*
+Write data sliced in chunks of 1kb. 
+data can be a buffer or a string.
+*/
+
+GLOBAL.write_chunked_data=function(res, data, result_cb){
+    
+    var l=typeof data === "string" ? Buffer.byteLength(data) : data.length;//, [encoding])  
+    var chunk_size=1024;
+    var bs=0;
+    function write_next_chunk(){
+	if(bs==l){res.end(); if(è(result_cb)) result_cb(null); return;}
+	var btw=bs+chunk_size<l? chunk_size: l-bs;
+	var chunk=data.slice(bs,bs+btw); bs+=btw;
+	//console.log("write chunk... " + bs + "/" + l);
+	if(res.write(chunk)) write_next_chunk();
+    }
+    res.on("drain",function(){
+	//console.log("write buffer drain....");
+	write_next_chunck();
+    });
+
+    write_next_chunk();
+
+}
+
+/*
   Replyes a cross-origin-friendly json text string and closes connection.
 */
 
-GLOBAL.reply_json=function(res,data){
+GLOBAL.reply_json=function(res,data,result_cb){
     var headers=cors_headers;
     var jstring=JSON.stringify(data);
+    //var l=jstring.length;
+    var l=Buffer.byteLength(jstring);//, [encoding])  
     headers["Content-Type"]='application/json';
-    headers["Content-Length"]=jstring.length;
+    headers["Content-Length"]=l;
     res.writeHead(200, headers);
-    res.write(jstring);
-    res.end();
+
+    write_chunked_data(res,jstring,result_cb);
+    //console.log("Sending JSON length = " + l);
+
 }
 
 /*
@@ -45,7 +75,6 @@ GLOBAL.reply_json=function(res,data){
 GLOBAL.get_json_parameters=function(req, key){
     if(ù(key))key="req";
     try{
-	
 	var url_parts = url.parse(req.url,true);	
 	return JSON.parse(url_parts.query[key]);
     }
@@ -515,7 +544,11 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
     
     var a,d=0,level_apis, hvl=handler_vector.length,lal,handled=0;
+    
+    function improve_response(res){
 
+    }
+    
     function process_next_level(){
 	if(d==hvl){
 	    return (handled>0)? result_cb(null, true) : result_cb(null, false);
@@ -563,7 +596,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
 
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
-    fs.readFile("/sadira/404.html", "binary", function(err, file) {
+    fs.readFile("www/sadira/404.html", "binary", function(err, file) {
 
 	response.writeHead(404, {"Content-Type": "text/html"});
 	

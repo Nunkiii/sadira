@@ -125,19 +125,19 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 
 	if (!floatTextures)
 	    return cb('WebGL is working, but it does not provide floating point texture on your system !\n\n :< \n\nTry with another video device &| drivers!');
-	gls.resize=function(w,h){
-	    canvas.width=w;
-	    canvas.height=h;
+	gls.resize=function(iw,ih){
+	    canvas.width=iw;
+	    canvas.height=ih;
 
-	    canvas2d.width=w;
-	    canvas2d.height=h;
+	    canvas2d.width=iw;
+	    canvas2d.height=ih;
 	    
 
 	    //canvas.focus();
-
+	    console.log("resize gl ("+iw+","+ih+")" + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
 	    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-	    gls.trigger("resize", { w : w, h: h} );
-	    //console.log("resize gl " + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
+	    gls.trigger("resize", { w : iw, h: ih} );
+	    
 
 	}
 	
