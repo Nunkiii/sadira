@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+
+<head>
+  <meta charset="utf-8"/> 
+  <script src="js/community/bson.js"></script>
+
+  <script src="js/utils.js"></script>
+  <script src="js/datagram.js"></script> 
+  <script src="js/serializer.js"></script> 
+  <script src="js/dialog.js"></script> 
+  <script src="js/db.js"></script>
+  <script src="js/db_basetypes.js"></script>
+  <script src="js/base_templates.js"></script> 
+  <script src="js/sadira.js"></script> 
+
+  <style type="text/css"> @import url("css/db.css"); </style>  
+</head>
+
+<body>
+  <script>
+    
+   var test_tpl={
+     //name : "Division test",
+     ui_opts : { child_view_type : "divider", root: true },
+     elements : {
+       left : {
+	 //name : "Left pane",
+	 type : "html", 
+	 url : "../about.html"
+	 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
+       },
+       right : {
+	 //name : "Right pane",
+	 ui_opts : { child_view_type : "divider", divdir : true },
+	 elements : {
+	   test1 : {
+	     //name : "Division SUB test 1",
+	     ui_opts : { child_view_type : "divider" },
+	     elements : {
+	       left : {
+		 name : "Left pane",
+		 type : "html", 
+		 url : "../about.html"
+		 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
+	       },
+	       right : {
+		 name : "Right pane",
+		 type : "html", 
+		 url : "../gloria-widget/about_gloria.html",
+		 elements : {
+		   
+		 }
+	       }
+	     }
+	       
+	   },
+	     test2 : {
+	     //name : "Division SUB-test 2",
+		 ui_opts : { child_view_type : "divider" },
+		 elements : {
+		     left : {
+			 name : "Left pane",
+			 type : "html", 
+			 url : "../about.html"
+			 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
+		     },
+		     right : {
+			 name : "Right pane",
+			 type : "html", 
+			 url : "../gloria-widget/about_gloria.html",
+			 elements : {
+			     
+			 }
+		     }
+		 }
+		 
+	     }
+	 }
+       }
+     }
+   };
+
+   window.sadira.listen("ready", function(){
+       console.log("Building....");
+       document.body.appendChild(create_ui({},test_tpl));
+       test_tpl.trigger("view_update");
+
+   });
+
+  </script>
+</body>
