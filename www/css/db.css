@@ -36,9 +36,13 @@ body{
 .db  {
   font-family: Ubuntu;  
   display: block;
-  height: calc( 100% - 15px);
-  /*
+  max-width: calc(100% - 2px);
+  max-height: calc(100% - 2px);
 
+
+
+  /*
+  height: calc( 100% - 15px);
   position: relative;
   
   font-family: sans-serif;
@@ -55,36 +59,43 @@ body{
 
 
 *::-webkit-scrollbar {  
+/*
   display: none; 
+*/
 }
 
 .db .db{
   /*
   height: calc(100% - 14px);
+  overflow-y: auto;
+  overflow-x: auto;
   */
+  
+  max-width: auto;
+  max-height: auto;
+
+  border: 2px solid rgba(10,10,10,.6);
+  
   display: inline-block;
   vertical-align: top;
   margin-left: 5px;
+  margin-right: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
-  border: 2px solid transparent;
-  padding: 0em;
-  overflow: auto;
+
 }
 
 .child_container {
   overflow-y: auto;
+  overflow-x: auto;
   border: 0px solid red;
   display: block;
   height: 100%;
-  overflow-y: auto;
   /*
 
   position: relative;
-  
   bottom: 0px;
   top: 0px;
-
   max-height: calc( 100% - 2.5em - 0px) ;
   display: inline-block;
   */
@@ -96,8 +107,16 @@ body{
 
 .db> .childs{
   display: block;
+  /*
   height: calc(100%);
+  */
+  max-height: calc(100%);
+  max-width: 100%;
   overflow: auto;
+  overflow-x:auto;
+}
+.db> .childs > .db{
+/*  height: auto;*/
 }
 .db .db>.childs{
   background: rgba(130,130,250,.1);
@@ -110,10 +129,12 @@ body{
 
 .divided>.child_container {
   display: inline-block;
-  overflow: auto;
-  width: 100%;
+ 
+
   position: relative;
   /*
+  width: 100%;
+  overflow: auto;
   max-height: 100%;
   position: absolute;
   bottom: 0px;
@@ -330,34 +351,50 @@ float: left;
 navigation
 */
 
-.tabbed_section{
-  background: yellow;
+.navcnt{
+  position: relative;
+  overflow: hidden;
+  overflow-x: scroll;
+  white-space : nowrap;
+  padding-top: .5em;
+  padding-bottom: .5em;
+  margin-left: 2em;
+  margin-right: 2em;
+  margin-top: .25em;
+  margin-bottom: .25em;
+  width: calc(100% - 4em);
+  height: 2.2em;
+  min-width: 3em;
+  /*
+  box-shadow : 0px 0px 5px red;
+*/
 }
 
-.db > nav.tabbed{
+.navcnt > nav.tabbed{
+  position: absolute;
+  top: 0px;
   list-style-type: none;
   vertical-align: middle;
-  overflow-x: auto;
-  overflow-y: hidden;
-  height: 5em;
-  line-height: 3.5em;
+  overflow: hidden;
+  
   white-space : nowrap;
-  margin-left: .5em;
-  margin-right: .5em;
-  margin-top: 1em;
-/*  background: rgba(180,100,47,.8);  
   padding-bottom: .5em;
-  margin-bottom: .3em;
   padding-top: .5em;
+  
+
+  /*
+  line-height: 2.5em;
+  background: rgba(180,100,47,.8);  
+  margin-bottom: .3em;
+
   margin-left: 1em;
-max-width: calc(100% - 1.5em);
   overflow: -moz-scrollbars-none;
 */
 
 
 }
 
-.db > nav > li{
+.navcnt > nav > li{
   text-align: center;
   display: inline-block;
   cursor: pointer;
@@ -365,35 +402,35 @@ max-width: calc(100% - 1.5em);
   text-overflow: ellipsis;
 }
 
-.db > nav > li.disabled { 
+.navcnt > nav > li.disabled { 
   display: none;
  }
 
-.db > nav::-webkit-scrollbar {  
+.navcnt::-webkit-scrollbar {  
   display: none; 
 }
 
-.db > nav.tabbed > li{
+.navcnt > nav.tabbed > li{
 
   text-align: center;
   display: inline-block;
 
-  padding-left: .2em;
-  padding-right: .2em;
+  padding-left: .6em;
+  padding-right: .4em;
+
   padding-top: .2em;
   padding-bottom: .2em;
+  
   font-size: 1.2em;
-  border-radius: 0em;
-  box-shadow: 0px 0px 4px black;
-
+  border-radius: .5em;
   margin-right: 1em;
   
   text-shadow : 0px 0px 1px black;
   color: white;
-  width: 10em;
-  background : rgba(50,50,50,.6);
+  background : rgba(50,50,50,.9);
 
   /*
+  width: 8em;
   text-shadow : 1px 1px 2px rgba(0,0,0,1.0);
   height: 3.0em;
   background: rgba(20,20,80,0.7);
@@ -403,14 +440,20 @@ max-width: calc(100% - 1.5em);
   */
 }
 
-.db > nav.bar > li{
+.navcnt > nav nav.tabbed > li{
+  background: none;
+}
+
+.navcnt > nav.bar > li{
   font-size: 1.5em;
 }
 
-.db > nav > li:hover{
-  background: linear-gradient(rgba(50,50,50,.3), rgba(20,20,50,0.7) 50%, rgba(8,5,13,0.7) ); 
+.navcnt > nav > li:hover{
+  box-shadow: 0px 0px 10px white;
+/*  background: linear-gradient(rgba(50,50,50,.3), rgba(20,20,50,0.7) 50%, rgba(8,5,13,0.7) ); */
 }
-.db > nav > li >.ico{
+.navcnt > nav > li >.ico{
+  font-size: .7em;
   position: relative;
   left: -.5em;
   width: 2em;
@@ -419,22 +462,22 @@ max-width: calc(100% - 1.5em);
   padding-right: .5em;
 }
 
-.db > nav.bar{
+.navcnt > nav.bar{
   padding-bottom : .2em;
   padding-top : .2em;
   
 }
-.db > nav.bar > li{
+.navcnt > nav.bar > li{
   background: none;
   padding: 0px;
 }
 
-.db > nav.bar > li > .dbname{
+.navcnt > nav.bar > li > .dbname{
   color: white;
   text-shadow: 0px 0px 2px black;
 }
 
-.db > nav > li.selected {
+.navcnt > nav > li.selected {
   /*
   background: rgba(100,255,100,0.2); 
   background: linear-gradient( rgba(2,3,50,.8), rgba(80,80,150,.8) ,rgba(28,53,200,0.8) );   
@@ -453,7 +496,7 @@ nav.tabbed{
 }
 
 
-.db > nav > li:hover{
+.navcnt > nav > li:hover{
 /*  background: rgba(200,255,200,0.9); 
 
 text-shadow: none;
@@ -494,9 +537,11 @@ Widget title
 */
 
 .dbname{
-  display: block;
+  display: inline-block;
+/*
   position: relative;
   margin-top: .5em;
+*/
 }
 
 .ico{ 
@@ -521,15 +566,33 @@ Widget title
 }
 
 
-.tab_section{
+.db .db .tab_section{
   overflow: auto;
-  max-height: calc(100% - 6.5em);
+  width: auto;
+  max-height: calc(100% - 6.5em);  
+/*  
+  border: 4px solid yellow;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+
+  width: calc(100% - 10px);
+*/
+  display: block;
+  vertical-align: top;
+}
+
+.tab_section::-webkit-scrollbar{
+  display: none;
 }
 
 .tab_section > .dbname > .title{
-  top: calc( 50% - .5em );
+  /*
+  top: 1em; 
+
   display: inline-block;
   position: absolute;
+*/
   vertical-align: middle;
   text-overflow: ellipsis;
   font-size: 1.5em;
@@ -711,7 +774,9 @@ intro
   opacity: .2;
 }
 
-
+.disabled { 
+  display: none;
+} 
 
 .info_icon{ 
   width: 2.5em;
@@ -796,30 +861,28 @@ intro
 }
 
 .db input[type="button"]{
+  color: white;
+  margin: 0px;
+  padding-left: .5em;
+  padding-right: .5em;
+  /*
+  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
+  border-radius: .4em;
+  text-shadow : 0px 0px 1px rgba(25,25,25,.9);
+  /*  color: black; */
 
-    
-    color: black;
-    margin: 0px;
-    padding-left: .5em;
-    padding-right: .5em;
-    text-weight: bold;
-    /*
-      
-       background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
-    border-radius: .4em;
-    /*  color: black; */
-    text-shadow : 0px 0px 1px rgba(250,250,250,.8);
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .db input[type="button"]:disabled{
-opacity: .2;
+  opacity: .2;
 }
 
 .db input[type="button"]:hover{
-    color: white;
-    background: rgba(20,20,200,.4);
-    text-shadow : 0px 0px 2px rgba(5,20,210,1);  
+  color: white;
+  background: rgba(20,20,200,.4);
+  text-weight: bold;
+  text-shadow : 0px 0px 2px rgba(5,20,210,1);  
 /*  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) ); */
 }
 
@@ -891,13 +954,47 @@ margin-left: 1em;
 }
 
 .db[data-type="text"]{
-  max-height: 25em;
+
+  /*
+  max-height: 20em;
+  max-width: 50%;
   word-wrap: break-word;
+  */
 }
+
+.db[data-type="text"]>.dbitem{
+  /*
+  border: 2px solid red;
+  height: 50%;
+  width: 50%;
+  display: inline-block;
+  */
+  overflow: auto;
+  max-width: 100%;
+}
+
+/*
+.db[data-type="text"]>.dbitem::-webkit-scrollbar{
+  display: block;
+} */ 
+
+.db[data-type="text"]>.dbitem >pre{
+  white-space: pre-wrap;
+}
+
+
 
 .db[data-type="action"]{
   display : inline-block;
 }
+
+.db[data-tpl="image_db_browser"]{
+  height: calc(100% - 5em);
+  margin-left: 25%;
+  width: 50%;
+  overflow-y: scroll;
+}
+
 
 .text{ 
   max-height: 20em;
@@ -945,14 +1042,33 @@ colormap
   display: inline-block;
 }
 
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
 /*
 WebGL + svg screen
 */
 
+.drawing_node{
+  overflow: hidden;
+/*
+  border: 5px solid green;
+*/
+  display: block;
+  height: calc(100% - 0px);
+  width: calc(100% - 0px);
+  position: relative;
+}
+
 .glscreen{
   /*
-  position: relative;
+  
   */
   width: 100%;
   height: 100%;
@@ -1037,3 +1153,12 @@ stroke: white;
   white-space: normal;
 }
 
+
+
+
+@media only screen and (max-device-width: 480px) {
+  body{
+    font-size: 3em;
+  }
+  
+}

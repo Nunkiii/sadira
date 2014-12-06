@@ -529,7 +529,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
 template_ui_builders.text=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("pre");
+    var div=tpl_item.ui=ce("div");
+    var ui=cc("pre",div);
     ui.add_class("text");
 
     tpl_item.set_value=function(nv){
@@ -563,6 +564,8 @@ template_ui_builders.text=function(ui_opts, tpl_item){
 	break;
     default: break;
     }
+
+    tpl_item.set_value();
     return tpl_item.ui;
 }
 

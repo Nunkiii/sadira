@@ -151,13 +151,13 @@ function divider(cnt, frac, or){
 
 	if(!mouseconf){
 	    mouseconf=true;
-	    console.log("Creating drag events");
+	    //console.log("Creating drag events");
 	    divnode.addEventListener('mousedown', function(e) {
 
 
 		e.preventDefault();
 		var last = ho? e.pageY : e.pageX;
-		console.log("DRAG BEGIN " + last);
+		//console.log("DRAG BEGIN " + last);
 		
 		document.documentElement.add_class('dragging');
 		document.documentElement.addEventListener('mousemove', on_move, true);
@@ -166,8 +166,10 @@ function divider(cnt, frac, or){
 		div.trigger("drag_start");
 		
 		function on_move(e) {
+		    
 		    e.preventDefault();
 		    e.stopPropagation();
+
 		    var pos=(ho ? e.pageY : e.pageX);
 		    var delta = pos - last;
 		    last = pos;
@@ -786,20 +788,21 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    this.add_child_com(e);
 	    if(è(ui_opts.divdir)) ho=ui_opts.divdir;
 
-	    if(typeof ui_childs.div=='undefined'){
-		ui_childs.div=ce("div"); 
-		ui_childs.div.className="childs";
+	    if(typeof ui_childs.divider=='undefined'){
+		//ui_childs.div=ce("div"); 
+		//ui_childs.div.className="childs";
 		
-		ui_childs.divider=new divider(ui_childs.div, 50,ho );
+		//ui_childs.divider=new divider(ui_childs.div, 50,ho );
+		ui_childs.divider=new divider(ui_root, 50,ho );
 
 		tpl_root.listen("view_update", function(){
-		    console.log("Divider "+tpl_root.name+" : View Update!");
+		    //console.log("Divider "+tpl_root.name+" : View Update!");
 		    ui_childs.divider.update();
 		    tpl_root.view_update_childs();
 		});
 
 		ui_childs.divider.listen("drag_end", function(){
-		    console.log("Divider "+tpl_root.name+" : DRAG View Update!");
+		    //console.log("Divider "+tpl_root.name+" : DRAG View Update!");
 		    //ui_childs.divider.update();
 		    tpl_root.view_update_childs();
 		});
@@ -810,29 +813,30 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    add_classes(ui_opts.child_classes, ui_childs.div);
 		}
 		
-		ui_root.appendChild(ui_childs.div);
-		sliding_stuff.push(ui_childs.div);
-		ui_childs.div.add_class(ho?"h":"v");
+		//ui_root.appendChild(ui_childs.div);
+		//sliding_stuff.push(ui_childs.div);
+		//ui_childs.div.add_class(ho?"h":"v");
+		ui_root.add_class(ho?"h":"v");
 		
 		on_ui_childs_ready();
 	    }
 
 
 	    e.parent=tpl_root;
-	    prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+	    prep ? ui_root.prependChild(ui) : ui_root.appendChild(ui);
 
 	    if(ù(ui_childs.divider.left)){
 		ui_childs.divider.left=ui;
 		ui.add_class("divided");
 		ui.add_class("one");
-		var divnode = ui_childs.divider.divnode=cc('div',ui_childs.div);
+		var divnode = ui_childs.divider.divnode=cc('div',ui_root);
 		divnode.add_class("divider_bar");
 		var divnode_rotate=cc("span",divnode); divnode_rotate.add_class("divnode_rotate");
 		divnode_rotate.innerHTML="↴"; 
 		divnode_rotate.addEventListener("click", function(){
-		    ui_childs.div.remove_class(ho?"h":"v");
+		    ui_root.remove_class(ho?"h":"v");
 		    ho=!ho;
-		    ui_childs.div.add_class(ho?"h":"v");
+		    ui_root.add_class(ho?"h":"v");
 		    ui_childs.divider.set_orientation(ho);
 		    tpl_root.trigger("view_update");
 		})
@@ -852,11 +856,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_childs.replace_child=function(nctpl){
 	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
 	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    ui_root.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
 	}
 	
 	ui_childs.remove_child=function(e){
-	    ui_childs.div.removeChild(e.ui_root);
+	    ui_root.removeChild(e.ui_root);
 	}
 
 	break;
@@ -995,8 +999,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//var div=this.div=ce("div"); 
 	//div.className="tab_widget";
 	//    add_classes(classes,div)
-	
-	var nav=this.nav=cc("nav",ui_root);
+
+	var navcnt=cc("div",ui_root); navcnt.className="navcnt";
+	var nav=this.nav=cc("nav",navcnt);
 	var cnt=this.cnt=cc("div", ui_root);
 
 	nav.add_class(cvtype);

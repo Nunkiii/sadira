@@ -17,16 +17,76 @@
 </head>
 
 <body>
+  <div id="debello" style="display: none;">
+L. Domitio Ap. Claudio consulibus, discedens ab hibernisCaesar in Italiam, ut quotannis facere consuerat, legatis imperat
+quos legionibus praefecerat uti quam plurimas possent hieme naves aedificandasveteresque reficiendas curarent. Earum modum
+formamque demonstrat. Ad celeritatem onerandi subductionesque paulo facithumiliores quam quibus in nostro mari uti
+consuevimus, atque id eo magis, quod propter crebras commutationes aestuum minusmagnos ibi fluctus fieri cognoverat; ad
+onera, ad multitudinem iumentorum transportandam paulo latiores quam quibus inreliquis utimur maribus. Has omnes actuarias
+imperat fieri, quam ad rem multum humilitas adiuvat. Ea quae sunt usui adarmandas naves ex Hispania apportari iubet. Ipse
+conventibus Galliae citeribris peractis in Illyricum proficiscitur, quod aPirustis finitimam partem provinciae incursionibus vastari
+audiebat. Eo cum venisset, civitatibus milites imperat certumque in locumconvenire iubet. Qua re nuntiata Pirustae legatos ad
+eum mittunt qui doceant nihil earum rerum publico factum consilio, sesequeparatos esse demonstrant omnibus rationibus de
+iniuriis satisfacere. Accepta oratione eorum Caesar obsides imperat eosque adcertam diem adduci iubet; nisi ita fecerint, sese
+bello civitatem persecuturum demonstrat. Eis ad diem adductis, ut imperaverat,arbitros inter civitates dat qui litem aestiment
+poenamque constituant.
+
+[2] His confectis rebus conventibusque peractis, in citerioremGalliam revertitur atque inde ad exercitum proficiscitur. Eo cum
+venisset, circuitis omnibus hibernis, singulari militum studio in summa omniumrerum inopia circiter sescentas eius generis cuius
+supra demonstravimus naves et longas XXVIII invenit instructas neque multumabesse ab eo quin paucis diebus deduci possint.
+Collaudatis militibus atque eis qui negotio praefuerant, quid fieri velitostendit atque omnes ad portum Itium convenire iubet, quo
+ex portu commodissimum in Britanniam traiectum esse cognoverat, circiter miliumpassuum XXX transmissum a continenti:
+huic rei quod satis esse visum est militum reliquit. Ipse cum legionibusexpeditis IIII et equitibus DCCC in fines Treverorum
+proficiscitur, quod hi neque ad concilia veniebant neque imperio parebantGermanosque Transrhenanos sollicitare dicebantur.
+
+[3] Haec civitas longe plurimum totius Galliae equitatu valetmagnasque habet copias peditum Rhenumque, ut supra
+demonstravimus, tangit. In ea civitate duo de principatu inter se contendebant,Indutiomarus et Cingetorix; e quibus alter, simul
+atque de Caesaris legionumque adventu cognitum est, ad eum venit, se suosqueomnes in officio futuros neque ab amicitia
+populi Romani defecturos confirmavit quaeque in Treveris gererentur ostendit. AtIndutiomarus equitatum peditatumque cogere,
+eisque qui per aetatem in armis esse non poterant in silvam Arduennam abditis,quae ingenti magnitudine per medios fines
+Treverorum a flumine Rheno ad initium Remorum pertinet, bellum parare instituit.Sed posteaquam nonnulli principes ex ea
+civitate et familiaritate Cingetorigis adducti et adventu nostri exercitusperterriti ad Caesarem venerunt et de suis privatim rebus
+ab eo petere coeperunt, quoniam civitati consulere non possent, veritus ne abomnibus desereretur Indutiomarus legatos ad
+Caesarem mittit: sese idcirco ab suis discedere atque ad eum venire noluisse,quo facilius civitatem in officio contineret, ne
+omnis nobilitatis discessu plebs propter imprudentiam laberetur: itaque essecivitatem in sua potestate, seseque, si Caesar
+permitteret, ad eum in castra venturum, suas civitatisque fortunas eius fideipermissurum.
+
+[4] Caesar, etsi intellegebat qua de causa ea dicerenturquaeque eum res ab instituto consilio deterreret, tamen, ne aestatem in
+Treveris consumere cogeretur omnibus ad Britannicum bellum rebus comparatis,Indutiomarum ad se cum CC obsidibus venire
+iussit. His adductis, in eis filio propinquisque eius omnibus, quos nominatimevocaverat, consolatus Indutiomarum hortatusque
+est uti in officio maneret; nihilo tamen setius principibus Treverorum ad seconvocatis hos singillatim Cingetorigi conciliavit,
+quod cum merito eius a se fieri intellegebat, tum magni interesse arbitrabatureius auctoritatem inter suos quam plurimum valere,
+cuius tam egregiam in se voluntatem perspexisset. Id tulit factum graviterIndutiomarus, suam gratiam inter suos minui, et, qui
+iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
+  </div>
+
   <script>
     
    var test_tpl={
-     //name : "Division test",
+     //name : "Sadira toolkit layout test",
      ui_opts : { child_view_type : "divider", root: true },
      elements : {
        left : {
-	 //name : "Left pane",
-	 type : "html", 
-	 url : "../about.html"
+	 name : "Left panel",
+	 //type : "html", 
+	 //url : "../about.html",
+	 elements : {
+	   x : {
+	     name : "Test String", type : "string", value : "Hello World!"
+	   },
+	   y : {
+	     name : "Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01
+	   },
+	   z : {
+	     name : "Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01
+	   },
+	   t : {
+	     name : "Raw text Area",
+	     type : "text",
+	     value : document.getElementById("debello").textContent
+	   }
+	   
+	 }
 	 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
        },
        right : {
