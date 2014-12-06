@@ -1144,19 +1144,21 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	if(typeof v!='undefined')tpl_item.value=v;
 	this.redraw();
     }
-
+    var height;
+    
     tpl_item.redraw=function(){
 
 	var margin = ui_opts.margin;
-	var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
-	    - margin.left - margin.right - 30;
+	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
+	  //  - margin.left - margin.right - 30;
 	
-	var height = ui_opts.height- margin.top - margin.bottom;
-
-	var s=window.getComputedStyle(tpl_item.parent.ui_root,null);
+	height = ui_opts.height- margin.top - margin.bottom;
 	
-	width=get_inner_dim(s,false)-margin.left-margin.right;
-	height=get_inner_dim(s,true)-margin.top-margin.bottom;
+	var s=window.getComputedStyle(tpl_item.ui_root,null);
+	
+	var width=get_inner_dim(s,false)-margin.left-margin.right;
+	//if(ù(height))
+	//height=get_inner_dim(s,true)-margin.top-margin.bottom;
 
 	console.log("UI w,h  = " + width + "," + height);
 	if(width<10 || height < 10){
@@ -1180,7 +1182,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    .y0(height)
 	    .y1(function(d) { return y(d); });
 	
-	
+	//var margin={left: "1em", right: "1em", top: "1em", bottom: "1em"};
 	svg.select("g").remove();
 	svg.attr("width", width + margin.left + margin.right);
 	svg.attr("height", height + margin.top + margin.bottom);

@@ -74,8 +74,8 @@ body{
   max-width: auto;
   max-height: auto;
 
-  border: 2px solid rgba(10,10,10,.6);
-  
+  border: 2px solid rgba(10,10,10,0.0);
+
   display: inline-block;
   vertical-align: top;
   margin-left: 5px;
@@ -91,6 +91,8 @@ body{
   border: 0px solid red;
   display: block;
   height: 100%;
+  width: 100%
+
   /*
 
   position: relative;
@@ -109,7 +111,12 @@ body{
   display: block;
   /*
   height: calc(100%);
+  padding-left: 1em;
+  padding-right: 1em;
+
   */
+  padding: 1em;
+  
   max-height: calc(100%);
   max-width: 100%;
   overflow: auto;
@@ -120,6 +127,7 @@ body{
 }
 .db .db>.childs{
   background: rgba(130,130,250,.1);
+  border-radius: .3em;
 }
 
 /*
@@ -358,19 +366,20 @@ navigation
   white-space : nowrap;
   padding-top: .5em;
   padding-bottom: .5em;
-  margin-left: 2em;
-  margin-right: 2em;
+
   margin-top: .25em;
   margin-bottom: .25em;
-  width: calc(100% - 4em);
+  width: calc(100% - 0px);
   height: 2.2em;
   min-width: 3em;
   /*
   box-shadow : 0px 0px 5px red;
+  margin-left: 2em;
+  margin-right: 2em;
 */
 }
 
-.navcnt > nav.tabbed{
+.navcnt > nav{
   position: absolute;
   top: 0px;
   list-style-type: none;
@@ -445,7 +454,7 @@ navigation
 }
 
 .navcnt > nav.bar > li{
-  font-size: 1.5em;
+  font-size: 1.2em;
 }
 
 .navcnt > nav > li:hover{
@@ -538,7 +547,8 @@ Widget title
 
 .dbname{
   display: inline-block;
-/*
+  margin-right: 1em;
+  /*
   position: relative;
   margin-top: .5em;
 */
@@ -554,6 +564,8 @@ Widget title
 
 .dbname > .title{
   display: inline-block;
+  font-size : 1.2em;
+  font-weight: bold;
 }
 
 .dbname > span{
@@ -719,7 +731,10 @@ intro
   font-style: "italic"
 }
 
-
+.db.tab_section > .dbname{
+  background: rgba(100,200,200,.5);
+  padding: .3em;
+}
 
 .db .intro { 
   padding: .5em;
@@ -995,6 +1010,10 @@ margin-left: 1em;
   overflow-y: scroll;
 }
 
+.db[data-tpl="vector"]{
+
+}
+
 
 .text{ 
   max-height: 20em;
@@ -1113,10 +1132,15 @@ d3 vector shape
 }
 
 .axis text {
-/*   color: black; */
-font-size: .7em;
-font-weight: normal;
-stroke: white; 
+  /*
+  color: black; 
+  
+  
+  */
+  font-weight: normal;
+  font-size: .8em;
+  font-family: sans;
+  stroke: white; 
 }
 
 .line {
@@ -1152,9 +1176,6 @@ stroke: white;
 .hscroll_item {
   white-space: normal;
 }
-
-
-
 
 @media only screen and (max-device-width: 480px) {
   body{

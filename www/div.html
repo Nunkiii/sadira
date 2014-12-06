@@ -90,18 +90,18 @@ iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
 	 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
        },
        right : {
+	 name : "Right Panel",
 	 //name : "Right pane",
 	 ui_opts : { child_view_type : "divider", divdir : true },
 	 elements : {
 	   test1 : {
-	     //name : "Division SUB test 1",
+	     name: "First Sub Panel",
 	     ui_opts : { child_view_type : "divider" },
 	     elements : {
 	       left : {
 		 name : "Left pane",
 		 type : "html", 
 		 url : "../about.html"
-		 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
 	       },
 	       right : {
 		 name : "Right pane",
@@ -114,10 +114,10 @@ iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
 	     }
 	       
 	   },
-	     test2 : {
+	   test2 : {
 	     //name : "Division SUB-test 2",
 		 ui_opts : { child_view_type : "divider" },
-		 elements : {
+	         elements : {
 		     left : {
 			 name : "Left pane",
 			 type : "html", 

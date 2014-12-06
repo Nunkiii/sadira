@@ -881,10 +881,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    this.add_child_com(e);
 	    //console.log("BAR add child on " + ui_childs.div.nodeName);
+
 	    if(typeof ui_childs.div=='undefined'){
-		nav=tpl_root.nav=ce("nav");
+
+		var navcnt=cc("div",ui_root); navcnt.className="navcnt";
+		nav=tpl_root.nav=cc("nav",navcnt);
+		//nav=tpl_root.nav=ce("nav");
 		nav.add_class(cvtype);
-		ui_root.appendChild(nav);
+		//ui_root.appendChild(navcnt);
 		
 		if(ui_opts.bar){
 		    nav.appendChild(ui_name);
