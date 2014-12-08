@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8"/> 
   <script src="js/community/bson.js"></script>
-
+  <script src="js/community/d3.v3.min.js"></script>
+  
   <script src="js/utils.js"></script>
   <script src="js/datagram.js"></script> 
   <script src="js/serializer.js"></script> 
@@ -68,22 +69,76 @@ iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
      elements : {
        left : {
 	 name : "Left panel",
+	 ui_opts : { child_view_type : "tabbed"},
+	 intro : "Left panel with tabbed childs.",
 	 //type : "html", 
 	 //url : "../about.html",
 	 elements : {
 	   x : {
-	     name : "Test String", type : "string", value : "Hello World!"
+	     name : "An exaample string", type : "string", value : "Hello World!",
+	     intro : "A long description of this string item ... ",
+	     ui_opts : { type : "edit" }
 	   },
 	   y : {
-	     name : "Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01
+	     name : "Vector display test",
+	     type : "template", template_name : "vector",
+	     value : [0,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0,10,100,200,500,700,1000,2000,3000,4000,5000,2000,1000,100]
 	   },
 	   z : {
-	     name : "Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01
+	     name : "Another Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01,
+	     ui_opts : { type : "edit" }
 	   },
 	   t : {
 	     name : "Raw text Area",
 	     type : "text",
 	     value : document.getElementById("debello").textContent
+	   },
+	   tabbed_thing: {
+	     name : "Tabbed widget",
+	     intro : "This is a <i>tabbed</i>  child widget layout !",
+	     ui_opts : { child_view_type : "tabbed"},
+	     elements : {
+	       tab1 : {
+		 name : "Tab One",
+		 type : "string",
+		 value : "Def value !",
+		 intro : "Some text areas ...",
+		 elements : {
+		   t0 : {
+		     name : "Raw text Area 1",
+		     type : "text",
+		     value : document.getElementById("debello").textContent
+		   },
+		   t1 : {
+		     name : "Raw text Area 2",
+		     type : "text",
+		     value : document.getElementById("debello").textContent
+		   },
+		   t2 : {
+		     name : "Raw text Area 3",
+		     type : "text",
+		     value : document.getElementById("debello").textContent
+		   }
+		 }
+	       },
+	       tab2 : {
+		 name : "Tab Two",
+		 type : "string",
+		 value : "Def value !"
+	       },
+	       tab3 : {
+		 name : "Tab Tree",
+		 type : "string",
+		 value : "Def value !"
+	       },
+	       tab4 : {
+		 name : "Tab Four",
+		 type : "string",
+		 value : "Def value !"
+	       }
+	     }
+
+
 	   }
 	   
 	 }
@@ -99,9 +154,9 @@ iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
 	     ui_opts : { child_view_type : "divider" },
 	     elements : {
 	       left : {
-		 name : "Left pane",
-		 type : "html", 
-		 url : "../about.html"
+		 name : "Vector display test",
+		 type : "template", template_name : "vector",
+		 value : [0,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0]
 	       },
 	       right : {
 		 name : "Right pane",
@@ -141,10 +196,11 @@ iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
    };
 
    window.sadira.listen("ready", function(){
-       console.log("Building....");
-       document.body.appendChild(create_ui({},test_tpl));
-       test_tpl.trigger("view_update");
-
+     console.log("Building....");
+     var test=tmaster.build_template(test_tpl);
+     document.body.appendChild(create_ui({},test));
+     test.trigger("view_update");
+     
    });
 
   </script>

@@ -62,7 +62,24 @@ var base_templates={
 	    }
 	}
 
+    },
+    vector : {
+	name : "Vector view",
+	tpl_builder: "vector",
+	elements :{
+	    selection : {
+		type : "labelled_vector",
+		name : "Selection",
+		value_labels : ["Begin","End"],
+		value : [0, 0],
+		ui_opts: {root_classes : ["newline"]},
+	    },
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:[], sliding : false}},  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:[]}}
+	}
     }
+    
+    
 };
 
 

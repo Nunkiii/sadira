@@ -541,9 +541,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(typeof tpl_root.tip != 'undefined'){
 	    //tpl_root.ui_name.add_class("tooltip");
 	    //ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
+
+	    ui_name.setAttribute("title", tpl_root.tip);
+	    //ui_name.add_class("tip");
 	    
-	    var tip=cc("span",ui_root);
-	    tip.innerHTML= tpl_root.tip;
+	    //var tip=cc("span",ui_name); tip.className="tip";
+	    //tip.innerHTML= tpl_root.tip;
 	}
 
 	tpl_root.listen("name_changed", function(title){
@@ -733,7 +736,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	return true;
     }
 
-    ui_root.add_class(cvtype);
+    //ui_root.add_class(cvtype);
 
 
     switch(cvtype){

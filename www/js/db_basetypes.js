@@ -486,6 +486,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    if(è(tpl_item.value))
 		ui.innerHTML=tpl_item.value;
+	    else
+		ui.innerHTML="?";
 	}
 
 	tpl_item.set_value();
@@ -1126,19 +1128,21 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     
     var ui=tpl_item.ui=ce("div");
-
     var bn=d3.select(ui);
 //    d3.select("svg").remove();
-
     var brg=null;
 //    var xmarg, xw, ymarg;
     
     // if(typeof svg!='undefined')
     // 	if(ui.hasChild(svg))
     // 	    ui.removeChild(svg);
-    
-    svg = bn.append('svg');
-	//base_node.appendChild(svg.ownerSVGElement);
+
+
+    var vw=500, vh=250;
+    svg = bn.append('svg')
+	.attr("viewBox", "0 0 "+vw+" "+vh)
+	.attr("preserveAspectRatio", "xMinYMin meet");
+    //base_node.appendChild(svg.ownerSVGElement);
 	
     tpl_item.set_value=function(v){
 	if(typeof v!='undefined')tpl_item.value=v;
@@ -1148,19 +1152,19 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     
     tpl_item.redraw=function(){
 
-	var margin = ui_opts.margin;
+	var margin = {top: 10, right: 10, bottom: 50, left: 60}; //ui_opts.margin;
 	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
-	  //  - margin.left - margin.right - 30;
+	var width=vw - margin.left - margin.right;
+	var height = vh- margin.top - margin.bottom;
 	
-	height = ui_opts.height- margin.top - margin.bottom;
+//	var s=window.getComputedStyle(tpl_item.ui_root,null);
 	
-	var s=window.getComputedStyle(tpl_item.ui_root,null);
-	
-	var width=get_inner_dim(s,false)-margin.left-margin.right;
+//	var width=get_inner_dim(s,false)-margin.left-margin.right;
 	//if(ù(height))
 	//height=get_inner_dim(s,true)-margin.top-margin.bottom;
-
+//	var height=vh; var width=vw;
 	console.log("UI w,h  = " + width + "," + height);
+	
 	if(width<10 || height < 10){
 	    console.log("No room to draw histogram!");
 	    return;
@@ -1184,8 +1188,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
 	//var margin={left: "1em", right: "1em", top: "1em", bottom: "1em"};
 	svg.select("g").remove();
-	svg.attr("width", width + margin.left + margin.right);
-	svg.attr("height", height + margin.top + margin.bottom);
+	//svg.attr("width", width + margin.left + margin.right);
+	//svg.attr("height", height + margin.top + margin.bottom);
 
 	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
@@ -1307,6 +1311,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	// gBrush.selectAll(".resize").append("path").attr("d", resizePath);
 	
     }
+    tpl_item.redraw();
     return tpl_item.ui;
 }
 

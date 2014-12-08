@@ -7,6 +7,15 @@ Main Sadira toolkit CSS template
   margin: 0px;
   padding: 0px;
   border: 0px;
+
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
 }
 
 html,body{ 
@@ -38,7 +47,7 @@ body{
   display: block;
   max-width: calc(100% - 2px);
   max-height: calc(100% - 2px);
-
+  overflow: hidden;
 
 
   /*
@@ -54,7 +63,7 @@ body{
   position: relative;
   max-width: calc(100% - .5em); 
   */
-  overflow: hidden;
+
 } 
 
 
@@ -69,8 +78,9 @@ body{
   height: calc(100% - 14px);
   overflow-y: auto;
   overflow-x: auto;
+  position: relative;
   */
-  
+
   max-width: auto;
   max-height: auto;
 
@@ -85,10 +95,17 @@ body{
 
 }
 
+.childs .childs {
+  font-size: 95%;
+}
+
 .child_container {
+
   overflow-y: auto;
   overflow-x: auto;
   border: 0px solid red;
+  margin: 0px;
+  padding: 0px;
   display: block;
   height: 100%;
   width: 100%
@@ -103,20 +120,26 @@ body{
   */
 }
 
-.db.inline{ 
+.db.db.newline{
+  display: block;
+}
+.db.inline{
+  /*
   display: inline-block;
+*/
 } 
 
 .db> .childs{
-  display: block;
+  display: inline-block;
   /*
   height: calc(100%);
   padding-left: 1em;
   padding-right: 1em;
 
   */
-  padding: 1em;
-  
+  padding: 0px;
+  margin: 0px;
+  padding-bottom: 1em;
   max-height: calc(100%);
   max-width: 100%;
   overflow: auto;
@@ -126,7 +149,7 @@ body{
 /*  height: auto;*/
 }
 .db .db>.childs{
-  background: rgba(130,130,250,.1);
+  background: rgba(30,30,30,.3);
   border-radius: .3em;
 }
 
@@ -334,8 +357,9 @@ float: left;
   display: inline-block;
   vertical-align: middle;
   text-align : left;
-
-  /*  line-height: 2em; 
+  /*
+  line-height: 2em; 
+  height: 100%;
   margin-left : .2em;
   padding-left: .5em;
   padding-right: .5em;
@@ -362,7 +386,7 @@ navigation
 .navcnt{
   position: relative;
   overflow: hidden;
-  overflow-x: scroll;
+  overflow-x: auto;
   white-space : nowrap;
   padding-top: .5em;
   padding-bottom: .5em;
@@ -548,6 +572,7 @@ Widget title
 .dbname{
   display: inline-block;
   margin-right: 1em;
+  vertical-align: top;
   /*
   position: relative;
   margin-top: .5em;
@@ -560,12 +585,14 @@ Widget title
 }
 
 .dbname > img {
+  width : 2em;
 }
 
 .dbname > .title{
   display: inline-block;
   font-size : 1.2em;
   font-weight: bold;
+  vertical-align: top;
 }
 
 .dbname > span{
@@ -688,8 +715,11 @@ sliding
 }
 
 .db .un_editable{
+  /*
   background : rgba(150,180,255,.1);
   padding : .5em;
+*/
+
 }
 
 .db .editable .dbname:hover{
@@ -781,6 +811,37 @@ intro
 
 }
 
+/*
+
+Text input
+
+*/
+
+.db input{
+  height: 100%;
+  padding: .3em;
+
+  /*
+  border: 1px solid red;
+  */
+  
+}
+.db input[type="checkbox"]{
+  padding: 0em;
+  height: auto;
+  border: 0px;
+  box-shadow: none;                       
+  -ms-transform: scale(1.5); /* IE */
+  -moz-transform: scale(1.5); /* FF */
+  -webkit-transform: scale(1.5); /* Safari and Chrome */
+  -o-transform: scale(1.5); /* Opera */
+}
+
+
+
+.db input[type="text"]:disabled{
+}
+
 .db input[type="button"]:disabled{
   opacity: .2;
 }
@@ -789,7 +850,7 @@ intro
   opacity: .2;
 }
 
-.disabled { 
+.db.disabled { 
   display: none;
 } 
 
@@ -839,15 +900,6 @@ intro
   margin-right: .4em;
   border: 3px solid red;
   box-shadow: none;                       
-}
-
-.db input[type="checkbox"]{
-  border: 0px;
-  box-shadow: none;                       
-  -ms-transform: scale(1.5); /* IE */
-  -moz-transform: scale(1.5); /* FF */
-  -webkit-transform: scale(1.5); /* Safari and Chrome */
-  -o-transform: scale(1.5); /* Opera */
 }
 
 .db .color_container{
@@ -988,6 +1040,16 @@ margin-left: 1em;
   max-width: 100%;
 }
 
+.db[data-tpl="vector"]{
+    width: calc(100% - 1em);
+}
+.db[data-tpl="vector"]>.dbitem{
+  width:100%;
+}
+.db[data-tpl="vector"]>.dbitem>svg{
+  width:100%;
+  max-height: 20em;
+}
 /*
 .db[data-type="text"]>.dbitem::-webkit-scrollbar{
   display: block;
@@ -1015,6 +1077,62 @@ margin-left: 1em;
 }
 
 
+/* 
+colormap 
+
+*/
+.db[data-type="colormap"]{
+/*
+width: calc(100% - 2em);
+*/
+}
+.db[data-type="colormap"].un_editable{
+ width: calc(100% - 2em);
+}
+.db[data-type="colormap"].un_editable>.dbitem{
+ width: calc(100% - 10px);
+}
+
+.db[data-type="colormap"]>.dbitem>.colormap{
+  height: 2em;
+  min-width: 8em;
+}
+
+.db[data-type="colormap"]>.dbitem>div{
+  width: calc(100% - 1em);
+  margin-left: .5em;
+}
+
+.db[data-type="colormap"]>.dbitem>div> .colormap{
+  /*
+  display: block;
+  margin-top: 2em;
+  */
+
+  position: relative;
+  height: 2em;
+  padding-bottom: .5em;
+}
+
+.db[data-type="colormap"]>.dbitem .colormap_select_div{
+  position: absolute;
+  pointer-events: none;
+  border-top: 2px solid lightgrey;
+  top: 0px;
+
+  border-bottom: 2px solid lightgrey;
+  height: calc(2.0em + 4px);
+  box-shadow : 0px 0px 5px white;
+}
+
+.db[data-type="colormap"]>.dbitem>.cmap_axe{
+  width: 100%;
+}
+
+.g.cmap_axe{
+  stroke-size: 1em;
+}
+
 .text{ 
   max-height: 20em;
   width: 100%;
@@ -1032,30 +1150,6 @@ margin-left: 1em;
 }
 
 
-/* 
-colormap 
-
-*/
-
-.colormap { 
-  width: 100%;
-
-}
-.colormap > div{
-  position: relative;
-  display: block;
-  height: 3em;
-  min-width: 5em;
-}
-
-
-.colormap_select_div{
-  position: absolute;
-  pointer-events: none;
-  top: 0px;
-  height: 3.8em;
-  box-shadow : 0px 0px 15px rgba(255,255,255,1.0);
-}
 
 .plot_container > svg { 
   display: inline-block;
@@ -1134,13 +1228,16 @@ d3 vector shape
 .axis text {
   /*
   color: black; 
-  
-  
-  */
   font-weight: normal;
   font-size: .8em;
   font-family: sans;
-  stroke: white; 
+  stroke: white;
+  stroke-width: 1px;
+  fill: none;
+  */
+  fill: white;
+  font: 10px sans-serif;
+
 }
 
 .line {
@@ -1176,6 +1273,65 @@ d3 vector shape
 .hscroll_item {
   white-space: normal;
 }
+
+/*
+Tooltip stuff
+*/
+
+
+.tip{
+  display: inline;
+  position: relative;
+  /*
+  color: purple;
+  */
+}
+
+/*
+.tip::after{
+  opacity: 0.0;
+  -webkit-transition:opacity 0.4s ease-out;  
+  -moz-transition:opacity 0.4s ease-out;  
+  -o-transition:opacity 0.4s ease-out;  
+  transition:opacity 0.4s ease-out; 
+  text-shadow : 0px 0px 1px rgba(0,0,0,1.0);
+  z-index: 777;
+
+}
+*/
+
+.tip:hover::after{
+  background: #333;
+  background: rgba(0,0,0,.8);
+  border-radius: 5px;
+  color: #fff;
+  content: attr(title);
+  padding: 5px 15px;
+  position: absolute;
+  z-index: 98;
+  width: 220px;
+
+  /*
+  bottom: 26px;
+  left: 20%;
+  */
+
+}
+
+.tip:hover:before{
+  border: solid;
+  border-color: #333 transparent;
+  border-width: 6px 6px 0 6px;
+  bottom: 20px;
+  content: "";
+  left: 50%;
+  position: absolute;
+  z-index: 99;
+}
+
+/*
+Little screen setup
+*/
 
 @media only screen and (max-device-width: 480px) {
   body{

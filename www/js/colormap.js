@@ -45,11 +45,11 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
     var o,i,b,rng,uniform,split;
     
-    cmap.selected_section=0;
+    cmap.selected_section=-1;
     
     var cmap_plot=cmap.cmap_plot=ce('div');
     cmap.domnode=cc('div', cmap_plot);
-    cmap_plot.className="colormap";
+    cmap.domnode.className="colormap";
     
     new_event(cmap,"colormap_changed");
     
@@ -107,10 +107,18 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    
 	    if(cid>1) bn[0]=cmap.value[cid-1][4];
 	    if(cid<cmap.value.length) bn[1]=cmap.value[cid+1][4];
-	    
+
+	    if(cid>2)
+		if(cmap.value[cid-1][4]==cmap.value[cid-2][4])
+		    cmap.value[cid-2][4]=this.value[0];
 	    cmap.value[cid-1][4]=this.value[0];
+
+	    if(cid<cmap.value.length-1)
+		if(cmap.value[cid+1][4]==cmap.value[cid][4])
+		    cmap.value[cid+1][4]=this.value[1];
 	    cmap.value[cid][4]=this.value[1];
-	    cmap.update_colors();	    
+	    cmap.update_colors();
+	    cmap.update_select_div();
 	}
 	
 	function update_range(){
@@ -198,22 +206,31 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    
 	}, true);
 
-	cmap.display_color_section = function (cid){
+	var cs_start, cs_end, cs_range;
+	
+	cmap.update_select_div=function(cid){
+	    if(ù(cid)) cid=cmap.selected_section;
+	    cs_start=this.value[cid-1][4];
+	    cs_end=this.value[cid][4];
+	    cs_range=cs_end-cs_start;
 	    
+	    console.log("color sec : " + cid + " start " + cs_start*1.0 );
+	    
+	    this.select_div.style.width=this.domnode.offsetWidth*cs_range-2+"px";
+	    this.select_div.style.left=this.domnode.offsetWidth*cs_start+"px";
+	    
+	    rng.set_value([cs_start, cs_end]);
+	    
+	}
+	
+	cmap.display_color_section = function (cid){
+	    if(cid===0) cid=1;
+	    console.log("Display color section " + cid + " nvalues = " + this.value.length + " othernv " + cmap.value.length);
 	    if(typeof rng=='undefined') return;
 
 	    cmap.selected_section=cid; 
 	    
-	    var start=this.value[cid-1][4];
-	    var end=this.value[cid][4];
-	    var range=end-start;
-	    
-	    console.log("color sec : " + cid + " start " + start*1.0 );
-	    
-	    this.select_div.style.width=this.domnode.offsetWidth*range-2+"px";
-	    this.select_div.style.left=this.domnode.offsetWidth*start+"px";
-	    
-	    rng.set_value([start, end]);
+	    cmap.update_select_div();
 	    
 	    for(var d=0;d<2;d++){	    
 		o[d].si=-1;
@@ -233,7 +250,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    rng.inputs[1].enable(cid+1<this.value.length);
 	    
 	    if(cid-2>0){
-		if(this.value[cid-2][4]==start){ 
+		if(this.value[cid-2][4]==cs_start){ 
 		    blend[0]=false; 
 		    o[0].si=cid-2;
 		    i[0].si=cid-1;
@@ -243,7 +260,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    }
 	    
 	    if(cid+1<this.value.length){
-		if( this.value[cid+1][4]==end) { 
+		if( this.value[cid+1][4]==cs_end) { 
 		    blend[1]=false;
 		    i[1].si=cid;
 		    o[1].si=cid+1;
@@ -267,16 +284,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 		b[d].set_value(blend[d]);
 	    }
-	    
+
+
 	}
 
-	
-	cmap.select_section=function(cid){
-	    if(cmap.selected_section!=cid){
-		cmap.display_color_section(cid);
-		//console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
-	    }
-	}
 	
 	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
 	cmap.ui=edit_node;
@@ -287,7 +298,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	cmap.domnode.appendChild(sd);
 
 	
-	cmap.select_section(0);
+	
 
 	
 	break;
@@ -295,6 +306,14 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	throw "Unknown UI type ";
     }
 
+    cmap.select_section=function(cid){
+	if(cmap.selected_section!=cid){
+	    cmap.display_color_section(cid);
+	    //console.log("!changed section  " + cid + " frac= " + frac + " P=" + screen_pix[0]);
+	}
+    }
+    
+    
     cmap.domnode.style.background=cmap.write_gradient_css_string();
 
     cmap.on_slide=function(slided){
@@ -303,44 +322,51 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	//cmap.domnode.style.width=cmap.ui_root.clientWidth;
 	//cmap.display(ui_opts);
     }
+
+    
     
     cmap.draw_cmap_axis=function(){
-	return;
-	var d3plot=d3.select(cmap.cmap_plot);
-	var svg = d3plot.append('svg');
+	if(cmap.ui_opts.type!=='edit') return;
+	var d3plot;
+	d3plot=d3.select(cmap.cmap_plot);
+	//var svg = d3plot.append('svg');
+	var vw=500, vh=30;
+	var svg = d3plot.append('svg')
+	    .attr("viewBox", "0 0 "+vw+" "+vh)
+	    .attr("preserveAspectRatio", "xMinYMin meet")
+	    .attr("class", "cmap_axe");
 	
-	var width=this.parent.ui_root.clientWidth;
-	console.log("drawing axes : " + width + " stw = " + this.cmap_plot.clientWidth + ", " + this.cmap_plot.offsetWidth);
-	if(width<=0) width=200;
+	var width=vw; //cmap.cmap_plot.clientWidth;
+	//console.log("drawing axes : " + width + " stw = " + this.cmap_plot.clientWidth + ", " + this.cmap_plot.offsetWidth);
+	//if(width<=0) width=200;
 	console.log("drawing axes : " + width);
 	var xscale = d3.scale.linear().range([0, width]).domain([0,1]);
 	var xaxis = d3.svg.axis().scale(xscale).orient("bottom").ticks(10);    
 	var margin={left:0,right:0,top:0,bottom:0};
-	var axis_height=50;
+	var axis_height=vh;
 	
 	
-	svg.attr("width", width ).attr("height",axis_height);
+	//svg.attr("width", width ).attr("height",axis_height);
 	var context = svg.append("g");//.attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 	
 	var axesvg=context.append("g")
 	    .attr("class", "x axis")
-	    .call(xaxis)
-	    .append("text")
-	    .attr("transform", "translate(0," + (axis_height-10) + ")")
-	    .text("Normalised pixel value");
+	    .call(xaxis);
+	    //.append("text")
+	    //.attr("transform", "translate(0," + (axis_height-10) + ")");
+	    //.text("Normalised pixel value");
     }
     
     
     cmap.display=function(){
 	
-	if(this.value.length<2){
-	    console.log("Not enough colours to display");
-	    return;
-	}
-	cmap.domnode.style.background=cmap.write_gradient_css_string();
-
-	cmap.draw_cmap_axis();
-
+    	if(this.value.length<2){
+    	    console.log("Not enough colours to display");
+    	    return;
+    	}
+    	cmap.domnode.style.background=cmap.write_gradient_css_string();
+    	cmap.draw_cmap_axis();
+    
 	//this.domnode.innerHTML="Hello Colormap!";	
 	//var width=cmap.cmwidth=cmap.parent.ui_root.clientWidth-20;//cmap.ui_root.clientWidth;
 	
@@ -371,6 +397,8 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    this.update_callback();
 	*/
 	//console.log("Trigger CM");
+	
+
 	cmap.trigger("colormap_changed", cmap );
     }
 
@@ -387,9 +415,11 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	if(typeof v !='undefined')
 	    cmap.value=v;
 	cmap.update_colors();
+	if(cmap.ui_opts.type==='edit')
+	    cmap.select_section(0);
     }
-
-
-    //cmap.display(ui_opts);
+    
+    cmap.set_value();
+    cmap.display();
     return cmap.ui;
 }
