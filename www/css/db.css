@@ -135,15 +135,15 @@ body{
   height: calc(100%);
   padding-left: 1em;
   padding-right: 1em;
+  padding-bottom: 1em;
+  overflow: auto;
+  overflow-x:auto;
 
   */
   padding: 0px;
   margin: 0px;
-  padding-bottom: 1em;
   max-height: calc(100%);
   max-width: 100%;
-  overflow: auto;
-  overflow-x:auto;
 }
 .db> .childs > .db{
 /*  height: auto;*/
@@ -443,7 +443,7 @@ navigation
   display: none; 
 }
 
-.navcnt > nav.tabbed > li{
+.navcnt.tabbed > nav > li{
 
   text-align: center;
   display: inline-block;
@@ -473,11 +473,11 @@ navigation
   */
 }
 
-.navcnt > nav nav.tabbed > li{
+.navcnt.tabbed > nav > li{
   background: none;
 }
 
-.navcnt > nav.bar > li{
+.navcnt.bar > nav > li{
   font-size: 1.2em;
 }
 
@@ -495,17 +495,17 @@ navigation
   padding-right: .5em;
 }
 
-.navcnt > nav.bar{
+.navcnt.bar > nav{
   padding-bottom : .2em;
   padding-top : .2em;
   
 }
-.navcnt > nav.bar > li{
+.navcnt.bar > nav > li{
   background: none;
   padding: 0px;
 }
 
-.navcnt > nav.bar > li > .dbname{
+.navcnt.bar > nav > li > .dbname{
   color: white;
   text-shadow: 0px 0px 2px black;
 }
@@ -537,31 +537,30 @@ text-shadow: none;
   text-shadow : 0px 0px 1px white;
 }
 
-.radio{  
-   text-align: left;       
-
+.navcnt.radio{  
+  text-align: left;       
+  height: 3.5em;
 }
 
-.radio > nav{ 
-   margin-left: 1em;
-   padding-bottom: 1em;
+.navcnt.radio > nav{ 
+  margin-left: 1em;
 }
 
-.radio > nav > li{ 
-display: inline-block;
-color: black;
-background : rgba(140,140,255,.4);
-border-radius: .2em;
-margin-right: .5em;
-padding: 1em;
-box-shadow : 1px 1px 2px rgba(5,5,5,0.9);  
+.navcnt.radio > nav > li{ 
+  display: inline-block;
+  color: white;
+  background : rgba(140,140,255,.4);
+  border-radius: .2em;
+  margin-right: .5em;
+  padding: 1em;
+  box-shadow : 1px 1px 2px rgba(5,5,5,0.9);  
 }
 
-.radio > nav > li.selected{ 
+.navcnt.radio > nav > li.selected{ 
   color: white;
   background: rgba(40,40,255,.8);
 }
-.radio > nav > li> input[type="radio"]{ 
+.navcnt.radio > nav > li> input[type="radio"]{ 
   margin-left: 1em;
 }
 
@@ -584,19 +583,32 @@ Widget title
   padding-right: .5em;
 }
 
+.big_error{
+  float: left;
+  color : red;
+  font-size: 5em;
+}
+
+.error_content{
+  margin-top: 2em;
+  margin-left: 4em;
+  font-size: 1.5em;
+  white-space: wrap;
+}
+
 .dbname > img {
   width : 2em;
 }
 
 .dbname > .title{
   display: inline-block;
-  font-size : 1.2em;
   font-weight: bold;
   vertical-align: top;
 }
 
 .dbname > span{
   display: inline-block;
+  margin-top: -1em;
 }
 
 .divided > .dbname > .title{
@@ -706,9 +718,10 @@ sliding
   border-radius: .7em;
 /*  background: linear-gradient(to bottom, rgba(10,10,10,.7), rgba(80,80,80,0.8) );  */
 /*  background:  rgba(60,70,50,0.8); */
-  /*box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  */
+  /*box-shadow : 0px 0px 2px rgba(255,255,255,1.0);  
   text-shadow : 0px 0px 2px black; 
   font-weight : normal;
+*/
   vertical-align: top;
 
 /*  color: rgba(230,20,30,1.0); */
@@ -762,13 +775,24 @@ intro
 }
 
 .db.tab_section > .dbname{
+  margin-bottom : 1em;
+  /*
   background: rgba(100,200,200,.5);
   padding: .3em;
+  */
 }
 
-.db .intro { 
-  padding: .5em;
-  font-size: 1.1em;
+.db .intro {
+  display : block;
+  padding-top : .5em;
+  padding-bottom : .5em;
+/*
+  padding : .5em;
+  margin: .5em;
+
+  border-radius: .2em;
+  box-shadow: 1px 1px 7px rgba(100,100,240,.9);
+*/
 }
 
 
@@ -777,15 +801,19 @@ intro
   padding : .2em;
   border-radius: .4em;
   color: white; 
+ /*
   background:  linear-gradient(to bottom, rgba(80,120,200,.7), rgba(100,100,250,0.5) ); 
+*/
   cursor: pointer;
   margin-right: .5em;
 
 }
 
 .db[data-type="action"]:hover{
-    background: linear-gradient(to bottom, rgba(8,12,80,.7), rgba(10,10,150,0.5) ); 
-/*  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) ); */
+/*
+  background: linear-gradient(to bottom, rgba(8,12,80,.7), rgba(10,10,150,0.5) ); 
+  linear-gradient(to bottom, rgba(190,40,200,.7), rgba(80,5,90,0.5) );
+ */
 }
 
 
@@ -794,7 +822,7 @@ intro
 
 .db[data-type="action"] > input{
   
-  background: none;
+  background:  linear-gradient(to bottom, rgba(180,180,220,.3), rgba(200,200,220,0.3), rgba(100,130,250,.3) ); 
   color: white;
   text-shadow : 0px 0px 4px rgba(0,0,0,1);  
   
@@ -810,6 +838,9 @@ intro
   background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
 
 }
+.db[data-type="action"] > input:hover{
+  background: linear-gradient(to bottom, rgba(8,12,80,.7), rgba(10,10,150,0.5) );
+}
 
 /*
 
@@ -818,10 +849,10 @@ Text input
 */
 
 .db input{
-  height: 100%;
   padding: .3em;
 
   /*
+  height: 100%;
   border: 1px solid red;
   */
   
@@ -850,9 +881,13 @@ Text input
   opacity: .2;
 }
 
-.db.disabled { 
+.db .disabled { 
   display: none;
 } 
+.db .db .disabled { 
+  display: none;
+} 
+
 
 .info_icon{ 
   width: 2.5em;
@@ -1066,10 +1101,12 @@ margin-left: 1em;
 }
 
 .db[data-tpl="image_db_browser"]{
+/*
   height: calc(100% - 5em);
   margin-left: 25%;
   width: 50%;
   overflow-y: scroll;
+*/
 }
 
 .db[data-tpl="vector"]{
@@ -1129,6 +1166,21 @@ width: calc(100% - 2em);
   width: 100%;
 }
 
+
+.db[data-type="gl_multilayer"]  .navcnt{
+  padding: 0px;
+  height: 1.5em;
+}
+
+.db[data-type="gl_multilayer"]  .navcnt > nav {
+  padding: 0px;
+}
+
+.db[data-type="gl_multilayer"]  .navcnt > nav > li {
+  border-radius: 0px;
+  font-size: 1em;
+}
+
 .g.cmap_axe{
   stroke-size: 1em;
 }
@@ -1142,10 +1194,10 @@ width: calc(100% - 2em);
 } 
 
 .status .flag{
-  width: 1.5em;
-  height: 1.5em;
+  width: 1em;
+  height: 1em;
   display: inline-block;
-  border-radius : .5em;
+  border-radius : .2em;
   
 }
 
@@ -1330,6 +1382,27 @@ Tooltip stuff
 }
 
 /*
+
+Child representations
+
+*/
+
+
+.action_box{
+  /* border: 2px solid yellow; */
+}
+
+.action_box.vertical {
+  width: 90%;
+  margin-left: 5%;
+}
+
+.action_box.vertical > .db {
+  width: calc(100% - 1.5em);
+  background : rgba(30,30,80,.7);
+  margin-top: 1em;
+}
+/*
 Little screen setup
 */
 
@@ -1339,3 +1412,4 @@ Little screen setup
   }
   
 }
+

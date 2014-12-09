@@ -3,13 +3,13 @@ var base_templates={
     sadira : {
 	//type : "template",
 	tpl_builder  : "sadira",
-	name : "Sadira link",
-	ui_opts : { child_classes : [], child_view_type : "bar"},
+	name : "Websocket link",
+	ui_opts : { child_classes : ["disabled"], child_view_type : "div", editable: true, edited : false},
 	elements : {
 	    url : {
-		name : "Server address",
+		name : "Server",
 		type : "url",
-		ui_opts : { editable : true, root_classes : ["inline"], bar : true},
+		ui_opts : { editable : true, root_classes : [], bar : true},
 	
 		value : "ws://sadira.iasfbo.inaf.it"
 		//value : "ws://localhost"
@@ -72,7 +72,7 @@ var base_templates={
 		name : "Selection",
 		value_labels : ["Begin","End"],
 		value : [0, 0],
-		ui_opts: {root_classes : ["newline"]},
+		ui_opts: {root_classes : []},
 	    },
 	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:[], sliding : false}},  
 	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:[]}}

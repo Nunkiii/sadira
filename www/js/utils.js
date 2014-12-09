@@ -198,11 +198,11 @@ function xhr_query(query, result_cb, opts){
     }
     
     xhr.upload.addEventListener("error", function(ev){
-	result_cb("Error ajax upload : " + xhr.statusText);
+	result_cb("XHTTP Error upload["+query+"]: " + xhr.statusText);
     }, false);
     
     xhr.addEventListener("error", function(ev){
-	result_cb("Error download  (" + xhr.statusText + ")");
+	result_cb("XHTTP Error ["+query+"] :" + xhr.statusText + "");
     }, false);
     
     xhr.addEventListener("load", function(ev){
@@ -219,7 +219,7 @@ function xhr_query(query, result_cb, opts){
 	    result_cb(null, (xhr.responseType=='arraybuffer') ?  xhr.response :  xhr.responseText);
 	}
 	else
-	    result_cb("XHTTP Error :" + xhr.statusText,null);
+	    result_cb("XHTTP Bad status " + xhr.status+ " ["+query+"] : " + xhr.statusText,null);
     },false);
 
     try{
@@ -409,7 +409,7 @@ function create_action_menu(base_node){
 
 //Returns the current server address
 
-var hostname="";
+//var hostname="";
 
 function get_server_address(){
     return  document.location.protocol + "//" + location.host;

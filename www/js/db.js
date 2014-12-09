@@ -454,7 +454,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
 
-
+    
+    
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
     
@@ -476,6 +477,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     new_event(tpl_root,"slided");
     new_event(tpl_root,"view_update");
+
+    tpl_root.abort_error=function(error_message){
+	ui_root.innerHTML='<div class="big_error">⚠</div><div class="error_content">'+error_message+'</div>';
+    }
 
     
     tpl_root.view_update_childs=function(){
@@ -890,7 +895,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		var navcnt=cc("div",ui_root); navcnt.className="navcnt";
 		nav=tpl_root.nav=cc("nav",navcnt);
 		//nav=tpl_root.nav=ce("nav");
-		nav.add_class(cvtype);
+		navcnt.add_class(cvtype);
 		//ui_root.appendChild(navcnt);
 		
 		if(ui_opts.bar){
@@ -1011,7 +1016,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var nav=this.nav=cc("nav",navcnt);
 	var cnt=this.cnt=cc("div", ui_root);
 
-	nav.add_class(cvtype);
+	navcnt.add_class(cvtype);
 	cnt.add_class("child_container");
 
 	sliding_stuff.push(nav);
