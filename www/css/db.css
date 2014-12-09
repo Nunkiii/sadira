@@ -1167,6 +1167,13 @@ width: calc(100% - 2em);
 }
 
 
+.db[data-type="gl_multilayer"] > .child_container{
+/*
+max-height :calc(100% - 2.5em); 
+*/
+  z-index: 5;
+}
+
 .db[data-type="gl_multilayer"]  .navcnt{
   padding: 0px;
   height: 1.5em;

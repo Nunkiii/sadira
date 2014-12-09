@@ -1423,7 +1423,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //tpl_root.ui_root.style.border="1px solid red";
 	});
 	window.addEventListener("resize", function(sz_data){
-	    console.log("Win resize " + window.innerWidth + ", " + window.innerHeight);
+	    //console.log("Win resize " + window.innerWidth + ", " + window.innerHeight);
 	    tpl_root.trigger("view_update");
 	    tpl_root.view_update_childs();
 	});

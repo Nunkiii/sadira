@@ -342,6 +342,20 @@ var request = function (opts){
 	case "json" : 
 	    json_query(this.url_string,cb,opts.xhr);
 	    break;
+	case "dgm":
+	    opts.type="arraybuffer"; //forcing binary mode
+	    xhr_query(this.url_string,function(error, data){
+		if(error!=null) return cb(error);
+		try{
+		    var dgm= new datagram();
+		    dgm.deserialize(data);
+		}
+		catch (e){
+		    return cb("Error deserializing datagram : " + e);
+		}
+		cb(null,dgm);
+	    },opts.xhr);
+	    break;
 	default: 
 	    xhr_query(this.url_string,cb,opts.xhr);
 	    break;

@@ -42,8 +42,8 @@ GLOBAL.write_chunked_data=function(res, data, result_cb){
 	if(res.write(chunk)) write_next_chunk();
     }
     res.on("drain",function(){
-	//console.log("write buffer drain....");
-	write_next_chunck();
+	console.log("write buffer drain....");
+	write_next_chunk();
     });
 
     write_next_chunk();

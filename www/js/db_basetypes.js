@@ -546,7 +546,7 @@ template_ui_builders.text=function(ui_opts, tpl_item){
 	if(typeof tpl_item.value === 'undefined')
 	    tpl_item.set_value(txt);
 	else{
-	    console.log("append text to " + tpl_item.value);
+	    //console.log("append text to " + tpl_item.value);
 	    tpl_item.value+=txt;
 	    tpl_item.set_value();
 	}
