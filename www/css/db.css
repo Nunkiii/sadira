@@ -85,7 +85,7 @@ body{
   max-height: auto;
 
   border: 2px solid rgba(10,10,10,0.0);
-
+  border-radius: .3em;
   display: inline-block;
   vertical-align: top;
   margin-left: 5px;
@@ -611,6 +611,14 @@ Widget title
   margin-top: -1em;
 }
 
+.close_button{
+  padding:.1em;
+  margin-left: .3em;
+}
+.close_button:hover{
+  color: red;
+}
+
 .divided > .dbname > .title{
   font-size: 2em;
   padding-bottom: .2em;
@@ -620,7 +628,7 @@ Widget title
 .db .db .tab_section{
   overflow: auto;
   width: auto;
-  max-height: calc(100% - 6.5em);  
+  max-height: calc(100% - 6.0em);  
 /*  
   border: 4px solid yellow;
   overflow-y: auto;
@@ -801,10 +809,12 @@ intro
   padding : .2em;
   border-radius: .4em;
   color: white; 
- /*
+
+  /*
+  cursor: pointer;
   background:  linear-gradient(to bottom, rgba(80,120,200,.7), rgba(100,100,250,0.5) ); 
 */
-  cursor: pointer;
+
   margin-right: .5em;
 
 }
@@ -829,13 +839,14 @@ intro
   cursor: pointer;
   font-weight: bold;
   font-size: 1em;
-  display: block;
-
+  
+  /*
+  display: inline-block;
   float: right;
   clear: both;
-  /*
   
-  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); */
+  background: linear-gradient(to bottom, rgba(120,30,130,.7), rgba(80,5,90,0.5) ); 
+  */
 
 }
 .db[data-type="action"] > input:hover{
@@ -889,9 +900,10 @@ Text input
 } 
 
 
-.info_icon{ 
-  width: 2.5em;
-  height: 2.5em;
+.info_icon{
+  border: 0px;
+  width: 2.0em;
+  height: 2.0em;
 }
 
 .wait_icon { 
@@ -900,7 +912,6 @@ Text input
   padding: 0px;
   vertical-align: middle;
   margin-left: 1.5em;
-  
 }
 
 .wait_icon > svg > circle{ 
@@ -915,10 +926,25 @@ Text input
   height: 2.5em;
 }
 
-.action_message{ 
+progress[value] {
   margin-left: 1em;
+  height: 1.5em;
+  width: 80%;
+  display : block;
+  vertical-align: middle;
 }
 
+progress[value]::-webkit-progress-bar {
+  border-radius: .5em;
+  background-color: #eee;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+
+progress[value]::-webkit-progress-value {
+    border-radius: .5em;
+  background-color: rgba(140,140,250,.8);
+}
 /* widget specific styling */
 
 .db input[type="number"]{
@@ -995,36 +1021,10 @@ Text input
 
 
 
-.info_icon{ 
-         width: 2.5em;
-         height: 2.5em;
-
- }
-
-.wait_icon { 
-display: inline-block;
-    margin: 0px;
-padding: 0px;
-  vertical-align: middle;
-    margin-left: 1.5em;
-
- }
-
-.wait_icon > svg > circle{ 
-  fill : blue;
-   width: 2.5em;
-   height: 2.5em;
+.hscroll {
+  max-width: calc(100% - 2em);
+  overflow-x: auto;
 }
-
-.wait_icon > svg{ 
-    display: inline-block;
-    width: 2.5em;
-    height: 2.5em;
- }
-
-.action_message{ 
-margin-left: 1em;
- }
 
 
 .db[data-type="string"] .dbname{
@@ -1168,10 +1168,26 @@ width: calc(100% - 2em);
 
 
 .db[data-type="gl_multilayer"] > .child_container{
-/*
-max-height :calc(100% - 2.5em); 
-*/
+  /*
+  max-height :calc(100% - 2.5em); 
+  */
+  display: block;
+  max-width: calc(100% - 2px);
+  max-height: calc(100% - 2.5em);
+  overflow: hidden;
+  
   z-index: 5;
+}
+.db[data-type="gl_multilayer"] > .child_container .tab_section{
+/*
+  overflow: auto;
+  width: auto;
+  max-height: calc(100% - 6.0em);  
+  border: 2px dashed yellow;
+*/
+
+  height: auto;
+  max-height: calc(100% - .6em); 
 }
 
 .db[data-type="gl_multilayer"]  .navcnt{
@@ -1409,6 +1425,24 @@ Child representations
   background : rgba(30,30,80,.7);
   margin-top: 1em;
 }
+
+.proc_monitor{
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  
+}
+
+.action_message{
+  display: inline-block;
+  height: 100%;
+  margin-left: 1em;
+  margin-top: 1em;
+  vertical-align: top;
+
+}
+
+
 /*
 Little screen setup
 */

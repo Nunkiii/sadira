@@ -337,10 +337,13 @@ var request = function (opts){
 
     this.execute=function(cb){
 	opts.query_mode==="json" ? this.build_url_string_json() : this.build_url_string_bson();
-	console.log("XHR QUERY " +this.url_string);
+	console.log("Executing request " +this.url_string);
 	switch(opts.data_mode){
 	case "json" : 
 	    json_query(this.url_string,cb,opts.xhr);
+	    break;
+	case "bson" : 
+	    bson_query(this.url_string,cb,opts.xhr);
 	    break;
 	case "dgm":
 	    opts.type="arraybuffer"; //forcing binary mode
@@ -638,3 +641,76 @@ function css(selector, property, value) {
     }
 }
 
+
+var proc_monitor=function(){
+    var ui=this.ui=ce("div"); ui.className="proc_monitor";
+    var info_icon, wait_icon, progress;
+    var message;
+
+    info_icon=cc("img",ui,true);
+    info_icon.className="info_icon disabled";
+    wait_icon=cc("div",ui,true);
+    wait_icon.className="wait_icon disabled";
+    xhr_query("sadira/icons/loading-spinning-bubbles.svg", function(error, svgtext){
+	if(error===null)
+	    wait_icon.innerHTML=svgtext ;
+    })
+    this.waiting=false;
+    
+    message=cc("div",ui);
+    message.className="action_message";
+    
+    this.message=function(msg){
+	message.innerHTML=msg;
+    };
+	
+    this.error=function(message){
+	this.stop_waiting();
+	info_icon.src="sadira/icons/Error_icon.svg";
+	info_icon.remove_class("disabled");
+	if(è(message)) 
+	    this.message(message);
+    };
+    
+    this.done=function(m){
+
+	this.stop_waiting();
+	info_icon.src="sadira/icons/Approve_icon.svg";
+	info_icon.remove_class("disabled");
+	if(è(m)) 
+	    this.message(m);
+    };
+
+    this.progress=function(frac,m){
+	this.stop_waiting();
+	if(ù(progress)){
+	    progress={};
+	    ui.prependChild(template_ui_builders.progress({},progress));
+	}
+	progress.set_value(frac*100);
+	if(è(m)) 
+	    this.message(m);
+    }
+
+    this.stop_waiting=function(){
+	if(!this.waiting)return;
+	wait_icon.add_class("disabled");
+	this.waiting=false;
+    }
+    this.wait=function(m){
+	if(this.waiting)return;
+	info_icon.add_class("disabled");
+	this.waiting=true;
+	console.log("Waiting .... ");
+	wait_icon.remove_class("disabled");
+
+	if(è(m)) 
+	    this.message(m);
+	
+    };
+
+    return this;
+}
+
+
+    

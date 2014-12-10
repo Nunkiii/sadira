@@ -662,7 +662,7 @@ template_ui_builders.date=function(ui_opts, tpl_item){
 }
 
 
-template_ui_builders.url=function(ui_opts, tpl_item){
+template_ui_builders.url=function(ui_opts, url){
     
     
     var ui;
@@ -672,22 +672,22 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 
 	
     case "short":
-	ui=tpl_item.ui=ce("span");
+	ui=url.ui=ce("span");
 	//ui.className="value";
-	tpl_item.set_value=function(nv){
+	url.set_value=function(nv){
 	    if(typeof nv !='undefined')
-		tpl_item.value=nv;
-	    if(typeof tpl_item.value !=='undefined')
-		ui.innerHTML=tpl_item.value;
+		url.value=nv;
+	    if(typeof url.value !=='undefined')
+		ui.innerHTML=url.value;
 	}
 
-	tpl_item.set_value();
+	url.set_value();
 	break;
     case "edit": 
 
-	if(tpl_item.download){
+	if(url.download){
 
-	    var download_type = è(tpl_item.download_type) ? tpl_item.download_type : "text";
+	    var download_type = è(url.download_type) ? url.download_type : "text";
 	    
 	    var edit_tpl={ 
 		elements : {
@@ -700,39 +700,44 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 	    
 	    create_ui({},edit_tpl);
 	    
-	    var url=edit_tpl.elements.url;
+	    var url_str=edit_tpl.elements.url;
 
-	    url.ui.type="url";
+	    url_str.ui.type="url";
 	    
-	    ui=tpl_item.ui=edit_tpl.ui_root;
+	    ui=url.ui=edit_tpl.ui_root;
 	    
-	    tpl_item.set_value=function(nv){
-		edit_tpl.elements.url.set_value(nv);
+	    url.set_value=function(nv){
+		url_str.set_value(nv);
 	    }
-	    
-	    new_event(tpl_item,"download_ready");
-	    new_event(tpl_item,"download_error");
+	    url.set_default_value=function(){
+		url_str.set_default_value();
+	    }
+
+	    new_event(url,"download_ready");
+	    new_event(url,"download_error");
 
 	    var download=edit_tpl.elements.download;
-
+	    var dmon=new proc_monitor();
+	    edit_tpl.ui_root.appendChild(dmon.ui);
+	    
 	    download.listen("click", function(){
-		download.wait("Starting download...");
+		dmon.wait("Starting download...");
 		
 
 		function download_complete(error, data){
 		    if(error!=null){
-			download.error(error);
-			tpl_item.trigger("download_error", error);
+			dmon.error(error);
+			url.trigger("download_error", error);
 		    }else{
-			download.done("complete L=" + data.length);
-			tpl_item.trigger("download_ready", data);
+			dmon.done("complete L=" + data.length);
+			url.trigger("download_ready", data);
 		    }
 		};
 
 		var q=edit_tpl.elements.url.value;
 		var opts={ 
 		    progress : function(evt) { //evt.total ? -> add Content-Length header server-side!!
-			download.message(format_byte_number(evt.loaded) + " received");
+			dmon.message(format_byte_number(evt.loaded) + " received");
 		    } 
 		};
 		
@@ -756,17 +761,14 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 		};
 	    });
 	    
-	    tpl_item.set_default_value=function(){
-		url.set_default_value();
-	    }
 	    
 	    
 	}else{
-	    ui=tpl_item.ui=ce("input");
+	    ui=url.ui=ce("input");
 	    ui.type="url";
-	    tpl_item.set_default_value=function(){
-		var v=tpl_item.default_value;
-		if(ù(v)) v=tpl_item.value; 
+	    url.set_default_value=function(){
+		var v=url.default_value;
+		if(ù(v)) v=url.value; 
 		if(è(v)){
 		    console.log("Setting placeholder value");
 		    ui.setAttribute("placeholder",v);
@@ -774,40 +776,39 @@ template_ui_builders.url=function(ui_opts, tpl_item){
 		
 	    }
 
-	    tpl_item.set_value=function(nv){
+	    url.set_value=function(nv){
 		if(typeof nv !='undefined')
-		    tpl_item.value=nv;
-		if(typeof tpl_item.value !=='undefined')
-		    ui.value=tpl_item.value;
+		    url.value=nv;
+		if(typeof url.value !=='undefined')
+		    ui.value=url.value;
 	    }
-	    tpl_item.get_value=function(){
+	    url.get_value=function(){
 		return ui.value;
 	    }
 	    
 	    ui.onchange=function(){
-		tpl_item.value=this.value; 
-		if(tpl_item.onchange)
-		    tpl_item.onchange();
+		url.value=this.value; 
+		if(url.onchange)
+		    url.onchange();
 	    }
 	}
-	tpl_item.set_default_value();
+	url.set_default_value();
 	
 	break;
     default: 
 	throw "Unknown UI type ";
     }
 
-
     
-    return tpl_item.ui;
-    
+    return url.ui;
 }
 
 template_ui_builders.image_url=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("div");
     
     function load_image(){
-	if(typeof tpl_item.value!='undefined') img.src=tpl_item.value;
+	if(typeof tpl_item.value!='undefined')
+	    img.src=tpl_item.value;
     }
 
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
@@ -934,58 +935,10 @@ template_ui_builders.action=function(ui_opts, action){
 	action.trigger("click", action);	    
     },false);
 
-    var wait_icon;
-    var message;
-
-    action.message=function(msg){
-	if(ù(message)){
-	    message=cc("span",action.ui_root);
-	    message.add_class("action_message");
-	}
-	message.innerHTML=msg;
-	
-    };
-
-    action.error=function(message){
-	if(è(wait_icon)) action.ui_root.removeChild(wait_icon);
-	ui.removeAttribute("disabled");
-	wait_icon=cc("img",action.ui_root,true);
-	wait_icon.add_class("info_icon");
-	wait_icon.src="sadira/icons/Error_icon.svg";
-	if(è(message)) 
-	    action.message(message);
-    }
-
-
-
-    action.done=function(message){
-	ui.removeAttribute("disabled");
-	if(è(wait_icon)) action.ui_root.removeChild(wait_icon);
-	wait_icon=cc("img",action.ui_root,true);	
-	wait_icon.add_class("info_icon");
-	wait_icon.src="sadira/icons/Approve_icon.svg";
-	if(è(message)) 
-	    action.message(message);
-    }
-    
-    action.wait=function(message){
-	
-	console.log("Waiting .... ");
-	if(è(wait_icon)) action.ui_root.removeChild(wait_icon);
-	wait_icon=cc("span",action.ui_root);
-	wait_icon.add_class("wait_icon");
-	ui.setAttribute("disabled",true);
-	xhr_query("sadira/icons/loading-spinning-bubbles.svg", function(error, svgtext){
-	    if(error===null)
-		wait_icon.innerHTML=svgtext ;
-	    
-	})
-	
-	if(è(message)) 
-	    action.message(message);
-
-    };
-
+/*    
+    var pmon=new proc_monitor;
+    action.ui_root.appendChild(pmon);
+  */  
     if(è(action.elements)){
 	
 	action.ui_root.removeChild(action.ui_childs.div);
@@ -1138,10 +1091,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     // 	    ui.removeChild(svg);
 
 
-    var vw=500, vh=250;
+    var vw=300, vh=150;
     svg = bn.append('svg')
-	.attr("viewBox", "0 0 "+vw+" "+vh)
-	.attr("preserveAspectRatio", "xMinYMin meet");
+	.attr("viewBox", "0 0 "+vw+" "+vh);
+	//.attr("preserveAspectRatio", "xMinYMin meet");
     //base_node.appendChild(svg.ownerSVGElement);
 	
     tpl_item.set_value=function(v){
