@@ -211,10 +211,10 @@ function xhr_query(query, result_cb, opts){
 
 	if(xhr.status==200){
 
-	    if(xhr.responseType=='arraybuffer'){
-		console.log("Received Binary bytes "+ xhr.response.byteLength);
-	    }else
-		console.log("Received Text length "+ xhr.responseText.length);
+	    // if(xhr.responseType=='arraybuffer'){
+	    // 	console.log("Received Binary bytes "+ xhr.response.byteLength);
+	    // }else
+	    // 	console.log("Received Text length "+ xhr.responseText.length);
 
 	    result_cb(null, (xhr.responseType=='arraybuffer') ?  xhr.response :  xhr.responseText);
 	}
@@ -337,7 +337,7 @@ var request = function (opts){
 
     this.execute=function(cb){
 	opts.query_mode==="json" ? this.build_url_string_json() : this.build_url_string_bson();
-	console.log("Executing request " +this.url_string);
+	//console.log("Executing request " +this.url_string);
 	switch(opts.data_mode){
 	case "json" : 
 	    json_query(this.url_string,cb,opts.xhr);

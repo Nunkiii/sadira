@@ -91,17 +91,33 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	break;
     case "edit": 
 	
-	var etpl=cmap.edit_tpl  = tmaster.build_template("colormap_edit"); 
-	
+	var etpl=cmap.edit_tpl= tmaster.build_template("colormap_edit"); 
+	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
+
+
 	o=[etpl.elements.colors.elements.outleft,etpl.elements.colors.elements.outright];
 	i=[etpl.elements.colors.elements.inleft,etpl.elements.colors.elements.inright];
 	b=[etpl.elements.blend.elements.blendl,etpl.elements.blend.elements.blendr];
-
+	
+	
 	rng=etpl.elements.range;
+
+	for(var v in rng) console.log(" rnv " + v);
+
+	
 	uniform=etpl.elements.uniform;
 	split=etpl.elements.split;
-	
-	rng.onchange=function(id){
+
+
+	cmap.ui=edit_node;
+	edit_node.prependChild(cmap.cmap_plot);
+	var sd=cmap.select_div=ce("div");
+	sd.className="colormap_select_div";
+
+	cmap.domnode.appendChild(sd);
+
+	rng.listen("change",function(id){
+	    console.log("cmap range changed !!");
 	    var cid=cmap.selected_section;
 	    var bn=[0,1];
 	    
@@ -118,23 +134,27 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 		    cmap.value[cid+1][4]=this.value[1];
 	    cmap.value[cid][4]=this.value[1];
 	    cmap.update_colors();
+
+	    
 	    cmap.update_select_div();
-	}
+	});
 	
 	function update_range(){
 	    
 	}
+
 	
-	split.onclick=function(){
+	split.listen("click",function(){
 	    var cid=cmap.selected_section;
 	    var newc=[0,0,0,0,0];
 	    for(var c=0;c<5;c++) newc[c]=.5*(cmap.value[cid-1][c]+cmap.value[cid][c]);
 	    cmap.value.splice(cid,0,newc);
 	    cmap.update_colors();
 	    cmap.display_color_section(cid);
-	}
+	});
 
-	b[0].onchange=function(){
+	
+	b[0].listen("change",function(){
 	    var cid=cmap.selected_section;
 
 	    if(this.value){
@@ -151,9 +171,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    }
 	    cmap.update_colors();
 
-	}
+	});
 
-	b[1].onchange=function(){
+	
+	b[1].listen("change",function(){
 	    var cid=cmap.selected_section;
 
 	    if(this.value){
@@ -168,17 +189,19 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    }
 	    cmap.update_colors();
 	    cmap.display_color_section(cid);
-	}
+	});
 
+	
+	
 	for(var d=0;d<2;d++){
-	    i[d].onchange=function(){
+	    i[d].listen("change",function(){
 		cmap.set_hex_color(this.si, this.value);
 		cmap.update_colors();
-	    }
-	    o[d].onchange=function(){
+	    });
+	    o[d].listen("change",function(){
 		cmap.set_hex_color(this.si, this.value);
 		cmap.update_colors();
-	    }
+	    });
 	}
 
 	
@@ -209,7 +232,9 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	var cs_start, cs_end, cs_range;
 	
 	cmap.update_select_div=function(cid){
+
 	    if(ù(cid)) cid=cmap.selected_section;
+
 	    cs_start=this.value[cid-1][4];
 	    cs_end=this.value[cid][4];
 	    cs_range=cs_end-cs_start;
@@ -219,13 +244,13 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	    this.select_div.style.width=this.domnode.offsetWidth*cs_range-2+"px";
 	    this.select_div.style.left=this.domnode.offsetWidth*cs_start+"px";
 	    
-	    rng.set_value([cs_start, cs_end]);
+	    //rng.set_value([cs_start, cs_end]);
 	    
 	}
 	
 	cmap.display_color_section = function (cid){
 	    if(cid===0) cid=1;
-	    console.log("Display color section " + cid + " nvalues = " + this.value.length + " othernv " + cmap.value.length);
+	    //console.log("Display color section " + cid + " nvalues = " + this.value.length + " othernv " + cmap.value.length);
 	    if(typeof rng=='undefined') return;
 
 	    cmap.selected_section=cid; 
@@ -276,8 +301,9 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 		o[d].enable(o[d].si>=0);
 		i[d].enable(i[d].si>=0);
 
-		if(o[d].si>=0)
+		if(o[d].si>=0){
 		    o[d].set_value(hex_color(this.value[o[d].si]));
+		}
 		
 		if(i[d].si>=0)
 		    i[d].set_value(hex_color(this.value[i[d].si]));
@@ -287,19 +313,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 
 	}
-
-	
-	var edit_node=create_ui({type : "edit", root_classes : ["column"]}, etpl);
-	cmap.ui=edit_node;
-	edit_node.prependChild(cmap.cmap_plot);
-	var sd=cmap.select_div=ce("div");
-	sd.className="colormap_select_div";
-
-	cmap.domnode.appendChild(sd);
-
-	
-	
-
 	
 	break;
     default: 
@@ -401,10 +414,6 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	cmap.trigger("colormap_changed", cmap );
     }
-
-    cmap.listen("colormap_changed", function(c){
-	console.log("Hello CM changed !");
-    })
 
     cmap.on_attached=function(){
 	console.log("Attached!");

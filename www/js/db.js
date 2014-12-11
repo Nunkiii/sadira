@@ -1053,7 +1053,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var selected_frame;
 
 	var select_frame=function(f){
-	    console.log("Select tab/radio child " + f.name);
+	    //console.log("Select tab/radio child " + f.name);
 
 	    if(typeof selected_frame!='undefined'){
 		selected_frame.ui_root.style.display='none';

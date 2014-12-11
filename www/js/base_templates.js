@@ -67,10 +67,17 @@ var base_templates={
 	name : "Vector view",
 	tpl_builder: "vector",
 	elements :{
+	    range : {
+		type : "labelled_vector",
+		name : "Range",
+		value_labels : ["start","end"],
+		value : [0, 0],
+		ui_opts: {root_classes : []},
+	    },
 	    selection : {
 		type : "labelled_vector",
 		name : "Selection",
-		value_labels : ["Begin","End"],
+		value_labels : ["start","end"],
 		value : [0, 0],
 		ui_opts: {root_classes : []},
 	    },
