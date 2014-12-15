@@ -406,12 +406,14 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 function format_byte_number(v){
     var u=["","k","M","G","T"];
     var id=0,idmax=4;
-    var val=v, unit='bytes';
-    while(val>1024 && id<idmax){
+    var val=v, unit='byte';
+    while(val>=1024 && id<idmax){
 	val=val/1024.0;
 	id++;
     };
-    return Math.floor(val*100)/100.0 + " " +u[id]+unit;
+    val=Math.floor(val*100)/100.0;
+    if(val>1) unit+="s";
+    return  val+ " " +u[id]+unit;
 };
 
 
