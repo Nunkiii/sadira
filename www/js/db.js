@@ -379,13 +379,6 @@ child_container.prototype.add_child_com=function(child){
     var cnt=this;
     child.parent=this.tpl_root;
     
-    if(typeof child.ui_opts.close != 'undefined'){
-	new_event(child,"close");
-	child.listen("close", function(){
-	    console.log("Closing " + child.name);
-	    cnt.remove_child(child);
-	});
-    }
     
     if(ù(child.ui_views)){
 	child.ui_views={};
@@ -441,8 +434,9 @@ function add_close_button(e, node){
 	var close_but = cc("span",node);
 	close_but.add_class("close_button");
 	close_but.innerHTML="❌";
-	close_but.addEventListener("click", function(){
-	    node.trigger("close");
+	close_but.addEventListener("click", function(event){
+	    e.trigger("close");
+	    event.stopPropagation();
 	});
     }
 }
@@ -620,6 +614,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //console.log("Created selected event on " + e.name);
 
 
+
+    if(è(ui_opts.close)){
+	new_event(tpl_root,"close");
+	tpl_root.listen("close", function(){
+	    console.log("Closing " + tpl_root.name);
+	    tpl_root.parent.ui_childs.remove_child(this);
+	    //cnt.remove_child(child);
+	});
+    }
+    
+
+    
     
     tpl_root.enable=function(state){
 	if(!state)
@@ -813,7 +819,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//ui_childs.div.className="childs";
 		
 		//ui_childs.divider=new divider(ui_childs.div, 50,ho );
-		ui_childs.divider=new divider(ui_root, 50,ho );
+		var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
+		console.log("split at " + split_frac);
+		ui_childs.divider=new divider(ui_root, split_frac,ho );
 
 		tpl_root.listen("view_update", function(){
 		    //console.log("Divider "+tpl_root.name+" : View Update!");
@@ -1053,7 +1061,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var selected_frame;
 
 	var select_frame=function(f){
-	    //console.log("Select tab/radio child " + f.name);
+	    console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
 
 	    if(typeof selected_frame!='undefined'){
 		selected_frame.ui_root.style.display='none';
@@ -1063,8 +1071,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		selected_frame.li.remove_class("selected");
 		cnt.replaceChild(f.ui_root,selected_frame.ui_root);
-
-		
 	    }else
 		cnt.appendChild(f.ui_root);
 	    
@@ -1088,21 +1094,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	ui_childs.remove_child=function(e){
 	    this.remove_child_com(e);
-	
-	    //if(e.ui_root.f === this.selected_frame)
-	    var prev=e.ui_root.f.previousSibling;
-	    while(prev && prev.nodeName!="LI"){
-		prev=prev.previousSibling;
+
+	    /*
+	    if(e === selected_frame){
+
+		var prev=e.ui_root.previousSibling;
+		while(prev && prev.nodeName!="LI"){
+		    prev=prev.previousSibling;
+		}
+		if(prev) 
+		    console.log("Found prev " + prev.nodeName + " fdiv? " + prev.div);
+		if(prev) 
+		    this.select_frame(prev);
 	    }
-	    if(prev) 
-		console.log("Found prev " + prev.nodeName + " fdiv? " + prev.div);
-	    if(prev) 
-		this.select_frame(prev);
-	    
-	    div.removeChild(e.ui_root.f.div);
-	    nav.removeChild(e.ui_root.f);
+	    */
+	    cnt.removeChild(e.ui_root);
+	    nav.removeChild(e.li);
+	    selected_frame=undefined;
 	    nframes--;
-	}
+	};
 	
 	var rad_group;
 
@@ -1139,7 +1149,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		e.ui_root.style.display='none';
 		
 		e.li.addEventListener("click",function(){
-		    //console.log("Click!!");
+		    console.log("Li Click !!");
 		    select_frame(e); //xd.fullscreen(false);
 
 		});
@@ -1164,7 +1174,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	//ui_childs.div.add_class("childs");
 	
-	if(typeof ui_opts.child_classes != 'unxdefined')
+	if(typeof ui_opts.child_classes != 'undefined')
 	    add_classes(ui_opts.child_classes, ui_childs.div);
 	
 	//ui_root.appendChild(ui_childs.div);

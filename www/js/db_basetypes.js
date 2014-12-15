@@ -1133,8 +1133,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
     
     tpl_item.redraw=function(){
-
-	console.log("Drawing vector N= " + this.value.length);
+	if(range.value[0]==null || range.value[1]==null) return;
 	
 	var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 40}; //ui_opts.margin;
 	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
@@ -1149,7 +1148,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
 	brush = d3.svg.brush().x(x).on("brushend", range_changed);
 	select_brush = d3.svg.brush().x(x).on("brush", selection_changed);
+
+	console.log("Drawing vector N= " + this.value.length + "w,h=" + width + ", " + height + " rng="+JSON.stringify(range.value));
 	
+
 	var area = d3.svg.area().interpolate("step-before")
 	    .x(function(d,i) { return x(tpl_item.start + i*tpl_item.step); })
 	    .y0(height)
