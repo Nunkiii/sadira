@@ -559,7 +559,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 	    add_classes(ui_opts.name_classes, ui_name);
 	}
-
+	
 	
 	if(typeof tpl_root.tip != 'undefined'){
 	    //tpl_root.ui_name.add_class("tooltip");
@@ -572,6 +572,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //tip.innerHTML= tpl_root.tip;
 	}
 
+	tpl_root.get_title_node=function(){ return this.ui_name; }
+	
 	tpl_root.listen("name_changed", function(title){
 	    //console.log("Name changed !");
 	    ui_name_text.innerHTML=title;
@@ -747,6 +749,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //console.log("Config " + tpl_root.name + " child view ["+cvtype+"] type " + tpl_root.type);
 
 
+
+    
     function add_child_common(e, ui, prep){
 	
 	if(è(e.ui_opts)){
@@ -1141,7 +1145,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
 	
 	var add_frame=function(e){
-	    e.li=nav.appendChild(ce("li"));
+	    console.log("Add tab/radio frame " + e.name);
+	    e.li=cc("li", nav);
+
+	    e.get_title_node=function(){
+		console.log("tab/rad get title node ! ");
+		return e.li;
+	    }
+	    
 	    set_frame_name(e);
 	    
 	    if(!e.ui_opts.label){
