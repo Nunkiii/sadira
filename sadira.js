@@ -3,11 +3,8 @@
 // Sadira astro-web framework - Written by Pierre Sprimont <nunki@unseen.is> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
 
 var fs = require("fs");
-var http = require('http');
-var https = require('https');
 var path = require("path");
 var url = require("url");
-
 var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
@@ -226,11 +223,11 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    sad.log( "FATAL ERROR : Config file JSON parsing error : " + dump_error(e));
+	    sad.log("Fatal error : Config file JSON parsing error : " + dump_error(e));
 	    process.exit(1);
 	}
     }
-
+    
     //if(typeof process.argv[2] != 'undefined'){}	
     
 } 
@@ -272,6 +269,8 @@ _sadira.prototype.post = function (path, api_cb){
     this.handle_api(this.post_handlers, path, api_cb);
 }
 
+/* Registers a new dialog handler */
+
 _sadira.prototype.dialog = function (path, api_cb){
     var api_root=this.dialog_handlers;
     var path_parts = path.split(".");
@@ -302,188 +301,417 @@ _sadira.prototype.use=function ( a1, a2){
     this.post(path, api_cb);
 }
 
+var ip_service=function(service_name, sad){
+    this.peers = {};
+    this.service=service_name;
+    
+    DLG.new_event(this,"message");
+    DLG.new_event(this,"connect");
+    DLG.new_event(this,"disconnect");
+
+    this.client_connect=function(data){
+	//var client_socket = new ip_socket(this.service, sad);
+	var p=this.peers[data.wid+"_"+data.id];
+
+	if(è(p)) {sad.log("Client already registered ! " + data.id ); return};
+	
+	p=this.peers[data.wid+"_"+data.id]={ wid: data.wid, id: data.id };
+
+	DLG.new_event(p,"message");
+
+	p.send=function(data){
+	    sad.cluster.workers[this.wid].send({ id : this.id, cmd : "route", data : data  });
+	}
+	
+	console.log("Service ["+this.service+"] : client connected " + JSON.stringify(p));
+	this.trigger("connect", p);
+    };
+
+    this.client_disconnect=function(data){
+	var hash=data.wid+"_"+data.id;
+	var p=this.peers[hash];
+	
+	if(ù(p)) {sad.log("Cannot de-register ! : no such client " + data.id ); return};
+	//var client_socket = new ip_socket(this.service, sad);
+
+	this.trigger("disconnect", p);
+	delete this.peers[hash];
+	
+    };
+
+    this.receive=function(m){
+	var hash=m.wid+"_"+m.id;
+	var p=this.peers[hash];
+	if(ù(p)) {sad.log("Cannot receive message ! : no such client " + data.id ); return};
+	p.trigger("message",m.data);
+    };
+    
+    this.route=function(m){
+	var hash=m.wid+"_"+m.id;
+	var p=this.peers[hash];
+	if(ù(p)) {sad.log("Cannot route message ! : no such client " + data.id ); return};
+	p.send(m.data);
+    };
+}
+
+var ip_socket=function(service_name, sad){
+    
+    this.service = service_name;
+    this.id=Math.random().toString(36).substring(2);
+
+    //this.name="SOCKET_"+this.id;
+    
+    DLG.new_event(this,"message");
+    DLG.new_event(this,"connected");
+    DLG.new_event(this,"disconnected");
+    
+    // if(sad.cluster.isMaster){
+    // 	this.send=function(command, data, result_cb){
+    // 	    sad.cluster.workers[this.wid].send({ id : this.id, cmd : command, data : data  });	    	
+    // 	};
+    // }else{
+    this.wid = sad.cluster.worker.id;
+    this.send=function(command, data, result_cb){
+	process.send({ service: service_name, id : this.id, wid: this.wid, cmd : command, data : data  });	    	
+    };
+    
+};
+
+_sadira.prototype.connect_interprocess_service = function (service_name, result_cb){
+
+    console.log("Connecting to IPS service [" + service_name +"]");
+    if(ù(this.ipss)) this.ipss={};
+
+    var ips=new ip_socket(service_name, this);
+    this.ipss[ips.id]=ips;
+
+    result_cb(null,ips);
+    ips.send("register", {}, function(error){});
+    
+}
+
+_sadira.prototype.register_interprocess_service = function (service_name, result_cb){
+    
+    if(ù(this.ipss)) this.ipss={};
+
+    if(è(this.ipss[service_name]))
+	return result_cb("Service ["+service_name+"] already set up!");
+    
+    var ips=new ip_service(service_name, this);
+    this.ipss[service_name]=ips;
+    result_cb(null,ips);
+}
+
+
+/* Start master process */
+
+_sadira.prototype.start_master = function (){
+
+    //Starting cluster
+    var sad=this;
+    
+    //sad.create_events();
+    // We create the session master 
+    //sad.session_master=new session.master(sad);
+
+        
+    var redis = require("redis");
+    var client = redis.createClient({detect_buffers: true});
+    
+    // if you'd like to select database 3, instead of 0 (default), call
+    // client.select(3, function() { /* ... */ });
+    
+    client.on("error", function (err) {
+	console.log("Error " + err);
+    });
+    
+    client.set("string key", "string val", redis.print);
+    client.hset("hash key", "hashtest 1", "some value", redis.print);
+    client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
+    client.hkeys("hash key", function (err, replies) {
+	console.log(replies.length + " replies:");
+	replies.forEach(function (reply, i) {
+	    console.log("    " + i + ": " + reply);
+	});
+	client.quit();
+    });
+    
+    
+  
+    sad.nworkers=0;
+    
+    var f=0;
+    
+    if(sad.options.http_port) f+=1;
+    if(sad.options.https_port) f+=1;
+    
+    // Forking workers.
+    
+    var ncpu=sad.options.ncpu;
+    
+    sad.log("Spawning worker processes on " + ncpu + " core(s) (f "+f+")...");
+    
+    for (var i = 0; i < ncpu; i++) {
+	
+
+
+	//var args = [ /* ... */ ];
+	//var options = { stdio: ['pipe','pipe','pipe','pipe','pipe'] };  // first three are stdin/out/err
+	//
+
+	//var cproc = require('child_process').spawn(cmd, args, options);
+	var worker=sad.cluster.fork();//options);
+
+	
+	sad.cluster.on('online', function(worker) {
+	    //sad.log("Yay, the worker "+worker.id +" responded after it was forked");
+
+	    // for(var p in worker.process){
+	    // 	console.log("wp " + p + " T " + typeof worker.process[p]);
+	    // }
+
+	    // for(var i=0;i<worker.process.stdio.length;i++){
+	    // 	console.log("STDIO["+i+"] is " + worker.process.stdio[i]);
+	    // }
+	    
+	    // var pipe = worker.process.stdin;
+	    // pipe.write(Buffer('hello this is master printing on you!'));
+
+	    
+	});
+
+
+	
+	//worker.worker_id=i;
+	
+	
+	worker.on('message', function(m){ //Handling incoming messages from workers
+	    
+	    if(ù(sad.ipss)) { sad.log("Unhandled message, no IPS!"); return; }
+	    //var mhead=m.head;
+	    //if(ù(mhead)) { sad.log("No message header!"); return; }
+
+	    var cmd = m.cmd;
+	    if(ù(cmd)) { sad.log("No message command!"); return; }
+	    var id = m.id;
+	    if(ù(id)) { sad.log("No message id!"); return;}
+	    var service = m.service;
+	    if(ù(service)) { sad.log("No service name given!"); return; }
+	    
+	    var ips=sad.ipss[service];
+	    if(ù(ips)) { sad.log("No such service ["+service+"]!"); return; }
+	    
+	    //var data=m.data;
+	    //if(ù(data)) { sad.log("No message data!"); return; }
+
+	    sad.log("IPS["+ips.service+"] : Received worker message! " + JSON.stringify(m)); 
+	    
+	    switch(cmd){
+	    case "register":
+		console.log("Registering new client to service ["+service+"]");
+		ips.client_connect(m);
+		break;
+	    case "deregister":
+		console.log("De-registering client from service ["+service+"]");
+		ips.client_disconnect(m);
+		break;
+	    case "route":
+		console.log("Routing REC worker message to IPS ["+service+"]");
+		ips.receive(m);
+		break;
+	    default:
+		sad.log("Unknown message command ["+cmd+"]"); return; 
+		break;
+	    };
+	    /*
+	    if(m.object!="")sob=sad[m.object];
+	    else sob=sad;
+	    
+	    if(typeof sob != 'undefined'){
+		sad[m.object].message(m, function (reply_data) {
+		    var rm={
+			id : m.id,
+			data : reply_data
+		    }
+		    sad.cluster.workers[m.worker_id].send(rm);
+		});
+		
+	    }
+	    else
+		sad.log('MASTER: ERROR unknown message : ' + JSON.stringify(m));
+	    //console.log('MASTER: message : ' + JSON.stringify(m));
+	    //this.send({ roba : "Ciao bello worker " + worker.id, worker_id : "I am The Master"} );
+*/
+	    
+	});
+	
+    }
+    
+    sad.cluster.on('exit', function(worker, code, signal) {
+	sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
+	sad.nworkers--;
+    });
+    
+    sad.cluster.on('listening', function(worker, address) {
+	
+	//sad.log("A worker is now connected to " + address.address + ":" + address.port);
+	
+	worker.online=true;
+	sad.nworkers++;
+	
+	if(sad.nworkers == f*sad.options.ncpu){
+	    
+	    if(sad.use_https==true)
+		sad.log("Sadira(SSL): "+ sad.options.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
+	    
+	    if(sad.use_http==true)
+		sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
+	    
+	    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
+	    
+	}
+	
+    });
+    
+    
+}
+
+/* Start worker process */
+
+_sadira.prototype.start_worker = function (){
+    
+    //We create a slave session manager for this thread.
+    //sad.session_slave=new session.slave(sad);
+    
+    var sad=this;
+    
+    this.log("working process id " + this.cluster.worker.id + " starting ...");
+    
+    process.on('message', function(m){ //Handling incoming messages from master process.
+
+	var cmd = m.cmd;
+	if(ù(cmd)) { sad.log("No message command!"); return; }
+	var id = m.id;
+	if(ù(id)) { sad.log("No message id!"); return; }
+	
+	//var service = m.service;
+	//if(ù(service)) { sad.log("No service name given!"); return; }
+	var ips=sad.ipss[id];
+	if(ù(ips)) { sad.log("No such client socket id ["+id+"]!"); return; }
+
+
+	var data=m.data;
+	
+	switch(cmd){
+	case "register":
+	    //if(ù(data)) { sad.log("No message data!"); return; }
+	    console.log("Client attached to IPS service ["+ips.service+"]");
+	    ips.trigger("connected", data);
+	    break;
+	case "deregister":
+	    ips.trigger("disconnected", data);
+	    delete sad.ipss[id];
+	    break;
+	case "route":
+	    ips.trigger("message", data);
+	    break;
+	default:
+	    sad.log("Unknown message command ["+cmd+"]"); return; 
+	    break;
+	};
+	
+	
+	
+	// if(typeof m.id != 'undefined'){
+	//     for (var wm in sad.cluster_messages){
+	// 	//sad.log(sad.cluster_messages[wm].id + " ==? " + m.id );
+	// 	if(sad.cluster_messages[wm].id==m.id){
+	// 	    var ans=sad.cluster_messages[wm].answer;
+	// 	    sad.cluster_messages.remove(wm);
+	// 	    sad.log("Waiting message queue length is " + sad.cluster_messages.length);
+	// 	    return ans(m.data);
+	// 	}
+	//     }
+	// }
+	
+	// var sob;
+	// if(m.object!="")sob=sad[m.object];
+	// else sob=sad;
+	
+	
+	// if(typeof sob != 'undefined'){
+	//     sob.message(m.data, function (reply_data) {
+	// 	var rm={
+	// 	    id : m.id,
+	// 	    data : reply_data
+	// 	}
+	// 	process.send(rm);
+	//     });
+	    
+	// }
+	// else
+	//     sad.log('error: unknown message : ' + JSON.stringify(m));
+	
+	
+	// sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
+	
+    });
+    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
+    
+    /*
+      var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
+      
+      passport.use(new LocalStrategy(
+      function(username, password, done) {
+      return done(null,false, { message : "User checking draft error !" });
+      }
+      ));
+      
+      
+      sad.use(passport.initialize());
+      sad.use(passport.session());
+      
+      
+      sad.post('/login',passport.authenticate('local'));
+      sad.post('/login', function(req,res,next){
+      console.log("Login called After....");
+      });
+    */
+    
+    sad.create_http_server(function(error, ok){
+	if(error!=null){
+	    sad.log("Fatal : HTTP create " + error  );
+	    process.exit(1);
+	}
+	//if(error!=null) 
+	//   throw error; 
+	
+	sad.create_websocket_server();
+	sad.create_webrtc_server();		
+    });
+    
+    
+    /*
+      sad.send_process_message("session_master", "Hello Master ! All good ?", function (reply){
+      sad.log("worker "+sad.cluster.worker.id+" : Got reply from master : " + JSON.stringify(reply));
+      });
+    */
+    //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
+    
+}
+
+/* Start everything */
 
 _sadira.prototype.start = function (){
 
     var sad=this;
 
     try{
-	//Starting cluster
-
-	if (sad.cluster.isMaster) { //This is the main thread
-	    
-	    sad.log("starting worker's processes ...");
-	    
-	    //sad.create_events();
-	    // We create the session master 
-	    //sad.session_master=new session.master(sad);
-
-	    sad.nworkers=0;
-	    
-	    var f=0;
-	    
-	    if(sad.options.http_port) f+=1;
-	    if(sad.options.https_port) f+=1;
-
-	    // Forking workers.
-
-	    var ncpu=sad.options.ncpu;
-	    sad.log("Starting  on " + ncpu + " core(s) (f "+f+")...");
-	    
-	    for (var i = 0; i < ncpu; i++) {
-
-		var worker=sad.cluster.fork();
-		//worker.worker_id=i;
-
-		worker.on('message', function(m){ //Handling incoming messages from workers
-		    var sob;
-	
-		    if(m.object!="")sob=sad[m.object];
-		    else sob=sad;
-		    
-		    if(typeof sob != 'undefined'){
-			sad[m.object].message(m, function (reply_data) {
-			    var rm={
-				id : m.id,
-				data : reply_data
-			    }
-			    sad.cluster.workers[m.worker_id].send(rm);
-			});
-			
-		    }
-		    else
-			sad.log('MASTER: ERROR unknown message : ' + JSON.stringify(m));
-		    //console.log('MASTER: message : ' + JSON.stringify(m));
-		    //this.send({ roba : "Ciao bello worker " + worker.id, worker_id : "I am The Master"} );
-
-		});
-		
-	    }
-	    
-	    sad.cluster.on('exit', function(worker, code, signal) {
-		sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
-		sad.nworkers--;
-	    });
-	    
-	    sad.cluster.on('listening', function(worker, address) {
-
-		//sad.log("A worker is now connected to " + address.address + ":" + address.port);
-
-		worker.online=true;
-		sad.nworkers++;
-		
-		if(sad.nworkers == f*sad.options.ncpu){
-
-		    if(sad.use_https==true)
-			sad.log("Sadira(SSL): "+ sad.options.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
-		    
-		    if(sad.use_http==true)
-			sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
-
-		    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
-		    
-		}
-		
-	    });
-	    
-	    sad.cluster.on('online', function(worker) {
-		//sad.log("Yay, the worker "+worker.id +" responded after it was forked");
-		
-	    });
-
-	} else { //This is a worker thread
-	    
-	    //We create a slave session manager for this thread.
-	    //sad.session_slave=new session.slave(sad);
-
-	    
-	    sad.log("working process id " + sad.cluster.worker.id + " starting ...");
-	    
-	    process.on('message', function(m){ //Handling messages sent to workers
-
-		if(typeof m.id != 'undefined'){
-		    for (var wm in sad.cluster_messages){
-			//sad.log(sad.cluster_messages[wm].id + " ==? " + m.id );
-			if(sad.cluster_messages[wm].id==m.id){
-			    var ans=sad.cluster_messages[wm].answer;
-			    sad.cluster_messages.remove(wm);
-			    sad.log("Waiting message queue length is " + sad.cluster_messages.length);
-			    return ans(m.data);
-			}
-		    }
-		}
-
-		var sob;
-		if(m.object!="")sob=sad[m.object];
-		else sob=sad;
-
-
-		if(typeof sob != 'undefined'){
-		    sob.message(m.data, function (reply_data) {
-			var rm={
-			    id : m.id,
-			    data : reply_data
-			}
-			process.send(rm);
-		    });
-		    
-		}
-		else
-		    sad.log('error: unknown message : ' + JSON.stringify(m));
-		
-		
-		sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
-		
-	    });
-	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
-	    
-/*
-	    var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
-
-	    passport.use(new LocalStrategy(
-		function(username, password, done) {
-		    return done(null,false, { message : "User checking draft error !" });
-		}
-	    ));
-	    
-	    
-	    sad.use(passport.initialize());
-	    sad.use(passport.session());
-
-	 
-	    sad.post('/login',passport.authenticate('local'));
-	    sad.post('/login', function(req,res,next){
-		console.log("Login called After....");
-	    });
-*/
-
-	    sad.create_http_server(function(error, ok){
-		if(error!=null){
-		    sad.log("Fatal : HTTP create " + error  );
-		    process.exit(1);
-		}
-		//if(error!=null) 
-		//   throw error; 
-		
-		sad.create_websocket_server();
-		sad.create_webrtc_server();		
-	    });
-
-	    
-	    /*
-	    sad.send_process_message("session_master", "Hello Master ! All good ?", function (reply){
-		sad.log("worker "+sad.cluster.worker.id+" : Got reply from master : " + JSON.stringify(reply));
-	    });
-	    */
-	    //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
-	    
-	}
-
-
-    	//Loading handlers.
+	this.cluster.isMaster ?  this.start_master() : this.start_worker();
+	//Loading handlers.
 	sad.initialize_handlers("handlers");
 	sad.initialize_handlers("dialogs");
-
+	
     }
     catch (e){
 	sad.log("Fatal error while initializing sadira : " +dump_error(e));
@@ -612,39 +840,6 @@ _sadira.prototype.error_404=function(response, uri, cb){
 	response.write("</html>");
 	cb();
     });
-}
-
-_sadira.prototype.send_process_message=function(object_name, message_data, answer){
-    
-    var m={	
-	object : object_name,
-	data : message_data,
-	id : Math.random().toString(36).substring(2)
-    };
-    
-    if(!this.cluster.isMaster)
-	m.worker_id = this.cluster.worker.id;
-    
-    console.log("sending message id " + m.id);
-
-    this.cluster_messages.push({ id: m.id, answer: answer});
-    
-    if(this.cluster.isMaster){
-	if(typeof message_data.worker_id != 'undefined')
-	    this.cluster.workers[worker_id].send(m);
-	else{ //Broadcast to all workers.
-	    for(var w in this.cluster.workers)
-		this.cluster.workers[w].send(m);
-	}
-    }
-    else
-	process.send(m);
-}
-
-//Entry point for inter-process messages to be handled by the sadira object itself
-
-_sadira.prototype.message=function(md, reply){
-
 }
 
 
@@ -825,7 +1020,9 @@ _sadira.prototype.create_http_server = function(cb){
 	}
 
 	try{
+	    var http = require('http');
 	    
+
 	    sad.http_server = http.createServer(sad.handle_request);
 	    sad.http_server.sadira=sad;
 
@@ -895,6 +1092,8 @@ _sadira.prototype.create_http_server = function(cb){
         //Certificates for the https server
 
 	try{
+
+	    var https = require('https');
 	    
 	    sad.ssl_data = ssl_data;
 	    
@@ -997,6 +1196,7 @@ _sadira.prototype.create_webrtc_server=function() {
 	// socket disconnected
 	
 	cnx.on('close', function(closeReason, description) {
+	    console.log("websocket closed : "+closeReason+" ("+description+") ");
 	    cnx=null;
 	    return;
 	});
@@ -1059,6 +1259,7 @@ _sadira.prototype.handle_websocket_requests=function(ws_server){
 	
 	cnx.on('close', function(closeReason, description) {
 	    cnx.trigger("closed", closeReason);
+	    console.log("websocket closed : "+closeReason+" ("+description+") ");
 	    cnx=null;
 	    return;
 	});
@@ -1132,7 +1333,7 @@ _sadira.prototype.initialize_handlers=function(packname){
 }
 
 
-//Main sadira instance
+//Main sadira instance. Should be in another file...
 
 try{
     var sa=exports.sadira = new _sadira();

@@ -286,15 +286,26 @@ var dialog_manager = function(cnx, sad){
 }
 
 
+dialog_manager.prototype.delete_dialogs=function(dlg){
+    for (var d in this.dialogs){
+	this.dialogs[d].send_datagram({type : "disconnect"});
+	delete this.dialogs[d];
+    }
+}
+
 dialog_manager.prototype.delete_dialog=function(dlg){
     
     
     console.log("!Delete dialog "+JSON.stringify(dlg.header));
 
-    delete this.dialogs[dlg.header.id];
+    var d=this.dialogs[dlg.header.id];
+
+    if(ù(d)) throw "No such dialog " + dlg.header.id ;
+    
+    d.send_datagram({type : "disconnect"});
+    delete d;
 
     //var nd=0;for(var d in this.dialogs){ nd++; console.log("D"+nd+":"+JSON.stringify(this.dialogs[d].header));} 
-    
 }
 
 dialog_manager.prototype.create_dialog=function(dlg_header){
@@ -310,7 +321,7 @@ dialog_manager.prototype.create_dialog=function(dlg_header){
 dialog_manager.prototype.process_datagram=function(dgram){
     
     var dmgr=this;
-    var dlg,header=dgram.header;
+    var header=dgram.header;
     if(typeof header=='undefined') throw "datagram has no header!";
     
     var type=header.type;
@@ -333,6 +344,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 	    if(typeof hndl_name=='undefined')throw "No handler defined on init datagram "; 
 	    
 	    var hndl=eval("dmgr.sadira.dialog_handlers."+hndl_name+".__api");
+
 	    if(ù(hndl))throw "No handler found for ["+hndl_name+"]"; 
 	    
 	    hndl(dlg, function(error, hhead, hdata){
@@ -394,32 +406,83 @@ dialog_manager.prototype.process_datagram=function(dgram){
     
 }
 
+
+function clear_events(tpl_item){
+    if(è(tpl_item.event_callbacks)){
+
+	for(var e in tpl_item.event_callbacks){
+	    var cbs=tpl_item.event_callbacks[e];
+	    for(var c=0;c>0&&c<cbs.length;c++){
+		if(!cbs[c].persist){
+		    //console.log("clearing event " + e + " : "  + c+ " L="+cbs.length);
+		    cbs.splice(c,1); c--;
+		    //console.log("cleared event " + e + " : "  + c + " L="+cbs.length);
+		}
+	    }
+	}
+    }
+}
+
 function new_event(tpl_item, event_name){
 
     if(typeof tpl_item.event_callbacks==='undefined'){
 	tpl_item.event_callbacks=[];
-	tpl_item.listen=function(event_name, cb){
-	    //console.log("Adding listen func to "+event_name+"!");
-	    if(typeof tpl_item.event_callbacks[event_name]=='undefined') 
+	tpl_item.listen=function(event_name, cb, persist){
+	    if(ù(persist)) persist=false;
+	    var cbn=tpl_item.event_callbacks[event_name];
+	    
+	    if(typeof cbn=='undefined') 
 		throw "No such event " + event_name ;
-	    tpl_item.event_callbacks[event_name].push(cb);
+
+	    for(var c=0;c<cbn.length;c++){
+		if(cb===cbn[c]){
+		    console.log("That function is already listenning to !" + event_name);
+		    return;
+		}
+	    };
+	    cb.persist=persist;
+	    cbn.push(cb);
+	    //console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
 	};
+
+	tpl_item.unlisten=function(event_name, cb){
+	    var cbn=tpl_item.event_callbacks[event_name];
+	    if(typeof cbn=='undefined') 
+		throw "unlisten: no such event " + event_name ;
+	    for( var c=0;c<cbn.length;c++) {
+		if(cbn[c]==cb){
+		    //console.log("Found CB to be removed..");
+		    return cbn.splice(c,1);//remove(c);
+		}
+	    }
+	    throw "unlisten: callback not found " ;
+	}
+	
 	tpl_item.trigger=function(event_name, data){
 	    var cbs=tpl_item.event_callbacks[event_name];
 	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
-	    //console.log("Trigger " + event_name +" to " + cbs.length +" client funcs....");
-
+	    //if(event_name=="name_changed") return;
+	    //console.log(tpl_item.name + " : trigger event [" + event_name +"] to " + cbs.length +" listeners");
+	    
 	    cbs.forEach(function(cb){
 		cb.call(tpl_item,data);
 	    });
-	}
+	};
     }
     //console.log("Creating callback on " + tpl_item.name);
     if(typeof tpl_item.event_callbacks[event_name]==='undefined')
 	tpl_item.event_callbacks[event_name]=[];
+
 }
 
 
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+	if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
 
 if(nodejs){
     exports.dialog=dialog;

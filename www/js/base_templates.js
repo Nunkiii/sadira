@@ -4,7 +4,7 @@ var base_templates={
 	//type : "template",
 	tpl_builder  : "sadira",
 	name : "Websocket link",
-	ui_opts : { child_classes : [], child_view_type : "div", editable: true, edited : false},
+	ui_opts : { child_classes : [], child_view_type : "div"},
 	elements : {
 	    url : {
 		name : "Server",

@@ -272,15 +272,6 @@ local_templates.prototype.substitute_templates=function(tpl){
     for (var e in tpl.elements){
 	this.substitute_templates(tpl.elements[e]);
     }
-    //console.log("TPL " + tpl.name + " events : " + tpl.events);
-    if(typeof tpl.events!='undefined'){
-	//console.log("Setting up events for " + tpl.name + " type " + tpl.type);
-	tpl.events.forEach(function(e){ 
-	    //console.log("Create event " + e + " for " + tpl.name);
-	    new_event(tpl,e); 
-	});
-    }//else	console.log("NO events for " + tpl.name + " type " + tpl.type);
-
 
 }
 
@@ -445,15 +436,13 @@ function add_close_button(e, node){
 
 function create_ui(global_ui_opts, tpl_root, depth){
 
-//    console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name);
+    //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name);
 
     if(!depth){
 	tpl_root.depth=0;
     }else 
 	tpl_root.depth=depth;
 
-    //if(typeof tpl_root.ui_opts == 'undefined' ) tpl_root.ui_opts={type:"short"}; 
-    
     if(ù(tpl_root.ui_opts)){
 	tpl_root.ui_opts=global_ui_opts;
 	if(ù(tpl_root.ui_opts.type)) tpl_root.ui_opts.type="short";
@@ -464,6 +453,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		tpl_root.ui_opts[o]=global_ui_opts[o];
     
     var ui_opts=tpl_root.ui_opts;    
+
+    //The main widget div
     var ui_root=tpl_root.ui_root=ce("div");     
 
     //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
@@ -472,7 +463,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
     ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
 
+    clear_events(tpl_root);
+
     
+    //console.log("TPL " + tpl.name + " events : " + tpl.events);
+    if(typeof tpl_root.events!='undefined'){
+	//console.log("Setting up events for " + tpl.name + " type " + tpl.type);
+	tpl_root.events.forEach(function(e){ 
+	    //console.log("Create event " + e + " for " + tpl.name);
+	    new_event(tpl_root,e); 
+	});
+    }//else	console.log("NO events for " + tpl.name + " type " + tpl.type);
     
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
@@ -575,7 +576,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.get_title_node=function(){ return this.ui_name; }
 	
 	tpl_root.listen("name_changed", function(title){
-	    //console.log("Name changed !");
+	    //console.log("Name changed !" + title);
 	    ui_name_text.innerHTML=title;
 	});
     }
@@ -637,10 +638,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     function rebuild(){
+
 	//if (typeof tpl_root.sliding != 'undefined') 
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
 	//console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
-
 	tpl_root.ui_root_old=tpl_root.ui_root;
 	//tpl_root.parent.ui_childs.div.removeChild(tpl_root.ui_root); //div.appendChild(new_ui);
 	
@@ -693,25 +694,30 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    clickable_zone=ui_root;
 	}
 
-	clickable_zone.addEventListener("click", function(e){
-	    
-	    console.log("Drawing " + tpl_root.name + " : EDITABLE CLICK type = " + ui_opts.type);
-	    
+	tpl_root.switch_edit_mode=function(){
 	    if(ui_opts.type=="edit"){
 		ui_opts.type="short";
 	    }else{
 		ui_opts.type="edit";
 	    }
 	    
+	    console.log("switching edit mode to " + ui_opts.type);
+	    rebuild();
+
+	}
+  
+	clickable_zone.addEventListener("click", function(e){
+	    
+	    //console.log("Drawing " + tpl_root.name + " : EDITABLE CLICK type = " + ui_opts.type);
+	    
+	    tpl_root.switch_edit_mode();
 	    e.cancelBubble = true;
 	    
 	    if (e.stopPropagation){
 		e.stopPropagation();
 		//console.log(tpl_root.name + " : editable stop propagation...");
 	    }
-
-	    rebuild();
-	   	    
+	    
 	    return false;
 	}, false);
     }
@@ -1030,7 +1036,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(typeof new_ctpl.bar_replace!=='undefined')
 		new_ctpl.bar_replace();
 
-	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
 
 	    // if(oldui.parentNode===ui_childs.div)
 	    // 	ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);

@@ -37,6 +37,7 @@ Array.prototype.compare = function (array) {
 }
 
 
+
 /*
 Object.prototype.getName = function() { 
     var funcNameRegex = /function (.{1,})\(/;

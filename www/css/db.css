@@ -81,6 +81,9 @@ body{
   overflow-y: auto;
   overflow-x: auto;
   position: relative;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
   */
 
   max-width: auto;
@@ -92,8 +95,6 @@ body{
   vertical-align: top;
   margin-left: 5px;
   margin-right: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
 
 }
 
@@ -307,15 +308,13 @@ html.dragging * {
 }
 */
 
-.db.divided{
+.divided{
 
   /*
   top: 0px;
-  
   resize:none;
   background: purple;  
   display: inline-block;
-
   position: relative;
   */
   height: calc(100% - 1em);
@@ -324,6 +323,7 @@ html.dragging * {
   vertical-align: top;
   opacity: 1.0;
   overflow: hidden;
+  margin: 0px;
 }
 
 .divided .divided{
@@ -389,6 +389,8 @@ float: left;
 navigation
 */
 
+
+
 .navcnt{
   position: relative;
   overflow: hidden;
@@ -407,6 +409,10 @@ navigation
   margin-left: 2em;
   margin-right: 2em;
 */
+}
+
+.divided > .navcnt{
+  margin-top: 0em;
 }
 
 .navcnt > nav{
@@ -1499,6 +1505,20 @@ Child representations
   margin-top: 1em;
   vertical-align: top;
 
+}
+
+/*
+Chat
+*/
+
+.room_table {
+
+
+}
+
+.room_table > tr:hover{
+   cursor: pointer;
+   border: 1px solid yellow;
 }
 
 

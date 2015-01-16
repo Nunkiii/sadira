@@ -1,4 +1,6 @@
 template_ui_builders.sadira=function(ui_opts, sad){
+
+    console.log("sadira link constructor !");
     
     var widget_prefix="widgets";
     var server_prefix="";
@@ -8,7 +10,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
     new_event(sad,"socket_connect");
     
     //console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
-
+    
     var url=sad.elements.url;
 
     var connect=sad.elements.connect;
@@ -43,48 +45,85 @@ template_ui_builders.sadira=function(ui_opts, sad){
     }
     
     
-    var ws_host;
-    ws_host=url.value;
-    
-    sad.listen("socket_connect", function(){
-	sad.online=true;
+    sad.listen("socket_connect", function(sock){
+	if(typeof sad.dialogs==='undefined')
+	    sad.dialogs= new dialog_manager(sock);
+	
+	var session_id=localStorage.session_id;
+	var d={};
+	if(typeof session_id != 'undefined') d.session_id=session_id;
+	
+	
 	status.set_value("green");
-	messages.append("Sadira server connected");
+	messages.append("Connected to " + url.value + "\n");
+	connect.set_title("Disconnect");
     });
 	
     sad.listen("socket_error", function(e){
-	sad.online=false;
 	status.set_value("red");
-	messages.append("Socket error " + JSON.stringify(e));
+	messages.append("Socket error " + JSON.stringify(e) + "\n");
     });
+    
     sad.listen("socket_close", function(){
-	sad.online=false;
+	if(sad.dialogs!=='undefined') 
+	    delete sad.dialogs;
+	
 	status.set_value("blue");
-	messages.append("Sadira server disconnected");
+	messages.append("Disconnected" + "\n");
+	connect.set_title("Connect");
     });
     
     connect.listen("click",function(){
-	sad.connect();
+
+	console.log("CONNECT CLICK");
+	
+	if(!sad.online)
+	    sad.connect();
+	else{
+	    sad.disconnect();
+	}
     });
-    
+
+
+    sad.disconnect=function(){
+	if(!sad.online){
+	    messages.append("Not connected !");
+	    return;
+	}
+	messages.append("Disconnecting from " + url.value + "...\n");
+	if(è(sad.dialogs))
+	    sad.dialogs.delete_dialogs();
+	else{
+	    console.log("No dialog manager !");
+	}
+	sad.wsock.close();
+
+    }
     
     sad.connect=function(){
+	if(sad.online){
+	    messages.append("Already connected to " + url.value + "\n");
+	    return;
+	}
 
-	if(sad.online) return;
+	var ws_host=url.value;
+	var wsock=null; //The (main) web(rtc)socket.
+	var socket_mode="websocket"; 
+
+	messages.append("Connecting to " + ws_host + " transport : "+socket_mode+"\n");
 	//Making link to the WebSocket server and handling of the socket events
-
+	
 	/*
 	//Checking web storage support 
 
 	if(typeof(Storage)=="undefined"){ 
-	    return cb("Sorry, you need a browser with webstorage support");
+	return cb("Sorry, you need a browser with webstorage support");
 	}
-*/
+	*/
 	
-	var wsock=null; //The (main) web(rtc)socket.
-	var socket_mode="websocket"; 
-	
-	if(socket_mode=="webrtc"){
+
+	switch (socket_mode){
+	case "webrtc" :
 	    
 	    var datachannel_opts = {
 		ordered: false, // do not guarantee order
@@ -99,8 +138,8 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	      socket.emit('my other event', { my: 'data' });
 	      });
 	    */
-	    
-	}else{
+	    break;
+	default:
 	
 	    try {
 		window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -117,34 +156,25 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	    catch (e){
 		sad.trigger("socket_error", e.message);
 	    }
-	}
+	    break;
+	};
 	
 	sad.wsock=wsock;
 
 	wsock.onclose = function () {
-	    //this.set_status();
-	    if(sad.dialogs!=='undefined') 
-		delete sad.dialogs;
+	    sad.trigger("socket_close", this);
+	    sad.online=false;
 	};
-	
 	wsock.onopen = function () {
-	    if(typeof sad.dialogs==='undefined')
-		sad.dialogs= new dialog_manager(wsock);
-	    
-	    var session_id=localStorage.session_id;
-	    var d={};
-	    if(typeof session_id != 'undefined') d.session_id=session_id;
-	    sad.trigger("socket_connect",sad);
+	    sad.trigger("socket_connect",this);
+	    sad.online=true;
 	};
-	
 	wsock.onerror = function (error) {
 	    sad.trigger("socket_error", error);
 	};
 	
 	wsock.onmessage = function (msg) {
-	    
 	    //console.log('received message type = ' + msg.srcElement.binaryType);
-	    
 	    try{		
 		var dgram=new datagram();
 	    
@@ -487,6 +517,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
     if(ù(ui_opts.type)) ui_opts.type="short";
 
+    new_event(tpl_item,"change");
+
     switch (ui_opts.type){
 	
     case "short":
@@ -507,27 +539,38 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
     case "edit": 
 
-	var ui=tpl_item.ui=ce("input");
+	var uui=tpl_item.ui=ce("div");
+	var ui=cc("input",uui);
 	ui.type="text";
-
+	var default_value=tpl_item.value;
+	
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    ui.value=tpl_item.value;
 	}
 
-	ui.onchange=function(){
+	ui.addEventListener("change",function(){
+	    //console.log("str changed " + this.value);
 	    tpl_item.value=this.value; 
-	    if(tpl_item.onchange)
-		tpl_item.onchange();
-	}
+	    tpl_item.trigger("change", tpl_item.value);
+	    tpl_item.switch_edit_mode();
+	});
+
+	
+	// ui.onchange=function(){
+	//     tpl_item.value=this.value; 
+	//     if(tpl_item.onchange)
+	// 	tpl_item.onchange();
+	// }
 
 	tpl_item.set_default_value=function(){
 	    var v=tpl_item.default_value;
-	    if(ù(v)) v=tpl_item.value; 
+	    //if(ù(v)) v=tpl_item.value; 
 	    if(è(v)){
 		//console.log("Setting placeholder value");
 		ui.setAttribute("placeholder",v);
-	    }
+	    }else
+		tpl_item.set_value();
 	}
 
 	tpl_item.set_default_value();
@@ -782,7 +825,7 @@ template_ui_builders.url=function(ui_opts, url){
 		var v=url.default_value;
 		if(ù(v)) v=url.value; 
 		if(è(v)){
-		    console.log("Setting placeholder value");
+		    //console.log("Setting placeholder value");
 		    ui.setAttribute("placeholder",v);
 		}
 		
@@ -931,7 +974,6 @@ template_ui_builders.action=function(ui_opts, action){
     var ui=ce("input"); ui.type="button";
     ui.value=action.name;
 
-
     action.disable_element=function(dis){
 	if(dis)
 	    ui.setAttribute("disabled",true);
@@ -947,10 +989,13 @@ template_ui_builders.action=function(ui_opts, action){
 	action.trigger("click", action);	    
     },false);
 
-/*    
-    var pmon=new proc_monitor;
-    action.ui_root.appendChild(pmon);
-  */  
+    action.listen("name_changed", function(title){
+	ui.value=title;
+    });
+    /*    
+	  var pmon=new proc_monitor;
+	  action.ui_root.appendChild(pmon);
+    */  
     if(è(action.elements)){
 	
 	action.ui_root.removeChild(action.ui_childs.div);
@@ -963,6 +1008,7 @@ template_ui_builders.action=function(ui_opts, action){
 	slide_button.innerHTML= "▶"; 
 	var slided=false;
 	var cnt=action.ui_name;
+
 	slide_button.addEventListener("click",function(){
 	    if(slided){
 		//if(è(action.elements))
@@ -983,7 +1029,7 @@ template_ui_builders.action=function(ui_opts, action){
 	//action_ui=true;
 	//action_tpl=action.elements.ui;
 	//    action_ui=create_ui({}, action_tpl );
-
+	
     }else{
 	//ui=action.ui=ce("input"); ui.type="button";
 	
@@ -993,9 +1039,6 @@ template_ui_builders.action=function(ui_opts, action){
 	
 	return ui;
     }	
-    
-
-
 }
 
 template_ui_builders.vector=function(ui_opts, tpl_item){
@@ -1114,7 +1157,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("div");
     var bn=d3.select(ui);
     var brg=tpl_item.brg=null,select_brg=tpl_item.select_brg=null;
-    var vw=300, vh=150;
+    var vw=600, vh=300;
     svg = bn.append('svg')
 	.attr("viewBox", "0 0 "+vw+" "+vh)
 	//.attr("preserveAspectRatio", "none");
@@ -1137,7 +1180,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     tpl_item.redraw=function(){
 	if(range.value[0]==null || range.value[1]==null) return;
 	
-	var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 40}; //ui_opts.margin;
+	var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 100}; //ui_opts.margin;
 	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
 	var width=vw - margin.left - margin.right;
 	var height = vh- margin.top - margin.bottom;
