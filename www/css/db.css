@@ -8,7 +8,6 @@ Main Sadira toolkit CSS template
   padding: 0px;
   border: 0px;
 
-
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -156,7 +155,7 @@ body{
 /*  height: auto;*/
 }
 .db .db>.childs{
-  background: rgba(30,30,30,.3);
+  background: rgba(50,60,50,.2);
   border-radius: .3em;
 }
 
@@ -167,16 +166,17 @@ body{
 
 .divided>.child_container {
   display: inline-block;
- 
-
   position: relative;
+  
   /*
+  height: 100%;
+
   width: 100%;
   overflow: auto;
   max-height: 100%;
   position: absolute;
   bottom: 0px;
-  height: 80%;
+
   
   */
 }
@@ -185,25 +185,26 @@ body{
   height: auto;
 }
 
-
+  /*
 .db.divider{ 
-  /*
-  
-  */
-  height: 100%;
-  width:100%;
-}
 
-.db.divider>.childs{ 
+  height: 50%;
+  width:100%;  
+}
+  */
+
   /*
+.db.divider>.childs{ 
+
   position: relative;
   top: 0px;
 display: block;
 position: relative;
 bottom : 0px;
 position: relative;
-*/
+
 }
+*/
 
 .divider_bar { 
 
@@ -580,7 +581,15 @@ text-shadow: none;
 Widget title
 */
 
-.dbname{
+.dbname {
+  font-size: 2em;
+  display: inline-block;
+  color: yellow;
+}
+
+.childs .db .dbname{
+  color: white;
+  font-size: 1em;
   display: inline-block;
   margin-right: 1em;
   vertical-align: top;
@@ -589,6 +598,31 @@ Widget title
   margin-top: .5em;
 */
 }
+
+.db header {
+  opacity : 1.0;
+  background: black;
+  border-bottom: 3px solid orange;
+  z-index : 0;
+}
+
+
+.db header .db {
+  float: right;
+}
+
+header .db .dbname{
+  color: white;
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+
+label:hover{
+  color: yellow;
+  cursor: pointer;
+}
+
 
 .ico{ 
   /*width : 1.5em;*/
@@ -640,7 +674,7 @@ Widget title
 .db .db .tab_section{
   overflow: auto;
   width: auto;
-  max-height: calc(100% - 6.0em);  
+  max-height: calc(100% - 4.0em);  
 /*  
   border: 4px solid yellow;
   overflow-y: auto;
@@ -692,31 +726,22 @@ Widget - w-m
 sliding 
 */
 
-.slide_button_h:hover{ 
-  color: rgba(0,0,255,1.0);
-  text-shadow: 0px 0px 1px black;
-}
-
-.slide_button_v:hover{ 
-  color: rgba(0,0,255,1.0);
-  text-shadow: 0px 0px 1px black;
-}
-
-.slide_button_h{ 
+.slide_button{
   font-size: 1.0em;
-  color: rgba(20,20,200,.9); 
-/*  text-shadow: 0px 0px 3px rgba(55,155,55,1.0); */
   padding: .4em;
   cursor: pointer;
 }
 
+.slide_button.close{
+  color: rgba(250,20,25,.9); 
+}
 
-.slide_button_v{ 
-  color: rgba(20,20,200,.9); 
-  font-size: 1.0em;
-/*  text-shadow: 0px 0px 3px rgba(55,155,55,1.0);*/
-  padding: .4em;
-  cursor: pointer;
+.slide_button.open{
+  color: rgba(20,20,250,.9); 
+}
+
+.slide_button:hover{ 
+  text-shadow: 0px 0px 1px black;
 }
 
 .sliding{
@@ -791,7 +816,7 @@ intro
 
 .db.tab_section > .intro{ 
   padding-left: .5em;
-  font-style: "italic"
+  font-style: "italic";
 }
 
 .db.tab_section > .dbname{
@@ -1285,12 +1310,14 @@ view manager
 }
 
 .noselect {
+
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
 }
 
 /*

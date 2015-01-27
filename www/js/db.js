@@ -74,7 +74,7 @@ function get_inner_dim(sty,dir){
 }
 
 
-function divider(cnt, frac, or){
+function divider(cnt, frac, or, heightf){
 
     var ho=ù(or)? false : or;
     if(ù(frac)) frac=50.0;
@@ -95,7 +95,16 @@ function divider(cnt, frac, or){
     this.update=function() {
 
 	if(ù(ho)) throw("No direction !") ; //ho=false;
-
+	var htop=heightf();
+	
+	if(isNaN(htop) ){
+	    console.log("Nan value for htop !");
+	    return;
+	}
+	
+	var hstring="calc( 100% - " + htop + "px - 1em)";
+	console.log("Setting height to ["+hstring+"]");
+	
 	var l=this.left, r=this.right;
 	var divnode = this.divnode;
 	
@@ -145,6 +154,12 @@ function divider(cnt, frac, or){
 	    r.style.width = wr + 'px';
 	    l.style.height = "";
 	    r.style.height = "";
+
+
+	    divnode.style.height = hstring;
+	    l.style.height = hstring;
+	    r.style.height = hstring;
+	    
 	}
 	
 	//console.log("HO= "+ho+" frac "+frac+" divw=" + divw + "  wp=" + wp + " mr="+ mr + " ml " + ml +" wcnt= " + w);
@@ -546,6 +561,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     new_event(tpl_root,"name_changed");
     
     if(ù(ui_opts.render_name))ui_opts.render_name=true;
+
     if(è(tpl_root.name) && ui_opts.render_name){
 	var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
 	var ico=get_ico(tpl_root);
@@ -553,7 +569,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    ui_name.prependChild(ico);
 	
 	
-	var ui_name_text=cc("div",ui_name);
+	var ui_name_text=tpl_root.ui_title_name= sliding ? cc("label",ui_name) : cc("div",ui_name);
+
 	ui_name_text.add_class("title");
 	ui_name.add_class("dbname");
 	if(typeof ui_opts.name_classes != 'undefined'){
@@ -580,6 +597,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    ui_name_text.innerHTML=title;
 	});
     }
+
+
+
     
     tpl_root.set_title=function(title){
 	tpl_root.name=title;
@@ -590,17 +610,43 @@ function create_ui(global_ui_opts, tpl_root, depth){
     tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
 
 
+
+
+    
     /*
       widget description (intro) setup
     */
     
     if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
-	var intro=cc("div",ui_root);
+	var intro=tpl_root.ui_intro=cc("div",ui_root);
 	intro.add_class("intro");
 	intro.innerHTML= tpl_root.intro;
 	sliding_stuff.push(intro);
     }
 
+    /* Toolbar */
+    
+    if(è(tpl_root.toolbar)){
+	var head=tpl_root.ui_head=cc("header", ui_root, true);
+	
+	if(è(tpl_root.ui_name))
+	    head.appendChild(tpl_root.ui_name);
+
+	for(var tbi in tpl_root.toolbar){
+	    var ttpl=tpl_root.toolbar[tbi];
+	    ttpl.parent=tpl_root;
+	    //console.log(tpl_root.name +  " adding child " + e + " name " + el.name);
+	    var ui=create_ui({},ttpl, depth+1);
+	    head.appendChild(ui);
+
+	}
+
+	
+	if(è(tpl_root.ui_intro))
+	    head.appendChild(tpl_root.ui_intro);
+    }
+
+    
     /*
       Widget window-management
     */
@@ -794,9 +840,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		sliding_stuff.push(ui_childs.div);
 		
 	    }
-	    if(e.ui_opts.close) add_close_button(e,e.ui_name);
+	    if(è(e.ui_name))
+		if(e.ui_opts.close) add_close_button(e,e.ui_name);
 	    prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
-
+	    
 	    
 	}
 
@@ -831,7 +878,30 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//ui_childs.divider=new divider(ui_childs.div, 50,ho );
 		var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
 		console.log("split at " + split_frac);
-		ui_childs.divider=new divider(ui_root, split_frac,ho );
+		ui_childs.divider=new divider(ui_root, split_frac,ho, function(){
+		    var h=0;
+		    if(è(tpl_root.ui_head)){
+			var of=get_overflow(tpl_root.ui_head);
+			h=tpl_root.ui_head.offsetHeight + of.h;
+			return h;
+		    }
+		    
+		    if(è(tpl_root.ui_name)){
+			var of=get_overflow(tpl_root.ui_name);
+			h=tpl_root.ui_name.offsetHeight + of.h;
+			//h=get_inner_dim(tpl_root.ui_name.style, true);
+			
+			//h=tpl_root.ui_name.clientHeigth;
+			console.log("ui_name : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+		    }
+		    if(è(tpl_root.ui_intro)){
+			var of=get_overflow(tpl_root.ui_intro);
+			h+=tpl_root.ui_intro.offsetHeight + of.h;
+			console.log("ui_intro : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+		    }
+		    //console.log("Total height = " + h);
+		    return h;
+		});
 
 		tpl_root.listen("view_update", function(){
 		    //console.log("Divider "+tpl_root.name+" : View Update!");
@@ -1286,14 +1356,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    sliding_stuff.push(ui_root);
 	
 	function update_arrows(){
+	    slide_button.className="slide_button";
+
 	    switch(sliding_dir){
 	    case "v":
-		slide_button.className="slide_button_v";
+		slide_button.className+=" v";
+		slide_button.className+=slided? " close" : " open";
 		slide_button.innerHTML= slided ? "❌" : "▶" ;
 //▲❌▼
 		break;
 	    case "h":
-		slide_button.className="slide_button_h";
+		slide_button.className+=" h";
+		slide_button.className+=slided? " close" : " open";
 		slide_button.innerHTML= slided ? "❌" : "▶"; 
 		break;
 	    default: break;
@@ -1380,7 +1454,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//ui_childs.div.style.zIndex=0;
 	
 	var slide_button=ce("span");
-	è(tpl_root.ui_name)? tpl_root.ui_name.appendChild(slide_button) : tpl_root.ui_root.appendChild(slide_button);
+	è(tpl_root.ui_title_name)? tpl_root.ui_title_name.appendChild(slide_button) : tpl_root.ui_root.appendChild(slide_button);
 	slide_button.style.zIndex=ui_root.style.zIndex+1;
 	
 	//ui_childs.div.style.display;
@@ -1410,9 +1484,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}, false);
 	    }
 	});
-			     
-	slide_button.addEventListener("click",function(e){
-	    //console.log(tpl_root.name + "  SLIDE click !  " + slided);
+
+	//console.log("adding slide button click event for  " + tpl_root.name);
+	tpl_root.ui_title_name.addEventListener("click",function(e){
+	    //slide_button.addEventListener("click",function(e){
+	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
 	    slided=!slided;
 	    
 	    sliding_stuff.forEach(function (s){

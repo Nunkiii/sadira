@@ -224,6 +224,7 @@ function xhr_query(query, result_cb, opts){
     },false);
 
     try{
+	console.log("xhr query ["+query+"]");
 	xhr.open(method, query, true);
 	xhr.send();
     }

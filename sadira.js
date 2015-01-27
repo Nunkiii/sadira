@@ -228,7 +228,29 @@ var _sadira = function(){
 	}
     }
     
-    //if(typeof process.argv[2] != 'undefined'){}	
+    try{
+
+	this.cluster.isMaster ?  this.start_master() : this.start_worker();
+	//Loading handlers.
+	sad.initialize_handlers("handlers");
+	sad.initialize_handlers("dialogs");
+
+	
+	if(!this.cluster.isMaster && è(argv['bootstrap'])) {
+	    if(this.cluster.worker.id==1){
+		var bs=require("./js/bootstrap.js");
+		bs.init({},this);
+	    }else{
+		console.log("Not worker 1 not bootstrap !!");
+	    }
+	}
+	
+    }
+    catch (e){
+	sad.log("Fatal error while initializing sadira : " +dump_error(e));
+	process.exit(1);
+    }
+
     
 } 
 
@@ -256,7 +278,7 @@ _sadira.prototype.handle_api = function (api_root, path, api_cb){
     }
     var api_funcs=api_root.__apis;
     if(ù(api_funcs))  api_funcs=api_root.__apis=[];
-    console.log("Attached API to path ["+path+"] API CB is func ? " + typeof api_cb);
+    //console.log("Attached API to path ["+path+"] API CB is func ? " + typeof api_cb);
 
     api_root.__apis.push(api_cb);    
 }
@@ -275,7 +297,7 @@ _sadira.prototype.dialog = function (path, api_cb){
     var api_root=this.dialog_handlers;
     var path_parts = path.split(".");
     for(var p=0;p<path_parts.length;p++){
-	console.log("Handling dialog path : " + path + " looking " + path_parts[p]);
+	//console.log("Handling dialog path : " + path + " looking " + path_parts[p]);
 	var api_child = api_root[path_parts[p]];
 	if(ù(api_child)){
 	    api_child=api_root[path_parts[p]]={};
@@ -415,26 +437,26 @@ _sadira.prototype.start_master = function (){
     //sad.session_master=new session.master(sad);
 
         
-    var redis = require("redis");
-    var client = redis.createClient({detect_buffers: true});
+    // var redis = require("redis");
+    // var client = redis.createClient({detect_buffers: true});
     
-    // if you'd like to select database 3, instead of 0 (default), call
-    // client.select(3, function() { /* ... */ });
+    // // if you'd like to select database 3, instead of 0 (default), call
+    // // client.select(3, function() { /* ... */ });
     
-    client.on("error", function (err) {
-	console.log("Error " + err);
-    });
+    // client.on("error", function (err) {
+    // 	console.log("Error " + err);
+    // });
     
-    client.set("string key", "string val", redis.print);
-    client.hset("hash key", "hashtest 1", "some value", redis.print);
-    client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
-    client.hkeys("hash key", function (err, replies) {
-	console.log(replies.length + " replies:");
-	replies.forEach(function (reply, i) {
-	    console.log("    " + i + ": " + reply);
-	});
-	client.quit();
-    });
+    // client.set("string key", "string val", redis.print);
+    // client.hset("hash key", "hashtest 1", "some value", redis.print);
+    // client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
+    // client.hkeys("hash key", function (err, replies) {
+    // 	console.log(replies.length + " replies:");
+    // 	replies.forEach(function (reply, i) {
+    // 	    console.log("    " + i + ": " + reply);
+    // 	});
+    // 	client.quit();
+    // });
     
     
   
@@ -550,6 +572,8 @@ _sadira.prototype.start_master = function (){
     sad.cluster.on('exit', function(worker, code, signal) {
 	sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
 	sad.nworkers--;
+	sad.log("Triggering collective suicide");
+	process.exit(1);
     });
     
     sad.cluster.on('listening', function(worker, address) {
@@ -658,25 +682,6 @@ _sadira.prototype.start_worker = function (){
     });
     //sad.log("Worker "+ sad.cluster.worker.id + " created" );
     
-    /*
-      var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
-      
-      passport.use(new LocalStrategy(
-      function(username, password, done) {
-      return done(null,false, { message : "User checking draft error !" });
-      }
-      ));
-      
-      
-      sad.use(passport.initialize());
-      sad.use(passport.session());
-      
-      
-      sad.post('/login',passport.authenticate('local'));
-      sad.post('/login', function(req,res,next){
-      console.log("Login called After....");
-      });
-    */
     
     sad.create_http_server(function(error, ok){
 	if(error!=null){
@@ -688,6 +693,43 @@ _sadira.prototype.start_worker = function (){
 	
 	sad.create_websocket_server();
 	sad.create_webrtc_server();		
+
+
+
+	var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
+	
+	passport.use(new LocalStrategy(
+	    function(username, password, done) {
+		return done(null,false, { message : "User checking draft error !" });
+	    }
+	));
+	
+	sad.use(passport.initialize());
+	sad.use(passport.session());
+	
+	sad.get('/protected', function(req, res, next) {
+	    passport.authenticate('local', function(err, user, info) {
+	        if (err) {
+		    console.log("Error auth " + err);
+		    return next(err)
+		}
+		if (!user) {
+		    console.log("Error auth : no user ");
+		    return next("No user");//res.redirect('/signin')
+		}
+		//res.redirect('/account');
+		console.log("Go the user accound !");
+	    })(req, res, next);
+	});
+	
+	//sad.post('/login',passport.authenticate('local'));
+	// sad.post('/login', function(req,res,next){
+	//     console.log("Login called After....");
+	// });
+
+
+	console.log("Passport initialized ");
+
     });
     
     
@@ -700,25 +742,6 @@ _sadira.prototype.start_worker = function (){
     
 }
 
-/* Start everything */
-
-_sadira.prototype.start = function (){
-
-    var sad=this;
-
-    try{
-	this.cluster.isMaster ?  this.start_master() : this.start_worker();
-	//Loading handlers.
-	sad.initialize_handlers("handlers");
-	sad.initialize_handlers("dialogs");
-	
-    }
-    catch (e){
-	sad.log("Fatal error while initializing sadira : " +dump_error(e));
-	process.exit(1);
-    }
-
-}
 
 
 /**
@@ -1309,24 +1332,11 @@ _sadira.prototype.initialize_handlers=function(packname){
 	//var wpack=require(cwd+"/"+pkg_file);
 	var wpack=require(pkg_file);
 
-
-	if(sad.cluster.isMaster){
-	    var initf=wpack.init_master;
-	    
-	    if(è(initf))
-		initf(pkg[w],sad);
-	    else{
-		//sad.log("No pkg init function!");
-	    }
-	    
-	}else{
-	    var initf=wpack.init;
-	    
-	    if(è(initf))
-		initf(pkg[w],sad);
-	    else{
-		//sad.log("No pkg init function!");
-	    }
+	var initf = sad.cluster.isMaster ? wpack.init_master : wpack.init;
+	if(è(initf))
+	    initf(pkg[w],sad);
+	else{
+	    //sad.log("No pkg init function!");
 	}
 	//sad.log("Init "+packname+" : ["+pkg_file+"] DONE");
     }
@@ -1336,8 +1346,7 @@ _sadira.prototype.initialize_handlers=function(packname){
 //Main sadira instance. Should be in another file...
 
 try{
-    var sa=exports.sadira = new _sadira();
-    sa.start();
+    exports.sadira = new _sadira();
 }
 
 catch (e){

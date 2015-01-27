@@ -4,11 +4,11 @@
   "description": "Web framework",
   "main": "sadira.js",
   "dependencies": {
-    "express": "^4.10.2",
-    "http-proxy": "*",
-    "minimist": ">=1.1.0",
-    "socket.io": ">=1.1.0",
-    "websocket": ">=1.0.8"
+      "owasp-password-strength-test" : "*",
+      "http-proxy": "*",
+      "minimist": ">=1.1.0",
+      "socket.io": ">=1.1.0",
+      "websocket": ">=1.0.8"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

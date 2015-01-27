@@ -199,6 +199,13 @@ template_ui_builders.sadira=function(ui_opts, sad){
 
 }
 
+template_ui_builders.main_window=function(ui_opts, prog){
+    
+    
+    
+}
+
+
 template_ui_builders.progress=function(ui_opts, prog){
 
     var ui=prog.ui=ce("progress");
@@ -375,11 +382,74 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
 
 template_ui_builders.login=function(ui_opts, login){
-    var ui=template_ui_builders.password(ui_opts, login);
 
-    var login_ui=ce("div",ui);
-    login_ui.innerHTML="LOGIN HERE HEEEHOOOO!!";
+    
+    ///////////////////////////////////////////////////////////////
+    //User Login/Logout stuff
+    
+    //var ui=template_ui_builders.password(ui_opts, login);
 
+    var ui=ce("div",ui);
+
+
+    var input_caption=cc('span',ui);
+    var input_box=cc('input',ui);
+
+    input_caption.innerHTML="User name : ";
+    input_caption.className='login_input_caption';
+    input_box.className='login_input_box';
+	
+    input_box.focus();
+    
+    var user_name="", user_password="";
+    
+    input_box.onkeydown = function(e) {
+	
+	if (e.keyCode === 13) { //return key pressed
+	    
+	    if(user_name==""){
+		user_name=input_box.value;
+		//user_name=hex_md5(input_box.value);
+		input_box.value="";
+		input_caption.innerHTML="Password : ";
+		input_box.type="password";
+	    }else{
+		//console.log("Setting user password...");
+		user_password=input_box.value;//hex_md5(input_box.value);
+		input_box.value="";
+		input_caption.innerHTML="Registering...";
+		input_box.style.display='none';
+
+		var rqinit=new request({ cmd : "/login/init", query_mode : "bson"});
+
+		rqinit.execute(function(error, res){
+		    if(error){
+			console.log("Error rqinit " + error);
+			return;
+		    }
+
+		    var server_key=res.key;
+		    var client_key = new Uint8Array(32);
+
+		    window.crypto.getRandomValues(buf);
+		    
+		    var hash=CryptoJS.SHA1(user_name+user_password);
+		    console.log("["+user_name+"]["+user_password+"]");
+		    var qr=new request({ cmd : "/login", query_mode : "bson", args : { hash : hash.toString()}    });
+		    
+		    qr.execute(function(error, res){
+			console.log("Received  " + JSON.stringify(res));
+		    });
+		    
+		    
+		});
+		
+		//query_login("what=login&u="+user_name+"&p="+user_password,result_cb);
+	    }
+	}
+    };
+
+    return ui;
 }
 
 
@@ -1360,4 +1430,3 @@ template_ui_builders.color=function(ui_opts, tpl_item){
 template_ui_builders.angle=function(ui_opts, tpl_item){
     return template_ui_builders.double(ui_opts, tpl_item);
 }
-
