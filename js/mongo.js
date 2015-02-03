@@ -1,51 +1,9 @@
 // Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
 // Do what you want with this file.
 
-require('./crypto.js');
+var mongoose = require('mongoose');
 
-var mongo = require('mongodb');
-
-var Db = mongo.Db,
-    Connection = mongo.Connection,
-    MongoClient = mongo.MongoClient,
-    Server = mongo.Server,
-    ReplSetServers = mongo.ReplSetServers,
-    ObjectID = mongo.ObjectID,
-    Binary = mongo.Binary,
-    GridStore = mongo.GridStore,
-    Grid = mongo.Grid,
-    Code = mongo.Code;
-
-var BSON = mongo.pure().BSON;
-
-var assert = require('assert');
-
-
-var jstringify = function(object, n){
-
-  var cache=[];
-  var nn=5;
-  if(n) nn=n;
-  
-  return JSON.stringify(object,function(key, value) {
-    if (typeof value === 'object' && value !== null) {
-      if (cache.indexOf(value) !== -1) {
-	// Circular reference found, discard key
-	return;
-      }
-      // Store value in our collection
-      cache.push(value);
-    }
-    //console.log('JS END' );
-    return value;
-  } , nn );
-  
-  
-  cache = null; // Enable garbage collection
-}
-
-
-exports.server=function(config_in) {
+exports.connect=function(config_in, cb) {
 
     var	config=this.config={
 	mongo_host : "localhost",
@@ -55,17 +13,14 @@ exports.server=function(config_in) {
 	replica_set :[
 	    {
 		ip : "192.168.166.230",
-		port : Connection.DEFAULT_PORT,
 		options : { safe:true, auto_reconnect: true }
 	    },
 	    {
 		ip : "192.168.166.231",
-		port : Connection.DEFAULT_PORT,
 		options : { safe:true, auto_reconnect: true }
 	    },
 	    {
 		ip : "192.168.166.232",
-		port : Connection.DEFAULT_PORT,
 		options : { safe:true, auto_reconnect: true }
 	    }
 	]
@@ -75,101 +30,107 @@ exports.server=function(config_in) {
 	for (var c in config_in) config[c]=config_in[c];
     }
 
-    if(è(config.replica_set)){
-	for(var rsi in config.replica_set){
-	    if(ù(config.replica_set[rsi].port))
-		config.replica_set[rsi].port=Connection.DEFAULT_PORT;
-	}
-    }
+    // if(è(config.replica_set)){
+    // 	for(var rsi in config.replica_set){
+    // 	    if(ù(config.replica_set[rsi].port))
+    // 		config.replica_set[rsi].port=Connection.DEFAULT_PORT;
+    // 	}
+    // }
 
+    
+    var cfg=config;
+    var u='mongodb://';
 
-    /*
-  
-  var oid=mongo.ObjectID();
-  console.log("A new OID : ["+oid+"]");
-  
-  var os="5231bbdd1dadb9d169000002";
-  
-  var oid2=mongo.ObjectID(os);
-  console.log("A constr OID from "+os+" =  ["+oid2+"]");
-  
-  */
-  
-}
-
-exports.server.prototype.disconnect = function(cb) {
-    if(ù(this.srv)) cb("Mongo server NOT connected!");
-
-    this.srv=undefined;
-}
-exports.server.prototype.connect = function(cb) {
-
-    if(è(this.srv)) cb("Mongo server already connected!");
-    var cfg=this.config;
     try{
 	if(cfg.replica_set_enable){
-	    var rset=[];
+	    
+	    //var rset=[];
 	    for(var rssi in cfg.replica_set){
+		
 		var rss=cfg.replica_set[rssi];
-		rset.push(new Server(rss.ip,rss.port,rss.options));
+		u+=rss.ip; if(è(rss.port))u+=":"+rss.port;
+		//rset.push(new Server(rss.ip,rss.port,rss.options));
 	    }
-	    this.srv = new ReplSetServers(rset);
+	    //this.srv = new ReplSetServers(rset);
 	}else{
+	    u+=cfg.mongo_host;
+	    if(è(cfg.mongo_port))
+		u+=":"+cfg.mongo_port;
 	    console.log("Create mongo server link " + cfg.mongo_host);
-	    this.srv=new Server(cfg.mongo_host, cfg.mongo_port);
+	    //this.srv=new Server(cfg.mongo_host, cfg.mongo_port);
 	    
 	}
-
-	cb(null,this);
+	u+="/"+cfg.mongo_db;
+	console.log("Mongoose connecting to " + u);
+	mongoose.connect(u, function(error) {
+	    if(error) return cb(error);
+	    cb(null,mongoose);
+	});
     }
     catch (e){
 	cb("Mongo exception : " + e);
     }
- }
+    
+}
 
-exports.server.prototype.open_db = function(dbname, cb, options_in) {
+exports.disconnect = function(cb) {
+    //if(ù(this.srv)) cb("Mongo server NOT connected!");
+    //this.srv=undefined;
+    mongoose.disconnect();
+}
 
-    var mongo=this;
+// exports.server.prototype.connect = function(cb) {
+    
+//     //if(è(this.srv)) cb("Mongo server already connected!");
+//  }
+
+
+// exports.server.prototype.open_db = function(dbname, cb, options_in) {
+
+//     var mongo=this;
         
-    if(ù(this.db_link)) this.db_link={};
-    if(è(this.db_link[dbname])) cb(null, dblink[dbname]);
-    if(ù(this.srv)) cb("Mongo server NOT connected!");
+//     if(ù(this.db_link)) this.db_link={};
+//     if(è(this.db_link[dbname])) cb(null, dblink[dbname]);
+//     if(ù(this.srv)) cb("Mongo server NOT connected!");
     
-    var options={safe:true, auto_reconnect: true };
-    if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
+//     var options={safe:true, auto_reconnect: true };
+//     if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
 
     
-    var dbo =new Db(dbname, this.srv, options);
+//     var dbo =new Db(dbname, this.srv, options);
 
-    dbo.open(function(err, db) {
-	if(err){
-	    var em="Mongo error while attempting at opening DB [" + dbname + "] : " + err;
-	    console.log(em);
-	    cb(em);
-	}else{
-	    mongo.db_link[dbname]=db; 
-	    cb(null,db);
-	}
-    });
-    /*
-      var adminDb = db.admin();
-      // List all the available databases
-      adminDb.listDatabases(function(err, dbs) {
-      assert.equal(null, err);
-      assert.ok(dbs.databases.length > 0);
-      if(cb) cb(dbs);
-      //db.close();
-      });
-    */
-}
+//     dbo.open(function(err, db) {
+// 	if(err){
+// 	    var em="Mongo error while attempting at opening DB [" + dbname + "] : " + err;
+// 	    console.log(em);
+// 	    cb(em);
+// 	}else{
+// 	    mongo.db_link[dbname]=db; 
+// 	    cb(null,db);
+// 	}
+//     });
+//     /*
+//       var adminDb = db.admin();
+//       // List all the available databases
+//       adminDb.listDatabases(function(err, dbs) {
+//       assert.equal(null, err);
+//       assert.ok(dbs.databases.length > 0);
+//       if(cb) cb(dbs);
+//       //db.close();
+//       });
+//     */
+// }
 
 
-exports.server.prototype.close = function() {
-    if(è(this.srv)){
-	this.srv.close();
-	delete this.srv;
-    }
-}
+// exports.server.prototype.close = function() {
+
+//     mongoose.disconnect();
+    
+//     if(è(this.srv)){
+// 	this.srv.close();
+// 	delete this.srv;
+//     }
+// }
 
 // exports.server.prototype.request=function(db, collection, query, cb, options_in){
 

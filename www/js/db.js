@@ -94,7 +94,7 @@ function divider(cnt, frac, or, heightf){
 
     this.update=function() {
 
-	if(ù(ho)) throw("No direction !") ; //ho=false;
+	//if(ù(ho)) throw("No direction !") ; //ho=false;
 	var htop=heightf();
 	
 	if(isNaN(htop) ){
@@ -103,7 +103,7 @@ function divider(cnt, frac, or, heightf){
 	}
 	
 	var hstring="calc( 100% - " + htop + "px - 1em)";
-	console.log("Setting height to ["+hstring+"]");
+	//console.log("Setting height to ["+hstring+"]");
 	
 	var l=this.left, r=this.right;
 	var divnode = this.divnode;
@@ -132,7 +132,7 @@ function divider(cnt, frac, or, heightf){
 
 	//console.log("Right : w=" + sty.width + " mtot = " + mr + " clientw=" + this.right.clientWidth);
 	sty=document.defaultView.getComputedStyle(divnode);
-	divnoded.sty
+	
 	var divw=ho?parseFloat(divnoded.sty.height)+divnoded.h:parseFloat(divnoded.sty.width)+divnoded.w;
 	//var wp=wreal-mr-ml-divw;
 	var wp=wreal-divw;
@@ -165,6 +165,7 @@ function divider(cnt, frac, or, heightf){
 	//console.log("HO= "+ho+" frac "+frac+" divw=" + divw + "  wp=" + wp + " mr="+ mr + " ml " + ml +" wcnt= " + w);
 
 	if(!mouseconf){
+
 	    mouseconf=true;
 	    //console.log("Creating drag events");
 	    divnode.addEventListener('mousedown', function(e) {
@@ -269,7 +270,8 @@ local_templates.prototype.substitute_template=function(tpl_item){
 	var tpl=this.templates[tpl_item.template_name];
 	if(typeof tpl==='undefined')
 	    throw "Unknwon template " + tpl_item.template_name;
-
+	//console.log("subst for " + tpl_item.name + " tpl " + tpl.template_name);
+	
 	if(typeof tpl.template_name !='undefined'){
 	    var tpls=this.templates[tpl.template_name];
 	    if(typeof tpls==='undefined')
@@ -287,7 +289,11 @@ local_templates.prototype.substitute_templates=function(tpl){
     for (var e in tpl.elements){
 	this.substitute_templates(tpl.elements[e]);
     }
-
+    if(è(tpl.toolbar)){
+	for(var tbi in tpl.toolbar){
+	    this.substitute_templates(tpl.toolbar[tbi]);
+	}
+    }
 }
 
 local_templates.prototype.build_template=function(template_name){
@@ -411,7 +417,8 @@ child_container.prototype.replace_child_com=function(child){
 
 
 function attach_ui(tpl, node){
-    document.body.appendChild(tpl.ui_root, node);
+    //document.body.appendChild(tpl.ui_root, node);
+    node.appendChild(tpl.ui_root);
     tpl.trigger("view_update");
     tpl.view_update_childs(); 
 }
@@ -453,11 +460,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name);
 
-    if(!depth){
-	tpl_root.depth=0;
-    }else 
+    if(!depth)depth=0;
+    if(!tpl_root.depth)
 	tpl_root.depth=depth;
-
+    
     if(ù(tpl_root.ui_opts)){
 	tpl_root.ui_opts=global_ui_opts;
 	if(ù(tpl_root.ui_opts.type)) tpl_root.ui_opts.type="short";
@@ -563,32 +569,38 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(ù(ui_opts.render_name))ui_opts.render_name=true;
 
     if(è(tpl_root.name) && ui_opts.render_name){
-	var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
-	var ico=get_ico(tpl_root);
-  	if(typeof ico!='undefined')
-	    ui_name.prependChild(ico);
-	
-	
-	var ui_name_text=tpl_root.ui_title_name= sliding ? cc("label",ui_name) : cc("div",ui_name);
 
-	ui_name_text.add_class("title");
-	ui_name.add_class("dbname");
-	if(typeof ui_opts.name_classes != 'undefined'){
-	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
-	    add_classes(ui_opts.name_classes, ui_name);
-	}
+	if(ui_opts.render_name){
 	
-	
-	if(typeof tpl_root.tip != 'undefined'){
-	    //tpl_root.ui_name.add_class("tooltip");
-	    //ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
-
-	    ui_name.setAttribute("title", tpl_root.tip);
-	    //ui_name.add_class("tip");
+	    var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
+	    var ico=get_ico(tpl_root);
+  	    if(typeof ico!='undefined')
+		ui_name.prependChild(ico);
 	    
-	    //var tip=cc("span",ui_name); tip.className="tip";
-	    //tip.innerHTML= tpl_root.tip;
+	    
+	    var title_type = (depth>0)?("h"+(depth+2)):"h1";
+	    var ui_name_text=tpl_root.ui_title_name= cc(title_type,ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
+	    
+	    //ui_name_text.add_class("title");
+	    if(tpl_root.depth==1)
+		ui_name.add_class("page-header");
+	    if(typeof ui_opts.name_classes != 'undefined'){
+		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+		add_classes(ui_opts.name_classes, ui_name);
+	    }
+	    
+	    if(typeof tpl_root.tip != 'undefined'){
+		//tpl_root.ui_name.add_class("tooltip");
+		//ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
+		
+		ui_name.setAttribute("title", tpl_root.tip);
+		//ui_name.add_class("tip");
+		
+		//var tip=cc("span",ui_name); tip.className="tip";
+		//tip.innerHTML= tpl_root.tip;
+	    }
 	}
+	
 
 	tpl_root.get_title_node=function(){ return this.ui_name; }
 	
@@ -609,42 +621,33 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
     tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
 
-
-
-
     
     /*
       widget description (intro) setup
     */
     
     if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
-	var intro=tpl_root.ui_intro=cc("div",ui_root);
-	intro.add_class("intro");
-	intro.innerHTML= tpl_root.intro;
+	var intro;
+
+	// if(è(tpl_root.ui_title_name))
+	//     intro=tpl_root.ui_intro=cc("small",tpl_root.ui_title_name);
+	// else
+	    intro=tpl_root.ui_intro=cc("small",tpl_root.ui_root);
+	//intro.className="alert alert-info alert-dismissible";
+	intro.className="text-muted";
+	intro.innerHTML= " "+tpl_root.intro;
+	/*
+	var b=cc("button",intro,true); b.className="close"; b.type="button";
+	b.setAttribute("data-dismiss","alert");b.setAttribute("aria-label","Close");
+	var sp=cc("span",b); sp.setAttribute("aria-hidden","true");sp.className="";
+	sp.innerHTML="&times;";
+*/
 	sliding_stuff.push(intro);
+
     }
 
     /* Toolbar */
     
-    if(è(tpl_root.toolbar)){
-	var head=tpl_root.ui_head=cc("header", ui_root, true);
-	
-	if(è(tpl_root.ui_name))
-	    head.appendChild(tpl_root.ui_name);
-
-	for(var tbi in tpl_root.toolbar){
-	    var ttpl=tpl_root.toolbar[tbi];
-	    ttpl.parent=tpl_root;
-	    //console.log(tpl_root.name +  " adding child " + e + " name " + el.name);
-	    var ui=create_ui({},ttpl, depth+1);
-	    head.appendChild(ui);
-
-	}
-
-	
-	if(è(tpl_root.ui_intro))
-	    head.appendChild(tpl_root.ui_intro);
-    }
 
     
     /*
@@ -860,6 +863,53 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	break;
 
+    case "table":
+	var tb;
+	ui_childs.add_child=function(e,ui,prep){
+	    if(!add_child_common(e,ui,prep)) return;
+
+	    this.add_child_com(e);
+
+	    if(typeof ui_childs.div=='undefined'){
+		tb=ui_childs.div=ce("table"); 
+		ui_childs.div.className="childs";
+		
+		if(typeof ui_opts.child_classes != 'undefined'){
+		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+		    add_classes(ui_opts.child_classes, ui_childs.div);
+		}
+		
+		ui_root.appendChild(ui_childs.div);
+		sliding_stuff.push(ui_childs.div);
+		
+	    }
+	    if(è(e.ui_name))
+		if(e.ui_opts.close) add_close_button(e,e.ui_name);
+
+	    var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
+
+	    var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
+	    
+	    td=cc("td",tr); td.appendChild(e.ui_root); 
+	    
+	    //prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+	    
+	    
+	}
+
+	ui_childs.replace_child=function(nctpl){
+	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	}
+
+	ui_childs.remove_child=function(e){
+	    ui_childs.div.removeChild(e.ui_root);
+	}
+
+	break;
+
+	
     case "divider":
 	//	ui_childs=tpl_root.ui_childs={};
 	
@@ -878,6 +928,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//ui_childs.divider=new divider(ui_childs.div, 50,ho );
 		var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
 		console.log("split at " + split_frac);
+
 		ui_childs.divider=new divider(ui_root, split_frac,ho, function(){
 		    var h=0;
 		    if(è(tpl_root.ui_head)){
@@ -1123,12 +1174,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//div.className="tab_widget";
 	//    add_classes(classes,div)
 
-	var navcnt=cc("div",ui_root); navcnt.className="navcnt";
-	var nav=this.nav=cc("nav",navcnt);
-	var cnt=this.cnt=cc("div", ui_root);
+	//var navcnt=cc("div",ui_root); navcnt.className="navcnt";
 
+	var nav=this.nav=cc("ul",ui_root);
+	nav.className= cvtype==="tabbed" ? "nav nav-tabs" : "nav nav-pills";
+	var cnt=this.cnt=cc("div", ui_root);
+	var navcnt=nav;
 	navcnt.add_class(cvtype);
-	cnt.add_class("child_container");
+	//cnt.add_class("child_container");
+	cnt.add_class("tab-content");
 
 	sliding_stuff.push(nav);
 	sliding_stuff.push(cnt);
@@ -1141,15 +1195,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var selected_frame;
 
 	var select_frame=function(f){
-	    console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
+	    //console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
 
 	    if(typeof selected_frame!='undefined'){
 		selected_frame.ui_root.style.display='none';
-		selected_frame.ui_root.remove_class("selected_tab");
-		selected_frame.ui_root.add_class("normal_tab");
+		selected_frame.ui_root.remove_class("active");
+		//selected_frame.ui_root.add_class("normal_tab");
 		//	    last_sel_frame=this.selected_frame;
 		
-		selected_frame.li.remove_class("selected");
+		//selected_frame.li.remove_class("selected");
+		selected_frame.li.remove_class("active");
+		
 		cnt.replaceChild(f.ui_root,selected_frame.ui_root);
 	    }else
 		cnt.appendChild(f.ui_root);
@@ -1157,9 +1213,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    f.ui_root.style.display='block';
 	    selected_frame=f;
 	    
-	    selected_frame.ui_root.add_class("selected_tab");
-	    selected_frame.li.add_class("selected");
-
+	    selected_frame.li.add_class("active");
+	    selected_frame.ui_root.add_class("active");
+	    
 	    if(è(f.rad)) f.rad.checked=true;
 
 	    if(è(f.parent))
@@ -1197,46 +1253,51 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var rad_group;
 
 	var set_frame_name=function(e){
-	    e.li.innerHTML="";
+	    if(ù(e.a)){ e.a=cc("a",e.li); e.a.href="javascript:void(0)";}
+	    
+	    e.a.innerHTML="";
 	    if(e.name)
-		e.li.innerHTML=e.name;
+		e.a.innerHTML=e.name;
 	    else{
 		if(e.type)
-		    e.li.innerHTML="Anon " +e.type;
-		else e.li.innerHTML="Container";
+		    e.a.innerHTML="Anon " +e.type;
+		else e.a.innerHTML="Container";
 	    }
-	    
+
 	    var ico=get_ico(e);
   	    if(è(ico))
-		e.li.prependChild(ico);
-
-	    if(e.ui_opts.close) add_close_button(e,e.li);
+		e.a.prependChild(ico);
+	    
+	    if(e.ui_opts.close) add_close_button(e,e.a);
 	    
 	    if(cvtype==="radio") {
 		if(ù(rad_group))rad_group=Math.random().toString(36).substring(2);
-		e.rad=cc("input",e.li);
+		e.rad=cc("input",e.a);
 		e.rad.type="radio";
 		e.rad.name=rad_group;
 	    }
 	}
 	
 	var add_frame=function(e){
-	    console.log("Add tab/radio frame " + e.name);
-	    e.li=cc("li", nav);
+	    //console.log("Add tab/radio frame " + e.name);
+	    e.li=cc("li", nav); e.li.setAttribute("role","presentation");
 
 	    e.get_title_node=function(){
-		console.log("tab/rad get title node ! ");
+		//console.log("tab/rad get title node ! ");
 		return e.li;
 	    }
 	    
 	    set_frame_name(e);
 	    
 	    if(!e.ui_opts.label){
-		e.ui_root.add_class("tab_section");
+		e.ui_root.add_class("tab-pane");
+		//e.ui_root.add_class("fade");
+		//if(nframes==0) e.ui_root.add_class("in");
+		e.ui_root.setAttribute("role","tabpanel");
 		e.ui_root.style.display='none';
 		
 		e.li.addEventListener("click",function(){
-		    console.log("Li Click !!");
+		    //console.log("Li Click !!");
 		    select_frame(e); //xd.fullscreen(false);
 
 		});
@@ -1298,6 +1359,29 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	break;
     }
     
+    tpl_root.disable_rec=function(dis, rec){
+	
+	if(è(this.disable_element)) this.disable_element(dis);
+	if(rec && è(tpl_root.elements))
+	    for(var e in tpl_root.elements){
+		tpl_root.elements[e].disable_rec(dis, rec);
+	    };
+	
+    }
+    
+    tpl_root.disable=function(dis,rec){
+	if(ù(dis)){ dis=true; rec=true;}
+	else if(ù(rec))rec=true;
+	if(dis)
+	    ui_root.add_class("masked");
+	else
+	    ui_root.remove_class("masked");    
+	tpl_root.disable_rec(dis,rec);
+    };
+
+
+
+
     
     function on_ui_childs_ready(){
 	if(tpl_root.ui_opts.label){ 
@@ -1305,7 +1389,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
     }
 
-
+    var nch=0;
     for (var e in tpl_root.elements){
 	var el=tpl_root.elements[e];
 	el.container=ui_childs;
@@ -1314,10 +1398,56 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var ui=create_ui(global_ui_opts,el, depth+1);
 
 	ui_childs.add_child(el,ui);
-
+	nch++;
 	//console.log(tpl_root.name +  " adding child " + el.name + " OK!");
     }
+    //console.log(tpl_root.name +  " added "+nch+"childs");
     
+    if(è(tpl_root.toolbar)){
+	
+	var head=tpl_root.ui_head=cc("header", ui_root, true);
+	//head.add_class("db");
+
+	var toolbar=tpl_root.ui_toolbar=cc("nav",head);
+	toolbar.className="navbar navbar-default";
+	toolbar.setAttribute("role","navigation");
+	var cnt=cc("div",toolbar); cnt.className="container-fluid";
+	var navhead=cc("div",cnt);navhead.className="navbar-header";
+	var togb=cc("button",navhead); togb.className="navbar-toggle collapsed";
+	togb.setAttribute("data-toggle", "collapse");
+	var s=cc("span",togb); s.className="sr-only"; s.innerHTML="Toggle navigation";
+	cc("span",togb).className="icon-bar";
+	cc("span",togb).className="icon-bar";
+	cc("span",togb).className="icon-bar";
+	
+	var togid=Math.random().toString(36).substring(2);
+	togb.setAttribute("data-target", "#"+togid);
+	var tita=cc("a",navhead); tita.className="navbar-brand";
+	tita.setAttribute("href","javascript:void(0)");
+
+	if(è(tpl_root.ui_name))
+	    tita.appendChild(tpl_root.ui_name);
+
+	var dnav=cc("div", cnt); dnav.className="collapse navbar-collapse";  dnav.id=togid;
+	var unav=cc("ul",dnav); unav.className="nav navbar-nav";
+	
+	for(var tbi in tpl_root.toolbar){
+	    var ttpl=tpl_root.toolbar[tbi];
+	    ttpl.parent=tpl_root;
+	    //console.log(tpl_root.name +  " adding toolbar child " + e + " name " + el.name + " elements " + JSON.stringify(ttpl.elements)) ;
+	    
+	    var ui=create_ui(global_ui_opts,ttpl, depth+1);
+	    //toolbar.appendChild(ttpl.ui_root);
+	    unav.appendChild(ttpl.ui_root);
+	    
+	}
+
+	
+	if(è(tpl_root.ui_intro))
+	    head.appendChild(tpl_root.ui_intro);
+    }
+
+
     
     try{
 	
@@ -1362,13 +1492,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    case "v":
 		slide_button.className+=" v";
 		slide_button.className+=slided? " close" : " open";
-		slide_button.innerHTML= slided ? "❌" : "▶" ;
+		//slide_button.innerHTML= slided ? "❌" : "▶" ;
 //▲❌▼
 		break;
 	    case "h":
 		slide_button.className+=" h";
 		slide_button.className+=slided? " close" : " open";
-		slide_button.innerHTML= slided ? "❌" : "▶"; 
+		//slide_button.innerHTML= slided ? "❌" : "▶"; 
 		break;
 	    default: break;
 	    }
@@ -1486,12 +1616,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	});
 
 	//console.log("adding slide button click event for  " + tpl_root.name);
-	tpl_root.ui_title_name.addEventListener("click",function(e){
+
+	var click_element = è(tpl_root.ui_title_name)? tpl_root.ui_title_name : slide_button;
+	
+	click_element.addEventListener("click",function(e){
 	    //slide_button.addEventListener("click",function(e){
 	    console.log(tpl_root.name + "  SLIDE click !  " + slided);
 	    slided=!slided;
 	    
 	    sliding_stuff.forEach(function (s){
+		//console.log("display stuff " + s.disp_orig );
 		s.style.display=s.disp_orig;
 	    });
 
@@ -1523,26 +1657,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     
-    tpl_root.disable_rec=function(dis, rec){
-
-	if(è(this.disable_element)) this.disable_element(dis);
-	if(rec && è(tpl_root.elements))
-	    for(var e in tpl_root.elements){
-		tpl_root.elements[e].disable_rec(dis, rec);
-	    };
-	
-    }
-    
-    tpl_root.disable=function(dis,rec){
-	if(ù(rec))rec=true;
-	if(dis)
-	    ui_root.add_class("masked");
-	else
-	    ui_root.remove_class("masked");    
-	tpl_root.disable_rec(dis,rec);
-    };
-
-
 
     if(è(ui_opts.root)){
 	//console.log("Root widget ! " + tpl_root.name + " opts " + JSON.stringify(ui_opts));

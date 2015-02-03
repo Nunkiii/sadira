@@ -225,8 +225,20 @@ function xhr_query(query, result_cb, opts){
 
     try{
 	console.log("xhr query ["+query+"]");
+
+
 	xhr.open(method, query, true);
-	xhr.send();
+
+	if(method=="POST"){
+	    var post_data="";
+	    if(è(opts.post_data)) post_data=opts.post_data;
+	    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	    //xhr.setRequestHeader("Content-length", post_data.length);
+	    //xhr.setRequestHeader("Connection", "close");
+	    xhr.send(post_data);
+	}
+	else
+	    xhr.send();
     }
     catch (e){
 	result_cb("XHTTP Error :" + e.toString());
@@ -296,15 +308,15 @@ function bson_query(query, result_cb, opts){
 
 
 var request = function (opts){
-    //this.opts=opts;
-
-    if(ù(opts.cmd)) throw "No API command given";
-
+    if(è(opts.cmd)) opts.url=opts.cmd;
+    
+    if(ù(opts.url)) throw "No API command given";
+    
     if(ù(opts.data_mode)) opts.data_mode="json";
     if(ù(opts.query_mode)) opts.query_mode="json";
     if(ù(opts.host)) opts.host="";
     if(ù(opts.key)) opts.key="req";
-
+    if(ù(opts.method)) opts.method="GET";
 
     function ab2b64( buffer ) {
 	var binary = '';
@@ -317,7 +329,7 @@ var request = function (opts){
     }
     
     this.build_url_string_json=function(){
-	this.url_string=opts.host+opts.cmd;
+	this.url_string=opts.host+opts.url;
 	if(è(opts.args))
 	    this.url_string+="?"+opts.key+"="+encodeURIComponent(JSON.stringify(opts.args));
 	return this.url_string;
@@ -325,7 +337,7 @@ var request = function (opts){
 
     this.build_url_string_bson=function(){
 
-	this.url_string=opts.host+opts.cmd;
+	this.url_string=opts.host+opts.url;
 
 	if(è(opts.args)){
 	    var bs=BSON.serialize(opts.args);
@@ -342,10 +354,10 @@ var request = function (opts){
 	//console.log("Executing request " +this.url_string);
 	switch(opts.data_mode){
 	case "json" : 
-	    json_query(this.url_string,cb,opts.xhr);
+	    json_query(this.url_string,cb,opts);
 	    break;
 	case "bson" : 
-	    bson_query(this.url_string,cb,opts.xhr);
+	    bson_query(this.url_string,cb,opts);
 	    break;
 	case "dgm":
 	    opts.type="arraybuffer"; //forcing binary mode
@@ -359,18 +371,16 @@ var request = function (opts){
 		    return cb("Error deserializing datagram : " + e);
 		}
 		cb(null,dgm);
-	    },opts.xhr);
+	    },opts);
 	    break;
 	default: 
-	    xhr_query(this.url_string,cb,opts.xhr);
+	    xhr_query(this.url_string,cb,opts);
 	    break;
 	    
 	};
     }
   return this;
 };
-
-
 
 function download_url(url, callback) {
     var request = new XMLHttpRequest;  
@@ -653,7 +663,7 @@ var proc_monitor=function(){
     info_icon.className="info_icon disabled";
     wait_icon=cc("div",ui,true);
     wait_icon.className="wait_icon disabled";
-    xhr_query("sadira/icons/loading-spinning-bubbles.svg", function(error, svgtext){
+    xhr_query("/sadira/icons/loading-spinning-bubbles.svg", function(error, svgtext){
 	if(error===null)
 	    wait_icon.innerHTML=svgtext ;
     })
@@ -668,7 +678,7 @@ var proc_monitor=function(){
 	
     this.error=function(message){
 	this.stop_waiting();
-	info_icon.src="sadira/icons/Error_icon.svg";
+	info_icon.src="/sadira/icons/Error_icon.svg";
 	info_icon.remove_class("disabled");
 	if(è(message)) 
 	    this.message(message);
@@ -677,7 +687,7 @@ var proc_monitor=function(){
     this.done=function(m){
 
 	this.stop_waiting();
-	info_icon.src="sadira/icons/Approve_icon.svg";
+	info_icon.src="/sadira/icons/Approve_icon.svg";
 	info_icon.remove_class("disabled");
 	if(è(m)) 
 	    this.message(m);

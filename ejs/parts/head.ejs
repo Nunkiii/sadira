@@ -1,0 +1,75 @@
+<meta charset="utf-8"/> 
+
+<script src="/sadira/js/community/jquery-2.1.3.min.js"></script>
+
+<script src="/sadira/js/community/bootstrap/js/bootstrap.min.js"></script>
+
+<script src="/sadira/js/community/bson.js"></script>
+
+<script src="/sadira/js/utils.js"></script>
+<script src="/sadira/js/datagram.js"></script> 
+<script src="/sadira/js/serializer.js"></script> 
+<script src="/sadira/js/dialog.js"></script>
+<script src="/sadira/js/window.js"></script> 
+<script src="/sadira/js/db.js"></script>
+<script src="/sadira/js/base_templates.js"></script> 
+
+<script src="/sadira/js/sadira.js"></script> 
+
+<script src="/sadira/js/community/async.js"></script>
+<script src="/sadira/js/community/numeric-1.2.6.js"></script>
+<script src="/sadira/js/community/d3.v3.min.js"></script>
+<script src="/sadira/js/community/sha1.js"></script>
+<script src="/sadira/js/community/radixsort.min.js"></script>
+<script src="/sadira/js/community/owasp-password-strength-test.js"></script>
+
+
+<script src="/sadira/js/db_basetypes.js"></script>
+<script src="/sadira/js/db_utils.js"></script>
+
+<script src="/XD-1/js/xd1_templates.js"></script>
+<script src="/XD-1/gloria-widget/js/gloria.js"></script>
+
+
+<script src="/sadira/js/colormap.js"></script>
+<script src="/sadira/js/glscreen.js"></script>
+
+<script src="/sadira/js/menu.js"></script>
+
+<script src="/XD-1/js/community/gl-matrix.js"></script>
+<script src="/XD-1/js/community/fits.js"></script>
+<script src="/XD-1/js/xd1_layer.js"></script>
+<script src="/XD-1/js/xd1_sbig.js"></script>
+<script src="/XD-1/js/image_reduction.js"></script>
+<script src="/XD-1/js/xd1.js"></script>
+<script src="/XD-1/js/xd1_main.js"></script>
+
+
+
+<!-- <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"> -->
+<!-- <style> -->
+<!--   body    { padding-top:50px; } -->
+<!-- </style> -->
+
+
+<script id="shader-fs" type="x-shader/x-fragment">
+  
+  precision mediump float;
+  void main(void) {
+  gl_FragColor = vec4(0.8, 1.0, 1.0, 1.0);
+  }
+  
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  
+  attribute vec3 aVertexPosition;
+   uniform mat4 uPMatrix;
+  
+  void main(void) {
+     gl_Position = uPMatrix * vec4(aVertexPosition, 1.0);
+  }
+  
+</script>
+
+<title>Sadira server title</title>

@@ -158,6 +158,11 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	    }
 	    break;
 	};
+
+	if(!wsock){
+	    messages.append("Cannot create socket!");
+	    return;
+	}
 	
 	sad.wsock=wsock;
 
@@ -318,7 +323,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
     
     ui.className="labelled_vector";
     tpl_item.inputs=[];
-
+    var cdepth=tpl_item.depth? tpl_item.depth+1:1;
     if(typeof tpl_item.value==='undefined') tpl_item.value=[];
     if(typeof tpl_item.value_labels==='undefined') tpl_item.value_labels=[];
     
@@ -347,7 +352,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 */
 	}; 
 	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
-	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v]);
+	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v], cdepth);
 
 	tpl_item.inputs[v].listen("change",function(v){
 	    tpl_item.value[this.id]=this.value;
@@ -381,6 +386,141 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 }
 
 
+template_ui_builders.signup=function(ui_opts, signup){
+
+    var data=signup.elements.data; 
+    var email=data.elements.email;
+    var pw=data.elements.password;
+    var pwr=data.elements.password_repeat;
+    var signup_act=signup.elements.signup;
+    
+    var config=
+	{
+	    allowPassphrases       : true,
+	    maxLength              : 128,
+	    minLength              : 8,
+	    minPhraseLength        : 20,
+	    minOptionalTestsToPass : 3,
+	};
+    
+    if(è(signup.owasp_config)) for(var c in config_in) config[c]=signup.owasp_config[c];
+    owaspPasswordStrengthTest.config(config); 
+
+    var email_status = {
+	type : "status",
+	value : "blue",
+	value_labels : { blue : "who knows", green : "valid", red : "invalid"}
+    };
+    var pw_status = {
+	type : "status",
+	value : "red",
+	value_labels : { green : "good", red : "not acceptable"}
+    };
+    var pwr_status = {
+	type : "status",
+	value : "red",
+	value_labels : { green : "match", red : "dont't match"}
+    };
+
+    
+    signup_act.ui.setAttribute("disabled",true); //add_class("masked");
+    
+    create_ui({}, email_status);
+    email.ui_childs.add_child(email_status,email_status.ui_root);
+    //email.ui_root.appendChild(email_status.ui_root);
+    //var td=cc("td",email.tr); td.appendChild(email_status.ui_root);
+    
+    create_ui({}, pw_status);
+    pw.ui_childs.add_child(pw_status,pw_status.ui_root);
+    //var td=cc("td",pw.tr); td.appendChild(pw_status.ui_root);
+
+    create_ui({}, pwr_status);
+    pwr.ui_childs.add_child(pwr_status,pwr_status.ui_root);
+    //var td=cc("td",pwr.tr); td.appendChild(pwr_status.ui_root);
+    
+    var pw_fail_reasons=cc("ul",pw.ui_root);
+    pw_fail_reasons.className="alert alert-danger";
+    pw_fail_reasons.setAttribute("role","alert");
+    
+    function check_everything_good(){
+	if (email_status.value=="green"
+		&& pw_status.value=="green"
+		&& pwr_status.value=="green"
+	   ){
+	    signup_act.ui.removeAttribute("disabled");
+	}else
+	    signup_act.ui.setAttribute("disabled",true);
+    }
+
+    
+    pw.pui.addEventListener("input", function(){
+	
+	pwr.set_value("");
+	pwr_status.set_value("red");
+	var owasp_result = owaspPasswordStrengthTest.test(this.value);
+	pw_fail_reasons.innerHTML="";
+	if(owasp_result.strong){
+	    pw_status.set_value("green");
+	}else{
+	    
+	    pw_status.set_value("red");
+	    for(var es=0;es<owasp_result.errors.length;es++){
+		cc("li",pw_fail_reasons).innerHTML=owasp_result.errors[es];
+	    }
+	    
+	    //console.log("Password too weak : " + JSON.stringify(owasp_result, null, 5));
+	    
+	}
+
+	check_everything_good();
+	
+    });
+
+    function validate_email(email) {
+	var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(email);
+    } 
+
+    email.ui.addEventListener("input", function(){
+	if(validate_email(this.value)){
+	    email_status.set_value("green");
+	}
+	else
+	    email_status.set_value("red");
+	check_everything_good();
+	
+    });
+
+    pwr.pui.addEventListener("input", function(){
+	if(this.value===pw.pui.value){
+	    pwr_status.set_value("green");
+	}
+	else
+	    pwr_status.set_value("red");
+	check_everything_good();
+
+    });
+
+
+    signup_act.listen("click", function(){
+	var post_data="email="+encodeURIComponent(email.ui.value)+"&hashpass="+encodeURIComponent(pw.pui.value);
+	console.log("post data = "+ post_data);
+	var rqinit=new request({ cmd : "/signup", data_mode : "", method : "POST", post_data : post_data});
+	
+	rqinit.execute(function(error, res){
+	    if(error){
+		console.log("Error rqinit " + error);
+		return;
+	    }
+
+	    console.log("signup Reply : " + JSON.stringifuy(res));
+	    
+	});
+    });
+	    
+    //return ui;
+}
+
 template_ui_builders.login=function(ui_opts, login){
 
     
@@ -388,16 +528,16 @@ template_ui_builders.login=function(ui_opts, login){
     //User Login/Logout stuff
     
     //var ui=template_ui_builders.password(ui_opts, login);
+    
+    //var ui=ce("div",ui);
+    var input_caption=ce('label');
+    var ui=input_caption;
 
-    var ui=ce("div",ui);
+    input_caption.innerHTML="e-mail : ";
+    var input_box=cc('input',input_caption);
 
-
-    var input_caption=cc('span',ui);
-    var input_box=cc('input',ui);
-
-    input_caption.innerHTML="User name : ";
-    input_caption.className='login_input_caption';
-    input_box.className='login_input_box';
+//    input_caption.className='login_input_caption';
+//    input_box.className='login_input_box';
 	
     input_box.focus();
     
@@ -420,26 +560,31 @@ template_ui_builders.login=function(ui_opts, login){
 		input_caption.innerHTML="Registering...";
 		input_box.style.display='none';
 
-		var rqinit=new request({ cmd : "/login/init", query_mode : "bson"});
+		var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
+		//var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
+		var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
 
 		rqinit.execute(function(error, res){
 		    if(error){
-			console.log("Error rqinit " + error);
+			console.log("Error login " + error);
 			return;
 		    }
 
-		    var server_key=res.key;
-		    var client_key = new Uint8Array(32);
+		    console.log("login Reply : " + JSON.stringifuy(res));
+		    
+		    // var server_key=res.key;
+		    // var client_key = new Uint8Array(32);
 
-		    window.crypto.getRandomValues(buf);
+		    // window.crypto.getRandomValues(buf);
 		    
-		    var hash=CryptoJS.SHA1(user_name+user_password);
-		    console.log("["+user_name+"]["+user_password+"]");
-		    var qr=new request({ cmd : "/login", query_mode : "bson", args : { hash : hash.toString()}    });
+		    // var hash=CryptoJS.HmacSHA256("Message", "Secret Passphrase");
+		    // var hash=CryptoJS.SHA1(user_name+user_password);
+		    // console.log("["+user_name+"]["+user_password+"]");
+		    // var qr=new request({ cmd : "/login", query_mode : "bson", args : { hash : hash.toString()}    });
 		    
-		    qr.execute(function(error, res){
-			console.log("Received  " + JSON.stringify(res));
-		    });
+		    // qr.execute(function(error, res){
+		    // 	console.log("Received  " + JSON.stringify(res));
+		    // });
 		    
 		    
 		});
@@ -476,12 +621,13 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 	}
 
 	break;
-    case "edit": 
-	var ui=cc("input",div);
-	ui.className="local_file";
+    case "edit":
+	var sp=cc("span", div); sp.className="btn btn-default btn-file";sp.innerHTML="Browse...";
+	var ui=tpl_item.ui_input=cc("input",sp); 
+	//ui.className="local_file";
 	ui.type="file";
 
-	ui.addEventListener("change",function(evt){
+	sp.addEventListener("change",function(evt){
 	    tpl_item.value=this.value;
 	    if(tpl_item.onchange){
 		tpl_item.onchange(evt);
@@ -498,8 +644,8 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 	throw "Unknown UI type ";
     }
 
-    tpl_item.ui=ui;
-
+    //tpl_item.ui=ui;
+    
     return tpl_item.ui;
 }
 
@@ -559,10 +705,21 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	}
 	break;
     case "edit": 
-	var ui=tpl_item.ui=ce("input");
+	var lab=ce("label"); lab.innerHTML=tpl_item.name;
+	if(è(tpl_item.ui_name))
+	    tpl_item.ui_root.removeChild(tpl_item.ui_name);
+
+	var ui=tpl_item.ui=cc("input", lab, true);
 	ui.type="checkbox";
+
+	tpl_item.ui_root.add_class("checkbox");
+	tpl_item.ui_root.appendChild(lab);
+	
+	
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    
+	    if(typeof nv !='undefined')
+		tpl_item.value=nv;
 	    ui.checked=tpl_item.value;
 	}
 	tpl_item.get_value=function(){
@@ -579,7 +736,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
     
     tpl_item.set_value();
 
-    return tpl_item.ui;
+    //return tpl_item.ui;
 }
 
 
@@ -609,9 +766,10 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
     case "edit": 
 
-	var uui=tpl_item.ui=ce("div");
-	var ui=cc("input",uui);
+	//var uui=tpl_item.ui=ce("div");
+	var ui=tpl_item.ui=ce("input");
 	ui.type="text";
+	ui.className="form-control";
 	var default_value=tpl_item.value;
 	
 	tpl_item.set_value=function(nv){
@@ -623,7 +781,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    //console.log("str changed " + this.value);
 	    tpl_item.value=this.value; 
 	    tpl_item.trigger("change", tpl_item.value);
-	    tpl_item.switch_edit_mode();
+	    
+	    //tpl_item.switch_edit_mode();
 	});
 
 	
@@ -715,13 +874,18 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	break;
 
     case "edit": 
+
 	var ui=tpl_item.ui=ce("span");
-	var pui=cc("input",ui); cc("span",ui).innerHTML="show";
-	var show=cc("input",ui); show.type="checkbox";
+	var pui=tpl_item.pui=cc("input",ui);
+	var lab=cc("label",ui);
+	var labeye=cc("span",lab);labeye.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
+	var show=cc("input",lab); show.type="checkbox";
 	pui.type="password";
-	
+	pui.className="form-control";
 	show.onclick=function(){
 	    pui.type= show.checked ? "text" : "password";
+	    var eye=show.checked ? "open" : "close";
+	    labeye.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-"+eye+"'></span>";//"⎃";
 	    console.log("pt = " + pui.type);
 
 	}
@@ -1041,9 +1205,11 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 template_ui_builders.action=function(ui_opts, action){
     
-    var ui=ce("input"); ui.type="button";
-    ui.value=action.name;
-
+    var ui=action.ui=ce("button"); ui.type="button";
+    ui.innerHTML=action.name;
+    
+    ui.className="btn btn-default";
+    
     action.disable_element=function(dis){
 	if(dis)
 	    ui.setAttribute("disabled",true);
@@ -1069,28 +1235,34 @@ template_ui_builders.action=function(ui_opts, action){
     if(è(action.elements)){
 	
 	action.ui_root.removeChild(action.ui_childs.div);
+	if(è(action.ui_intro)) action.ui_root.removeChild(action.ui_intro);
 	
-	var slide_button=cc("span", action.ui_name);
+	var slide_button=cc("span", action.ui_title_name);
 	slide_button.style.zIndex=action.ui_root.style.zIndex+1;
 	
-	slide_button.className="slide_button_h";
+	slide_button.className="slide_button h open";
 	//slide_button.innerHTML= slided ? "❌" : "▶"; 
-	slide_button.innerHTML= "▶"; 
+	//slide_button.innerHTML= "▶"; 
 	var slided=false;
 	var cnt=action.ui_name;
 
-	slide_button.addEventListener("click",function(){
+	action.ui_title_name.addEventListener("click",function(){
+	    //slide_button.addEventListener("click",function(){
 	    if(slided){
 		//if(è(action.elements))
+		if(è(action.ui_intro))cnt.removeChild(action.ui_intro);
 		cnt.removeChild(action.ui_childs.div);
 		cnt.removeChild(ui);
-		slide_button.innerHTML= "▶"; 
+		slide_button.className="slide_button h open";
+		//slide_button.innerHTML= "▶"; 
 		
 	    }else{
 		//if(è(action.elements.ui))
+		if(è(action.ui_intro))cnt.appendChild(action.ui_intro);
 		cnt.appendChild(action.ui_childs.div);
 		cnt.appendChild(ui);
-		slide_button.innerHTML= "❌"; 
+		//slide_button.innerHTML= "❌";
+		slide_button.className="slide_button h close";
 	    }
 	    slided=!slided;
 	});

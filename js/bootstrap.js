@@ -1,29 +1,4 @@
-function hash_user_password(clear_password, cb){
-    var crypto=require('crypto');
-    
-    //var hashes = crypto.getHashes();
-    //console.log(JSON.stringify(hashes)); // ['sha', 'sha1', 'sha1WithRSAEncryption', ...]
-    
-    try{
-	var h=crypto.createHash('sha256');
-	var salt=crypto.randomBytes(32);//.toString('base64');
-
-	h.update(salt);
-	h.update(clear_password,'utf-8');
-
-	var hash_data={
-	    hash: h.digest(),//'base64'),
-	    salt : salt
-	}
-	
-	cb(null,hash_data);
-    }
-    catch(e){
-	cb("crypto error " + e);
-    }
-}
-
-
+var crypto=require('crypto');
 
 function get_console_password(prompt, callback) {
 
@@ -223,7 +198,7 @@ exports.init=function(pkg,app){
 	    
 	    if(error) return on_error(error);
 	    	    
-	    hash_user_password(pw, function(error, hash_data){
+	    crypto.hash_password(pw, function(error, hash_data){
 		//app.log("Hash data : " + JSON.stringify(hash_data));
 		
 		var default_groups = [{name : "admin"},{name : "users"}];

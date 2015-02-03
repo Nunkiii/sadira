@@ -1,0 +1,41 @@
+<!doctype html>
+<html>	  
+  <head>	
+    <meta charset="utf-8"/> 
+    <% include ./parts/head %>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <link rel="stylesheet" href="/sadira/js/community/bootstrap/css/bootstrap.min.css"> <!-- load bootstrap css -->
+
+    <style type="text/css"> @import url("/sadira/css/db.css"); </style>  
+
+    <title> <%= tpl_name %> </title>
+    
+  </head>
+
+    
+  <body>
+    <header>
+      <% include parts/header %>
+    </header>
+    <div class="container-fluid" id="toto">
+    </div>
+  </body>
+
+  <footer>
+    <% include parts/footer %>
+  </footer>
+
+  
+  <script>
+    window.addEventListener("load", function(){
+    var tpl_name = "<%= tpl_name %>";
+    var tpl=tmaster.build_template(tpl_name);
+    create_ui({},tpl);
+    attach_ui(tpl, document.getElementById("toto"));
+    //xd1_tpl.trigger("view_update");
+    });
+  </script>
+
+
+  
+</html>

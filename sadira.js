@@ -9,6 +9,14 @@ var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
 var BSON=bson().BSON;
+var express=require("express");
+
+var passport = require('passport');
+var flash    = require('connect-flash');
+var morgan       = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser   = require('body-parser');
+var session      = require('express-session');
 
 /*
   Headers to add when allowing cross-origin requests.
@@ -162,7 +170,6 @@ var _sadira = function(){
 
     var sad=this;
 
-
     this.get_handlers = {};
     this.post_handlers = {};
     this.dialog_handlers = {};
@@ -260,7 +267,7 @@ _sadira.prototype.log = function (m){
     
 }
 
-/* Connect-like api loading */
+/* Connect-like api loading 
 
 _sadira.prototype.handle_api = function (api_root, path, api_cb){
     var path_parts = path.split("/");
@@ -290,6 +297,27 @@ _sadira.prototype.get = function (path, api_cb){
 _sadira.prototype.post = function (path, api_cb){
     this.handle_api(this.post_handlers, path, api_cb);
 }
+*/
+
+/* Connect-like middleware function loading */
+
+/*
+_sadira.prototype.use=function ( a1, a2){
+    var path, api_cb;
+
+    if(ù(a2)) {
+	path="/";
+	api_cb=a1;
+    }else{
+	path=a1; api_cb=a2;
+    }
+
+    this.get(path, api_cb);
+    this.post(path, api_cb);
+}
+
+
+*/
 
 /* Registers a new dialog handler */
 
@@ -305,22 +333,6 @@ _sadira.prototype.dialog = function (path, api_cb){
 	api_root=api_child;
     }
     api_root.__api=api_cb;
-}
-
-/* Connect-like middleware function loading */
-
-_sadira.prototype.use=function ( a1, a2){
-    var path, api_cb;
-
-    if(ù(a2)) {
-	path="/";
-	api_cb=a1;
-    }else{
-	path=a1; api_cb=a2;
-    }
-
-    this.get(path, api_cb);
-    this.post(path, api_cb);
 }
 
 var ip_service=function(service_name, sad){
@@ -609,7 +621,17 @@ _sadira.prototype.start_worker = function (){
     
     var sad=this;
     
-    this.log("working process id " + this.cluster.worker.id + " starting ...");
+    sad.log("Worker " + this.cluster.worker.id + " starting ...");
+
+    var app=this.app=express();
+    app.sadira=this;
+
+    //app.use(morgan('dev')); // log every request to the console
+    app.use(cookieParser()); // read cookies
+    app.use(bodyParser()); // get information from html forms
+
+    app.set('view engine', 'ejs');
+    app.use(session({ secret: 'vivalabirravivalabirravivalabirra' })); 
     
     process.on('message', function(m){ //Handling incoming messages from master process.
 
@@ -694,41 +716,7 @@ _sadira.prototype.start_worker = function (){
 	sad.create_websocket_server();
 	sad.create_webrtc_server();		
 
-
-
-	var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 	
-	passport.use(new LocalStrategy(
-	    function(username, password, done) {
-		return done(null,false, { message : "User checking draft error !" });
-	    }
-	));
-	
-	sad.use(passport.initialize());
-	sad.use(passport.session());
-	
-	sad.get('/protected', function(req, res, next) {
-	    passport.authenticate('local', function(err, user, info) {
-	        if (err) {
-		    console.log("Error auth " + err);
-		    return next(err)
-		}
-		if (!user) {
-		    console.log("Error auth : no user ");
-		    return next("No user");//res.redirect('/signin')
-		}
-		//res.redirect('/account');
-		console.log("Go the user accound !");
-	    })(req, res, next);
-	});
-	
-	//sad.post('/login',passport.authenticate('local'));
-	// sad.post('/login', function(req,res,next){
-	//     console.log("Login called After....");
-	// });
-
-
-	console.log("Passport initialized ");
 
     });
     
@@ -752,6 +740,8 @@ _sadira.prototype.start_worker = function (){
  * @param {} response output stream
  * @return 
  */
+
+/*
 
 _sadira.prototype.execute_request = function (request, response, result_cb ){
 
@@ -835,6 +825,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
     }else result_cb(null, false);
 	
 }
+*/
 
 
 /**
@@ -844,7 +835,7 @@ _sadira.prototype.execute_request = function (request, response, result_cb ){
  * @return CallExpression
  */
 
-
+/*
 _sadira.prototype.error_404=function(response, uri, cb){
     console.log("sending 404 for " + uri);
     fs.readFile("www/sadira/404.html", "binary", function(err, file) {
@@ -865,14 +856,16 @@ _sadira.prototype.error_404=function(response, uri, cb){
     });
 }
 
+*/
 
 //Main function handling all incoming HTTP requests.
 
+/*
 _sadira.prototype.handle_request=function(request, response){
 
 //    console.log("Handling " + request.url);
     var sad=this.sadira;
-
+    
     sad.execute_request(request, response, function (error, processed){
 
 	if(error!==null){
@@ -1009,6 +1002,7 @@ _sadira.prototype.handle_request=function(request, response){
 
 }
 
+*/
 
 //Creates the http servers 
 
@@ -1045,8 +1039,8 @@ _sadira.prototype.create_http_server = function(cb){
 	try{
 	    var http = require('http');
 	    
-
-	    sad.http_server = http.createServer(sad.handle_request);
+	    //sad.http_server = http.createServer(sad.handle_request);
+	    sad.http_server = http.createServer(sad.app);
 	    sad.http_server.sadira=sad;
 
 	    sad.http_server.on("error", function (e) {
@@ -1125,7 +1119,8 @@ _sadira.prototype.create_http_server = function(cb){
 	    //https_options.secureProtocol="SSLv3_method";
 	    https_options.rejectUnauthorized=false;
 
-	    sad.https_server = https.createServer(https_options, sad.handle_request);
+	    //sad.https_server = https.createServer(https_options, sad.handle_request);
+	    sad.https_server = https.createServer(https_options, sad.app);
 	    sad.https_server.sadira=sad;
 
 	    sad.https_server.on("listening", function () {
@@ -1340,6 +1335,50 @@ _sadira.prototype.initialize_handlers=function(packname){
 	}
 	//sad.log("Init "+packname+" : ["+pkg_file+"] DONE");
     }
+
+    if(sad.cluster.isMaster) return;
+
+    sad.app.get('/', function(req, res) {
+	sad.log("Handling index.ejs....");
+	res.render('index.ejs'); // load the index.ejs file
+    });
+    
+    sad.app.get('/widget/:tpl_name', function(req, res) {
+	res.render('widget.ejs', { tpl_name : req.params.tpl_name} ); // load the index.ejs file
+    });
+    
+    sad.app.get('*', function(request, res){
+
+	//The request was not handled by custom url handlers.
+	//If enabled, proxying the query to another web service
+	
+	try{
+	    //sad.log("proxy request https? " + request.connection.encrypted );
+	    
+	    if(request.connection.encrypted){ //https connexion
+		if(sad.options.https_proxy){
+		    //console.log("Proxy https " + request.url);
+		    sad.https_proxy.web(request, res);
+		    return;
+		}else return res.status('Not found', 404);
+	    }else{
+		if(sad.options.http_proxy){
+		    //console.log("Proxy http " + request.url);
+		    sad.http_proxy.web(request, res);
+		    return;
+		}else return res.status('Not found', 404);
+	    }
+	}
+
+	catch (e){
+	    sad.log('Proxy error : ' + dump_error(e));
+	    return res.status('Sadira: Proxy error : ' + e, 500);
+	}
+
+
+
+	
+    });
 }
 
 
