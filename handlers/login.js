@@ -22,10 +22,10 @@ exports.init=function(pkg,sad){
     
     //app.set('view engine', 'ejs'); // set up ejs for templating
     // required for passport
-    app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
+    
     app.use(passport.initialize());
     app.use(passport.session()); // persistent login sessions
-    app.use(flash()); // use connect-flash for flash messages stored in session
+    //app.use(flash()); // use connect-flash for flash messages stored in session
 
     
     // used to serialize the user for the session

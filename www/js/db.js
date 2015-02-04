@@ -102,7 +102,7 @@ function divider(cnt, frac, or, heightf){
 	    return;
 	}
 	
-	var hstring="calc( 100% - " + htop + "px - 1em)";
+	var hstring="calc( 100% - " + htop + "px - .5em)";
 	//console.log("Setting height to ["+hstring+"]");
 	
 	var l=this.left, r=this.right;
@@ -480,6 +480,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
 
+
+
     
     ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
@@ -567,51 +569,56 @@ function create_ui(global_ui_opts, tpl_root, depth){
     new_event(tpl_root,"name_changed");
     
     if(ù(ui_opts.render_name))ui_opts.render_name=true;
+    if(ù(ui_opts.label)) ui_opts.label=false;
 
+    var ui_name=undefined;
+    
     if(è(tpl_root.name) && ui_opts.render_name){
-
-	if(ui_opts.render_name){
 	
-	    var ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
-	    var ico=get_ico(tpl_root);
-  	    if(typeof ico!='undefined')
-		ui_name.prependChild(ico);
-	    
-	    
+	//	if(ui_opts.render_name){
+	
+	ui_name=tpl_root.ui_name= ui_opts.label ? cc("label", ui_root) : cc("div", ui_root);
+	var ico=get_ico(tpl_root);
+  	if(typeof ico!='undefined')
+	    ui_name.prependChild(ico);
+	
+	if(!ui_opts.label){
 	    var title_type = (depth>0)?("h"+(depth+2)):"h1";
 	    var ui_name_text=tpl_root.ui_title_name= cc(title_type,ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
 	    
 	    //ui_name_text.add_class("title");
-	    if(tpl_root.depth==1)
-		ui_name.add_class("page-header");
+	    //if(tpl_root.depth==1)
+	    //	ui_name.add_class("page-header");
 	    if(typeof ui_opts.name_classes != 'undefined'){
 		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
 		add_classes(ui_opts.name_classes, ui_name);
 	    }
-	    
-	    if(typeof tpl_root.tip != 'undefined'){
-		//tpl_root.ui_name.add_class("tooltip");
-		//ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
-		
-		ui_name.setAttribute("title", tpl_root.tip);
-		//ui_name.add_class("tip");
-		
-		//var tip=cc("span",ui_name); tip.className="tip";
-		//tip.innerHTML= tpl_root.tip;
-	    }
 	}
 	
-
+	if(typeof tpl_root.tip != 'undefined'){
+	    //tpl_root.ui_name.add_class("tooltip");
+	    //ui_name.setAttribute("data-tip", tpl_root.name + " : " + tpl_root.tip);
+	    
+	    ui_name.setAttribute("title", tpl_root.tip);
+	    //ui_name.add_class("tip");
+	    
+	    //var tip=cc("span",ui_name); tip.className="tip";
+	    //tip.innerHTML= tpl_root.tip;
+	}
+	//	}
+	
+	
 	tpl_root.get_title_node=function(){ return this.ui_name; }
 	
 	tpl_root.listen("name_changed", function(title){
 	    //console.log("Name changed !" + title);
-	    ui_name_text.innerHTML=title;
+	    if(!ui_opts.label)
+		ui_name_text.innerHTML=title;
+	    else{
+		ui_name.innerHTML=title;console.log("WWWW!!!!AA");//.firstChild.textContent=title;
+	    }
 	});
     }
-
-
-
     
     tpl_root.set_title=function(title){
 	tpl_root.name=title;
@@ -628,11 +635,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
 	var intro;
-
+	
 	// if(è(tpl_root.ui_title_name))
 	//     intro=tpl_root.ui_intro=cc("small",tpl_root.ui_title_name);
 	// else
-	    intro=tpl_root.ui_intro=cc("small",tpl_root.ui_root);
+	var pintro=cc("p",tpl_root.ui_root);
+	intro=tpl_root.ui_intro=cc("small",pintro);
 	//intro.className="alert alert-info alert-dismissible";
 	intro.className="text-muted";
 	intro.innerHTML= " "+tpl_root.intro;
@@ -1456,12 +1464,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(item_ui){
 	    if(ui_opts.label){
 		ui_name.appendChild(item_ui);
-		item_ui.className+=" value";
+		if(ui_opts.type!='edit')
+		    item_ui.add_class("badge");
 	    }
 	    else{
 		ui_root.appendChild(item_ui);
 		//ui_childs.div.appendChild(item_ui);
-		item_ui.className+=" dbitem";
+		//item_ui.className+=" dbitem";
 		sliding_stuff.push(item_ui);
 	    }
 	    

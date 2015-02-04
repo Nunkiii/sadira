@@ -45,7 +45,7 @@ var base_templates={
 	tpl_builder : "signup",
 	intro : "Fill up the email and password fields to create your new user account. Enter a valid email adress, it will be used to identify you. You'll can configure a username later if you wish. The password will be checked for basic strength.",
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{   root_classes : ["jumbotron"], sliding: false},
+	ui_opts :{   root_classes : ["jumb"], sliding: false},
 	elements : {
 	    data : {
 		ui_opts : { child_view_type : "div", child_classes : ["list-group"] },

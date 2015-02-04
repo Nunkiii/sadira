@@ -114,7 +114,9 @@ table.childs > tr> td{
 */
 
 .childs .childs {
+/*
   font-size: 95%;
+*/
 }
 
 .child_container {
@@ -370,7 +372,7 @@ float: left;
 
 .divided.two{
   margin-left: 0em;
-  /*
+/*
   display: inline-block;
   background: green;
   height: 100%; 
@@ -378,7 +380,7 @@ float: left;
 */
 }
 
-  /*
+
 .dbitem{
   
   display: inline-block;
@@ -519,7 +521,7 @@ navigation
 }
 .ico{
   position: relative;
-  width: 2em;
+  width: 1em;
 }
 
 .navcnt.bar > nav{
@@ -815,6 +817,14 @@ sliding
 
 /*  color: rgba(230,20,30,1.0); */
 }
+
+label .form-control{
+  width: auto;
+  display: inline-block;
+
+}
+
+
 
 .db .un_editable{
   /*

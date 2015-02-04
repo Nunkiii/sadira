@@ -626,11 +626,13 @@ _sadira.prototype.start_worker = function (){
     var app=this.app=express();
     app.sadira=this;
 
-    //app.use(morgan('dev')); // log every request to the console
+    app.use(morgan('dev')); // log every request to the console
     app.use(cookieParser()); // read cookies
     app.use(bodyParser()); // get information from html forms
 
     app.set('view engine', 'ejs');
+    //app.set("views", "ejs/");
+    
     app.use(session({ secret: 'vivalabirravivalabirravivalabirra' })); 
     
     process.on('message', function(m){ //Handling incoming messages from master process.
@@ -1342,7 +1344,9 @@ _sadira.prototype.initialize_handlers=function(packname){
 	sad.log("Handling index.ejs....");
 	res.render('index.ejs'); // load the index.ejs file
     });
-    
+
+
+
     sad.app.get('/widget/:tpl_name', function(req, res) {
 	res.render('widget.ejs', { tpl_name : req.params.tpl_name} ); // load the index.ejs file
     });

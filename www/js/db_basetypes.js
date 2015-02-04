@@ -339,6 +339,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    max : tpl_item.max, 
 	    step : tpl_item.step, 
 	    value : tpl_item.value[v],
+	    ui_opts : { label : true, root_classes : ["form-group"] }
 	    /*
 	    parent : { 
 		ui_childs : { 
@@ -531,13 +532,13 @@ template_ui_builders.login=function(ui_opts, login){
     
     //var ui=ce("div",ui);
     var input_caption=ce('label');
-    var ui=input_caption;
+    var ui=login.ui=input_caption;
 
     input_caption.innerHTML="e-mail : ";
     var input_box=cc('input',input_caption);
 
 //    input_caption.className='login_input_caption';
-//    input_box.className='login_input_box';
+    input_box.className='form-control';
 	
     input_box.focus();
     
@@ -551,13 +552,13 @@ template_ui_builders.login=function(ui_opts, login){
 		user_name=input_box.value;
 		//user_name=hex_md5(input_box.value);
 		input_box.value="";
-		input_caption.innerHTML="Password : ";
+		input_caption.firstChild.textContent="Password : ";
 		input_box.type="password";
 	    }else{
 		//console.log("Setting user password...");
 		user_password=input_box.value;//hex_md5(input_box.value);
 		input_box.value="";
-		input_caption.innerHTML="Registering...";
+		input_caption.firstChild.textContent="Registering...";
 		input_box.style.display='none';
 
 		var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
