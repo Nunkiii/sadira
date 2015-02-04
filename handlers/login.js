@@ -1,4 +1,7 @@
 var passport = require('passport');
+
+var SamlStrategy = require('passport-saml' ).Strategy;
+
 var flash    = require('connect-flash');
 
 var crypto=require('crypto');
@@ -142,7 +145,59 @@ exports.init=function(pkg,sad){
 	
     }));
 
-        
+
+    passport.use(new SamlStrategy({
+	path: '/login/shib',
+	entryPoint: 'https://nilde3.bo.cnr.it:60443/nilde-unstable/master/Shibboleth.sso/WAYF/IDEM',
+	issuer: 'passport-saml'
+    }, function(profile, done) {
+	
+	
+	console.log("Auth user profile " + JSON.stringify(profile));
+
+	// findByEmail(profile.email, function(err, user) {
+	//     if (err) {
+	// 	return done(err);
+	//     }
+	var user = { name : "toto"};
+	return done(null, user);
+//	});
+    }));
+
+    app.get('/shiblogin',function(req,res,next){
+	console.log("Yeahhh");
+	res.redirect("/widget/xd1");
+    });
+
+    // app.get('/shiblogin',
+    // 	    passport.authenticate('saml', 
+    // 				  { failureRedirect: '/shibfail', failureFlash: true }),
+    // 	    function(req, res) {
+    // 		res.redirect('/shibok');
+    // 	    }
+    // 	   );
+    
+    app.get("/shibfail",
+	    function(req,res,next){
+	console.log("SHIB FAIL!");
+    });
+
+    app.get("/shibok", function(req,res,next){
+	console.log("SHIB OK!");
+    });
+    
+    app.post("/login/shib", function(req,res,next){
+	
+	passport.authenticate('saml', 
+			      { failureRedirect: '/', failureFlash: true }),
+	function(req, res) {
+	    res.redirect('/');
+	}
+
+	console.log("Shibbo callback !!! ");
+	
+    });
+    
     app.post('/signup', passport.authenticate('local-signup'),
 	     function(req, res){
 		 console.log("Signup success !");
