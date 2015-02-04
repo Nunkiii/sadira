@@ -43,36 +43,58 @@ var base_templates={
 	name : "Signup",
 	//type : "action",
 	tpl_builder : "signup",
-	intro : "Fill up the email and password fields to create your new user account. Enter a valid email adress, it will be used to identify you. You'll can configure a username later if you wish. The password will be checked for basic strength.",
+	intro : "Choose a method for login",
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{   root_classes : ["jumb"], sliding: false},
+	ui_opts :{ child_view_type : "radio", root_classes : [], sliding: false},
+
 	elements : {
-	    data : {
-		ui_opts : { child_view_type : "div", child_classes : ["list-group"] },
+
+	    local : {
+		name : "Lacal signup",
+		intro : "Fill up the email and password fields to create your new user account. Enter a valid email adress, it will be used to identify you. You'll can configure a username later if you wish. The password will be checked for basic strength.",
 		elements : {
-		    
-		    email : {
-			//
-			name : "Email address",
-			type : "string",
-			default_value : "name@example.org",
+
+		    data : {
+			ui_opts : { child_view_type : "div", child_classes : ["list-group"] },
+			elements : {
+			    
+			    email : {
+				//
+				name : "Email address",
+				type : "string",
+				default_value : "name@example.org",
+				ui_opts : { type : "edit"}
+			    },
+			    password : {
+				name : "New password",
+				type : "password",
 			ui_opts : { type : "edit"}
+			    },
+			    password_repeat : {
+				name : "Enter password again",
+				type : "password",
+				ui_opts : { type : "edit"}
+			    }
+			}
 		    },
-		    password : {
-			name : "New password",
-			type : "password",
-			ui_opts : { type : "edit"}
-		    },
-		    password_repeat : {
-			name : "Enter password again",
-			type : "password",
-			ui_opts : { type : "edit"}
+		    signup : {
+			name : "Create new account",
+			type : "action"
 		    }
 		}
 	    },
-	    signup : {
-		name : "Create new account",
-		type : "action"
+	    
+	    shib : {
+		name : "IDEM signup",
+		elements : {
+
+		    signup : {
+			name : "Signup !",
+			type : "action"
+		    }
+		    
+		}
+		
 	    }
 	    
 	}
