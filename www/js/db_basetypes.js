@@ -388,11 +388,37 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
 template_ui_builders.signup=function(ui_opts, signup){
 
-    var data=signup.elements.data; 
+    var local=signup.elements.local; 
+    var shib=signup.elements.shib; 
+
+    var data=local.elements.data; 
     var email=data.elements.email;
     var pw=data.elements.password;
     var pwr=data.elements.password_repeat;
-    var signup_act=signup.elements.signup;
+    var signup_act=local.elements.signup;
+
+    var shib_signup=shib.elements.signup;
+    
+
+    shib_signup.listen("click", function(){
+
+	
+	console.log("Trying login shib");
+	
+	var rqinit=new request({ cmd : "/shiblogin", data_mode : "", method : "GET"});
+	
+	rqinit.execute(function(error, res){
+	    if(error){
+		console.log("Error rqinit " + error);
+		return;
+	    }
+	    
+	    console.log("signup Reply : " + JSON.stringify(res));
+	    
+	});
+
+    });
+
     
     var config=
 	{
