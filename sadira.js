@@ -626,7 +626,7 @@ _sadira.prototype.start_worker = function (){
     var app=this.app=express();
     app.sadira=this;
 
-    //app.use(morgan('dev')); // log every request to the console
+    app.use(morgan('dev')); // log every request to the console
     app.use(cookieParser()); // read cookies
     app.use(bodyParser()); // get information from html forms
 
