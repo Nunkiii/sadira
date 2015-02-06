@@ -599,61 +599,64 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     var ui_name=undefined;
     
-    function rebuild_name(){
-	console.log("rebuild name " + tpl_root.name);
-	ui_name.innerHTML="";
-
-	var ico=get_ico(tpl_root);
-	
-	if(!ui_opts.label){
-	    //var title_type = (depth>0)?("h"+(depth+2)):"h1";
-	    var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
-	    var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
-	    //cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
-
-	    if(è(ui_opts.fa_icon)){
-		ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
-		//var fas=cc("span",ui_name,true);
-	    //fas.className="fa fa-"
-	    }
-	    
-	    ui_name_text.innerHTML+=tpl_root.name+" ";
-	    
-	    if(è(tpl_root.subtitle))
-		cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
-  	    if(typeof ico!='undefined')
-		ui_name_text.prependChild(ico);
-
-	    //ui_name_text.add_class("title");
-	    //if(tpl_root.depth==1)
-	    //	ui_name.add_class("page-header");
-	}else{
-	    ui_name.innerHTML=tpl_root.name;
-	    if(typeof ico!='undefined')
-		ui_name.prependChild(ico);
-
-	}
-
-
-	
-	if(typeof ui_opts.name_classes != 'undefined'){
-	    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
-	    add_classes(ui_opts.name_classes, ui_name);
-	}
-	
-	if(typeof tpl_root.tip != 'undefined'){
-	    ui_name.setAttribute("title", tpl_root.tip);
-	}
-	
-
-    }
 
     if(è(tpl_root.name) && ui_opts.render_name){
 	ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
 	ui_name.className="dbname";
 	tpl_root.get_title_node=function(){ return this.ui_name; }
 
-	rebuild_name();
+	tpl_root.rebuild_name=function(){
+	    
+	    console.log("rebuild name " + tpl_root.name);
+	    ui_name.innerHTML="";
+	    
+	    var ico=get_ico(tpl_root);
+	    
+	    if(!ui_opts.label){
+		//var title_type = (depth>0)?("h"+(depth+2)):"h1";
+		var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
+		//cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
+		
+		if(è(ui_opts.fa_icon)){
+		    ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+		    //var fas=cc("span",ui_name,true);
+		    //fas.className="fa fa-"
+		}
+		
+		ui_name_text.innerHTML+=tpl_root.name+" ";
+		
+		if(è(tpl_root.subtitle))
+		    cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
+  		if(typeof ico!='undefined')
+		    ui_name_text.prependChild(ico);
+		
+		//ui_name_text.add_class("title");
+		//if(tpl_root.depth==1)
+		//	ui_name.add_class("page-header");
+	    }else{
+		ui_name.innerHTML=tpl_root.name;
+		if(typeof ico!='undefined')
+		    ui_name.prependChild(ico);
+		
+	    }
+	    
+	    
+	    
+	    if(typeof ui_opts.name_classes != 'undefined'){
+		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+		add_classes(ui_opts.name_classes, ui_name);
+	    }
+	    
+	    if(typeof tpl_root.tip != 'undefined'){
+		ui_name.setAttribute("title", tpl_root.tip);
+	    }
+	    
+	    
+	}
+	
+	
+	tpl_root.rebuild_name();
     }
 
     //tpl_root.listen("name_changed", function(){rebuild_name();});
@@ -662,7 +665,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.name=title;
 	//ui_name.innerHTML=title;
 	tpl_root.trigger("name_changed", title);
-	rebuild_name();
+	if(è(tpl_root.rebuild_name))
+	    tpl_root.rebuild_name();
 	//	span.appendChild( document.createTextNode("some new content") );
     }
     //tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
