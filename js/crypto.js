@@ -13,14 +13,15 @@ module.exports.check_password=function(hash, salt, clear_password, cb){
 
 	
 	var true_hash=h.digest('base64');
+	var match=(true_hash==hash) ? true:false;
+	
+	console.log("Compare DB=["+true_hash+"] AND ["+hash+"] match = " + match);
 
-	console.log("Compare DB=["+true_hash+"] AND ["+hash+"]");
-
-	var match=true_hash==hash;
 	cb(null,match);
+	console.log("cb called!");
     }
     catch(e){
-	cb("crypto error " + e);
+	cb("crypto error " + dump_error(e));
     }
     
 }

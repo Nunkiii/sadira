@@ -33,7 +33,12 @@ var t_user = new schema({
 	    type: String
 	},
 	groups : [{type : schema.Types.ObjectId, ref : 'groups' }]
-    }
+    },
+    
+    facebook : {},
+    shibb : {}
+
+    
 });
 
 t_user.post('init', function(user) {
@@ -58,19 +63,23 @@ t_user.pre('save', function(callback) {
 	console.log("OK passwd hashed " + JSON.stringify(hash_data));
 	user.local.hashpass = hash_data.hash;
 	user.local.salt = hash_data.salt;
-	callback();	
+	callback();
+	console.log("OK callback called...");
     });
 });
 
 
 t_user.methods.check_password = function(clearpass, cb) {
     var user = this;
-    crypto_uts.check_password(user.local.hashpass, user.local.salt, clearpass, function(err, match){
-	if(err) return cb(err);
+    crypto_uts.check_password(user.local.hashpass, user.local.salt, clearpass, cb);
 
-	console.log("Check passowrd " + user.local.hashpass + " clear try " + clearpass + " match " + match);
-	cb(null, match);
-    });
+    // function(err, match){
+    // 	if(err) return cb(err);
+
+    // 	console.log("Check passowrd " + user.local.hashpass + " clear try " + clearpass + " match " + match);
+    // 	cb(null, match);
+    // 	console.log("cbok");
+    // });
 };
     
 module.exports.users = mongoose.model('users', t_user);

@@ -236,7 +236,7 @@ template_ui_builders.progress=function(ui_opts, prog){
 
 template_ui_builders.status=function(ui_opts, tpl_item){
 
-    var ui=ce("span");ui.add_class("status");
+    var ui=tpl_item.ui=ce("span");ui.add_class("status");
     var flag=cc("span",ui);flag.add_class("flag");
     var txt=cc("span",ui); 
 
@@ -263,7 +263,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
+	ui.className="label label-default";
 	tpl_item.set_value=function(nv){
 	    if(è(nv))
 		tpl_item.value=nv; 
@@ -284,7 +284,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	    ui.type=ui_opts.input_type;
 	else
 	    ui.type="number";
-
+	ui.className="form-control input-sm";
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
@@ -321,8 +321,12 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
     new_event(tpl_item,"change");
     
-    ui.className="labelled_vector";
+    //ui.className="labelled_vector";
     tpl_item.inputs=[];
+    
+    //tpl_item.inputs[v].ui_root.remove_class("container-fluid");
+    //tpl_item.ui_root.add_class("container");
+    
     var cdepth=tpl_item.depth? tpl_item.depth+1:1;
     if(typeof tpl_item.value==='undefined') tpl_item.value=[];
     if(typeof tpl_item.value_labels==='undefined') tpl_item.value_labels=[];
@@ -339,7 +343,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    max : tpl_item.max, 
 	    step : tpl_item.step, 
 	    value : tpl_item.value[v],
-	    ui_opts : { label : true, root_classes : ["form-group"] }
+	    ui_opts : { label : true, root_classes : [ "inline"] }
 	    /*
 	    parent : { 
 		ui_childs : { 
@@ -354,7 +358,11 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	}; 
 	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
 	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v], cdepth);
+	
+	//tpl_item.inputs[v].ui_root.remove_class("container-fluid");
+	//tpl_item.inputs[v].ui_root.add_class("col-md-6");
 
+	
 	tpl_item.inputs[v].listen("change",function(v){
 	    tpl_item.value[this.id]=this.value;
 	    //console.log("change triggered!");
@@ -393,12 +401,17 @@ template_ui_builders.signup=function(ui_opts, signup){
     var shib=signup.elements.shib; 
 
     var data=local.elements.data; 
+
     var email=data.elements.email;
     var pw=data.elements.password;
     var pwr=data.elements.password_repeat;
-    var signup_act=local.elements.signup;
+
+    //var signup_act=local.elements.signup;
+    var signup_act=data.elements.signup;
 
     var shib_signup=shib.elements.signup;
+
+    
     
 
     shib_signup.listen("click", function(){
@@ -433,66 +446,83 @@ template_ui_builders.signup=function(ui_opts, signup){
     if(è(signup.owasp_config)) for(var c in config_in) config[c]=signup.owasp_config[c];
     owaspPasswordStrengthTest.config(config); 
 
+    /*
     var email_status = {
 	type : "status",
 	value : "blue",
-	value_labels : { blue : "who knows", green : "valid", red : "invalid"}
+	value_labels : { blue : "who knows", green : "valid", red : "invalid"},
+	ui_opts : {item_classes : ["col-sm-2","control-label"]}
     };
     var pw_status = {
 	type : "status",
 	value : "red",
-	value_labels : { green : "good", red : "not acceptable"}
+	value_labels : { green : "good", red : "not acceptable"},
+	ui_opts : {item_classes : ["col-sm-2"]}
     };
     var pwr_status = {
 	type : "status",
 	value : "red",
-	value_labels : { green : "match", red : "dont't match"}
+	value_labels : { green : "match", red : "dont't match"},
+	ui_opts : {item_classes : ["col-sm-2"]}
     };
+    create_ui({}, email_status, signup.depth+1);
+    create_ui({}, pw_status,signup.depth+1);
+    create_ui({}, pwr_status,signup.depth+1);
+    
+    email.ui_root.appendChild(email_status.ui);
+    pw.ui_root.appendChild(pw_status.ui);
+    pwr.ui_root.appendChild(pwr_status.ui);
 
+    */
     
     signup_act.ui.setAttribute("disabled",true); //add_class("masked");
     
-    create_ui({}, email_status);
-    email.ui_childs.add_child(email_status,email_status.ui_root);
-    //email.ui_root.appendChild(email_status.ui_root);
-    //var td=cc("td",email.tr); td.appendChild(email_status.ui_root);
-    
-    create_ui({}, pw_status);
-    pw.ui_childs.add_child(pw_status,pw_status.ui_root);
-    //var td=cc("td",pw.tr); td.appendChild(pw_status.ui_root);
-
-    create_ui({}, pwr_status);
-    pwr.ui_childs.add_child(pwr_status,pwr_status.ui_root);
-    //var td=cc("td",pwr.tr); td.appendChild(pwr_status.ui_root);
-    
-    var pw_fail_reasons=cc("ul",pw.ui_root);
-    pw_fail_reasons.className="alert alert-danger";
+    var fail_row=cc("div",pw.ui_root); fail_row.className="row";
+    var pw_fail_reasons=cc("ul",fail_row);
+    pw_fail_reasons.className="alert alert-danger list-unstyled col-sm-4 col-sm-offset-4";
     pw_fail_reasons.setAttribute("role","alert");
+    pw_fail_reasons.style.display="none";
+//    pw_fail_reasons.style.float="right";
     
     function check_everything_good(){
-	if (email_status.value=="green"
-		&& pw_status.value=="green"
-		&& pwr_status.value=="green"
+	if (email.status
+		&& pw.status
+		&& pwr.status
 	   ){
 	    signup_act.ui.removeAttribute("disabled");
 	}else
 	    signup_act.ui.setAttribute("disabled",true);
     }
 
+    pw.status=false;	
+    pwr.status=false;
+    email.status=false;
     
+    function set_status(o,st){
+	o.status=st;
+	if(st){
+	    o.ui_root.add_class("has-success");
+	    o.ui_root.remove_class("has-error");
+	}else{
+	    o.ui_root.add_class("has-error");
+	    o.ui_root.remove_class("has-success");
+	}
+    }
     pw.pui.addEventListener("input", function(){
 	
 	pwr.set_value("");
-	pwr_status.set_value("red");
+	//pwr_status.set_value("red");
 	var owasp_result = owaspPasswordStrengthTest.test(this.value);
 	pw_fail_reasons.innerHTML="";
 	if(owasp_result.strong){
-	    pw_status.set_value("green");
+	    set_status(pw,true);
+	    pw_fail_reasons.style.display="none";
 	}else{
-	    
-	    pw_status.set_value("red");
+	    set_status(pw,false);
+	    pw_fail_reasons.style.display="";
 	    for(var es=0;es<owasp_result.errors.length;es++){
-		cc("li",pw_fail_reasons).innerHTML=owasp_result.errors[es];
+		cc("li",pw_fail_reasons).innerHTML='<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> '+" "+
+		    owasp_result.errors[es];
 	    }
 	    
 	    //console.log("Password too weak : " + JSON.stringify(owasp_result, null, 5));
@@ -510,20 +540,22 @@ template_ui_builders.signup=function(ui_opts, signup){
 
     email.ui.addEventListener("input", function(){
 	if(validate_email(this.value)){
-	    email_status.set_value("green");
+	    set_status(email,true);
 	}
 	else
-	    email_status.set_value("red");
+	    set_status(email,false);
+
 	check_everything_good();
 	
     });
 
     pwr.pui.addEventListener("input", function(){
 	if(this.value===pw.pui.value){
-	    pwr_status.set_value("green");
+	    set_status(pwr,true);
 	}
 	else
-	    pwr_status.set_value("red");
+	    set_status(pwr,false);
+
 	check_everything_good();
 
     });
@@ -540,7 +572,7 @@ template_ui_builders.signup=function(ui_opts, signup){
 		return;
 	    }
 
-	    console.log("signup Reply : " + JSON.stringifuy(res));
+	    console.log("signup Reply : " + JSON.stringify(res));
 	    
 	});
     });
@@ -554,21 +586,111 @@ template_ui_builders.login=function(ui_opts, login){
     ///////////////////////////////////////////////////////////////
     //User Login/Logout stuff
     
-    //var ui=template_ui_builders.password(ui_opts, login);
+    var user_tpl=login.elements.user;
+    var pw_tpl=login.elements.password;
+    var login_tpl=login.elements.login;
+    var status_tpl=login.elements.status;
     
-    //var ui=ce("div",ui);
-    var input_caption=ce('label');
-    var ui=login.ui=input_caption;
-
-    input_caption.innerHTML="e-mail : ";
-    var input_box=cc('input',input_caption);
-
-//    input_caption.className='login_input_caption';
-    input_box.className='form-control';
-	
-    input_box.focus();
-    
+    user_tpl.ui.focus();
+    pw_tpl.pui.add_class("input-sm");
     var user_name="", user_password="";
+    var mode;
+
+    function check(){
+	login_tpl.disable(user_name==""||user_password=="");
+    }
+
+    function login_mode(){
+	mode="login";
+	login_tpl.set_title("Log In");
+	login_tpl.disable(true);
+	status_tpl.ui_root.style.display="none";
+	user_tpl.ui_root.style.display="";
+	pw_tpl.ui_root.style.display="";
+	check();
+    }
+    
+    function register_mode(){
+	mode="register";
+	login_tpl.ui_root.style.display="none";
+	status_tpl.ui_root.style.display="";
+	user_tpl.ui_root.style.display="none";
+	pw_tpl.ui_root.style.display="none";
+
+    }
+    
+    function error_mode(err){
+	mode="error";
+	status_tpl.ui.className="label label-danger";
+	status_tpl.set_value(err);
+	login_tpl.ui_root.style.display="";
+	login_tpl.set_title("Retry");
+	login_tpl.disable(false);
+    }
+
+    function success_mode(){
+	mode="success";
+	status_tpl.ui.className="label label-success";
+	status_tpl.set_value("Ok !");
+
+	login_tpl.set_title("Logout");
+	login_tpl.ui.remove_class("btn-primary");
+	login_tpl.ui.add_class("btn-danger");
+	login_tpl.ui_root.style.display="";
+	login_tpl.disable(false);
+    }
+    
+    user_tpl.ui.addEventListener("input", function(v){
+	user_name=this.value;
+	check();
+    });
+    
+    pw_tpl.pui.addEventListener("input", function(v){
+	user_password=this.value;
+	check();
+    });
+    
+    login_tpl.listen("click",function(){
+	switch(mode){
+	case "login" :
+	    console.log("Login " + user_name + " pw " + user_password);
+	    register_mode();
+	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
+	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
+	    var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
+	    
+	    rqinit.execute(function(error, res){
+		
+		if(error){
+		    console.log("Error login " + error);
+		    return;
+		}
+		
+		if(è(res.error)) return error_mode(res.error);
+		
+		success_mode();
+		// var server_key=res.key;
+		// var client_key = new Uint8Array(32);
+		// window.crypto.getRandomValues(buf);
+		// var hash=CryptoJS.HmacSHA256("Message", "Secret Passphrase");
+		// var hash=CryptoJS.SHA1(user_name+user_password);
+		// console.log("["+user_name+"]["+user_password+"]");
+		// var qr=new request({ cmd : "/login", query_mode : "bson", args : { hash : hash.toString()}    });
+		// qr.execute(function(error, res){
+		// 	console.log("Received  " + JSON.stringify(res));
+		// });
+	    });
+	    break;
+	case "error":
+	    login_mode();
+	    break;
+	    //query_login("what=login&u="+user_name+"&p="+user_password,result_cb);
+	};
+    });
+		     
+    login_mode();
+    
+    return;
     
     input_box.onkeydown = function(e) {
 	
@@ -586,7 +708,6 @@ template_ui_builders.login=function(ui_opts, login){
 		input_box.value="";
 		input_caption.firstChild.textContent="Registering...";
 		input_box.style.display='none';
-
 		var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
 		//var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
 		var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
@@ -619,6 +740,7 @@ template_ui_builders.login=function(ui_opts, login){
 		//query_login("what=login&u="+user_name+"&p="+user_password,result_cb);
 	    }
 	}
+
     };
 
     return ui;
@@ -776,10 +898,10 @@ template_ui_builders.string=function(ui_opts, tpl_item){
     switch (ui_opts.type){
 	
     case "short":
-
-	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
-
+	
+	var ui=tpl_item.ui=ce(è(ui_opts.text_node)?ui_opts.text_node :"span");
+	//ui.className="value";
+	
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    if(è(tpl_item.value))
@@ -886,7 +1008,7 @@ template_ui_builders.text=function(ui_opts, tpl_item){
 template_ui_builders.password=function(ui_opts, tpl_item){
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-
+    new_event(tpl_item,"change");
     switch (ui_opts.type){
 
     case "short":
@@ -902,18 +1024,20 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 
     case "edit": 
 
-	var ui=tpl_item.ui=ce("span");
-	var pui=tpl_item.pui=cc("input",ui);
-	var lab=cc("label",ui);
-	var labeye=cc("span",lab);labeye.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
-	var show=cc("input",lab); show.type="checkbox";
+	var ui=tpl_item.ui=ce("div"); ui.className="input-group";
+	var pui=tpl_item.pui=cc("input",ui);pui.className="form-control";
+	var lab=cc("span",ui); lab.className="btn btn-info input-group-addon";
+	lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
+	//var show=cc("input",lab); show.type="checkbox";
 	pui.type="password";
-	pui.className="form-control";
-	show.onclick=function(){
-	    pui.type= show.checked ? "text" : "password";
-	    var eye=show.checked ? "open" : "close";
-	    labeye.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-"+eye+"'></span>";//"⎃";
-	    console.log("pt = " + pui.type);
+	//pui.className="form-control";
+	pui.show=false;
+	lab.onclick=function(){
+	    pui.show=!pui.show;
+	    pui.type= pui.show ? "text" : "password";
+	    var eye=pui.show ? "open" : "close";
+	    lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-"+eye+"'></span>";//"⎃";
+	    //console.log("pt = " + pui.type);
 
 	}
 	tpl_item.set_value=function(nv){
@@ -923,13 +1047,11 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	tpl_item.get_value=function(){
 	    return pui.value;
 	}
-
-	if(tpl_item.onchange){
-	    pui.onchange=function(){
-		tpl_item.value=this.value; 
-		tpl_item.onchange();
-	    }
-	}
+	pui.addEventListener("change", function(){
+	    tpl_item.value=this.value; 
+	    tpl_item.trigger("change");
+	});
+	
 	break;
     default: 
 	throw "Unknown UI type ";
@@ -1235,7 +1357,7 @@ template_ui_builders.action=function(ui_opts, action){
     var ui=action.ui=ce("button"); ui.type="button";
     ui.innerHTML=action.name;
     
-    ui.className="btn btn-default";
+    ui.className="btn btn-primary";
     
     action.disable_element=function(dis){
 	if(dis)
@@ -1253,7 +1375,7 @@ template_ui_builders.action=function(ui_opts, action){
     },false);
 
     action.listen("name_changed", function(title){
-	ui.value=title;
+	ui.textContent=title;
     });
     /*    
 	  var pmon=new proc_monitor;

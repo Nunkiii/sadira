@@ -1,7 +1,9 @@
 /*
 Main Sadira toolkit CSS template
+On top of bootsrap 3
+*/
 
-
+/*
 
 *{ 
   margin: 0px;
@@ -22,17 +24,15 @@ html,body{
   height: 100%;
 }
 
-*/
 body{
-  /*
+
   color: white;
   background: black;
 
   font-size : 1em;
-*/
-
+  font-family: ubuntu;
 }
-
+*/
 
 @font-face{
   font-family:'Ubuntu'; 
@@ -47,10 +47,10 @@ body{
 }
 
 .db  {
-  display: block;
+  max-width: 100%;
+  /*
   max-width: calc(100% );
 
-  /*
   overflow: hidden;
 
   max-height: calc(100% - 2px);
@@ -69,7 +69,7 @@ body{
   position: relative;
   max-width: calc(100% - .5em); 
   */
-
+  vertical-align:top;
 } 
 
 
@@ -78,153 +78,16 @@ body{
   display: none; 
 */
 }
+span.fa{
+  margin-right: .4em;
+}
 
-.db .db{
-  /*
-  height: calc(100% - 14px);
-  overflow-y: auto;
-  overflow-x: auto;
-  position: relative;
-  margin-top: 5px;
-  margin-bottom: 5px;
 
-  */
-
-  max-width: auto;
-  max-height: auto;
-
-  border: 2px solid rgba(10,10,10,0.0);
-  border-radius: .3em;
+.inline{
   display: inline-block;
-  vertical-align: top;
-  margin-left: 5px;
-  margin-right: 5px;
 
-}
-/*
-table.childs{
-  border-radius: 1em;
-}
-
-table.childs > tr> td{
-  padding: .5em;
-
-  background: rgba(20,20,20,.5);
-}
-*/
-
-.childs .childs {
-/*
-  font-size: 95%;
-*/
-}
-
-.child_container {
-  /*
-  overflow-y: auto;
-  overflow-x: auto;
-  border: 0px solid red;
-  margin: 0px;
-  padding: 0px;
-  display: block;
-  height: 100%;
-  width: 100%
-
-
-
-  position: relative;
-  bottom: 0px;
-  top: 0px;
-  max-height: calc( 100% - 2.5em - 0px) ;
-  display: inline-block;
-  */
-}
-
-.child_container::-webkit-scrollbar {
-  display: none;
-}
-
-.db.db.newline{
-  display: block;
-}
-.db.inline{
-  /*
-  display: inline-block;
-*/
 } 
 
-.db> .childs{
-  display: inline-block;
-  /*
-  height: calc(100%);
-  padding-left: 1em;
-  padding-right: 1em;
-  padding-bottom: 1em;
-  overflow: auto;
-  overflow-x:auto;
-
-  */
-  padding: 0px;
-  margin: 0px;
-  max-height: calc(100%);
-  max-width: 100%;
-}
-.db> .childs > .db{
-/*  height: auto;*/
-}
-.db .db>.childs{
-/*
-  background: rgba(50,60,50,.2);
-*/
-  border-radius: .3em;
-}
-
-/*
- Divided (panned) child view
-*/
-
-
-.divided>.child_container {
-  display: inline-block;
-  position: relative;
-  
-  /*
-  height: 100%;
-
-  width: 100%;
-  overflow: auto;
-  max-height: 100%;
-  position: absolute;
-  bottom: 0px;
-
-  
-  */
-}
-
-.divided>.child_container .db {
-  height: auto;
-}
-
-  /*
-.db.divider{ 
-
-  height: 50%;
-  width:100%;  
-}
-  */
-
-  /*
-.db.divider>.childs{ 
-
-  position: relative;
-  top: 0px;
-display: block;
-position: relative;
-bottom : 0px;
-position: relative;
-
-}
-*/
 
 .divider_bar { 
 
@@ -380,13 +243,38 @@ float: left;
 */
 }
 
+.label_cnt {
+  display: inline-block;
+  margin-right: .5em;
+}
+
+.label_value {
+/*
+  display: inline-block;
+  margin-left: .5em;
+*/
+}
+
+.label_value .db{
+/*
+  margin-left: .3em;
+  margin-right: .3em;
+*/
+}
+
+
+
+span.label_value {
+
+  padding-right: .3em;
+  border-radius: .1em;
+}
 
 .dbitem{
   
   display: inline-block;
   vertical-align: middle;
   text-align : left;
-
   line-height: 2em; 
   height: 100%;
   margin-left : .2em;
@@ -411,6 +299,14 @@ float: left;
 
 navigation
 */
+
+
+h4 {
+
+  display : inline-block;
+
+
+}
 
 
 
@@ -520,8 +416,18 @@ navigation
 /*  background: linear-gradient(rgba(50,50,50,.3), rgba(20,20,50,0.7) 50%, rgba(8,5,13,0.7) ); */
 }
 .ico{
+  width : 1.5em;
   position: relative;
+  top: -.3em;
+  margin-right : .3em;
+/*
+
+
+  
   width: 1em;
+  padding-right: .5em;
+*/
+
 }
 
 .navcnt.bar > nav{
@@ -637,14 +543,10 @@ ul.toolbar {
   background: rgba(80,80,80,.6);
 }
 
-header .db .dbname{
-/*
-  color: white;
-*/
-  font-size: 1em;
-  vertical-align: middle;
-}
 
+pre {
+  max-width: 100%;
+}
 
 /*
 label:hover{
@@ -655,10 +557,6 @@ label:hover{
 */
 
 
-.ico{ 
-  /*width : 1.5em;*/
-  padding-right: .5em;
-}
 
 .big_error{
   float: left;
@@ -671,23 +569,6 @@ label:hover{
   margin-left: 4em;
   font-size: 1.5em;
   white-space: wrap;
-}
-
-.dbname > img {
-  width : 2em;
-}
-
-.dbname > .title{
-/*  display: inline-block;
-  font-weight: bold;
-  
-*/
-vertical-align: top;
-}
-
-.dbname > span{
-  display: inline-block;
-  margin-top: -1em;
 }
 
 .close_button{
@@ -725,17 +606,6 @@ vertical-align: top;
   display: none;
 }
 
-.tab_section > .dbname > .title{
-  /*
-  top: 1em; 
-
-  display: inline-block;
-  position: absolute;
-*/
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  font-size: 1.5em;
-}
 
 /*
 Widget - w-m
@@ -761,20 +631,23 @@ sliding
 */
 
 .slide_button{
-  font-size: 1.0em;
-  padding: .4em;
-  cursor: pointer;
+  background: none;
+  border: 0px;
+  box-shadow: none;
+  border-image-width: 0px;
 }
 
+.slide_button:hover{ 
+/*  text-shadow: 0px 0px 1px black; */
+}
 
-
+/*
 .slide_button.close{
   color: rgba(250,20,25,.9); 
 }
 
 .slide_button.close::before{
   content : "❌";
-
 }
 
 .slide_button.open::before{
@@ -786,9 +659,7 @@ sliding
   color: rgba(20,20,250,.9); 
 }
 
-.slide_button:hover{ 
-  text-shadow: 0px 0px 1px black;
-}
+*/
 
 .sliding{
   /*display: block;*/
@@ -818,12 +689,71 @@ sliding
 /*  color: rgba(230,20,30,1.0); */
 }
 
+label{
+  margin-right: .5em;
+}
+
+.editable > label{
+  cursor : pointer;
+}
+.un_editable > label{
+  cursor : pointer;
+}
+
+.db[data-type="login"] {
+  display: table-cell;
+  vertical-align: middle;  
+}
+.db[data-type="login"] .label{
+  padding : .8em;
+  vertical-align: bottom;
+  margin-right: 1em;
+}
+
+.db[data-type="login"] label{
+  color: lightgrey;
+  font-weight: normal;
+  margin-right: .5em;
+}
+
+.db[data-type="login"] label.unslided{
+  cursor : pointer;
+  margin-top: 1em;
+  color: lightgrey;
+}
+
+.db[data-type="login"] label.slided{
+  cursor : pointer;
+  color: springgreen;
+  margin-top: 1em;
+}
+
+	     
+/*
+label.unslided{
+  margin-right: .2em;
+  opacity : 1.0;
+  color: lightgrey;
+  line-height: 3.5em;
+}
+
+
+label.slided{
+  color: springgreen;
+  opacity : 1.0;
+
+
+}
+*/
+/*
+  
+
 label .form-control{
   width: auto;
   display: inline-block;
 
 }
-
+*/
 
 
 .db .un_editable{
@@ -834,14 +764,21 @@ label .form-control{
 
 }
 
+.db .un_editable:hover{
+  box-shadow : 0px 0px 1px grey;
+  cursor: pointer;
+}
+.db .editable:hover{
+  box-shadow : 0px 0px 2px grey;
+  cursor: pointer;
+}
+/*
 .db .editable .dbname:hover{
+  text-shadow : 0px 0px 5px rgba(20,50,255,0.9);
   text-shadow : 0px 0px 5px rgba(20,50,255,0.8);
 }
+
 .db .un_editable > .dbname{
-/*
-  color: black;
-  text-shadow : 0px 0px 1px black;
-*/
 }
 
 .db .editable > .dbname{
@@ -850,17 +787,8 @@ label .form-control{
 .db .un_editable .dbname:hover{
   text-shadow : 0px 0px 5px rgba(20,50,255,0.8);
 }
+*/
 
-.db .editable:hover{
-  border : 2px dashed blue; 
-  background : rgba(200,200,30,.1);
-  cursor: pointer;
-}
-
-.db .un_editable:hover{
-  border : 2px dashed blue; 
-  cursor: pointer;
-}
 
 /*
 
@@ -896,18 +824,19 @@ intro
 
 
 .db[data-type="action"]{
-  display : inline-block;
-  border-radius: .4em;
-
   /*
   color: white; 
 
   padding : .2em;
   cursor: pointer;
   background:  linear-gradient(to bottom, rgba(80,120,200,.7), rgba(100,100,250,0.5) ); 
+  display : inline-block;
+  border-radius: .4em;
+  margin-right: .5em;
+
+
 */
 
-  margin-right: .5em;
 
 }
 
@@ -930,6 +859,11 @@ intro
   padding-top: .5em;
   padding-bottom: .5em;
 */
+}
+
+.status{
+  margin-left: 1em;
+  
 }
 
 .db[data-type="status"] ul{
@@ -1449,12 +1383,17 @@ WebGL + svg screen
 
 .drawing_node{
   overflow: hidden;
-/*
+
+  height: calc(100% - 0px);
+  width: calc(100% - 0px);  
+  /*
   border: 5px solid green;
+  width: 400px;
+  height: 400px;
+
+
 */
   display: block;
-  height: calc(100% - 0px);
-  width: calc(100% - 0px);
   position: relative;
 }
 

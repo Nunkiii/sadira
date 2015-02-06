@@ -2,11 +2,11 @@ var passport = require('passport');
 
 var SamlStrategy = require('passport-saml' ).Strategy;
 
-var flash    = require('connect-flash');
+//var flash    = require('connect-flash');
 
 var crypto=require('crypto');
 
-var morgan       = require('morgan');
+//var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 var session      = require('express-session');
@@ -63,7 +63,7 @@ exports.init=function(pkg,sad){
 			 console.log("Begin signup  process for " + email);
 			 
 			 users.findOne({ 'local.email' :  email }, function(err, user) {
-			 //users.findOne({}, function(err, user) {
+			     //users.findOne({}, function(err, user) {
 			     // if there are any errors, return the error
 			     if (err){
 				 console.log("Error looking up user: " + err);
@@ -72,7 +72,7 @@ exports.init=function(pkg,sad){
 			     // check to see if theres already a user with that email
 			     if (user) {
 				 console.log("Email already taken " + email);
-				 return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+				 return done(null, false, 'That email address is already registered.');
 			     } else {
 				 // if there is no user with that email
 				 // create the user
@@ -83,12 +83,13 @@ exports.init=function(pkg,sad){
 				 // set the user's local credentials
 				 new_user.local.email    = email;
 				 new_user.local.hashpass = hashpass;
-				 
+			     
 				 // save the user
 				 new_user.save(function(err) {
-				     if (err) return done(err);
-				     //throw err;
-				     return done(null, new_user);
+				     if (err)
+					 throw err;
+				     
+				     return done(null, new_user, " Gllllleeee");
 				 });
 			     }
 			     
@@ -97,8 +98,8 @@ exports.init=function(pkg,sad){
 		     });
 		     
 		 }));
-
-
+    
+    
     // =========================================================================
     // LOCAL LOGIN =============================================================
     // =========================================================================
@@ -124,15 +125,17 @@ exports.init=function(pkg,sad){
 	    }
 	    console.log("---> User is " + JSON.stringify(user));
 	    // if no user is found, return the message
-	    if (ù(user))
+	    if (!user)
 		return done(null, null, "User not found !");
 	    
 	    // if the user is found but the password is wrong
 	    user.check_password(hashpass, function(error, match){
+
 		if(error)
 		    return done(error);
+		console.log("checkpass match = " + match);
 		if(match)
-		    return done(null, user);
+		    return done(null, user, "Yeah!Login!!");
 		
 		return done(null, null, "Oops! Wrong password");
 		
@@ -164,6 +167,18 @@ exports.init=function(pkg,sad){
 //	});
     }));
 
+    // route middleware to make sure a user is logged in
+    function isLoggedIn(req, res, next) {
+
+	// if user is authenticated in the session, carry on
+	if (req.isAuthenticated())
+	    return next();
+
+	// if they aren't redirect them to the home page
+	console.log("User not logged in -> redirect hp");
+	res.redirect('/');
+    }
+    
     app.get('/shiblogin',function(req,res,next){
 	console.log("Yeahhh");
 	res.redirect("/widget/xd1");
@@ -189,7 +204,7 @@ exports.init=function(pkg,sad){
     app.post("/login/shib", function(req,res,next){
 	
 	passport.authenticate('saml', 
-			      { failureRedirect: '/', failureFlash: true }),
+			      { failureRedirect: '/', failureFlash: false }),
 	function(req, res) {
 	    res.redirect('/');
 	}
@@ -197,41 +212,82 @@ exports.init=function(pkg,sad){
 	console.log("Shibbo callback !!! ");
 	
     });
+
+    app.post('/signup', function(req, res, next) {
+	passport.authenticate('local-signup', function(err, user, info) {
+	    if (err) { return next(err); }
+	    if (!user) {
+		return res.json({error : "Signup failed : " + info});
+	    }
+	    
+	    return res.json({user : user});
+	})(req, res, next);
+    });
+
     
-    app.post('/signup', passport.authenticate('local-signup'),
-	     function(req, res){
-		 console.log("Signup success !");
-	     });
+    // app.post('/signup', passport.authenticate('local-signup'),
+    // 	     function(req, res){
+    // 		 console.log("Signup success !");
+    // 	     });
     // {successRedirect : '/profile', // redirect to the secure profile section
     // failureRedirect : '/signup', // redirect back to the signup page if there is an error
     // failureFlash : true // allow flash messages
     
-    
     // process the login form
-    app.post('/login', function(req, res, next){
-	passport.authenticate('local-login',function(err, user, info){
-	    if(err) {
-		console.log("auth error " + err);
-		return next(err);
+    app.post('/login', function(req, res, next) {
+	passport.authenticate('local-login', function(err, user, info) {
+	    if (err) { return next(err); }
+	    if (!user) {
+		return res.json({error : "Login failed !"});
 	    }
-	    if(user==null) {
-		console.log(info);
-		return res.json({ error : info});
-	    }
-	    console.log("user found !! : " + JSON.stringify(user));
-	    req.logIn(user, function(err){
-		if(err) {
-		    console.log("login error " + err);
-		    return next(err);
-		}
-		res.json({ error : null, user : user} );
+	    req.login(user, function(err) {
+		if (err) { return next(err); }
+		return res.json({user : req.user});
 	    });
-	})(req,res,next)
+	})(req, res, next);
     });
+
+
+    // 	app.post('/login', function(req, res, next){
+    // 	passport.authenticate('local-login',function(err, user, info){
+    // 	    if(err) {
+    // 		console.log("auth error " + err);
+    // 		return next(err);
+    // 	    }
+    // 	    if(user==null) {
+    // 		console.log(info);
+    // 		return res.json({ error : info});
+    // 	    }
+    // 	    console.log("user found !! : " + JSON.stringify(user));
+	    
+    // 	    req.logIn(user, function(err){
+    // 		if(err) {
+    // 		    console.log("login error " + err);
+    // 		    return next(err);
+    // 		}
+    // 		res.json({ error : null, user : user} );
+    // 	    });
+    // 	})(req,res,next)
+    // });
     // successRedirect : '/profile', // redirect to the secure profile section
     // failureRedirect : '/login', // redirect back to the signup page if there is an error
     // failureFlash : true // allow flash messages
     
+    app.get('/user', isLoggedIn, function(req, res) {
+	res.render('user.ejs', {
+	    user : req.user // get the user out of session and pass to template
+	});
+    });
+
+    // =====================================
+    // LOGOUT ==============================
+    // =====================================
+    app.get('/logout', function(req, res) {
+	req.logout();
+	res.redirect('/');
+    });
+
+/*    
     sad.app.get('/protected', function(req, res, next) {
 	passport.authenticate('local', function(err, user, info) {
 	    if (err) {
@@ -246,7 +302,7 @@ exports.init=function(pkg,sad){
 	    console.log("Go the user accound !");
 	})(req, res, next);
     });
-    
+  */  
     //sad.post('/login',passport.authenticate('local'));
     // sad.post('/login', function(req,res,next){
     //     console.log("Login called After....");

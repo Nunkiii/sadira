@@ -36,26 +36,60 @@ var base_templates={
     login : {
 	name : "Login",
 	type : "login",
-	ui_opts : {sliding: true, slided : false}
+	ui_opts : {sliding: true, slided : false, label : true, label_node : "label",
+		   root_node : "li",
+		   child_classes : ["navbar-form", "navbar-right"],
+		   item_classes : []},
+	elements : {
+	    user: {
+		type: "string",
+		name : "User",
+		default_value : "e-mail or username",
+		ui_opts : { type : "edit", label : true, root_classes : ["form-group"], item_classes : ["input-sm"]}
+	    },
+	    password :{
+		type: "password",
+		name : "Password",
+		default_value : "your password",
+		ui_opts : { type : "edit", label: true, root_classes : ["form-group"]}
+	    },
+	    status :{
+		type  : "string",
+		value : "Logging in ...",
+		ui_opts : {
+		    item_classes : ["text-info"],
+		    root_classes : ["form-group"]}
+	    },
+	    login : {
+		name : "Log in",
+		type : "action"
+	    }
+	}
     },
     
     signup : {
-	name : "Signup",
+	name : "Sign Up",
 	//type : "action",
 	tpl_builder : "signup",
 	intro : "Choose a method for login",
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{ child_view_type : "radio", root_classes : [], sliding: false},
+	ui_opts :{ child_view_type : "tabbed", tab_classes : ["nav-pills"], root_classes : ["col-sm-11 col-sm-offset-1"], sliding: false},
 
 	elements : {
 
 	    local : {
-		name : "Lacal signup",
-		intro : "Fill up the email and password fields to create your new user account. Enter a valid email adress, it will be used to identify you. You'll can configure a username later if you wish. The password will be checked for basic strength.",
+		name : "Create a local account",
+		subtitle : "It's free and always will be.",
+		intro : "Fill up the email and password fields to create your new user account.</p><p> Enter a valid email adress, it will be used to identify you. You'll can configure a username later in your user page if you wish.</p><p> The password will be checked for basic strength.",
+
+		ui_opts : {
+		    name_node : "h2",
+		    fa_icon : "leaf"
+		},
 		elements : {
 
 		    data : {
-			ui_opts : { child_view_type : "div", child_classes : ["list-group"] },
+			ui_opts : { child_view_type : "div", child_node_type : "form", child_classes : ["form-horizontal"] },
 			elements : {
 			    
 			    email : {
@@ -63,29 +97,48 @@ var base_templates={
 				name : "Email address",
 				type : "string",
 				default_value : "name@example.org",
-				ui_opts : { type : "edit"}
+				ui_opts : { type : "edit",
+					    root_classes : ["form-group"],
+					    label : true,
+					    name_classes : ["control-label","col-sm-3"],
+					    label_cnt_classes : ["col-sm-6"] }
 			    },
 			    password : {
 				name : "New password",
 				type : "password",
-			ui_opts : { type : "edit"}
+				ui_opts : { type : "edit", root_classes : ["form-group"], label : true ,
+					    name_classes : ["control-label","col-sm-3"],label_cnt_classes : ["col-sm-6"] }
 			    },
 			    password_repeat : {
 				name : "Enter password again",
 				type : "password",
-				ui_opts : { type : "edit"}
+				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,
+					    name_classes :["control-label","col-sm-3"],label_cnt_classes : ["col-sm-6"] }
+			    },
+			    signup : {
+				name : "Create new account",
+				type : "action",
+				ui_opts : {
+				    type : "edit", label: true,
+				    name_classes :["control-label","col-sm-3"],
+				    item_classes : ["btn-primary","btn-lg"],
+				    root_classes : ["form-group"],
+				    label_cnt_classes : ["col-sm-3","col-sm-offset-5"]
+				}
 			    }
 			}
 		    },
-		    signup : {
-			name : "Create new account",
-			type : "action"
-		    }
+
 		}
 	    },
 	    
 	    shib : {
 		name : "IDEM signup",
+		intro : "Signup using your IDEM-GARR account",
+		ui_opts : {
+		    name_node : "h2",
+		    fa_icon : "institution"
+		},
 		elements : {
 
 		    signup : {
@@ -95,8 +148,36 @@ var base_templates={
 		    
 		}
 		
+	    },
+
+	    fb : {
+		name : "Facebook",
+		intro : "Signup using your Facebook account",
+		ui_opts : { fa_icon : "facebook-official", name_node : "h2"},
+		elements : {
+		    signup : {
+			name : "Signup !",
+			type : "action"
+		    }
+		}
+	    },
+
+	    google : {
+		name : "Google",
+		intro : "Signup using your Google account",
+		ui_opts : {
+		    name_node : "h2",
+		    fa_icon : "google-plus"
+		},
+		elements : {
+		    
+		    signup : {
+			name : "Signup !",
+			type : "action"
+		    }
+		}
 	    }
-	    
+		
 	}
     },
     
