@@ -16,6 +16,7 @@ var express=require("express");
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
+
 /*
   Headers to add when allowing cross-origin requests.
 */
@@ -100,10 +101,7 @@ GLOBAL.get_bson_parameters=function(req, key){
     catch (e){
 	return {};
     }
-
-//    console.log("Read buffer ok L=" + b.length);
 }
-
 
 /*
   Signal interception routines
@@ -165,22 +163,15 @@ function dispatcher(name) {
  */
 
 var _sadira = function(){
-
+  
     var sad=this;
 
-    this.get_handlers = {};
-    this.post_handlers = {};
     this.dialog_handlers = {};
 
     //Configuring cluster (multi process spawn with port sharing) and inter-process communications
 
     sad.cluster = require('cluster');
     sad.cluster_messages=[]; //Array of active interprocess messages
-    
-
-    if(sad.cluster.isMaster){
-	//sad.log("Master is online "); //: options are " + JSON.stringify(sad.options, null, 4));
-    }
 
     //sad.log("sadira process start");
     var argv = require('minimist')(process.argv.slice(2));
@@ -205,6 +196,7 @@ var _sadira = function(){
     }; 
 
     //Reading the config file if given in --cf
+
     var option_string=null;
     
     if(typeof argv['cf'] != 'undefined' ) {
@@ -244,13 +236,12 @@ var _sadira = function(){
 	sad.initialize_handlers("handlers");
 	sad.initialize_handlers("dialogs");
 
-	
 	if(!this.cluster.isMaster && è(argv['bootstrap'])) {
 	    if(this.cluster.worker.id==1){
 		var bs=require("./js/bootstrap.js");
 		bs.init({},this);
 	    }else{
-		console.log("Not worker 1 not bootstrap !!");
+		this.log("Not worker 1 not bootstrap !!");
 	    }
 	}
 	
@@ -259,7 +250,6 @@ var _sadira = function(){
 	sad.log("Fatal error while initializing sadira : " +dump_error(e));
 	process.exit(1);
     }
-
     
 } 
 
@@ -400,23 +390,6 @@ _sadira.prototype.start_session_handling = function (){
 	}
     ));
 
-    // var client = redis.createClient({detect_buffers: true});
-    // // if you'd like to select database 3, instead of 0 (default), call
-    // // client.select(3, function() { /* ... */ });
-    // client.on("error", function (err) {
-    // 	console.log("Error " + err);
-    // });
-    
-    // client.set("string key", "string val", redis.print);
-    // client.hset("hash key", "hashtest 1", "some value", redis.print);
-    // client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
-    // client.hkeys("hash key", function (err, replies) {
-    // 	console.log(replies.length + " replies:");
-    // 	replies.forEach(function (reply, i) {
-    // 	    console.log("    " + i + ": " + reply);
-    // 	});
-    // 	client.quit();
-    // });
 
 }
 /* Start master process */
@@ -425,11 +398,7 @@ _sadira.prototype.start_master = function (){
 
     //Starting cluster
     var sad=this;
-    
-        
-    
-    
-  
+
     sad.nworkers=0;
     
     var f=0;
@@ -444,8 +413,6 @@ _sadira.prototype.start_master = function (){
     sad.log("Spawning worker processes on " + ncpu + " core(s) (f "+f+")...");
     
     for (var i = 0; i < ncpu; i++) {
-	
-
 
 	//var args = [ /* ... */ ];
 	//var options = { stdio: ['pipe','pipe','pipe','pipe','pipe'] };  // first three are stdin/out/err
@@ -468,20 +435,12 @@ _sadira.prototype.start_master = function (){
 	    
 	    // var pipe = worker.process.stdin;
 	    // pipe.write(Buffer('hello this is master printing on you!'));
-
 	    
 	});
-
-
-	
-	//worker.worker_id=i;
-	
 	
 	worker.on('message', function(m){ //Handling incoming messages from workers
 	    
 	    if(ù(sad.ipss)) { sad.log("Unhandled message, no IPS!"); return; }
-	    //var mhead=m.head;
-	    //if(ù(mhead)) { sad.log("No message header!"); return; }
 
 	    var cmd = m.cmd;
 	    if(ù(cmd)) { sad.log("No message command!"); return; }
@@ -515,25 +474,6 @@ _sadira.prototype.start_master = function (){
 		sad.log("Unknown message command ["+cmd+"]"); return; 
 		break;
 	    };
-	    /*
-	    if(m.object!="")sob=sad[m.object];
-	    else sob=sad;
-	    
-	    if(typeof sob != 'undefined'){
-		sad[m.object].message(m, function (reply_data) {
-		    var rm={
-			id : m.id,
-			data : reply_data
-		    }
-		    sad.cluster.workers[m.worker_id].send(rm);
-		});
-		
-	    }
-	    else
-		sad.log('MASTER: ERROR unknown message : ' + JSON.stringify(m));
-	    //console.log('MASTER: message : ' + JSON.stringify(m));
-	    //this.send({ roba : "Ciao bello worker " + worker.id, worker_id : "I am The Master"} );
-*/
 	    
 	});
 	
@@ -566,16 +506,11 @@ _sadira.prototype.start_master = function (){
 	}
 	
     });
-    
-    
 }
 
 /* Start worker process */
 
 _sadira.prototype.start_worker = function (){
-    
-    //We create a slave session manager for this thread.
-    //sad.session_slave=new session.slave(sad);
     
     var sad=this;
     
@@ -590,7 +525,6 @@ _sadira.prototype.start_worker = function (){
 
     app.set('view engine', 'ejs');
     //app.set("views", "ejs/");
-
     
     sad.start_session_handling();
     
@@ -627,44 +561,9 @@ _sadira.prototype.start_worker = function (){
 	    break;
 	};
 	
-	
-	
-	// if(typeof m.id != 'undefined'){
-	//     for (var wm in sad.cluster_messages){
-	// 	//sad.log(sad.cluster_messages[wm].id + " ==? " + m.id );
-	// 	if(sad.cluster_messages[wm].id==m.id){
-	// 	    var ans=sad.cluster_messages[wm].answer;
-	// 	    sad.cluster_messages.remove(wm);
-	// 	    sad.log("Waiting message queue length is " + sad.cluster_messages.length);
-	// 	    return ans(m.data);
-	// 	}
-	//     }
-	// }
-	
-	// var sob;
-	// if(m.object!="")sob=sad[m.object];
-	// else sob=sad;
-	
-	
-	// if(typeof sob != 'undefined'){
-	//     sob.message(m.data, function (reply_data) {
-	// 	var rm={
-	// 	    id : m.id,
-	// 	    data : reply_data
-	// 	}
-	// 	process.send(rm);
-	//     });
-	    
-	// }
-	// else
-	//     sad.log('error: unknown message : ' + JSON.stringify(m));
-	
-	
 	// sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
-	
     });
     //sad.log("Worker "+ sad.cluster.worker.id + " created" );
-    
     
     sad.create_http_server(function(error, ok){
 	if(error!=null){
@@ -680,14 +579,6 @@ _sadira.prototype.start_worker = function (){
 	
 
     });
-    
-    
-    /*
-      sad.send_process_message("session_master", "Hello Master ! All good ?", function (reply){
-      sad.log("worker "+sad.cluster.worker.id+" : Got reply from master : " + JSON.stringify(reply));
-      });
-    */
-    //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
     
 }
 
@@ -1048,9 +939,7 @@ _sadira.prototype.initialize_handlers=function(packname){
     
     });
 
-
-
-    sad.app.get('/widget/:tpl_name', function(req, res) {
+  sad.app.get('/widget/:tpl_name', function(req, res) {
 	var ejs_data={ tpl_name : req.params.tpl_name};
 	sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
@@ -1083,10 +972,6 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    sad.log('Proxy error : ' + dump_error(e));
 	    return res.status('Sadira: Proxy error : ' + e, 500);
 	}
-
-
-
-	
     });
 }
 

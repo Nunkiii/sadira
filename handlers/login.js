@@ -4,9 +4,6 @@ var facebook_strategy = require('passport-facebook').Strategy;
 var google_strategy = require('passport-google-oauth').OAuth2Strategy;
 
 
-var configAuth = require('../config/auth');
-
-
 //var SamlStrategy = require('passport-saml' ).Strategy;
 //var flash    = require('connect-flash');
 
@@ -27,7 +24,7 @@ exports.isAuthenticated = passport.authenticate('basic', { session : false });
 exports.init=function(pkg,sad){
 
     var app=sad.app;
-    
+  
     //app.set('view engine', 'ejs'); // set up ejs for templating
     // required for passport
     
@@ -326,9 +323,9 @@ exports.init=function(pkg,sad){
     passport.use(new facebook_strategy({
 	
 	// pull in our app id and secret from our auth.js file
-	clientID        : configAuth.facebookAuth.clientID,
-	clientSecret    : configAuth.facebookAuth.clientSecret,
-	callbackURL     : configAuth.facebookAuth.callbackURL
+	clientID        : pkg.opts.facebookAuth.clientID,
+	clientSecret    : pkg.opts.facebookAuth.clientSecret,
+	callbackURL     : pkg.opts.facebookAuth.callbackURL
 	
     },function(token, refreshToken, profile, done) {     // facebook will send back the token and profile
 	
@@ -393,9 +390,9 @@ exports.init=function(pkg,sad){
     // =========================================================================
     passport.use(new google_strategy({
 	
-	clientID        : configAuth.googleAuth.clientID,
-	clientSecret    : configAuth.googleAuth.clientSecret,
-	callbackURL     : configAuth.googleAuth.callbackURL,
+	clientID        : pkg.opts.googleAuth.clientID,
+	clientSecret    : pkg.opts.googleAuth.clientSecret,
+	callbackURL     : pkg.opts.googleAuth.callbackURL,
 	
     },function(token, refreshToken, profile, done) {
 	
