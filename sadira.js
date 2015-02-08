@@ -887,7 +887,7 @@ _sadira.prototype.handle_request=function(request, response){
 	}
 	
 	//The request was not handled by custom url handlers.
-	//If enabled, proxying the query to another web service
+	//If enabled, proxy5Bing the query to another web service
 	
 	try{
 	    
@@ -895,13 +895,13 @@ _sadira.prototype.handle_request=function(request, response){
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
-		    //console.log("Proxy https " + request.url);
+		    console.log("Proxy https " + request.url);
 		    sad.https_proxy.web(request, response);
 		    return;
 		}
 	    }else{
 		if(sad.options.http_proxy){
-		    //console.log("Proxy http " + request.url);
+		    console.log("Proxy http " + request.url);
 		    sad.http_proxy.web(request, response);
 		    return;
 		}
@@ -1375,13 +1375,13 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
-		    //console.log("Proxy https " + request.url);
+		    console.log("Proxy https " + request.url);
 		    sad.https_proxy.web(request, res);
 		    return;
 		}else return res.status('Not found', 404);
 	    }else{
 		if(sad.options.http_proxy){
-		    //console.log("Proxy http " + request.url);
+		    console.log("Proxy http " + request.url);
 		    sad.http_proxy.web(request, res);
 		    return;
 		}else return res.status('Not found', 404);

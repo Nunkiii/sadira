@@ -335,7 +335,7 @@ exports.init=function(pkg,sad){
 	process.nextTick(function() {
 	    
 	    // find the user in the database based on their facebook id
-	    User.findOne({ 'facebook.id' : profile.id }, function(err, user) {
+	    users.findOne({ 'facebook.id' : profile.id }, function(err, user) {
 		
 		// if there is an error, stop everything and return that
 		// ie an error connecting to the database
@@ -347,7 +347,7 @@ exports.init=function(pkg,sad){
 		    return done(null, user); // user found, return that user
 		} else {
 		    // if there is no user found with that facebook id, create them
-		    var newUser            = new User();
+		    var newUser            = new users();
 		    
 		    // set all of the facebook information in our user model
 		    newUser.facebook.id    = profile.id; // set the users facebook id
@@ -361,6 +361,7 @@ exports.init=function(pkg,sad){
 			    throw err;
 			
 			// if successful, return the new user
+			console.log("New facebook user added : " + JSON.stringify(profile));
 			return done(null, newUser);
 		    });
 		}
