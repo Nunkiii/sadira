@@ -13,39 +13,33 @@
     <header>
       <% include parts/header %>
     </header>
-
-    <div class="container">
-
-      <div class="page-header text-center">
-	<h1><span class="fa fa-anchor"></span> Profile Page</h1>
-	<a href="/logout" class="btn btn-default btn-sm">Logout</a>
-      </div>
-
-      <div class="row">
-
-	<!-- LOCAL INFORMATION -->
-	<div class="col-sm-6">
-	  <div class="well">
-	    <h3><span class="fa fa-user"></span> Local</h3>
-
-	    <p>
-	      <strong>id</strong>: <%= user._id %><br>
-	      <strong>email</strong>: <%= user.local.email %><br>
-	      <strong>password</strong>: <%= user.local.password %>
-	    </p>
-	    
-	  </div>
-	</div>
-
-      </div>
-
-      </div>
-
     
-    <div class="row">
-
-        <!-- FACEBOOK INFORMATION -->
-        <div class="col-sm-6">
+    <main>
+      <div class="container">
+	
+	<div class="page-header text-center">
+	  <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+	  <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+	</div>
+	
+	<div class="row">
+	  
+	  <!-- LOCAL INFORMATION -->
+	  <div class="col-sm-6">
+	    <div class="well">
+	      <h3><span class="fa fa-user"></span> Local</h3>
+	      
+	      <p>
+		<strong>id</strong>: <%= user._id %><br>
+		<strong>email</strong>: <%= user.local.email %><br>
+		<strong>password</strong>: <%= user.local.password %>
+	      </p>
+	      
+	    </div>
+	  </div>
+	  
+          <!-- FACEBOOK INFORMATION -->
+          <div class="col-sm-6">
             <div class="well">
               <h3 class="text-primary"><span class="fa fa-facebook"></span> Facebook</h3>
 	      
@@ -57,25 +51,38 @@
               </p>
 	      
             </div>
-        </div>
-	
-    </div>
-
-    <main>
-      <div class="container-fluid" id="toto"></div>
+          </div>
+	  
+	  <!-- GOOGLE INFORMATION -->
+	  <div class="col-sm-6">
+	    <div class="well">
+	      <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google</h3>
+	      
+	      <p>
+		<strong>id</strong>: <%= user.google.id %><br>
+		<strong>token</strong>: <%= user.google.token %><br>
+		<strong>email</strong>: <%= user.google.email %><br>
+		<strong>name</strong>: <%= user.google.name %>
+	      </p>
+	      
+	    </div>
+	  </div>
+	  
+	</div>
+      </div>
     </main>
-  </body>
 
+  </body>
   <footer>
     <% include parts/footer %>
   </footer>
-
+  
   
   <script>
     window.addEventListener("load", function(){
     });
   </script>
-
-
+  
+  
   
 </html>

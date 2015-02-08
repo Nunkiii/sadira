@@ -18,6 +18,7 @@
       "passport-google-oauth" : "~0.1.5",
       "passport-saml" : "*",
       "connect-flash" : "~0.1.1",
+      "connect-redis" : "*",
       "bcrypt-nodejs" : "latest",
       "redis" : "*",
       "morgan": "~1.0.0",

@@ -16,8 +16,6 @@ var express=require("express");
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
-var session      = require('express-session');
-
 /*
   Headers to add when allowing cross-origin requests.
 */
@@ -187,6 +185,8 @@ var _sadira = function(){
     //sad.log("sadira process start");
     var argv = require('minimist')(process.argv.slice(2));
     //console.dir(argv);
+
+    var system_ncpu=require('os').cpus().length;
     
     //Defaults options. Overwritten later by user-given command-line/config-file 
     sad.options={
@@ -198,7 +198,7 @@ var _sadira = function(){
 	dialogs : [],
 	get_handlers : [],
 	post_handlers : [],
-	ncpu : require('os').cpus().length, //using number of cpu present in system by default
+	ncpu : system_ncpu, //using number of cpu present in system by default
 	//    ncpu : 1; //Using a single thread by default.
 	html_rootdir : process.cwd()+'/www', //This is the root directory for all the served files.
 	file_server : true
@@ -234,6 +234,8 @@ var _sadira = function(){
 	    process.exit(1);
 	}
     }
+
+    if(sad.options.ncpu==0)sad.options.ncpu=system_ncpu;
     
     try{
 
@@ -266,58 +268,6 @@ _sadira.prototype.log = function (m){
     console.log((sad.cluster.isMaster ? "Master : " :  ("Worker " +  this.cluster.worker.id + " : ")) + m);
     
 }
-
-/* Connect-like api loading 
-
-_sadira.prototype.handle_api = function (api_root, path, api_cb){
-    var path_parts = path.split("/");
-    for(var p=1;p<path_parts.length;p++){
-	var ppp=path_parts[p];
-	if(ppp!==""){
-	    //console.log("Handling get api root : " + api_root + " looking [" + ppp + "]");
-	    var api_child = api_root[ppp];
-	    
-	    if(ù(api_child)){
-		api_child=api_root[path_parts[p]]={};
-	    }
-	    api_root=api_child;
-	}
-    }
-    var api_funcs=api_root.__apis;
-    if(ù(api_funcs))  api_funcs=api_root.__apis=[];
-    //console.log("Attached API to path ["+path+"] API CB is func ? " + typeof api_cb);
-
-    api_root.__apis.push(api_cb);    
-}
-
-_sadira.prototype.get = function (path, api_cb){
-    this.handle_api(this.get_handlers, path, api_cb);
-}
-
-_sadira.prototype.post = function (path, api_cb){
-    this.handle_api(this.post_handlers, path, api_cb);
-}
-*/
-
-/* Connect-like middleware function loading */
-
-/*
-_sadira.prototype.use=function ( a1, a2){
-    var path, api_cb;
-
-    if(ù(a2)) {
-	path="/";
-	api_cb=a1;
-    }else{
-	path=a1; api_cb=a2;
-    }
-
-    this.get(path, api_cb);
-    this.post(path, api_cb);
-}
-
-
-*/
 
 /* Registers a new dialog handler */
 
@@ -437,24 +387,22 @@ _sadira.prototype.register_interprocess_service = function (service_name, result
 }
 
 
-/* Start master process */
+_sadira.prototype.start_session_handling = function (){
 
-_sadira.prototype.start_master = function (){
-
-    //Starting cluster
-    var sad=this;
+    var options = {};
+    var session=require('express-session');
+    var redis_session_store = require("connect-redis")(session);
     
-    //sad.create_events();
-    // We create the session master 
-    //sad.session_master=new session.master(sad);
+    this.app.use(session(
+	{
+	    secret: 'vivalabirravivalabirravivalabirra',
+	    store : new redis_session_store(options)
+	}
+    ));
 
-        
-    // var redis = require("redis");
     // var client = redis.createClient({detect_buffers: true});
-    
     // // if you'd like to select database 3, instead of 0 (default), call
     // // client.select(3, function() { /* ... */ });
-    
     // client.on("error", function (err) {
     // 	console.log("Error " + err);
     // });
@@ -469,6 +417,16 @@ _sadira.prototype.start_master = function (){
     // 	});
     // 	client.quit();
     // });
+
+}
+/* Start master process */
+
+_sadira.prototype.start_master = function (){
+
+    //Starting cluster
+    var sad=this;
+    
+        
     
     
   
@@ -632,8 +590,9 @@ _sadira.prototype.start_worker = function (){
 
     app.set('view engine', 'ejs');
     //app.set("views", "ejs/");
+
     
-    app.use(session({ secret: 'vivalabirravivalabirravivalabirra' })); 
+    sad.start_session_handling();
     
     process.on('message', function(m){ //Handling incoming messages from master process.
 
@@ -731,280 +690,6 @@ _sadira.prototype.start_worker = function (){
     //process.send({ worker_id: sad.worker_id, roba : ' Dear Master ?! '  });	    
     
 }
-
-
-
-/**
- * This function redirects url management to handlers defined in (get,post)_handlers.js
- * Command-type is either "get" or "post". Request and response are the original objects coming from the http_server requests. 
- * @method execute_request
- * @param {} request The http request object
- * @param {} response output stream
- * @return 
- */
-
-/*
-
-_sadira.prototype.execute_request = function (request, response, result_cb ){
-
-    var sad=this;
-
-    var command_type=request.method, path_base;
-    
-    switch(request.method){
-    case "GET" : path_base=this.get_handlers; break;
-    case "POST" : path_base=this.post_handlers; break;
-    default : return result_cb(null,false);
-    };
-    
-    var url_parts = url.parse(request.url,true);	
-    //console.log("Path base is " + path_base);
-
-    var path_build=path_base;
-    var handler_vector=[];
-    handler_vector.push(path_build.__apis);
-
-    //return result_cb(null,false);
-
-    try{	    
-
-	var path_parts = url_parts.pathname.split("/");
-
-	for(var p=1;p<path_parts.length;p++){
-	    //path_build+= ".";
-	    if(path_parts[p]!==""){
-		path_build=path_build[path_parts[p]];
-		handler_vector.push(path_build.__apis);
-		//console.log("build " + path_parts[p] + " ok");
-	    }
-	}
-    }
-    
-    catch (e){ //Error interpreting path
-	//sad.log("Exception catched while trying to execute a handler for " + path_build + " : " + e );
-	return result_cb(null,false); //We don't handle this.
-    }
-
-    
-    var a,d=0,level_apis, hvl=handler_vector.length,lal,handled=0;
-    
-    function improve_response(res){
-
-    }
-    
-    function process_next_level(){
-	if(d==hvl){
-	    return (handled>0)? result_cb(null, true) : result_cb(null, false);
-	}
-	level_apis=handler_vector[d]; d++;
-	if(ù(level_apis)) {
-	    //console.log("Level "+(d)+" has no api to exec.");
-	    return process_next_level();
-	}
-	lal=level_apis.length;
-	a=0; process_next_api();
-    }
-
-    function process_next_api(){
-	try{
-	    if(a==lal) return process_next_level();
-	    var api=level_apis[a]; a++;
-	    //console.log("Level "+ (d)+"/"+hvl+" : execute API "+a+"/"+lal + " api type " + typeof api);
-	    handled++;
-	    api(request, response, function(error){
-		if(è(error)) return result_cb(error, true);
-		process_next_api();
-	    });	
-	}
-	catch (e){
-	    return result_cb(e, true);
-	}
-    }
-
-    if(hvl>0){
-	//console.log("["+url_parts.pathname+"] -> exec handler vector D="+handler_vector.length);
-	process_next_level();
-    }else result_cb(null, false);
-	
-}
-*/
-
-
-/**
- * Sends a 404 error HTML page to the browser
- * @method error_404
- * @param {} response
- * @return CallExpression
- */
-
-/*
-_sadira.prototype.error_404=function(response, uri, cb){
-    console.log("sending 404 for " + uri);
-    fs.readFile("www/sadira/404.html", "binary", function(err, file) {
-
-	response.writeHead(404, {"Content-Type": "text/html"});
-	
-	if(err) {        
-	    response.write("<html><title>404</title><h1>404 Not found!</h1>The \"true\" 404.html file was not found, however, this is a true 404 Error : the following file is not accessible :<br/><br/><center> " + uri+"</center></html>");
-	    cb();
-	    return;
-	}
-	
-	//response.write("Unavailable resource ["+uri+"] !\n");
-	response.write("<html><h1>unknown file " + uri + "</h1>");
-	response.write(file, "binary");
-	response.write("</html>");
-	cb();
-    });
-}
-
-*/
-
-//Main function handling all incoming HTTP requests.
-
-/*
-_sadira.prototype.handle_request=function(request, response){
-
-//    console.log("Handling " + request.url);
-    var sad=this.sadira;
-    
-    sad.execute_request(request, response, function (error, processed){
-
-	if(error!==null){
-	    
-	    //sadira.log("Processed ["+request.url+"]: error = " + error + " handled ? " + processed);
-	    sad.log("Error while handling ["+request.url+"] : " + dump_error(error));
-	    
-	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Error while handling API url : " + error + "\n");
-	    response.end();
-	    return;
-	}
-
-	if(processed===true){
-	   // sadira.log("internally handled !");
-	    return;
-	}
-	
-	//The request was not handled by custom url handlers.
-	//If enabled, proxy5Bing the query to another web service
-	
-	try{
-	    
-	    //sad.log("proxy request https? " + request.connection.encrypted );
-	    
-	    if(request.connection.encrypted){ //https connexion
-		if(sad.options.https_proxy){
-		    console.log("Proxy https " + request.url);
-		    sad.https_proxy.web(request, response);
-		    return;
-		}
-	    }else{
-		if(sad.options.http_proxy){
-		    console.log("Proxy http " + request.url);
-		    sad.http_proxy.web(request, response);
-		    return;
-		}
-	    }
-	}
-
-	catch (e){
-	    sad.log('Proxy error : ' + dump_error(e));
-	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Sadira : proxy error : " + e + "\n");
-	    response.end();
-	    return;
-	}
-
-
-	if(! sad.options.file_server ){
-	    response.writeHead(500, {"Content-Type": "text/plain"});
-	    response.write("Really sorry : I don't know what to do with your request ! (No proxy & internal FS is OFF)");
-	    response.end();
-	    return;
-	}
-
-	//Builtin web file server.
-	//From here the server is behaving as a simple file server.
-	//Here we should detect if the user is not trying to get something like ../../etc/passwd  
-	//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../ 
-	
-	//console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
-	var uri = unescape(url.parse(request.url).pathname);
-	var filename = path.join(sad.options.html_rootdir, uri); 
-
-	//Content-types used by the built-in http file server.
-	//The second boolean  member is used to specify if a cache http header is appended for this file type.
-	
-	var content_types = {
-	    '.html': [ "text/html;charset=utf-8", false],
-	    '.css':  [ "text/css", false],
-	    '.js':   ["text/javascript;charset=utf-8", false],
-	    '.jpg':   ["image/jpeg", true],
-	    '.JPG':   ["image/jpeg", true],
-	    '.jpeg':  [ "image/jpeg", true],
-	    '.ico' : ["image/x-icon", true],
-	    '.png':   ["image/png", true],
-	    '.svg':   ["image/svg+xml", true],
-	    '.woff' : ['application/font-woff', true],
-	    '.eot'  : ['application/vnd.ms-fontobject', true],
-	    '.ttf'  : ['application/x-font-ttf', true]
-	};
-	
-	
-	path.exists(filename, function(exists) {
-	    
-	    if(!exists) {
-		sad.log('404 not found for uri ' + filename);
-		
-		sad.error_404(response, uri, function() {
-		    response.end();
-		});
-		
-		//response.writeHead(404, {"Content-Type": "text/plain"});
-		//response.write("Unavailable resource ["+uri+"] !\n");
-		
-		return;
-	    }
-
-	    var fstat=fs.statSync(filename);
-	    if (fstat.isDirectory()) filename += '/index.html';
-	    
-	    fs.readFile(filename, "binary", function(err, file) {
-		
-		if(err) { 
-		    console.log('Error ! ' + err);
-		    response.writeHead(500, {"Content-Type": "text/plain"});
-		    response.write(err + "\n");
-		    response.end();
-		    return;
-		}
-		
-		var content_type = content_types[path.extname(filename)];
-		
-		if (content_type) {
-		    headers["Content-Type"] = content_type[0];
-		    
-		    if(content_type[1] == true){
-			headers["Cache-Control"]="public,max-age=31536000";
-		    }
-		    
-		}else
-		    console.log("Unknown extension" + path.extname(filename));
-
-		headers["Content-Length"]=fstat.size;
-		//console.log('Serving ' + filename +' : headers : ' + JSON.stringify(headers) );
-		response.writeHead(200, headers);
-		response.write(file, "binary");
-		response.end();
-	    });
-	});    
-	
-    });
-
-}
-
-*/
 
 //Creates the http servers 
 
@@ -1356,8 +1041,9 @@ _sadira.prototype.initialize_handlers=function(packname){
     
     sad.app.get('/', function(req, res, next) {
 	
-	var index_info={}; sad.set_user_data(req, index_info);
-	console.log("rendering index " + JSON.stringify(index_info));
+	var index_info={};
+	sad.set_user_data(req, index_info);
+	sad.log("rendering index " + JSON.stringify(index_info));
 	res.render('index.ejs', index_info); // load the index.ejs file
     
     });
@@ -1380,13 +1066,13 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
-		    console.log("Proxy https " + request.url);
+		    //console.log("Proxy https " + request.url);
 		    sad.https_proxy.web(request, res);
 		    return;
 		}else return res.status('Not found', 404);
 	    }else{
 		if(sad.options.http_proxy){
-		    console.log("Proxy http " + request.url);
+		    //console.log("Proxy http " + request.url);
 		    sad.http_proxy.web(request, res);
 		    return;
 		}else return res.status('Not found', 404);

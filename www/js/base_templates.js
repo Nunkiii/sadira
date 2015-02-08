@@ -174,7 +174,9 @@ var base_templates={
 		    
 		    signup : {
 			name : "Signup !",
-			type : "action"
+			type : "action",
+			link : "/auth/google",
+			ui_opts : { fa_icon : "google-plus" }
 		    }
 		}
 	    }
