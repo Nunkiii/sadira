@@ -157,7 +157,8 @@ var base_templates={
 		elements : {
 		    signup : {
 			name : "Signup !",
-			type : "action"
+			type : "action",
+			link : "/auth/facebook"
 		    }
 		}
 	    },

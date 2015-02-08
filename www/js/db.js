@@ -526,6 +526,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
+
+
+    var animate=ui_opts.sliding_animate;
+    if(ù(animate))animate=false;
+    
+
     
     //if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
     var slided=(typeof ui_opts.slided === 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
@@ -652,6 +658,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		ui_name.setAttribute("title", tpl_root.tip);
 	    }
 	    
+
+	    if(sliding){
+		if(ù(slide_button)){
+		    slide_button=tpl_root.slide_button=cc("button",ui_name); 
+		    slide_button.style.zIndex=ui_root.style.zIndex+1;
+		}else
+		    ui_name.appendChild(slide_button);
+		update_sliding_arrows();
+		//ui_name.appendChild(slide_button);
+	    }
+
 	    
 	}
 	
@@ -709,10 +726,79 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
     }
     
+    function update_sliding_arrows(){
+	slide_button.className="slide_button fa";
+	slide_button.className+=" "+sliding_dir;
+	//slide_button.innerHTML= slided ? "❌" : "▶" ;
+	//▲❌▼
+	slide_button.className+=slided? " fa-chevron-circle-left" : " fa-chevron-circle-right";
+    }
+
+    function update_sliding_ui(){
+	
+	var marg=[];
+	
+	if(animate){
+	    
+	    switch(sliding_dir){
+	    case "h":
+		marg[0]="marginLeft";
+		marg[1]="marginLeft";
+		break;
+	    case "v":
+		marg[0]="marginTop";
+		marg[1]="marginBottom";
+		break;
+	    default: throw("Bug!!here "); return;
+	    };
+	}
+	
+	
+	
+	if(slided){
+	    
+	    sliding_stuff.forEach(function (s){
+		if(animate){
+		    s.style[marg[0]]="0%";
+		    s.style[marg[1]]="0%";
+		    s.style.opacity="1.0";
+		}else
+		    s.style.display=s.disp_orig;
+		
+		
+	    });
+	    if(è(ui_name)){
+		ui_name.remove_class("unslided");
+		ui_name.add_class("slided");
+	    }
+	}else{
+	    sliding_stuff.forEach(function (s){
+		if(animate){
+		    s.style[marg[0]]="-100%";
+		    s.style[marg[1]]="-100%";
+		    s.style.opacity="0.0";
+		}else s.style.display="none";
+	    });
+	    if(è(ui_name)){
+		ui_name.remove_class("slided");
+		ui_name.add_class("unslided");
+	    }
+	}
+	
+	//if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
+	
+	update_sliding_arrows();
+	
+	if(!animate)tpl_root.trigger("slided", slided);
+	//tpl_root.trigger("slided", slided);
+	//if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
+    }
+    
+    
     
     //   }
-
-
+    
+    
     new_event(tpl_root, "selected");
     //console.log("Created selected event on " + e.name);
 
@@ -1524,10 +1610,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    head.appendChild(tpl_root.ui_intro);
     }
 
-    if(sliding){
-	slide_button=tpl_root.slide_button=cc("button",ui_name); 
-	slide_button.style.zIndex=ui_root.style.zIndex+1;
-    }
     
     try{
 	
@@ -1541,7 +1623,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	if(ui_opts.label){
 	    if(sliding){
-		ui_name.appendChild(slide_button);
+
 	    }else{
 		var uid=Math.random().toString(36).substring(2); item_ui.id=uid;
 		ui_name.setAttribute("for",uid);
@@ -1583,82 +1665,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(sliding){
 
-	var animate=ui_opts.sliding_animate;
-	if(ù(animate))animate=false;
-
 	if(tpl_root.parent)
 	    if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
 		if(tpl_root.parent.ui_opts.child_view_type == "bar") 
 		    //if(!tpl_root.ui_opts.bar) 
 		    sliding_stuff.push(ui_root);
 	
-	function update_arrows(){
-	    slide_button.className="slide_button fa";
-	    slide_button.className+=" "+sliding_dir;
-		//slide_button.innerHTML= slided ? "❌" : "▶" ;
-//▲❌▼
-
-	    slide_button.className+=slided? " fa-chevron-circle-left" : " fa-chevron-circle-right";
-	    
-	}
-
-	function update_ui(){
-	    var marg=[];
-
-	    if(animate){
-
-		switch(sliding_dir){
-		case "h":
-		    marg[0]="marginLeft";
-		    marg[1]="marginLeft";
-		    break;
-		case "v":
-		    marg[0]="marginTop";
-		    marg[1]="marginBottom";
-		    break;
-		default: throw("Bug!!here "); return;
-		};
-	    }
-
-	    if(slided){
-		
-		sliding_stuff.forEach(function (s){
-		    if(animate){
-			s.style[marg[0]]="0%";
-			s.style[marg[1]]="0%";
-			s.style.opacity="1.0";
-		    }else
-			s.style.display=s.disp_orig;
-
-		    
-		});
-		if(è(ui_name)){
-		    ui_name.remove_class("unslided");
-		    ui_name.add_class("slided");
-		}
-	    }else{
-		sliding_stuff.forEach(function (s){
-		    if(animate){
-			s.style[marg[0]]="-100%";
-			s.style[marg[1]]="-100%";
-			s.style.opacity="0.0";
-		    }else s.style.display="none";
-		});
-		if(è(ui_name)){
-		    ui_name.remove_class("slided");
-		    ui_name.add_class("unslided");
-		}
-	    }
-	    
-	    //if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
-	    
-	    update_arrows();
-
-	    if(!animate)tpl_root.trigger("slided", slided);
-	    //tpl_root.trigger("slided", slided);
-	    //if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
-	}
-
+	
 	
 	switch(sliding_dir){
 	case "h":
@@ -1675,9 +1688,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    break;
 	default: throw("Bug!!here "); return;
 	};
-	
-
-	
 	
 	new_event(tpl_root, "slided");
 
@@ -1723,11 +1733,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    if(animate){
 		setTimeout(function(){
-		    update_ui();
+		    update_sliding_ui();
 		    
 		}, 100);
 	    }else
-		update_ui();
+		update_sliding_ui();
 	    
 	    e.cancelBubble = true;
 	    
@@ -1747,7 +1757,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	}
 
-	update_ui();
+	update_sliding_ui();
 
     }
 

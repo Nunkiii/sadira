@@ -26,7 +26,7 @@
 	  </ul>
 	</li>
 	<li><a href="/widget/signup">Signup</a></li>
-
+	
       </ul>
 
       
@@ -41,7 +41,11 @@
   <script>
     window.addEventListener("load",function(){
     var login=tmaster.build_template("login");
+    login.user_id="<%= user_id %>";
+
+
     create_ui({ },login,5);
+
     attach_ui(login,document.getElementById("login"));
     });
   </script>

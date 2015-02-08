@@ -11,8 +11,8 @@ var DGM = require("./www/js/datagram");
 var BSON=bson().BSON;
 var express=require("express");
 
-var passport = require('passport');
-var flash    = require('connect-flash');
+// var passport = require('passport');
+// var flash    = require('connect-flash');
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
@@ -1340,15 +1340,29 @@ _sadira.prototype.initialize_handlers=function(packname){
 
     if(sad.cluster.isMaster) return;
 
-    sad.app.get('/', function(req, res) {
-	sad.log("Handling index.ejs....");
-	res.render('index.ejs'); // load the index.ejs file
+
+    sad.set_user_data=function(req, data){
+	data.user_id="";
+	if (req.user) {
+	    data.user_id=req.user.local.email;
+	    //return next("No user");//res.redirect('/signin')
+	}
+    }
+    
+    sad.app.get('/', function(req, res, next) {
+	
+	var index_info={}; sad.set_user_data(req, index_info);
+	console.log("rendering index " + JSON.stringify(index_info));
+	res.render('index.ejs', index_info); // load the index.ejs file
+    
     });
 
 
 
     sad.app.get('/widget/:tpl_name', function(req, res) {
-	res.render('widget.ejs', { tpl_name : req.params.tpl_name} ); // load the index.ejs file
+	var ejs_data={ tpl_name : req.params.tpl_name};
+	sad.set_user_data(req,ejs_data);
+	res.render('widget.ejs', ejs_data ); // load the index.ejs file
     });
     
     sad.app.get('*', function(request, res){

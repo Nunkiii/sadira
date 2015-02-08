@@ -1,7 +1,12 @@
 var passport = require('passport');
+var local_strategy = require('passport-local').Strategy;
+var facebook_strategy = require('passport-facebook').Strategy;
 
-var SamlStrategy = require('passport-saml' ).Strategy;
 
+var configAuth = require('../config/auth');
+
+
+//var SamlStrategy = require('passport-saml' ).Strategy;
 //var flash    = require('connect-flash');
 
 var crypto=require('crypto');
@@ -9,13 +14,12 @@ var crypto=require('crypto');
 //var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
-var session      = require('express-session');
+//var session      = require('express-session');
 
 
 var schemas = require('../js/base_schemas');
 var users=schemas.users;
 
-var local_strategy = require('passport-local').Strategy;
 
 exports.isAuthenticated = passport.authenticate('basic', { session : false });
 
@@ -148,7 +152,7 @@ exports.init=function(pkg,sad){
 	
     }));
 
-
+    /*
     passport.use(new SamlStrategy({
 	path: '/login/shib',
 	entryPoint: 'https://nilde3.bo.cnr.it:60443/nilde-unstable/master/Shibboleth.sso/WAYF/IDEM',
@@ -166,6 +170,9 @@ exports.init=function(pkg,sad){
 	return done(null, user);
 //	});
     }));
+
+    */
+    
 
     // route middleware to make sure a user is logged in
     function isLoggedIn(req, res, next) {
@@ -240,9 +247,13 @@ exports.init=function(pkg,sad){
 	    if (!user) {
 		return res.json({error : "Login failed !"});
 	    }
-	    req.login(user, function(err) {
+
+	    //console.log("Got user " + JSON.stringify(user) + " login ... type is " + typeof(req.logIn) );
+	    
+	    req.logIn(user, function(err) {
 		if (err) { return next(err); }
-		return res.json({user : req.user});
+		var ejsd={}; sad.set_user_data(req,ejsd);
+		return res.json(ejsd);
 	    });
 	})(req, res, next);
     });
@@ -274,17 +285,17 @@ exports.init=function(pkg,sad){
     // failureFlash : true // allow flash messages
     
     app.get('/user', isLoggedIn, function(req, res) {
-	res.render('user.ejs', {
-	    user : req.user // get the user out of session and pass to template
-	});
+	var ejsd={user : req.user}; sad.set_user_data(req,ejsd);
+	res.render('user.ejs', ejsd);
     });
-
+    
     // =====================================
     // LOGOUT ==============================
     // =====================================
     app.get('/logout', function(req, res) {
 	req.logout();
-	res.redirect('/');
+	return res.json({info : "Logout success"});
+	//res.redirect('/');
     });
 
 /*    
@@ -308,6 +319,69 @@ exports.init=function(pkg,sad){
     //     console.log("Login called After....");
     // });
     
+    // =========================================================================
+    // FACEBOOK ================================================================
+    // =========================================================================
+    passport.use(new facebook_strategy({
+	
+	// pull in our app id and secret from our auth.js file
+	clientID        : configAuth.facebookAuth.clientID,
+	clientSecret    : configAuth.facebookAuth.clientSecret,
+	callbackURL     : configAuth.facebookAuth.callbackURL
+	
+    },function(token, refreshToken, profile, done) {     // facebook will send back the token and profile
+	
+	// asynchronous
+	process.nextTick(function() {
+	    
+	    // find the user in the database based on their facebook id
+	    User.findOne({ 'facebook.id' : profile.id }, function(err, user) {
+		
+		// if there is an error, stop everything and return that
+		// ie an error connecting to the database
+		if (err)
+		    return done(err);
+		
+		// if the user is found, then log them in
+		if (user) {
+		    return done(null, user); // user found, return that user
+		} else {
+		    // if there is no user found with that facebook id, create them
+		    var newUser            = new User();
+		    
+		    // set all of the facebook information in our user model
+		    newUser.facebook.id    = profile.id; // set the users facebook id
+		    newUser.facebook.token = token; // we will save the token that facebook provides to the user
+		    newUser.facebook.name  = profile.name.givenName + ' ' + profile.name.familyName; // look at the passport user profile to see how names are returned
+		    newUser.facebook.email = profile.emails[0].value; // facebook can return multiple emails so we'll take the first
+		    
+		    // save our user to the database
+		    newUser.save(function(err) {
+			if (err)
+			    throw err;
+			
+			// if successful, return the new user
+			return done(null, newUser);
+		    });
+		}
+		
+	    });
+	});
+	
+    }));
+
+    // =====================================
+    // FACEBOOK ROUTES =====================
+    // =====================================
+    // route for facebook authentication and login
+    app.get('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
+    
+    // handle the callback after facebook has authenticated the user
+    app.get('/auth/facebook/callback',
+	    passport.authenticate('facebook', {
+		successRedirect : '/user',
+		failureRedirect : '/'
+	    }));
     
     console.log("Passport initialized ");
     

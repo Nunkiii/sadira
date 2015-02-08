@@ -4,26 +4,21 @@
 var crypto = require('crypto');
 
 module.exports.check_password=function(hash, salt, clear_password, cb){
-    try{
-	console.log("check passwd ["+clear_password+"]["+salt+"]");
-	var h=crypto.createHash('sha256');
-	
-	h.update(salt,'base64');
-	h.update(clear_password,'utf-8');
 
-	
-	var true_hash=h.digest('base64');
-	var match=(true_hash==hash) ? true:false;
-	
-	console.log("Compare DB=["+true_hash+"] AND ["+hash+"] match = " + match);
-
-	cb(null,match);
-	console.log("cb called!");
-    }
-    catch(e){
-	cb("crypto error " + dump_error(e));
-    }
+    console.log("check passwd ["+clear_password+"]["+salt+"]");
+    var h=crypto.createHash('sha256');
     
+    h.update(salt,'base64');
+    h.update(clear_password,'utf-8');
+    
+    
+    var true_hash=h.digest('base64');
+    var match=(true_hash==hash) ? true:false;
+	
+    console.log("Compare DB=["+true_hash+"] AND ["+hash+"] match = " + match);
+    
+    cb(null,match);
+    console.log("cb called!");
 }
 
 module.exports.hash_password=function(clear_password, cb){

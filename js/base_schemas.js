@@ -30,20 +30,40 @@ var t_user = new schema({
 	    type: String,
 	},
 	username: {
-	    type: String
+	    type: String,
+	    default : ""
 	},
 	groups : [{type : schema.Types.ObjectId, ref : 'groups' }]
     },
-    
-    facebook : {},
-    shibb : {}
+    facebook         : {
+	id           : String,
+	token        : String,
+	email        : String,
+	name         : String
+    },
+    twitter          : {
+	id           : String,
+	token        : String,
+	displayName  : String,
+	username     : String
+    },
+    google           : {
+	id           : String,
+	token        : String,
+	email        : String,
+	name         : String
+    },
+    shibb : {
 
-    
+    }
 });
 
 t_user.post('init', function(user) {
-    console.log("post init user !!");
-    user.local.username=crypto.randomBytes(32).toString('base64');//Math.random().toString(36).substring(2)
+    console.log("post init user " + user.local.email);
+    if(user.local.username===""){
+	console.log("Creating default username...");
+	user.local.username=crypto.randomBytes(32).toString('base64');//Math.random().toString(36).substring(2)
+    }
 });
 
 t_user.pre('save', function(callback) {

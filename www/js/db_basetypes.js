@@ -579,7 +579,25 @@ template_ui_builders.signup=function(ui_opts, signup){
 	    
     //return ui;
 }
+/*
+    <script>
+    window.fbAsyncInit = function() {
+	FB.init({
+	    appId      : '1528834000739310',
+	    xfbml      : true,
+	    version    : 'v2.2'
+	});
+    };
 
+(function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script>
+*/
 template_ui_builders.login=function(ui_opts, login){
 
     
@@ -596,12 +614,17 @@ template_ui_builders.login=function(ui_opts, login){
     var user_name="", user_password="";
     var mode;
 
+    if(ù(login.user_id))login.user_id="";
+    console.log("LOGIN : " + login.user_id);
+    
+    
     function check(){
 	login_tpl.disable(user_name==""||user_password=="");
     }
 
     function login_mode(){
 	mode="login";
+	login.set_title("Login");
 	login_tpl.set_title("Log In");
 	login_tpl.disable(true);
 	status_tpl.ui_root.style.display="none";
@@ -628,14 +651,20 @@ template_ui_builders.login=function(ui_opts, login){
 	login_tpl.disable(false);
     }
 
-    function success_mode(){
+    function success_mode(info){
 	mode="success";
-	status_tpl.ui.className="label label-success";
-	status_tpl.set_value("Ok !");
+	//status_tpl.ui.className="text-success";
+	//status_tpl.set_value("Logged in as " + (è(info)?info:""));
+	status_tpl.ui_root.style.display="none";
+	user_tpl.ui_root.style.display="none";
+	pw_tpl.ui_root.style.display="none";
 
+	login.set_title("Logged in as " + login.user_id);
+
+	
 	login_tpl.set_title("Logout");
 	login_tpl.ui.remove_class("btn-primary");
-	login_tpl.ui.add_class("btn-danger");
+	login_tpl.ui.add_class("btn-warning");
 	login_tpl.ui_root.style.display="";
 	login_tpl.disable(false);
     }
@@ -666,8 +695,10 @@ template_ui_builders.login=function(ui_opts, login){
 		    return;
 		}
 		
-		if(è(res.error)) return error_mode(res.error);
-		
+		if(è(res.error))
+		    return error_mode(res.error);
+		console.log("Received this " + JSON.stringify(res));
+		login.user_id=res.user_id;
 		success_mode();
 		// var server_key=res.key;
 		// var client_key = new Uint8Array(32);
@@ -683,13 +714,32 @@ template_ui_builders.login=function(ui_opts, login){
 	    break;
 	case "error":
 	    login_mode();
+	case "success":
+	    var rq=new request({ cmd : "/logout"});
+	    rq.execute(function(error, res){
+		if(error){
+		    console.log("Error logout : " + error);
+		    return;
+		}
+		
+		if(è(res.error))
+		    return error_mode(res.error);
+		
+		login_mode();
+	    });
+	    break;
+	default:
 	    break;
 	    //query_login("what=login&u="+user_name+"&p="+user_password,result_cb);
 	};
     });
-		     
-    login_mode();
-    
+
+    if(login.user_id===""){
+	login_mode();
+    }
+    else{
+	success_mode(login.user_id);
+    }
     return;
     
     input_box.onkeydown = function(e) {
@@ -1354,7 +1404,24 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 template_ui_builders.action=function(ui_opts, action){
     
-    var ui=action.ui=ce("button"); ui.type="button";
+    var ui;
+    
+    if(è(action.link)){
+	ui = ce("a");
+	ui.href=action.link;
+
+    }else{
+	ui = ce("button");
+	new_event(action,"click");
+	ui.type="button";
+
+	ui.addEventListener("click",function(e){
+	    action.trigger("click", action);	    
+	},false);
+	
+    }
+    action.ui=ui;
+
     ui.innerHTML=action.name;
     
     ui.className="btn btn-primary";
@@ -1366,13 +1433,8 @@ template_ui_builders.action=function(ui_opts, action){
 	    ui.removeAttribute("disabled");
     }
 
-    new_event(action,"click");
-
     if(è(action.onclick)) action.listen("click", action.onclick);
-    
-    ui.addEventListener("click",function(e){
-	action.trigger("click", action);	    
-    },false);
+
 
     action.listen("name_changed", function(title){
 	ui.textContent=title;
