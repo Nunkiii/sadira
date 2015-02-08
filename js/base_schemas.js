@@ -20,11 +20,11 @@ var t_user = new schema({
 	email: {
 	    type: String,
 	    unique: true,
-	    required: true
+//	    required: true
 	},
 	hashpass: {
 	    type: String,
-	    required: true
+//	    required: true
 	},
 	salt: {
 	    type: String,
