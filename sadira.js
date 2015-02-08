@@ -1344,7 +1344,12 @@ _sadira.prototype.initialize_handlers=function(packname){
     sad.set_user_data=function(req, data){
 	data.user_id="";
 	if (req.user) {
-	    data.user_id=req.user.local.email;
+	    if(req.user.local.email)
+		data.user_id=req.user.local.email;
+	    else
+		if(req.user.facebook.name)
+		    data.user_id=req.user.facebook.name;
+	    
 	    //return next("No user");//res.redirect('/signin')
 	}
     }
