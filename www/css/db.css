@@ -315,19 +315,19 @@ h4 {
   overflow: hidden;
   overflow-x: auto;
   white-space : nowrap;
+  height: 2.5em;
+  min-width: 3em;
+  /*
   padding-top: .5em;
   padding-bottom: .5em;
-
   margin-top: .25em;
   margin-bottom: .25em;
   width: calc(100% - 0px);
-  height: 2.2em;
-  min-width: 3em;
-  /*
+
   box-shadow : 0px 0px 5px red;
   margin-left: 2em;
   margin-right: 2em;
-*/
+  */
 }
 
 .divided > .navcnt{
@@ -408,7 +408,9 @@ h4 {
 }
 
 .navcnt.bar > nav > li{
-  font-size: 1.2em;
+/*
+font-size: 1.2em;
+*/
 }
 
 .navcnt > nav > li:hover{
@@ -433,16 +435,21 @@ h4 {
 .navcnt.bar > nav{
   padding-bottom : .2em;
   padding-top : .2em;
-  
+  padding-left: .2em;
+  padding-right: .2em;	  
 }
 .navcnt.bar > nav > li{
   background: none;
   padding: 0px;
+  margin-right: .5em;
+  border-right: 1px solid lightgrey;
 }
 
 .navcnt.bar > nav > li > .dbname{
-  color: white;
+/*
+color: white;
   text-shadow: 0px 0px 2px black;
+  */
 }
 
 .navcnt > nav > li.selected {
@@ -1237,7 +1244,7 @@ width: calc(100% - 2em);
   margin-left: .5em;
 }
 
-.db[data-type="colormap"]>.dbitem>div> .colormap{
+.db[data-type="colormap"] .colormap{
   /*
   display: block;
   margin-top: 2em;
@@ -1248,7 +1255,7 @@ width: calc(100% - 2em);
   padding-bottom: .5em;
 }
 
-.db[data-type="colormap"]>.dbitem .colormap_select_div{
+.db[data-type="colormap"] .colormap_select_div{
   position: absolute;
   pointer-events: none;
   border-top: 2px solid lightgrey;
@@ -1453,14 +1460,14 @@ d3 vector shape
   stroke-width: 1px;
   fill: none;
   */
-  fill: white;
+  fill: black;
   font: 10px sans-serif;
 
 }
 
 .line {
   fill: rgba(50,50,250,.9);
-  stroke: white;
+  stroke: black;
   stroke-width: 1px;
 }
 
@@ -1486,7 +1493,7 @@ d3 vector shape
 
 .select_brush .resize path {
   fill: #eee;
-  stroke: white;
+  stroke: black;
 }
 
 

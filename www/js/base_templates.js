@@ -4,29 +4,29 @@ var base_templates={
 	//type : "template",
 	tpl_builder  : "sadira",
 	name : "Websocket link",
-	ui_opts : { child_classes : [], child_view_type : "div"},
+	ui_opts : { child_classes : [], child_view_type : "bar"},
 	elements : {
 	    url : {
 		name : "Server",
 		type : "url",
-		ui_opts : { editable : true, root_classes : [], bar : true},
+		ui_opts : { editable : true, root_classes : [], bar : true, label : true},
 		value : "sadira.iasfbo.inaf.it"
 		//value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },
 	    connect : {
-		ui_opts : {root_classes : ["inline"], bar : true},
+		ui_opts : {root_classes : ["inline"], item_classes : ["btn-xs"], bar : true},
 		type: "action",
 		name : "connect"
 	    },
 	    messages : {
-		ui_opts : {sliding : true, slided : false, root_classes : [], bar : true},
+		ui_opts : {sliding : true, slided : false, root_classes : [], bar : true, label : true},
 		name : "Messages",
 		type : "text"
 	    },
 	    status : {
 		name : "Status",
-		ui_opts : {root_classes : ["inline"], bar : true},
+		ui_opts : {root_classes : ["inline"], bar : true, label : true},
 		type : "status",
 		value : "blue",
 		value_labels : { blue : "not connected", green : "connected", red : "error"}

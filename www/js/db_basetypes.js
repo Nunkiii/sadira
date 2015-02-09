@@ -263,7 +263,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
-	ui.className="label label-default";
+        ui.className="text-muted";
 	tpl_item.set_value=function(nv){
 	    if(è(nv))
 		tpl_item.value=nv; 
