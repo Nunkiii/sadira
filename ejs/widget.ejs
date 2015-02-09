@@ -1,14 +1,11 @@
 <!doctype html>
 <html>	  
+
   <head>	
-
     <% include ./parts/head %>
-
     <title> <%= tpl_name %> </title>
-    
   </head>
 
-    
   <body>
     <header>
       <% include parts/header %>
@@ -22,7 +19,6 @@
     <% include parts/footer %>
   </footer>
 
-  
   <script>
     window.addEventListener("load", function(){
     var tpl_name = "<%= tpl_name %>";
@@ -32,7 +28,5 @@
     //xd1_tpl.trigger("view_update");
     });
   </script>
-
-
   
 </html>

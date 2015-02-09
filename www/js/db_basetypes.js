@@ -598,6 +598,7 @@ template_ui_builders.signup=function(ui_opts, signup){
 }(document, 'script', 'facebook-jssdk'));
 </script>
 */
+
 template_ui_builders.login=function(ui_opts, login){
 
     
@@ -608,6 +609,8 @@ template_ui_builders.login=function(ui_opts, login){
     var pw_tpl=login.elements.password;
     var login_tpl=login.elements.login;
     var status_tpl=login.elements.status;
+
+    var fb_login=login.elements.fb_login;
     
     user_tpl.ui.focus();
     pw_tpl.pui.add_class("input-sm");
@@ -740,60 +743,53 @@ template_ui_builders.login=function(ui_opts, login){
     else{
 	success_mode(login.user_id);
     }
-    return;
     
-    input_box.onkeydown = function(e) {
-	
-	if (e.keyCode === 13) { //return key pressed
-	    
-	    if(user_name==""){
-		user_name=input_box.value;
-		//user_name=hex_md5(input_box.value);
-		input_box.value="";
-		input_caption.firstChild.textContent="Password : ";
-		input_box.type="password";
-	    }else{
-		//console.log("Setting user password...");
-		user_password=input_box.value;//hex_md5(input_box.value);
-		input_box.value="";
-		input_caption.firstChild.textContent="Registering...";
-		input_box.style.display='none';
-		var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
-		//var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
-		var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
-
-		rqinit.execute(function(error, res){
-		    if(error){
-			console.log("Error login " + error);
-			return;
-		    }
-
-		    console.log("login Reply : " + JSON.stringifuy(res));
-		    
-		    // var server_key=res.key;
-		    // var client_key = new Uint8Array(32);
-
-		    // window.crypto.getRandomValues(buf);
-		    
-		    // var hash=CryptoJS.HmacSHA256("Message", "Secret Passphrase");
-		    // var hash=CryptoJS.SHA1(user_name+user_password);
-		    // console.log("["+user_name+"]["+user_password+"]");
-		    // var qr=new request({ cmd : "/login", query_mode : "bson", args : { hash : hash.toString()}    });
-		    
-		    // qr.execute(function(error, res){
-		    // 	console.log("Received  " + JSON.stringify(res));
-		    // });
-		    
-		    
-		});
-		
-		//query_login("what=login&u="+user_name+"&p="+user_password,result_cb);
-	    }
+    window.FB.getLoginStatus(function(response) {
+	if (response.status === 'connected') {
+	    // the user is logged in and has authenticated your
+	    // app, and response.authResponse supplies
+	    // the user's ID, a valid access token, a signed
+	    // request, and the time the access token 
+	    // and signed request each expire
+	    console.log("Facebook user connected " + JSON.stringify(response));
+	    var uid = response.authResponse.userID;
+	    var accessToken = response.authResponse.accessToken;
+	} else if (response.status === 'not_authorized') {
+	    console.log("Facebook user connected and not authorized ! " + JSON.stringify(response));
+	    // the user is logged in to Facebook, 
+	    // but has not authenticated your app
+	} else {
+	    console.log("Facebook user NOT connected " + JSON.stringify(response));
+	    // the user isn't logged in to Facebook.
 	}
+    });
 
-    };
+    fb_login.listen("click", function(){
 
-    return ui;
+	window.FB.login(function(response) {
+	    if (response.authResponse) {
+		console.log('Welcome!  Fetching your information.... ');
+		FB.api('/me', function(response) {
+		    console.log('Good to see you, ' + response.name + '.');
+		});
+	    } else {
+		console.log('User cancelled login or did not fully authorize.');
+	    }
+	});
+
+    });
+    
+    window.FB.Event.subscribe('auth.authResponseChange', function(response) {
+	
+	if (response.status === 'connected') {
+	    console.log("Authchange : Facebook user connected " + JSON.stringify(response));	    
+	} 
+	else {
+	    console.log("Authchange : User disconnected fron FB!");
+	    
+	}
+	
+    });
 }
 
 

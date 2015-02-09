@@ -316,10 +316,15 @@ exports.init=function(pkg,sad){
     // sad.post('/login', function(req,res,next){
     //     console.log("Login called After....");
     // });
+
+    
     
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
+
+    sad.common_header_data.facebook=pkg.opts.facebookAuth;
+
     passport.use(new facebook_strategy({
 	
 	// pull in our app id and secret from our auth.js file
@@ -388,6 +393,9 @@ exports.init=function(pkg,sad){
     // =========================================================================
     // GOOGLE ==================================================================
     // =========================================================================
+
+    sad.common_header_data.google=pkg.opts.googleAuth;
+    
     passport.use(new google_strategy({
 	
 	clientID        : pkg.opts.googleAuth.clientID,

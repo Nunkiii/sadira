@@ -63,6 +63,10 @@ var base_templates={
 	    login : {
 		name : "Log in",
 		type : "action"
+	    },
+	    fb_login : {
+		name : "Facebook log in",
+		type : "action"
 	    }
 	}
     },

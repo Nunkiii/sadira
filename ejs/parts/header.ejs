@@ -25,11 +25,12 @@
 	    <li><a href="javascript:void(0);">Nilde</a></li>
 	  </ul>
 	</li>
+	<% if(user_id==""){ %>
 	<li><a href="/widget/signup">Signup</a></li>
-	
+	<% }else{ %>	
+	<li><a href="/user">User page</a></li>
+	<% } %>	
       </ul>
-
-      
       
       <ul class="nav navbar-nav navbar-right" id="logissn">
 	<li id="login"></li>
@@ -49,6 +50,26 @@
     attach_ui(login,document.getElementById("login"));
     });
   </script>
+
+  <script>	
+    window.fbAsyncInit = function() {
+      FB.init({
+          appId      : '<%= facebook.clientID %>',
+          status : true,
+          xfbml      : true,
+          version    : 'v2.1'
+        });
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+    </script>
+
 </nav>
 
 

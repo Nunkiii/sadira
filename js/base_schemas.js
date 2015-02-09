@@ -19,7 +19,6 @@ var t_user = new schema({
     local : {
 	email: {
 	    type: String,
-	    unique: true,
 	},
 	hashpass: {
 	    type: String,

@@ -167,6 +167,8 @@ var _sadira = function(){
     var sad=this;
 
     this.dialog_handlers = {};
+    
+    this.common_header_data={};
 
     //Configuring cluster (multi process spawn with port sharing) and inter-process communications
 
@@ -892,6 +894,20 @@ _sadira.prototype.create_websocket_server=function() {
 
 }
 
+function clone(obj) {
+    if(obj == null || typeof(obj) != 'object')
+        return obj;
+
+    var temp = obj.constructor(); // changed
+
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key)) {
+            temp[key] = clone(obj[key]);
+        }
+    }
+    return temp;
+}
+
 
 _sadira.prototype.initialize_handlers=function(packname){
     var sad=this;
@@ -915,16 +931,27 @@ _sadira.prototype.initialize_handlers=function(packname){
     }
 
     if(sad.cluster.isMaster) return;
-
+    
 
     sad.set_user_data=function(req, data){
+	for(var p in sad.common_header_data)
+	    data[p]=sad.common_header_data[p];
+	
 	data.user_id="";
+	
 	if (req.user) {
-	    if(req.user.local.email)
+	    if(req.user.local.email){
 		data.user_id=req.user.local.email;
-	    else
-		if(req.user.facebook.name)
+	    }
+	    else{
+		if(req.user.facebook.name){
 		    data.user_id=req.user.facebook.name;
+		}
+		else{
+		    if(req.user.google.name)
+			data.user_id=req.user.google.name;
+		}
+	    }
 	    
 	    //return next("No user");//res.redirect('/signin')
 	}
@@ -938,15 +965,15 @@ _sadira.prototype.initialize_handlers=function(packname){
 	res.render('index.ejs', index_info); // load the index.ejs file
     
     });
-
-  sad.app.get('/widget/:tpl_name', function(req, res) {
+    
+    sad.app.get('/widget/:tpl_name', function(req, res) {
 	var ejs_data={ tpl_name : req.params.tpl_name};
 	sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
     });
     
     sad.app.get('*', function(request, res){
-
+	
 	//The request was not handled by custom url handlers.
 	//If enabled, proxying the query to another web service
 	

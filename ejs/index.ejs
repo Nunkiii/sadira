@@ -16,11 +16,26 @@
   
   <div class="container">
     <main>
-      <div class="jumbotron text-center">
-	<h1>Welcome to this sadira server !</h1>
+      <div class="col-md-6 col-md-offset-3 text-center">
+
+	<h1> Welcome <% if(user_id==""){ %>
+	to this sadira server !
+	<% }else{ %>	
+	back <%= user_id %> !
+	<% } %>	
+        </h1>
+
 	
         <p>This is the default homepage...</p>
 	
+	<p> Like this ? 
+	  <div
+	     class="fb-like"
+	     data-send="true"
+	     data-width="450"
+	     data-show-faces="true">
+	  </div>
+	</p>
       </div>
     </main>
   </div>
