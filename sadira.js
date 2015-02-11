@@ -955,6 +955,8 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    
 	    //return next("No user");//res.redirect('/signin')
 	}
+
+	console.log("Set user data to " + JSON.stringify(data));
     }
     
     sad.app.get('/', function(req, res, next) {
