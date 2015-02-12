@@ -225,17 +225,17 @@ var base_templates={
 		name : "Range",
 		value_labels : ["start","end"],
 		value : [0, 0],
-		ui_opts: {root_classes : []},
+		ui_opts: {root_classes : ["inline"], label : true},
 	    },
 	    selection : {
 		type : "labelled_vector",
 		name : "Selection",
 		value_labels : ["start","end"],
 		value : [0, 0],
-		ui_opts: {root_classes : []},
+		ui_opts: {root_classes : ["inline"], label : true},
 	    },
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{root_classes:[], sliding : false}},  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{root_classes:[]}}
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-plus"}},  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-minus"}}
 	}
     }
     

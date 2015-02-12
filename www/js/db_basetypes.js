@@ -1418,7 +1418,12 @@ template_ui_builders.action=function(ui_opts, action){
     }
     action.ui=ui;
 
-    ui.innerHTML=action.name;
+    ui.innerHTML="";
+    if(è(ui_opts.fa_icon)){
+	console.log("Setting fa icon !! ");
+	ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+    }
+    ui.innerHTML+=action.name;
     
     ui.className="btn btn-primary";
     
@@ -1604,7 +1609,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     
     var ui=tpl_item.ui=ce("div");
-    var bn=d3.select(ui);
+    var bn=d3.select(ui);//tpl_item.ui_childs.div);
     var brg=tpl_item.brg=null,select_brg=tpl_item.select_brg=null;
     var vw=600, vh=300;
     svg = bn.append('svg')
@@ -1619,7 +1624,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     tpl_item.set_value=function(v){
 	if(typeof v!='undefined'){
 	    tpl_item.value=v;
-	    if(range.value[0]==0 && range.value[1]==0){
+	    if(range.value[0]==null || range.value[1]==null){
 		this.set_range([0,v.length-1]);
 	    }
 	}
@@ -1627,7 +1632,11 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
     
     tpl_item.redraw=function(){
-	if(range.value[0]==null || range.value[1]==null) return;
+	if(range.value[0]==null || range.value[1]==null){
+	    //this.set_range([0,this.value.length-1]);
+	    console.log("Vector : No range set !");
+	    return;
+	}
 	
 	var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 100}; //ui_opts.margin;
 	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 

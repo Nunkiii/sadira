@@ -1052,6 +1052,12 @@ Text input
   height: 2.5em;
 }
 
+
+video{
+border : 2px solid blue;
+}
+
+
 progress[value] {
   margin-left: 1em;
   height: 1.5em;
@@ -1177,22 +1183,28 @@ progress[value]::-webkit-progress-value {
 }
 
 .db[data-tpl="vector"]{
-    width: calc(100% - 1em);
+/*
+width: calc(100% - 1em);
+*/
+
 }
 .db[data-tpl="vector"]>.dbitem{
+/*
   width:100%;
   position: relative;
+  */
 }
 .db[data-tpl="vector"]>.dbitem>svg{
-  width:100%;
 /*
+  width:100%;
 max-height: 20em;
 */
 }
 /*
 .db[data-type="text"]>.dbitem::-webkit-scrollbar{
   display: block;
-} */ 
+}
+*/ 
 
 .db[data-type="text"]>.dbitem >pre{
   white-space: pre-wrap;

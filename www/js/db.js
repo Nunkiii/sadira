@@ -480,7 +480,11 @@ function add_close_button(e, node){
 
 
 function create_ui(global_ui_opts, tpl_root, depth){
-
+    if(ù(global_ui_opts)){
+	console.log("Not even the ui_opts... :(");
+	return;
+    }
+    
     //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name);
 
     if(!depth)depth=0;
@@ -489,7 +493,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(ù(tpl_root.ui_opts)){
 	tpl_root.ui_opts=global_ui_opts;
-	if(ù(tpl_root.ui_opts.type)) tpl_root.ui_opts.type="short";
+	if(ù(tpl_root.ui_opts.type))
+	    tpl_root.ui_opts.type="short";
     }
     else
 	for(var o in global_ui_opts) 
@@ -641,13 +646,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//if(tpl_root.depth==1)
 		//	ui_name.add_class("page-header");
 	    }else{
-		ui_name.innerHTML=tpl_root.name;
+
+		ui_name.innerHTML="";
+		if(è(ui_opts.fa_icon)){
+		    ui_name.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+		}
+		ui_name.innerHTML+=tpl_root.name;
 		if(typeof ico!='undefined')
 		    ui_name.prependChild(ico);
 		
 	    }
-	    
-	    
 	    
 	    if(typeof ui_opts.name_classes != 'undefined'){
 		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
