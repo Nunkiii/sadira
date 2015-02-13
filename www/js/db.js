@@ -484,15 +484,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	console.log("Not even the ui_opts... :(");
 	return;
     }
-    
-    //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name);
+
+    if(ù(tpl_root)){
+	console.log("No tpl root !!!");
+	return;
+    }
 
     if(!depth)depth=0;
+
     if(!tpl_root.depth)
 	tpl_root.depth=depth;
     
     if(ù(tpl_root.ui_opts)){
+
+	//tpl_root.ui_opts={};
 	tpl_root.ui_opts=global_ui_opts;
+	
+	
+	console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
+	
 	if(ù(tpl_root.ui_opts.type))
 	    tpl_root.ui_opts.type="short";
     }
@@ -1545,6 +1555,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	el.parent=tpl_root;
 	//console.log(tpl_root.name +  " adding child " + e + " name " + el.name);
 	var ui=create_ui(global_ui_opts,el, depth+1);
+	//var ui=create_ui({},el, depth+1);
 
 	ui_childs.add_child(el,ui);
 	nch++;

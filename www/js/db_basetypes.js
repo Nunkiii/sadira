@@ -17,7 +17,6 @@ template_ui_builders.sadira=function(ui_opts, sad){
     var status=sad.elements.status;
     var messages=sad.elements.messages;    
     
-    
     if(typeof sad.server_prefix!='undefined')
 	server_prefix=sad.server_prefix;
     else
@@ -1630,21 +1629,23 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	}
 	this.redraw();
     }
+
+    range.listen("change",function(){
+	//console.log("Range changed!");
+	x.domain(range.value);
+    });
     
-    tpl_item.redraw=function(){
-	if(range.value[0]==null || range.value[1]==null){
-	    //this.set_range([0,this.value.length-1]);
-	    console.log("Vector : No range set !");
-	    return;
-	}
-	
+    var x,y;
+    
+    tpl_item.init=function(){
+
 	var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 100}; //ui_opts.margin;
 	//var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
 	var width=vw - margin.left - margin.right;
 	var height = vh- margin.top - margin.bottom;
 
-	var x = d3.scale.linear().range([0, width]).domain(range.value);
-	var y = d3.scale.sqrt().range([height, 0]);
+	x = d3.scale.linear().range([0, width]);
+	y = d3.scale.linear().range([height, 0]);
 	
 	var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);    
 	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
@@ -1652,7 +1653,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	brush = d3.svg.brush().x(x).on("brushend", range_changed);
 	select_brush = d3.svg.brush().x(x).on("brush", selection_changed);
 
-	console.log("Drawing vector N= " + this.value.length + "w,h=" + width + ", " + height + " rng="+JSON.stringify(range.value));
+	//console.log("Drawing vector N= " + this.value.length + "w,h=" + width + ", " + height + " rng="+JSON.stringify(range.value));
 	
 
 	var area = d3.svg.area().interpolate("step-before")
@@ -1661,19 +1662,22 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    .y1(function(d) { return y(d); });
 	
 	svg.select("g").remove();
-	var context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+	var context=tpl_item.context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 
 	var data=this.value;
-	if(data.length==0){
-	    console.log("No vector data !");
-	    return;
-	}
+
+	
+	// if(data.length==0){
+	//     console.log("No vector data !");
+	//     return;
+	// }
 	
 	x.domain(range.value);//
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
-	y.domain(d3.extent(data, function(d) { return d; }));
-	
-	
+	if(è(tpl_item.y_range)){
+	    y.domain(tpl_item.y_range);
+	}else
+	    y.domain(d3.extent(data, function(d) { return d; }));
 	
 	var xsvg = context.append("g")
 	    .attr("class", "x axis")
@@ -1684,10 +1688,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	xmarg=margin.left; //this.getBBox().x;
 	ymarg=margin.top; //this.getBBox().x;
 	
-	xsvg.each(function(){
+	//xsvg.each(function(){
 	    //	 console.log("XAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
 	    //xw=this.getBBox().width;
-	});	       
+	//});	       
 	
 	
 	var ysvg=context.append("g")
@@ -1703,13 +1707,20 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	// ysvg.each(function(){
 	// 		 console.log("YAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
 	// 	     });	       
+
+
+	var line=tpl_item.line=d3.svg.line()
+	    .x(function(d,i) { return x(tpl_item.start + i*tpl_item.step); })
+	    .y(function(d) { return y(d); })
+	    .interpolate("linear");
 	
-	var pathsvg=context.append("path")
-	    .datum(data)
-	    .attr("class", "line")
-	//.attr("d", line);
-	    .attr("d", area);
-	
+	// var pathsvg=context.append("path")
+	//     .datum(data)
+	//     .attr("class", "line_red")
+	//     .attr("d", line);
+	// //	    .attr("d", area);
+
+
 	var height2=height/2.0;
 	
 	brg=context.append("g").attr("class", "brush").call(brush);
@@ -1717,8 +1728,6 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	brg.selectAll(".resize").append("path").attr("d", resizePath).attr("transform", "translate(0," + height2 + ")");
 	
 	brush.extent(range.value);
-
-	
 	
 	select_brg=tpl_item.select_brg=context.append("g").attr("class", "select_brush").call(select_brush);
 	select_brg.selectAll("rect").attr("y", -6).attr("height", height2);	
@@ -1746,13 +1755,25 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	}
 	svg.select(".brush").call(brush);
 	svg.select(".select_brush").call(select_brush);
+
+    }
+    
+    tpl_item.redraw=function(){
+
+	if(range.value[0]==null || range.value[1]==null){
+	    //this.set_range([0,this.value.length-1]);
+	    console.log("Vector : No range set !");
+	    return;
+	}
+	
 	
     }
 
-    if(è(tpl_item.value))
+    
+    if( ù(tpl_item.y_range) && è(tpl_item.value))
     	tpl_item.set_range([tpl_item.value[0],tpl_item.value[tpl_item.value.length-1]]);
     
-    tpl_item.redraw();
+    tpl_item.init();
     return tpl_item.ui;
 }
 

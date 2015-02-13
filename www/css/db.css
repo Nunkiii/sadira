@@ -1477,9 +1477,35 @@ d3 vector shape
 
 }
 
+
+
 .line {
   fill: rgba(50,50,250,.9);
   stroke: black;
+  stroke-width: 1px;
+}
+
+.line_black {
+  fill: none;
+  stroke: black;
+  stroke-width: 2px;
+}
+
+.line_red {
+  fill: none;
+  stroke: rgba(250,50,50,.9);
+  stroke-width: 1px;
+}
+
+.line_green {
+  fill: none;
+  stroke: rgba(50,250,50,.9);
+  stroke-width: 1px;
+}
+
+.line_blue {
+  fill: none;
+  stroke: rgba(50,50,250,.9);
   stroke-width: 1px;
 }
 
