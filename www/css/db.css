@@ -707,6 +707,10 @@ label{
   cursor : pointer;
 }
 
+.db[data-type="videocap"] canvas {
+  width: 100%;
+}
+
 .db[data-type="login"] {
   display: table-cell;
   vertical-align: middle;  

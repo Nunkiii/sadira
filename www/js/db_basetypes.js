@@ -1680,7 +1680,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    
 	    //for(var x in pl) console.log("PL " + x);
 	    var pll= pl.data.length;
-	    console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
+	    //console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
 	    
 	    for(var j=0; j < pll ; j++){
 		var iy=pl.data[j];
@@ -1693,7 +1693,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    }
 	}
 
-	console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
+	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
 
 	//xr=[0,24];
 	
@@ -1728,10 +1728,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     
     tpl_item.redraw=function(){
-	console.log("redraw " + plots.length);
+	//console.log("redraw " + plots.length);
 	if(range.value[0]==null || range.value[1]==null){
 	    //this.set_range([0,this.value.length-1]);
-	    console.log("Vector : No range set !");
+	    //console.log("Vector : No range set !");
 	    return;
 	}
 
@@ -1816,12 +1816,36 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    .y(function(d) { return yscale(d); });
 	//.interpolate("linear");
 
+	p.set_opts=function(opts){
+	    p.stroke=opts.stroke || "black";
+	    p.stroke_width=opts.stroke_width || "1px";
+	    p.fill=opts.fill || "none";
+	    p.label=opts.label || ("Line " + (plots.length+1));
+	}
+	
+	
+	p.set_opts({});
+	
 	p.redraw=function(context){
-	    console.log("plot draw...");
+	    //console.log("plot draw...");
+
 	    p.path=context.append("path");
+	    p.path.attr("stroke", p.stroke);
+	    p.path.attr("stroke-width", p.stroke_width);
+	    p.path.attr("fill", p.fill);
+	    
 	    p.path.datum(p.data)
-		.attr("class", "line_black")
+		//.attr("class", "line_black")
 		.attr("d", p.line);
+	    
+	    
+	    context.append("text")
+		.attr("transform", "translate(" + (3) + "," + yscale(p.data[0]) + ")")
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.style("fill", p.stroke)
+		.text(p.label);
+	    
 	}
     };
     
@@ -1839,11 +1863,13 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
 	plots.push(p);
 	config_range();
+	return p;
     }
     
     
     tpl_item.add_plot_linear=function(data, start, step){
-	this.add_plot(data, xfunc_linear, start, step);
+	return this.add_plot(data, xfunc_linear, start, step);
+	
     }
 
 
