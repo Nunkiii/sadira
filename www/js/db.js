@@ -119,10 +119,8 @@ function divider(cnt, frac, or, heightf){
 	hstring+=" - " + htop +"px - 50px )";
 	//console.log("Head height " + hs.height + "footer height " + fs.height + " window " + wh + " htop " + htop);
 
-	console.log("Setting height to ["+hstring+"]");
+	//console.log("Setting height to ["+hstring+"]");
 	//hstring="400px";
-	
-	
 	var l=this.left, r=this.right;
 	var divnode = this.divnode;
 	
@@ -501,7 +499,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.ui_opts=global_ui_opts;
 	
 	
-	console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
+	//console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
 	
 	if(ù(tpl_root.ui_opts.type))
 	    tpl_root.ui_opts.type="short";
@@ -628,7 +626,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	tpl_root.rebuild_name=function(){
 	    
-	    console.log("rebuild name " + tpl_root.name);
+	    //console.log("rebuild name " + tpl_root.name);
 	    ui_name.innerHTML="";
 	    
 	    var ico=get_ico(tpl_root);
@@ -1636,8 +1634,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	if(!item_ui && ui_opts.label){
 	    item_ui=tpl_root.item_ui=cc("div",ui_root);
-	    item_ui.appendChild(tpl_root.ui_childs.div);
-
+	    if(è(tpl_root.ui_childs.div))
+		item_ui.appendChild(tpl_root.ui_childs.div);
+	    
 	}
 
 	if(ui_opts.label){

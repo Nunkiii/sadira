@@ -44,7 +44,7 @@ function hex_color(c) {
 template_ui_builders.colormap=function(ui_opts, cmap){
 
     var o,i,b,rng,uniform,split;
-    
+
     cmap.selected_section=-1;
     
     var cmap_plot=cmap.cmap_plot=ce('div');
@@ -249,6 +249,8 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	}
 	
 	cmap.display_color_section = function (cid){
+
+	    etpl.set_title("Color interval " + cid);
 	    if(cid===0) cid=1;
 	    //console.log("Display color section " + cid + " nvalues = " + this.value.length + " othernv " + cmap.value.length);
 	    if(typeof rng=='undefined') return;
