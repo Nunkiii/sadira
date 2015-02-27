@@ -1,32 +1,28 @@
 <!-- ejs/index.ejs -->
 <!doctype html>
 <html>
+
   <head>
     <% include ./parts/head %>
+    <title>Sadira</title>
+    
   </head>
   
-  <title>Sadira</title>
-
-</head>
-
-<body>
-
-  <header>
-    <% include parts/header %>
-  </header>
-  
-  <div class="container">
-    
-    <div style="float: right">
-      <a href="http://gloria-project.eu" target="_blank" style="display: inline-block;"><img src="/gloria/gloria-logo-text-transp-light.svg" style="width: 5em; margin: 1em ;"/></a>
-      
-      <a href="http://www.iasfbo.inaf.it" target="_blank"  style="display: inline-block;"><img src="/gloria/iasfbo.png" style="width:5em; margin: 1em ;"/></a>
-    </div>
+  <body>
+    <header>
+      <% include parts/header %>
+    </header>
     
     <div class="container">
+      <div style="float: right">
+	<a href="http://gloria-project.eu" target="_blank" style="display: inline-block;"><img src="/gloria/gloria-logo-text-transp-light.svg" style="width: 5em; margin: 1em ;"/></a>
+	
+	<a href="http://www.iasfbo.inaf.it" target="_blank"  style="display: inline-block;"><img src="/gloria/iasfbo.png" style="width:5em; margin: 1em ;"/></a>
+      </div>
       
-      <h1>INAF/IASF-BO ☄<small>  — Astro-web-software</small></h1>
-      
+      <div class="container">
+	<h1>INAF/IASF-BO ☄<small>  — Astro-web-software</small></h1>
+	
       <div class="page-header">	  
 	<h4> Welcome <% if(user_id==""){ %>
 	  to this sadira server !
@@ -35,7 +31,7 @@
 	  <% } %>	
 	</h4>
       </div>
-
+      
       <div class="page-header">
 	<h2>The Sadira project</h2>
       </div>

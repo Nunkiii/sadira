@@ -895,19 +895,19 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	ui.className="value";
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.innerHTML=tpl_item.value? "yes":"no";
+	    ui.innerHTML=tpl_item.value? "On":"Off";
 	}
 	break;
     case "edit": 
-	var lab=ce("label"); lab.innerHTML=tpl_item.name;
-	if(è(tpl_item.ui_name))
-	    tpl_item.ui_root.removeChild(tpl_item.ui_name);
+	//var lab=ce("label"); lab.innerHTML=tpl_item.name;
+	//if(è(tpl_item.ui_name))
+	//    tpl_item.ui_root.removeChild(tpl_item.ui_name);
 
-	var ui=tpl_item.ui=cc("input", lab, true);
+	var ui=tpl_item.ui=ce("input");
 	ui.type="checkbox";
 
-	tpl_item.ui_root.add_class("checkbox");
-	tpl_item.ui_root.appendChild(lab);
+	//tpl_item.ui_root.add_class("checkbox");
+	//tpl_item.ui_root.appendChild(lab);
 	
 	
 	tpl_item.set_value=function(nv){
@@ -930,7 +930,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
     
     tpl_item.set_value();
 
-    //return tpl_item.ui;
+    return tpl_item.ui;
 }
 
 
@@ -1500,6 +1500,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     
     var selection=tpl_item.elements.selection;
     var range=tpl_item.elements.range;
+    var lines=tpl_item.elements.lines;
 
         console.log("Building vector ");
     
@@ -1523,7 +1524,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     tpl_item.svg=svg.node(); //[0][0].ownerSVGElement;
     
-    var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 100}; //ui_opts.margin;
+    var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 50}; //ui_opts.margin;
     //var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
     var width=vw - margin.left - margin.right;
     var height = vh- margin.top - margin.bottom;
@@ -1542,9 +1543,6 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     brush = d3.svg.brush().x(xscale).on("brushend", range_changed);
     select_brush = d3.svg.brush().x(xscale).on("brush", selection_changed);
 
-
-    
-    
     tpl_item.set_value=function(v){
 	if(typeof v!='undefined'){
 	    tpl_item.value=v;
@@ -1677,22 +1675,25 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
 	for (var p=0;p<plots.length;p++){
 	    var pl=plots[p];
-	    
-	    //for(var x in pl) console.log("PL " + x);
-	    var pll= pl.data.length;
-	    //console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
-	    
-	    for(var j=0; j < pll ; j++){
-		var iy=pl.data[j];
-		var ix=pl.x(j);
-		if(iy<yr[0])yr[0]=iy;
-		if(iy>yr[1])yr[1]=iy;
 
-		if(ix<xr[0])xr[0]=ix;
-		if(ix>xr[1])xr[1]=ix;
+
+	    if(pl.le.value){
+		//for(var x in pl) console.log("PL " + x);
+		var pll= pl.data.length;
+		//console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
+		
+		for(var j=0; j < pll ; j++){
+		    var iy=pl.data[j];
+		    var ix=pl.x(j);
+		    if(iy<yr[0])yr[0]=iy;
+		    if(iy>yr[1])yr[1]=iy;
+		    
+		    if(ix<xr[0])xr[0]=ix;
+		    if(ix>xr[1])xr[1]=ix;
+		}
 	    }
 	}
-
+	
 	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
 
 	//xr=[0,24];
@@ -1742,12 +1743,12 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	context=tpl_item.context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 	
 	var xsvg = context.append("g")
-	    .attr("class", "x axis")
+	    .attr("class", "axis")
 	    .attr("transform", "translate(0," + height + ")")
 	    .call(xAxis);
 	
 	var ysvg=context.append("g")
-	    .attr("class", "y axis")
+	    .attr("class", "axis")
 	    .call(yAxis)
 	    .append("text")
 	    .attr("transform", "rotate(-90)")
@@ -1821,31 +1822,38 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
 	    p.label=opts.label || ("Line " + (plots.length+1));
+
+	    if(ù(p.le)){
+		p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
+		create_ui({},p.le);
+		lines.ui_childs.add_child(p.le,p.le.ui_root);
+	    }
 	}
-	
 	
 	p.set_opts({});
 	
 	p.redraw=function(context){
-	    //console.log("plot draw...");
-
-	    p.path=context.append("path");
-	    p.path.attr("stroke", p.stroke);
-	    p.path.attr("stroke-width", p.stroke_width);
-	    p.path.attr("fill", p.fill);
+	    //console.log("plot draw..." + p.label);
+	    p.le.set_title(p.label);
 	    
-	    p.path.datum(p.data)
+	    if(p.le.value){
+		p.path=context.append("path");
+		p.path.attr("stroke", p.stroke);
+		p.path.attr("stroke-width", p.stroke_width);
+		p.path.attr("fill", p.fill);
+		
+		p.path.datum(p.data)
 		//.attr("class", "line_black")
-		.attr("d", p.line);
-	    
-	    
-	    context.append("text")
-		.attr("transform", "translate(" + (3) + "," + yscale(p.data[0]) + ")")
-		.attr("dy", ".35em")
-		.attr("text-anchor", "start")
-		.style("fill", p.stroke)
-		.text(p.label);
-	    
+		    .attr("d", p.line);
+		
+		
+		context.append("text")
+		    .attr("transform", "translate(" + (3) + "," + yscale(p.data[0]) + ")")
+		    .attr("dy", ".35em")
+		    .attr("text-anchor", "start")
+		    .style("fill", p.stroke)
+		    .text(p.label);
+	    }
 	}
     };
     

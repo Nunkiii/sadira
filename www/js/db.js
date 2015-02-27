@@ -655,6 +655,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//	ui_name.add_class("page-header");
 	    }else{
 
+		//console.log("Set label name " + tpl_root.name);
 		ui_name.innerHTML="";
 		if(è(ui_opts.fa_icon)){
 		    ui_name.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
@@ -978,10 +979,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 //	ui_childs=tpl_root.ui_childs={};
 
 	ui_childs.add_child=function(e,ui,prep){
+
 	    if(!add_child_common(e,ui,prep)) return;
 
 	    this.add_child_com(e);
-
+	    
 	    if(typeof ui_childs.div=='undefined'){
 		var child_node_type = è(ui_opts.child_node_type) ? ui_opts.child_node_type : "div"
 		ui_childs.div=ce(child_node_type); 
@@ -1320,6 +1322,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	break;
 
     case "tabbed":
+    case "pills":
     case "radio":
 	
 	//var div=this.div=ce("div"); 
@@ -1541,7 +1544,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     };
     
     function on_ui_childs_ready(){
-	if(tpl_root.ui_opts.label){ 
+	if(tpl_root.ui_opts.label && ui_childs.div){ 
 	    ui_childs.div.style.display="none";
 	}
     }
@@ -1786,8 +1789,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.listen("view_update",function(){
 	    //console.log("resize root widget " + window.innerWidth + ", " + window.innerHeight);
 
-	    tpl_root.ui_root.style.width=(window.innerWidth-0)+'px';
-	    tpl_root.ui_root.style.height=(window.innerHeight-0)+'px';
+	    //tpl_root.ui_root.style.width=(window.innerWidth-0)+'px';
+	    //tpl_root.ui_root.style.height=(window.innerHeight-0)+'px';
 
 	    //tpl_root.ui_root.style.border="1px solid red";
 	});

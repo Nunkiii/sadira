@@ -1,5 +1,7 @@
 function create_shader(gldev, shader_source, type) {
+
     var shader;
+
     if (typeof type == 'undefined')
 	shader = gldev.createShader(gldev.FRAGMENT_SHADER);
     else
@@ -18,6 +20,7 @@ function create_shader(gldev, shader_source, type) {
 	alert(gldev.getShaderInfoLog(shader));
 	return null;
     }
+    
     return shader;
 }
 
@@ -49,6 +52,7 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 
     gls.w=0;
     gls.h=0;
+
     gls.bbig=null;
 
     var ui=gls.ui=ce("div");ui.add_class("glscreen");
@@ -126,19 +130,22 @@ template_ui_builders.glscreen=function(ui_opts, gls){
 	if (!floatTextures)
 	    return cb('WebGL is working, but it does not provide floating point texture on your system !\n\n :< \n\nTry with another video device &| drivers!');
 	gls.resize=function(iw,ih){
+
 	    canvas.width=iw;
 	    canvas.height=ih;
-
 	    canvas2d.width=iw;
 	    canvas2d.height=ih;
 	    
-
+	    gls.w=iw;
+	    gls.h=ih;
+	    
 	    //canvas.focus();
 	    //console.log("resize gl ("+iw+","+ih+")" + gl.drawingBufferWidth+","+ gl.drawingBufferHeight);
-	    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-	    gls.trigger("resize", { w : iw, h: ih} );
 	    
-
+	    //gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+	    gl.viewport(0, 0, iw, ih);
+	    
+	    gls.trigger("resize", { w : iw, h: ih} );
 	}
 	
 

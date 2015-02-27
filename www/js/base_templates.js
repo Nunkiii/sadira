@@ -235,7 +235,8 @@ var base_templates={
 		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit"},
 	    },
 	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-plus"}},  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-minus"}}
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-minus"}},
+	    lines : { elements : {}, ui_opts : { label: true, root_classes : ["inline"]} }
 	}
     }
 };

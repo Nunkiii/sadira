@@ -10,23 +10,22 @@
     <header>
       <% include parts/header %>
     </header>
-    <main>
-      <div class="container-fluid" id="toto"></div>
-    </main>
+    <main id="content"> </main>
+
+    <!-- <footer> -->
+    <!--   <% include parts/footer %> -->
+    <!-- </footer> -->
+
   </body>
-
-  <footer>
-    <% include parts/footer %>
-  </footer>
-
+  
   <script>
     window.addEventListener("load", function(){
     var tpl_name = "<%= tpl_name %>";
     var tpl=tmaster.build_template(tpl_name);
     create_ui({},tpl);
-    attach_ui(tpl, document.getElementById("toto"));
-    //xd1_tpl.trigger("view_update");
+    attach_ui(tpl, document.getElementById("content"));
     });
   </script>
   
+
 </html>
