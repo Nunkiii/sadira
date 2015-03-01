@@ -1355,7 +1355,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var navcnt=nav;
 	navcnt.add_class(cvtype);
 	//cnt.add_class("child_container");
-	cnt.add_class("row");
+	cnt.add_class("tab-content");
 	//cnt.add_class("tab-content");
 
 	
@@ -1431,12 +1431,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(ù(e.a)){ e.a=cc("a",e.li); e.a.href="javascript:void(0)";}
 	    
 	    e.a.innerHTML="";
-	    if(e.name)
-		e.a.innerHTML=e.name;
+	    if(è(e.ui_opts.fa_icon)){
+		e.a.innerHTML='<span class="fa fa-'+e.ui_opts.fa_icon+'"> </span>';
+	    }
+	    
+	    if(e.name){
+ 		e.a.innerHTML+=e.name;
+	    }
 	    else{
 		if(e.type)
-		    e.a.innerHTML="Anon " +e.type;
-		else e.a.innerHTML="container-fluid";
+		    e.a.innerHTML="Another " +e.type;
+		else
+		    e.a.innerHTML="Container";
 	    }
 
 	    var ico=get_ico(e);
@@ -1657,9 +1663,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(sliding){
 
 	    }else{
-		var uid=Math.random().toString(36).substring(2); item_ui.id=uid;
-		ui_name.setAttribute("for",uid);
-
+		if(è(ui_name)){
+		    var uid=Math.random().toString(36).substring(2); item_ui.id=uid;
+		    ui_name.setAttribute("for",uid);
+		}
+		
 	    }
 
 	    //ui_name.appendChild(item_ui);
