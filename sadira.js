@@ -66,6 +66,8 @@ GLOBAL.reply_json=function(res,data,result_cb){
 
     res.setHeader("Content-Type",'application/json');
     res.setHeader("Content-Length",l);
+
+    for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
     //res.writeHead(200, headers);
 
     write_chunked_data(res,jstring,result_cb);
@@ -976,9 +978,11 @@ _sadira.prototype.initialize_handlers=function(packname){
     });
 
 
+    /*
     sad.app.all('*', function(request, res){
 	for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
     });
+*/
     
     sad.app.get('*', function(request, res){
 	
