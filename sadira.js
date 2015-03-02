@@ -21,7 +21,7 @@ var bodyParser   = require('body-parser');
   Headers to add when allowing cross-origin requests.
 */
 
-GLOBAL.cors_headers = {
+var cors_headers = {
     'Access-Control-Allow-Origin' : '*',
     'Access-Control-Allow-Credentials' : true,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
@@ -59,13 +59,14 @@ GLOBAL.write_chunked_data=function(res, data, result_cb){
 */
 
 GLOBAL.reply_json=function(res,data,result_cb){
-    var headers=cors_headers;
+    //var headers=cors_headers;
     var jstring=JSON.stringify(data);
     //var l=jstring.length;
     var l=Buffer.byteLength(jstring);//, [encoding])  
-    headers["Content-Type"]='application/json';
-    headers["Content-Length"]=l;
-    res.writeHead(200, headers);
+
+    res.setHeader("Content-Type",'application/json');
+    res.setHeader("Content-Length",l);
+    //res.writeHead(200, headers);
 
     write_chunked_data(res,jstring,result_cb);
     //console.log("Sending JSON length = " + l);
@@ -972,6 +973,11 @@ _sadira.prototype.initialize_handlers=function(packname){
 	var ejs_data={ tpl_name : req.params.tpl_name};
 	sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
+    });
+
+
+    sad.app.all('*', function(request, res){
+	for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
     });
     
     sad.app.get('*', function(request, res){

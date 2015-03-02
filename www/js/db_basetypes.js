@@ -1,5 +1,5 @@
 template_ui_builders.sadira=function(ui_opts, sad){
-
+  
     console.log("sadira link constructor !");
     
     var widget_prefix="widgets";
@@ -1529,6 +1529,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var width=vw - margin.left - margin.right;
     var height = vh- margin.top - margin.bottom;
     var height2=height/2.0;
+
     var xr=[1e30,-1e30];
     var yr=[1e30,-1e30];
 
@@ -1578,6 +1579,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     
     tpl_item.elements.zoom.listen("click",function(){
+	return;
 	var s=selection.value, r=range.value; 
 
 	var sc=false;
@@ -1585,15 +1587,22 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	if(s[0]< r[0]){ s[0]=r[0];sc=true;}
 	if(s[1]> r[1]){s[1]=r[1];sc=true;}
 
-	tpl_item.trigger("range_change", r);
-	if(sc)
+	tpl_item.set_range(brush.extent());
+
+
+	if(sc){
 	    tpl_item.trigger("selection_change", s);
+	}
 
     });
 
 
     tpl_item.elements.unzoom.listen("click",function(){
-	//range.set_value(xr);
+	//brush.extent(range.value);
+	//select_brush.extent(selection.value);
+	
+
+	//tpl_item.set_range(xr);
 
 	// if(è(tpl_item.min))
 	//     range.set_value([tpl_item.min, tpl_item.max]);
@@ -1628,34 +1637,33 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    if(r[1]> get_x(d-1))
 		r[0]=get_x(d-1)
 	}
-	
-	//tpl_item.set_range(r);
-	//tpl_item.trigger("range_change", range.value);
-	//tpl_item.redraw();
+
+	tpl_item.trigger("selection_change", selection.value);
     }
     
     tpl_item.set_range=function(new_range){
-	range.set_value(new_range);
-	if(è(brush))brush.extent(new_range);
+	if(è(new_range))
+	    range.set_value(new_range);
+	
+	if(è(brush))brush.extent(range.value);
+	//tpl_item.trigger("range_change", range.value);
     };
 
 
     function range_changed() {
-	//svg.select(".brush").call(brush);
+	range.set_value(brush.extent());
+
+	/*
 	range.value[0]=brush.extent()[0];
 	range.value[1]=brush.extent()[1];
-	range.set_value();
-	//tpl_item.trigger("range_change", range.value);
-	//	    fv.cmap.display();
+*/
     }
 
     
     function selection_changed() {
 	//svg.select(".select_brush").call(select_brush);
 	
-	selection.value[0]=select_brush.extent()[0];
-	selection.value[1]=select_brush.extent()[1];
-	selection.set_value();
+	selection.set_value(select_brush.extent());
 	tpl_item.trigger("selection_change", selection.value);
 	//	    fv.cmap.display();
     }
@@ -1668,6 +1676,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
 
     var config_range=tpl_item.config_range=function(){
+
 	xr=[1e30,-1e30];
 	yr=[1e30,-1e30];
 
@@ -1697,18 +1706,14 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
 
 	//xr=[0,24];
-	
-	range.set_value(xr);
-
+	tpl_item.set_range(xr);
 	xscale.domain(xr);
 	yscale.domain(yr); 
 
-
-	brush.extent(range.value);
-	select_brush.extent(selection.value);
-	
-
 	tpl_item.redraw();
+	if(è(brush))brush.extent(range.value);
+	if(è(select_brush))select_brush.extent(selection.value);
+	
 	return;
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
 	//if(è(tpl_item.y_range)){
