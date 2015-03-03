@@ -575,6 +575,26 @@ function select_all(node, selector){
         prefix = "on";
     }
 
+    function wheel(e) {
+	preventDefault(e);
+    }
+
+    window.disable_scroll=function() {
+	if (window.addEventListener) {
+	    window.addEventListener('DOMMouseScroll', wheel, false);
+	}
+	window.onmousewheel = document.onmousewheel = wheel;
+	//document.onkeydown = keydown;
+    }
+
+    window.enable_scroll=function() {
+	if (window.removeEventListener) {
+	    window.removeEventListener('DOMMouseScroll', wheel, false);
+	}
+	window.onmousewheel = document.onmousewheel /*= document.onkeydown*/ = null;
+    }
+
+    
     // detect available wheel event
     support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
     document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
@@ -589,6 +609,13 @@ function select_all(node, selector){
         }
     };
 
+    function preventDefault(e) {
+	e = e || window.event;
+	if (e.preventDefault)
+	    e.preventDefault();
+	e.returnValue = false;
+    }
+    
     function _addWheelListener( elem, eventName, callback, useCapture ) {
         elem[ _addEventListener ]( prefix + eventName, support == "wheel" ? callback : function( originalEvent ) {
             !originalEvent && ( originalEvent = window.event );
@@ -602,11 +629,7 @@ function select_all(node, selector){
                 deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
                 deltaX: 0,
                 delatZ: 0,
-                preventDefault: function() {
-                    originalEvent.preventDefault ?
-                        originalEvent.preventDefault() :
-                        originalEvent.returnValue = false;
-                }
+		preventDefault: preventDefault(originalEvent)
             };
             
             // calculate deltaY (and deltaX) according to the event

@@ -152,6 +152,14 @@ html.dragging * {
 }
 */
 
+.widget_title{
+  display : inline-block;
+  font-family : "Ubuntu";
+  font-size: 1.5em;
+  font-weight: bold;
+ 
+}
+
 .divided{
 
   /*

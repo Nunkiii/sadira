@@ -234,9 +234,9 @@ var base_templates={
 		value : [0, 0],
 		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit"},
 	    },
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-plus"}},  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], label : true, fa_icon : "search-minus"}},
-	    lines : { elements : {}, ui_opts : { label: true, root_classes : ["inline"]} }
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},
+	    lines : { name : "Enable/Disable traces", elements : {}, ui_opts : { label: true, root_classes : ["inline"]} }
 	}
     }
 };

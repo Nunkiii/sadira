@@ -516,14 +516,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var root_node = è(ui_opts.root_node) ? ui_opts.root_node : "div";
     var ui_root=tpl_root.ui_root=ce(root_node);     
     
-    //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
-
-
 
     
+    //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
     //ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
-    ui_root.className="db";// container-fluid";
+    ui_root.className="db container-fluid";// container-fluid";
+
+    if(ui_opts.panel)
+	ui_root.className="db panel panel-default";
     
     clear_events(tpl_root);
 
@@ -611,7 +612,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
       widget name config
      */
 
-    if(ui_opts.panel) ui_root.add_class("panel panel-default");
+
     
     new_event(tpl_root,"name_changed");
     
@@ -624,8 +625,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(è(tpl_root.name) && ui_opts.render_name){
 
 	ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
-	ui_name.className="dbname";
 
+	if(!ui_opts.label) ui_name.className="row";
+	
 	if(ui_opts.panel){
 	    var phead=cc("div",ui_root); phead.className="panel-heading"; 
 	    var pcontent=cc("div",ui_root); pcontent.className="panel-content";
@@ -644,8 +646,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    if(!ui_opts.label){
 		//var title_type = (depth>0)?("h"+(depth+2)):"h1";
-		var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		var name_node="div";//è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		
 		var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
+		ui_name_text.className="h4 widget_title";
 		//cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
 		
 		if(è(ui_opts.fa_icon)){
@@ -656,8 +660,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		ui_name_text.innerHTML+=tpl_root.name+" ";
 		
-		if(è(tpl_root.subtitle))
+		if(è(tpl_root.subtitle)){
 		    cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
+		    ui_name_text.add_class("col-md-12");
+		}else
+		    ui_name_text.add_class("col-md-5");
+		
   		if(typeof ico!='undefined')
 		    ui_name_text.prependChild(ico);
 		
@@ -723,14 +731,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
 	var intro;
-	
-	// if(è(tpl_root.ui_title_name))
-	//     intro=tpl_root.ui_intro=cc("small",tpl_root.ui_title_name);
-	// else
-	var intro=cc("p",tpl_root.ui_root);
-	//intro=tpl_root.ui_intro=cc("small",pintro);
-	//intro.className="alert alert-info alert-dismissible";
-	intro.className="text-muted";
+
+	if(è(ui_name)){
+	    intro=cc("div",ui_name);
+	    intro.className="col-md-7 text-muted";
+	}else{
+	    intro=cc("div",tpl_root.ui_root);
+	    intro.className="text-muted";
+	}
+
 	intro.innerHTML= " "+tpl_root.intro;
 	/*
 	var b=cc("button",intro,true); b.className="close"; b.type="button";

@@ -114,12 +114,21 @@ template_ui_builders.glscreen=function(ui_opts, gls){
     }, false);
 
 
+    canvas2d.addEventListener("mouseenter", function(){
+	disable_scroll();
+    });
+
+    canvas2d.addEventListener("mouseleave", function(){
+	enable_scroll();
+    });
+
+    
     addWheelListener(canvas2d, function(e){
 	gls.trigger("wheel",e);
     });
     
     gls.webgl_start=function(options, cb){
-	var gl=gls.gl=gls.canvas.getContext('experimental-webgl');
+	var gl=gls.gl=gls.canvas.getContext('experimental-webgl', {preserveDrawingBuffer: true});
 	
 	if(!gl)
 	    return cb("WebGL support lacking on your browser, you cannot use this application, sorry!");

@@ -1436,6 +1436,7 @@ template_ui_builders.action=function(ui_opts, action){
     }
 
     if(è(action.onclick)) action.listen("click", action.onclick);
+    
 
 
     action.listen("name_changed", function(title){
@@ -1448,7 +1449,7 @@ template_ui_builders.action=function(ui_opts, action){
     if(è(action.elements)){
 	
 	action.ui_root.removeChild(action.ui_childs.div);
-	if(è(action.ui_intro)) action.ui_root.removeChild(action.ui_intro);
+	//if(è(action.ui_intro)) action.ui_root.removeChild(action.ui_intro);
 	
 	var slide_button=cc("span", action.ui_title_name);
 	slide_button.style.zIndex=action.ui_root.style.zIndex+1;
@@ -1488,12 +1489,16 @@ template_ui_builders.action=function(ui_opts, action){
     }else{
 	//ui=action.ui=ce("input"); ui.type="button";
 	
-	if(action.ui_name!='undefined'){
-	    action.ui_root.removeChild(action.ui_name);
+	if(action.ui_title_name!='undefined'){
+	    if(action.ui_name!='undefined')
+		action.ui_name.removeChild(action.ui_title_name);
 	}
 	
-	return ui;
     }	
+
+
+    return ui;
+
 }
 
 template_ui_builders.vector=function(ui_opts, tpl_item){
