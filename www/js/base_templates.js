@@ -219,24 +219,25 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	tpl_builder: "vector",
+	ui_opts : {child_classes : ["row"], item_classes : ["row"]},
 	elements :{
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},
 	    range : {
 		type : "labelled_vector",
 		name : "Range",
 		value_labels : ["start","end"],
 		value : [0, 0],
-		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "arrows-h"},
+		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false},
 	    },
 	    selection : {
 		type : "labelled_vector",
 		name : "Selection",
 		value_labels : ["start","end"],
 		value : [0, 0],
-		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit"},
+		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
 	    },
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},
-	    lines : { name : "Enable/Disable traces", elements : {}, ui_opts : { label: true, root_classes : ["inline"]} }
+	    lines : {ui_opts : { root_classes : ["inline"]} }
 	}
     }
 };

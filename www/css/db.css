@@ -4,9 +4,6 @@ On top of bootsrap 3
 */
 
 
-body{
-  padding-top: 70px;
-}
 
 header{
   display: flex;
@@ -155,9 +152,9 @@ html.dragging * {
 .widget_title{
   display : inline-block;
   font-family : "Ubuntu";
-  font-size: 1.5em;
-  font-weight: bold;
- 
+}
+.db .db .widget_title {
+
 }
 
 .divided{
@@ -1053,6 +1050,7 @@ progress[value]::-webkit-progress-value {
 }
 /* widget specific styling */
 
+/*
 .db input[type="number"]{
   max-width: 6em;
 }
@@ -1060,7 +1058,7 @@ progress[value]::-webkit-progress-value {
 .db[data-type="action"]{
     display: inline-block;
 }
-
+*/
 
 .db input[type="radio"]{
                            margin-left: .1em;
@@ -1378,10 +1376,11 @@ WebGL + svg screen
 
 
 .drawing_node{
-  height : 75vh;
-  max-height : 75vh;
+  height : 78vh;
+  max-height : 78vh;
   width: 100%;
-  border: 5px solid lightgrey;
+  border: 1px solid lightgrey;
+  border-radius: .5em;
 
 /*
 

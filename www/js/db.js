@@ -521,7 +521,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
     //ui_root.style.display="relative";
     ui_root.style.zIndex=depth;
-    ui_root.className="db container-fluid";// container-fluid";
+    ui_root.className="db";// container-fluid";
 
     if(ui_opts.panel)
 	ui_root.className="db panel panel-default";
@@ -646,10 +646,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    if(!ui_opts.label){
 		//var title_type = (depth>0)?("h"+(depth+2)):"h1";
-		var name_node="div";//è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
 		
 		var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
-		ui_name_text.className="h4 widget_title";
+		ui_name_text.className="widget_title";
 		//cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
 		
 		if(è(ui_opts.fa_icon)){
@@ -664,7 +664,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
 		    ui_name_text.add_class("col-md-12");
 		}else
-		    ui_name_text.add_class("col-md-5");
+		    ui_name_text.add_class("col-md-6");
 		
   		if(typeof ico!='undefined')
 		    ui_name_text.prependChild(ico);

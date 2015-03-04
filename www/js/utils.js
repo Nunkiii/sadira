@@ -75,8 +75,11 @@ HTMLElement.prototype.remove_class = function(class_name) {
 };
 
 HTMLElement.prototype.add_class = function(class_name) {
-    if(!this.has_class(class_name))
-	this.className +=' '+class_name;
+    
+    if(!this.has_class(class_name)){
+	if(this.className=="") this.className=class_name; else
+	    this.className +=' '+class_name;
+    }
 };
 
 HTMLElement.prototype.has_class=function(cls) {
