@@ -1400,6 +1400,7 @@ template_ui_builders.combo=function(ui_opts, combo){
 template_ui_builders.action=function(ui_opts, action){
     
     var ui;
+    var iui;
 
     if(è(action.link)){
 	ui = ce("a");
@@ -1413,10 +1414,16 @@ template_ui_builders.action=function(ui_opts, action){
 	ui.addEventListener("click",function(e){
 	    action.trigger("click", action);	    
 	},false);
-	
     }
-    action.ui=ui;
 
+    if(è(ui_opts.wrap)){
+	iui=ce("div");
+	iui.className=è(ui_opts.wrap_classes)?ui_opts.wrap_classes:"col-md-5";
+	iui.appendChild(ui);
+    }else iui=ui;
+    
+    action.ui=ui;
+    
     ui.innerHTML="";
     if(è(ui_opts.fa_icon)){
 	console.log("Setting fa icon !! ");
@@ -1424,9 +1431,16 @@ template_ui_builders.action=function(ui_opts, action){
     }
     ui.innerHTML+=action.name;
 
-    ui.className="btn btn-primary";
-    if(è(ui_opts.btn_type))
-	ui.className+=" btn-"+ui_opts.btn_type;
+    if(ù(ui_opts.item_classes))
+	ui.className="btn btn-default btn-sm";
+    else
+	if(è(iui)){
+	    add_classes(ui_opts.item_classes, ui);
+	    delete ui_opts.item_classes;
+	}
+    
+    // if(è(ui_opts.btn_type))
+    // 	ui.className+=" btn-"+ui_opts.btn_type;
     
     action.disable_element=function(dis){
 	if(dis)
@@ -1497,7 +1511,7 @@ template_ui_builders.action=function(ui_opts, action){
     }	
 
 
-    return ui;
+    return iui;
 
 }
 

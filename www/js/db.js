@@ -478,6 +478,8 @@ function add_close_button(e, node){
 
 
 function create_ui(global_ui_opts, tpl_root, depth){
+
+
     if(ù(global_ui_opts)){
 	console.log("Not even the ui_opts... :(");
 	return;
@@ -622,6 +624,22 @@ function create_ui(global_ui_opts, tpl_root, depth){
     var ui_name=undefined;
     var ui_content=ui_root;
 
+
+    function setup_intro(node){
+    	if(è(tpl_root.intro)){
+	    if(ù(tpl_root.intro_visible)) tpl_root.intro_visible=false;
+	    
+	    tpl_root.intro_btn=ce("span");
+	    tpl_root.intro_btn.className="intro_btn fa fa-lightbulb-o";
+	    node.appendChild(tpl_root.intro_btn);
+	    tpl_root.intro_btn.addEventListener("click", function() {
+		tpl_root.intro_div.style.display=tpl_root.intro_visible?"none":"";
+		tpl_root.intro_visible=!tpl_root.intro_visible;
+	    } );
+	}
+    }
+
+    
     if(è(tpl_root.name) && ui_opts.render_name){
 
 	ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
@@ -668,7 +686,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
   		if(typeof ico!='undefined')
 		    ui_name_text.prependChild(ico);
-		
+
+		setup_intro(ui_name_text);
 		//ui_name_text.add_class("title");
 		//if(tpl_root.depth==1)
 		//	ui_name.add_class("page-header");
@@ -682,7 +701,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		ui_name.innerHTML+=tpl_root.name;
 		if(typeof ico!='undefined')
 		    ui_name.prependChild(ico);
-		
+		setup_intro(ui_name);
 	    }
 	    
 	    if(typeof ui_opts.name_classes != 'undefined'){
@@ -710,6 +729,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	
 	tpl_root.rebuild_name();
+    }else{
+	setup_intro(ui_root);
     }
 
     //tpl_root.listen("name_changed", function(){rebuild_name();});
@@ -730,25 +751,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     */
     
     if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
-	var intro;
+	tpl_root.intro_div=cc("div",tpl_root.ui_root);
+	tpl_root.intro_div.className="col-md-12 text-muted";
 
-	if(è(ui_name)){
-	    intro=cc("div",ui_name);
-	    intro.className="col-md-7 text-muted";
-	}else{
-	    intro=cc("div",tpl_root.ui_root);
-	    intro.className="text-muted";
-	}
-
-	intro.innerHTML= " "+tpl_root.intro;
-	/*
-	var b=cc("button",intro,true); b.className="close"; b.type="button";
-	b.setAttribute("data-dismiss","alert");b.setAttribute("aria-label","Close");
-	var sp=cc("span",b); sp.setAttribute("aria-hidden","true");sp.className="";
-	sp.innerHTML="&times;";
-*/
-	sliding_stuff.push(intro);
-
+	tpl_root.intro_div.innerHTML= " "+tpl_root.intro;
+	tpl_root.intro_div.style.display=tpl_root.intro_visible ? "":"none";
+	sliding_stuff.push(tpl_root.intro_div);
     }
 
     /* Toolbar */

@@ -75,15 +75,15 @@ var base_templates={
 	name : "Sign Up",
 	//type : "action",
 	tpl_builder : "signup",
-	intro : "Choose a method for login",
+	subtitle : "Choose a method for login",
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{ child_view_type : "tabbed", tab_classes : ["nav-pills"], root_classes : ["col-sm-11 col-sm-offset-1"], sliding: false},
+	ui_opts :{ child_view_type : "tabbed", tab_classes : ["nav-pills"], root_classes : ["container"]},
 
 	elements : {
 
 	    local : {
-		name : "Create a local account",
-		subtitle : "It's free and always will be.",
+		name : "Local account",
+		subtitle : "Create a new local account.",
 		intro : "Fill up the email and password fields to create your new user account.</p><p> Enter a valid email adress, it will be used to identify you. You'll can configure a username later in your user page if you wish.</p><p> The password will be checked for basic strength.",
 
 		ui_opts : {
@@ -93,7 +93,7 @@ var base_templates={
 		elements : {
 
 		    data : {
-			ui_opts : { child_view_type : "div", child_node_type : "form", child_classes : ["form-horizontal"] },
+			ui_opts : { child_node_type : "form", child_classes : ["form-horizontal"] },
 			elements : {
 			    
 			    email : {
@@ -123,11 +123,13 @@ var base_templates={
 				name : "Create new account",
 				type : "action",
 				ui_opts : {
-				    type : "edit", label: true,
-				    name_classes :["control-label","col-sm-3"],
-				    item_classes : ["btn-primary","btn-lg"],
+				    //label: true,
+				    //name_classes :["control-label","col-sm-3"],
+				    wrap : true,
+				    wrap_classes : ["col-md-offset-7 col-md-5"],
+				    item_classes : ["btn btn-primary btn-lg"],
 				    root_classes : ["form-group"],
-				    label_cnt_classes : ["col-sm-3","col-sm-offset-5"]
+				    //label_cnt_classes : ["col-sm-3","col-sm-offset-5"]
 				}
 			    }
 			}
@@ -219,7 +221,7 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	tpl_builder: "vector",
-	ui_opts : {child_classes : ["row"], item_classes : ["row"]},
+	ui_opts : {child_classes : ["container"], item_classes : []},
 	elements :{
 	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
 	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},

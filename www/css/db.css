@@ -1368,12 +1368,30 @@ view manager
   user-select: none;
 }
 
+.intro_btn{
+
+  font-size: .8em;
+  color: grey;
+  padding: .3em;
+  cursor: pointer;
+}
+
+.intro_btn:hover{
+  font-weight: bold;
+}
 
 /*
 WebGL + svg screen
 */
 
 
+
+
+.tab-pane{
+
+  border : 1px solid lightgrey;
+  padding : .5em;
+}
 
 .drawing_node{
   height : 78vh;
