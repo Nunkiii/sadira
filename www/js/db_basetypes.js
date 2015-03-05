@@ -1466,7 +1466,7 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 
 template_ui_builders.combo=function(ui_opts, combo){
 
-    var ui=combo.ui=ce("select"); 
+    var ui=combo.ui=ce("select"); ui.className="form-control";
     combo.set_options=function(options){
 	console.log("Setting options " + JSON.stringify(options));
 	options.forEach(function(ov){
