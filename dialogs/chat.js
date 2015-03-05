@@ -52,8 +52,6 @@ function demo_chat (dlg, status_cb){
     var uid;
     var nick;
     var user_ip;
-
-
     
     dlg.cnx.listen("closed", function(cr){
 	console.log("Chat : socket connexion closed " + cr);

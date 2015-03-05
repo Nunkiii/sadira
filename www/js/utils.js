@@ -443,6 +443,9 @@ function create_action_menu(base_node){
 
 //var hostname="";
 
+function get_ws_server_address(){
+    return  (document.location.protocol == "https:" ? "wss:":"ws:") + "//" + location.host;
+}
 function get_server_address(){
     return  document.location.protocol + "//" + location.host;
 

@@ -76,8 +76,15 @@ var base_templates={
 	//type : "action",
 	tpl_builder : "signup",
 	subtitle : "Choose a method for login",
+	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p><p>Additional features might be available if your account is linked to a social-network account. You'll can configure your account settings on your user page once logged in. </p> ",
+	intro_visible : true,
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{ child_view_type : "tabbed", tab_classes : ["nav-pills"], root_classes : ["container"]},
+	ui_opts :{
+	    child_view_type : "tabbed",
+	    tab_classes : ["nav-pills"],
+	    root_classes : ["container"],
+	    child_classes : ["container"]
+	},
 
 	elements : {
 
@@ -87,7 +94,7 @@ var base_templates={
 		intro : "Fill up the email and password fields to create your new user account.</p><p> Enter a valid email adress, it will be used to identify you. You'll can configure a username later in your user page if you wish.</p><p> The password will be checked for basic strength.",
 
 		ui_opts : {
-		    name_node : "h2",
+		    name_node : "h3",
 		    fa_icon : "leaf"
 		},
 		elements : {
@@ -140,9 +147,9 @@ var base_templates={
 	    
 	    shib : {
 		name : "IDEM signup",
-		intro : "Signup using your IDEM-GARR account",
+		subtitle : "Signup using your IDEM-GARR account",
 		ui_opts : {
-		    name_node : "h2",
+		    name_node : "h3",
 		    fa_icon : "institution"
 		},
 		elements : {
@@ -158,8 +165,8 @@ var base_templates={
 
 	    fb : {
 		name : "Facebook",
-		intro : "Signup using your Facebook account",
-		ui_opts : { fa_icon : "facebook-official", name_node : "h2"},
+		subtitle : "Signup using your Facebook account",
+		ui_opts : { fa_icon : "facebook-official", name_node : "h3"},
 		elements : {
 		    signup : {
 			name : "Signup !",
@@ -171,9 +178,9 @@ var base_templates={
 
 	    google : {
 		name : "Google",
-		intro : "Signup using your Google account",
+		subtitle : "Signup using your Google account",
 		ui_opts : {
-		    name_node : "h2",
+		    name_node : "h3",
 		    fa_icon : "google-plus"
 		},
 		elements : {
@@ -221,7 +228,6 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	tpl_builder: "vector",
-	ui_opts : {child_classes : ["container"], item_classes : []},
 	elements :{
 	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
 	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},
@@ -241,7 +247,22 @@ var base_templates={
 	    },
 	    lines : {ui_opts : { root_classes : ["inline"]} }
 	}
+    },
+    dbtypes : {
+	name : "Datatypes",
+	subtitle : "Available sadira/tk datatypes",
+	tpl_builder : "dbtypes",
+	ui_opts : {root_classes : ["container-fluid"], child_classes : ["container"]},
+	elements : {}
+    },
+    dbtemplates : {
+	name : "Templates",
+	subtitle : "Available sadira/tk templates",
+	tpl_builder : "dbtemplates",
+	ui_opts : {root_classes : ["container-fluid"]},
+	elements : {}
     }
+
 };
 
 

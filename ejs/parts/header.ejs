@@ -16,16 +16,26 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
 	<li class="dropdown">
-	  <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Projects <span class="caret"></span></a>
+	  <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Experiments <span class="caret"></span></a>
 	  <ul class="dropdown-menu" role="menu">
 	    <li><a href="/widget/xd1">XD-1</a></li>
-	    <li><a href="/widget/gloria">Gloria Widget</a></li>
 	    <li><a href="/widget/nunki">Nunki observatory controller</a></li>
 	    <li><a href="/widget/videocap">Minispectro</a></li>	
 	    <li class="divider"></li>
-	    <li><a href="/widget/nilde">Nilde</a></li>
+	    <li><a href="/widget/gloria">Gloria Widget</a></li>
 	  </ul>
 	</li>
+	
+	<li class="dropdown">
+	  <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Toolkit <span class="caret"></span></a>
+	  <ul class="dropdown-menu" role="menu">
+	    <li><a href="/widget/dbtypes">Datatypes</a></li>
+	    <li><a href="/widget/dbtemplates">Templates</a></li>
+	  </ul>
+	</li>
+
+
+	
 	<% if(user_id==""){ %>
 	<li><a href="/widget/signup">Signup</a></li>
 	<% }else{ %>	

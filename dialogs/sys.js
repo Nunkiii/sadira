@@ -2,10 +2,10 @@
 
 dialog_handlers.sys = {
 
-    monitor : function (dlg, status_cb){
+  monitor : function (dlg, status_cb){
 	
-	
-
-    }
     
+    
+  }
+  
 }

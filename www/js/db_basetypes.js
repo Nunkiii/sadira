@@ -1,3 +1,66 @@
+template_ui_builders.dbtypes=function(ui_opts, dbt){
+
+    for(var dt in template_ui_builders){
+	var t=template_ui_builders[dt];
+	var tple={ name : dt, ui_opts : { name_node : "h4"} };
+	create_ui({},tple);
+	dbt.ui_childs.add_child(tple,tple.ui_root);
+    }
+	
+    
+}
+
+
+template_ui_builders.dbtemplates=function(ui_opts, dbt){
+    var templ={name : "Tmaster :" ,elements: {}, ui_opts : { child_classes : ["container"]} };
+    var ntpl=0;
+    for(var tn in tmaster.templates){
+	console.log("Scanning " + tn);
+	var t=tmaster.templates[tn];
+	var tstring="<pre><code>"+JSON.stringify(t,null,5)+"</code></pre>";
+	
+	var te=templ.elements[tn]={name :t.name+" <span class='label label-default label-xs'>"+tn+"</span>", elements : {
+	    code : {
+		name :"Code", subtitle : "JSON template text",
+		type : "html",
+		value : tstring,
+		ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"] }
+	    },
+	    tryi : {
+		name : "Build here",
+		type : "action",
+		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : []},
+		tn : tn,
+		build : function(tryi){
+		    tryi.listen("click", function(){
+			var tt=tmaster.build_template(tryi.tn);
+			create_ui({},tt);
+			tryi.ui_root.appendChild(tt.ui_root);
+		    });
+		}
+	    },
+	    try : {
+		name : "Try in new page...",
+		type : "action",
+		link : "/widget/"+tn,
+		
+		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : ["inline"]}
+	    }
+	} };
+	if(t.subtitle) te.subtitle=t.subtitle;
+	if(t.intro) te.intro=t.intro;
+	ntpl++;
+    }
+
+    templ.subtitle = ntpl + " templates in use : "
+    create_ui({},templ);
+    for(var t in templ.elements) {
+	templ.elements[t].elements.tryi.build(templ.elements[t].elements.tryi);
+    }
+    
+    dbt.ui_childs.add_child(templ,templ.ui_root);
+}
+
 template_ui_builders.sadira=function(ui_opts, sad){
   
     console.log("sadira link constructor !");
@@ -10,6 +73,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
     new_event(sad,"socket_connect");
     
     //console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
+    //sad.value=get_server_address();
     
     var url=sad.elements.url;
 
@@ -342,7 +406,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    max : tpl_item.max, 
 	    step : tpl_item.step, 
 	    value : tpl_item.value[v],
-	    ui_opts : { label : true, root_classes : [ "inline"] }
+	    ui_opts : { label : true, root_classes : ["inline"] }
 	    /*
 	    parent : { 
 		ui_childs : { 
@@ -410,8 +474,6 @@ template_ui_builders.signup=function(ui_opts, signup){
 
     var shib_signup=shib.elements.signup;
 
-    
-    
 
     shib_signup.listen("click", function(){
 
@@ -1344,6 +1406,8 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     tpl_item.set_value=function(nv){
 	if(typeof nv !='undefined')tpl_item.value=nv;
 	ui.innerHTML=tpl_item.value;
+
+	hljs.highlightBlock(ui);
     }
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
@@ -1370,6 +1434,8 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 	    tpl_item.set_value(html_content);
 	});
     }
+
+    tpl_item.set_value();
     
     return tpl_item.ui;
 }
@@ -1505,9 +1571,10 @@ template_ui_builders.action=function(ui_opts, action){
 	
 	if(action.ui_title_name!='undefined'){
 	    if(action.ui_name!='undefined')
-		action.ui_name.removeChild(action.ui_title_name);
+		;//action.ui_name.removeChild(action.ui_title_name);
 	}
-	
+	if(action.ui_name!='undefined')
+	    action.ui_root.removeChild(action.ui_name);
     }	
 
 
