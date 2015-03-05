@@ -256,8 +256,7 @@ var base_templates={
 	elements : {}
     },
     dbtemplates : {
-	name : "Templates",
-	subtitle : "Available sadira/tk templates",
+	name : "Sadira/tk templates",
 	tpl_builder : "dbtemplates",
 	ui_opts : {root_classes : ["container-fluid"]},
 	elements : {}

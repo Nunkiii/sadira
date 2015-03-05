@@ -10,7 +10,6 @@ template_ui_builders.dbtypes=function(ui_opts, dbt){
     
 }
 
-
 template_ui_builders.dbtemplates=function(ui_opts, dbt){
     var templ={name : "Tmaster :" ,elements: {}, ui_opts : { child_classes : ["container-fluid"]} };
     var ntpl=0;
@@ -25,7 +24,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	    ui_opts : { root_classes : ["panel panel-default"]},
 	    elements : {
 		code : {
-		    name :"Code", subtitle : "JSON template text",
+		    name :"JSON template",
 		    type : "html",
 		    value : tstring,
 		    ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"] }
@@ -34,14 +33,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		name : "Build here",
 		type : "action",
 		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : []},
-		tn : tn,
-		build : function(tryi){
-		    tryi.listen("click", function(){
-			var tt=tmaster.build_template(tryi.tn);
-			create_ui({},tt);
-			tryi.ui_root.appendChild(tt.ui_root);
-		    });
-		}
+		tn : tn
 	    },
 	    try : {
 		name : "Try in new page...",
@@ -53,7 +45,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	} };
 	
 	if(è(t.tpl_builder)){
-	    console.log("Scanning " + tn + " builder " + t.tpl_builder);
+	    //console.log("Scanning " + tn + " builder " + t.tpl_builder);
 	    var builder=template_ui_builders[t.tpl_builder];
 	    if(ù(builder)){
 		te.elements.builder={
@@ -78,7 +70,12 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
     templ.subtitle = ntpl + " templates in use : "
     create_ui({},templ);
     for(var t in templ.elements) {
-	templ.elements[t].elements.tryi.build(templ.elements[t].elements.tryi);
+	var tryi=templ.elements[t].elements.tryi;
+	tryi.listen("click", function(){
+	    var tt=tmaster.build_template(this.tn);
+	    create_ui({},tt);
+	    this.ui_root.appendChild(tt.ui_root);
+	});
     }
     
     dbt.ui_childs.add_child(templ,templ.ui_root);
