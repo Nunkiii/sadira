@@ -12,19 +12,23 @@ template_ui_builders.dbtypes=function(ui_opts, dbt){
 
 
 template_ui_builders.dbtemplates=function(ui_opts, dbt){
-    var templ={name : "Tmaster :" ,elements: {}, ui_opts : { child_classes : ["container"]} };
+    var templ={name : "Tmaster :" ,elements: {}, ui_opts : { child_classes : ["container-fluid"]} };
     var ntpl=0;
     for(var tn in tmaster.templates){
-	console.log("Scanning " + tn);
+
 	var t=tmaster.templates[tn];
+	
 	var tstring="<pre><code>"+JSON.stringify(t,null,5)+"</code></pre>";
 	
-	var te=templ.elements[tn]={name :t.name+" <span class='label label-default label-xs'>"+tn+"</span>", elements : {
-	    code : {
-		name :"Code", subtitle : "JSON template text",
-		type : "html",
-		value : tstring,
-		ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"] }
+	var te=templ.elements[tn]={
+	    name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
+	    ui_opts : { root_classes : ["panel panel-default"]},
+	    elements : {
+		code : {
+		    name :"Code", subtitle : "JSON template text",
+		    type : "html",
+		    value : tstring,
+		    ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"] }
 	    },
 	    tryi : {
 		name : "Build here",
@@ -47,6 +51,25 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : ["inline"]}
 	    }
 	} };
+	
+	if(è(t.tpl_builder)){
+	    console.log("Scanning " + tn + " builder " + t.tpl_builder);
+	    var builder=template_ui_builders[t.tpl_builder];
+	    if(ù(builder)){
+		te.elements.builder={
+		    name : "Invalid builder",
+		    ui_opts : { label: true, name_classes : ["label label-danger"]}
+		};	
+	    }else{
+		var fstring="<pre><code>"+builder.toString()+"</pre></code>";
+		te.elements.builder_code={
+		    name : "Builder JS code",
+		    type : "html",
+		    value : fstring,
+		    ui_opts : {sliding : true, slided : false, label : true}
+		};
+	    }
+	}
 	if(t.subtitle) te.subtitle=t.subtitle;
 	if(t.intro) te.intro=t.intro;
 	ntpl++;
@@ -1451,13 +1474,15 @@ template_ui_builders.combo=function(ui_opts, combo){
 	});
     }
     new_event(combo,"change");
+    
     ui.addEventListener("change",function(){
+	combo.value=combo.options[ui.selectedIndex];
 	combo.trigger("change",ui.selectedIndex);
     });
     
     if(typeof combo.options != 'undefined') 
 	combo.set_options(combo.options);
-
+    
     return ui;
 }
 

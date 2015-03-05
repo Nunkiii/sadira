@@ -149,13 +149,6 @@ html.dragging * {
 }
 */
 
-.widget_title{
-  display : inline-block;
-  font-family : "Ubuntu";
-}
-.db .db .widget_title {
-
-}
 
 .divided{
 
@@ -265,9 +258,12 @@ span.label_value {
 navigation
 */
 
-
 h4 {
   display : inline-block;
+}
+
+.widget_title{
+  font-family : "Ubuntu";
 }
 
 .navcnt{
@@ -554,22 +550,23 @@ label:hover{
 }
 
 
+/*  
 .db .db .tab_section{
   overflow: auto;
   width: auto;
   max-height: calc(100% - 4.0em);  
-/*  
+
   border: 4px solid yellow;
   overflow-y: auto;
   overflow-x: hidden;
 
 
   width: calc(100% - 10px);
-*/
+
   display: block;
   vertical-align: top;
 }
-
+*/
 .tab_section::-webkit-scrollbar{
   display: none;
 }
@@ -580,20 +577,54 @@ Widget - w-m
 */
 
 .widget {
-  position: absolute;
+  position: relative;
   display: block;
-  top:  100px;
-  left: 100px;
+  top:  0px;
+  left: 0px;
   border-radius : .3em .3em 0em 0em;
   border: 0px solid red;
   box-shadow: 0px 0px 10px black;
 }
 
-.widget_topbar{
-  background: darkblue;
-  border-radius : .3em .3em 0em 0em;
+.widget .topbar{
+  display : inline-block;
+  background : rgba(10,10,10,.7);
+  width: 100%;
+  padding: .3em;
   height: 2.5em;
+  color: white;
+  font-family : "Ubuntu";
 }
+
+.widget .content {
+  background : rgba(250,250,250,0.7);
+  height: calc(  100% - 2.5em);
+}
+
+.db[data-type="videocap"] .widget .content {
+  background : rgba(250,250,250,0.0);
+  height: 0%;
+}
+
+.db[data-type="videocap"] .widget {
+  position: relative;
+  display: block;
+  top:  0px;
+  left: 0px;
+  box-shadow: none;
+}
+
+.db[data-type="videocap"] .widget .topbar{
+  display : inline-block;
+  background : rgba(10,10,10,0.0);
+  width: 100%;
+  height: 100%;
+  padding: 0em;
+  border: 2px dashed orange;
+  color: white;
+}
+
+
 /* 
 sliding 
 */
@@ -675,8 +706,14 @@ label{
   margin-right: auto;
   display: block;
   
-  width: 50%;
+  width: 100%;
 }
+
+.db[data-type="videocap"]> .row >.db{
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
 
 .db[data-type="login"] {
   display: table-cell;
@@ -799,11 +836,6 @@ intro
 */
 }
 
-.db[data-type="videocap"]> .row >.db{
-  max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
 
 .db[data-type="action"]{
   /*

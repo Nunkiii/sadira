@@ -2,17 +2,21 @@
 function widget(){
     this.dims=[500,300];
     this.title="widget!";
-    return this.build();
+    this.build();
+    return this;
 }
 
 widget.prototype.build=function(){
-
+    var wid=this;
+    new_event(wid, "resize");
     var w=this.widget_div=ce("div");w.className="widget";
-    var top_bar=this.topbar=cc("div",w); top_bar.add_class("widget_topbar");
+    w.style.zIndex=15;
+    var top_bar=this.topbar=cc("div",w); top_bar.add_class("topbar");
     var content=this.content=cc("div",w);content.className="content";
 
-    top_bar.innerHTML="Widget Title [X][Y][Z]";
-    content.innerHTML="Hello World !";
+    top_bar.innerHTML="";//<div class='container'><span class='h4'>Widget Title [X][Y][Z]</span></div>";
+    content.innerHTML="";//Hello World !";
+
     w.style.width=this.dims[0]+"px";
     w.style.height=this.dims[1]+"px";
 
@@ -81,6 +85,8 @@ widget.prototype.build=function(){
 		    }
 		}
 	    }
+
+	    //wid.trigger("resize", {x : w.offsetLeft, y : w.offsetTop, w : w.clientWidth, h: w.clientHeight} );
 	    
 	    /*
 	    var sty=document.defaultView.getComputedStyle(cnt);
@@ -97,7 +103,7 @@ widget.prototype.build=function(){
 	    document.documentElement.removeEventListener('mousemove', on_move, true);
 	    document.documentElement.removeEventListener('mouseup', on_up, true);
 	    //console.log("Done move..."); 
-	    console.log("MouseUp !");
+	    //console.log("MouseUp !");
 	}
 	
 	
@@ -106,14 +112,15 @@ widget.prototype.build=function(){
 	document.documentElement.addEventListener('mouseup', on_up, true);
 
 	var brect={};//w.getBoundingClientRect();
-	console.log("MouseDown !" + select_type + " pos " + JSON.stringify(select_pos) + " bound " + JSON.stringify(brect) + " CW " + w.clientWidth);
+	//console.log("MouseDown !" + select_type + " pos " + JSON.stringify(select_pos) + " bound " + JSON.stringify(brect) + " CW " + w.clientWidth);
 
-	brect.width=w.clientWidth;
-	brect.height=w.clientHeight;
-	brect.left=w.offsetLeft;
-	brect.top=w.offsetTop;
+	brect.width=brect.w=w.clientWidth;
+	brect.height=brect.h=w.clientHeight;
+	brect.left=brect.x=w.offsetLeft;
+	brect.top=brect.y=w.offsetTop;
 	
-	console.log("corrected bounds " + JSON.stringify(brect));
+	//console.log("corrected bounds " + JSON.stringify(brect));
+	//wid.trigger("resize", {x : w.offsetLeft, y : w.offsetTop, w : w.clientWidth, h: w.clientHeight} );
     }
     
     var top_zone;
@@ -168,6 +175,8 @@ widget.prototype.build=function(){
 			w.style.cursor="auto";
 		    }
 		}
+
+	wid.trigger("resize", {x : w.offsetLeft, y : w.offsetTop, w : w.clientWidth, h: w.clientHeight} );
     }
 
     
@@ -175,7 +184,7 @@ widget.prototype.build=function(){
 	
 
 	top_zone=top_bar.clientHeight*1.0-border_zone;
-	console.log("Widget mouse enter " + ev.clientX + ", " + ev.clientY + "top zone " + top_zone);
+	//console.log("Widget mouse enter " + ev.clientX + ", " + ev.clientY + "top zone " + top_zone);
 	w.addEventListener("mousemove", wmouse_move);
 	w.addEventListener('mousedown', border_mousedown, false);
 
@@ -184,7 +193,7 @@ widget.prototype.build=function(){
     });
 
     w.addEventListener("mouseleave", function (ev){
-	console.log("Widget mouse leave " + ev.clientX + ", " + ev.clientY);
+	//console.log("Widget mouse leave " + ev.clientX + ", " + ev.clientY);
 	//ev.currentTarget.style.border="3px solid orange";
 	w.removeEventListener("mousemove", wmouse_move);
 	w.removeEventListener('mousedown', border_mousedown, false);
@@ -198,8 +207,6 @@ widget.prototype.build=function(){
 
 (function(){
     window.addEventListener("load",function(){
-	console.log("hello windows !");
-	var w=new widget();
-	//document.body.appendChild(w);
+//    console.log("Hello A window !");
     });
 })();
