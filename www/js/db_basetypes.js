@@ -21,7 +21,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	
 	var te=templ.elements[tn]={
 	    name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
-	    ui_opts : { root_classes : ["panel panel-default"]},
+	    ui_opts : { root_classes : ["panel panel-default"], name_node : "h3"},
 	    elements : {
 		code : {
 		    name :"JSON template",
@@ -824,7 +824,7 @@ template_ui_builders.login=function(ui_opts, login){
     else{
 	success_mode(login.user_id);
     }
-    
+    /*
     window.FB.getLoginStatus(function(response) {
 	if (response.status === 'connected') {
 	    // the user is logged in and has authenticated your
@@ -871,6 +871,7 @@ template_ui_builders.login=function(ui_opts, login){
 	}
 	
     });
+*/
 }
 
 
@@ -1949,7 +1950,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    //console.log("plot draw..." + p.label);
 	    p.le.set_title(p.label);
 	    
-	    if(p.le.value){
+	    if(p.le.value && p.data.length!==0){
 		p.path=context.append("path");
 		p.path.attr("stroke", p.stroke);
 		p.path.attr("stroke-width", p.stroke_width);
@@ -1958,8 +1959,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 		p.path.datum(p.data)
 		//.attr("class", "line_black")
 		    .attr("d", p.line);
-		
-		
+
 		context.append("text")
 		    .attr("transform", "translate(" + (3) + "," + yscale(p.data[0]) + ")")
 		    .attr("dy", ".35em")

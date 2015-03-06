@@ -602,16 +602,20 @@ Widget - w-m
 }
 
 .db[data-type="videocap"] .widget .content {
-  background : rgba(250,250,250,0.0);
   height: 0%;
+  display: none;
+}
+
+.db[data-type="videocap"] .widget:hover {
+  background : rgba(180,100,250,.5);
 }
 
 .db[data-type="videocap"] .widget {
   position: relative;
   display: block;
-  top:  0px;
-  left: 0px;
   box-shadow: none;
+  border: 2px solid purple;
+  z-index: 20;
 }
 
 .db[data-type="videocap"] .widget .topbar{
@@ -620,8 +624,6 @@ Widget - w-m
   width: 100%;
   height: 100%;
   padding: 0em;
-  border: 2px dashed orange;
-  color: white;
 }
 
 
@@ -710,8 +712,10 @@ label{
 }
 
 .db[data-type="videocap"]> .row >.db{
-  max-height: 70vh;
+  max-height: 75vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  
 }
 
 
@@ -1527,6 +1531,13 @@ d3 vector shape
   stroke: orange;
   stroke-width: 1px;
 }
+
+.line_black {
+  fill: none;
+  stroke: purple;
+  stroke-width: 1px;
+}
+
 
 .line_black {
   fill: none;

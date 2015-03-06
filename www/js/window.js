@@ -1,12 +1,11 @@
 
-function widget(){
-    this.dims=[500,300];
+function widget(g){
     this.title="widget!";
-    this.build();
+    this.build(g);
     return this;
 }
 
-widget.prototype.build=function(){
+widget.prototype.build=function(g){
     var wid=this;
     new_event(wid, "resize");
     var w=this.widget_div=ce("div");w.className="widget";
@@ -17,15 +16,19 @@ widget.prototype.build=function(){
     top_bar.innerHTML="";//<div class='container'><span class='h4'>Widget Title [X][Y][Z]</span></div>";
     content.innerHTML="";//Hello World !";
 
-    w.style.width=this.dims[0]+"px";
-    w.style.height=this.dims[1]+"px";
-
+    w.style.width=g.w+"px";
+    w.style.height=g.h+"px";
+    w.style.left=g.x+"px";
+    w.style.top=g.y+"px";
+    
     var border_zone=15;
     var select_type=-1, select_pos=[0,0]; //Type : 0=border, 1=corner Pos : 0=left,top 1=right,bottom
 
+    wid.moving=false;
+    
     function border_mousedown(e){
 	if(select_type==-1) return;
-
+	wid.moving=true;
 	e.preventDefault();
 	var lastX = e.pageX;
 	var lastY = e.pageY;
@@ -104,6 +107,10 @@ widget.prototype.build=function(){
 	    document.documentElement.removeEventListener('mouseup', on_up, true);
 	    //console.log("Done move..."); 
 	    //console.log("MouseUp !");
+	    wid.moving=false;
+	    var dd=get_overflow(w);
+	    //console.log("OVF : " + dd.w + ", " + dd.h);
+	    wid.trigger("resize", {x : w.offsetLeft, y : w.offsetTop, w : w.clientWidth+dd.w, h: w.clientHeight+dd.h} );
 	}
 	
 	
@@ -176,7 +183,7 @@ widget.prototype.build=function(){
 		    }
 		}
 
-	wid.trigger("resize", {x : w.offsetLeft, y : w.offsetTop, w : w.clientWidth, h: w.clientHeight} );
+	
     }
 
     
