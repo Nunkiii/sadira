@@ -1525,7 +1525,6 @@ template_ui_builders.combo=function(ui_opts, combo){
 template_ui_builders.action=function(ui_opts, action){
     
     var ui;
-    var iui;
 
     if(è(action.link)){
 	ui = ce("a");
@@ -1541,11 +1540,6 @@ template_ui_builders.action=function(ui_opts, action){
 	},false);
     }
 
-    if(è(ui_opts.wrap)){
-	iui=ce("div");
-	iui.className=è(ui_opts.wrap_classes)?ui_opts.wrap_classes:"col-md-5";
-	iui.appendChild(ui);
-    }else iui=ui;
     
     action.ui=ui;
     
@@ -1559,7 +1553,7 @@ template_ui_builders.action=function(ui_opts, action){
     if(ù(ui_opts.item_classes))
 	ui.className="btn btn-default btn-sm";
     else
-	if(è(iui)){
+	if(è(ui_opts.wrap_classes)){
 	    add_classes(ui_opts.item_classes, ui);
 	    delete ui_opts.item_classes;
 	}
@@ -1637,7 +1631,7 @@ template_ui_builders.action=function(ui_opts, action){
     }	
 
 
-    return iui;
+    return ui;
 
 }
 
@@ -1850,9 +1844,17 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
 
 	//xr=[0,24];
-	tpl_item.set_range(xr);
-	xscale.domain(xr);
-	yscale.domain(yr); 
+	if(xr[0]===1e30){
+	    tpl_item.set_range([0,1]);
+	    xscale.domain([0,1]);
+	}else{
+	    tpl_item.set_range(xr);
+	    xscale.domain(xr);
+	}
+	if(yr[0]===1e30)
+	    yscale.domain([0,1]);
+	else
+	    yscale.domain(yr);
 
 	tpl_item.redraw();
 	if(è(brush))brush.extent(range.value);

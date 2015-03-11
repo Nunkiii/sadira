@@ -697,6 +697,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		if(è(ui_opts.fa_icon)){
 		    ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+		    //ui_name_text.innerHTML='<i class="icon-'+ui_opts.fa_icon+'"> </i>';
 		    //var fas=cc("span",ui_name,true);
 		    //fas.className="fa fa-"
 		}
@@ -1739,9 +1740,30 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		sliding_stuff.push(item_ui);
 	    }
 	}
+
 	if(item_ui){
+	    if(è(ui_opts.wrap)){
+		var iui;
+		
+		iui=ce("div");
+		
+		if(è(ui_opts.wrap_classes)){
+		    console.log("Adding wrap " + JSON.stringify(ui_opts.wrap_classes) +" to " + tpl_root.name);
+		    add_classes(ui_opts.wrap_classes, iui);
+		}
+		else
+		    iui.add_class("col-md-5");
+		
+		iui.appendChild(item_ui);
+		ui_content.appendChild(iui);
+	    }
+
+	    
 	    if(è(ui_opts.item_classes))	add_classes(ui_opts.item_classes, item_ui);
 	    if(è(tpl_root.on_attached))	tpl_root.on_attached();
+	    
+	    
+
 	}
 	
     }

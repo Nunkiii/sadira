@@ -104,7 +104,7 @@ var base_templates={
 		    data : {
 			ui_opts : {
 			    child_node_type : "form",
-			    child_classes : ["form-horizontal"],
+			    child_classes : ["form-horizontal container"],
 			    root_classes : ["container-fluid"]
 			},
 			elements : {
@@ -117,20 +117,22 @@ var base_templates={
 				ui_opts : { type : "edit",
 					    root_classes : ["form-group"],
 					    label : true,
-					    name_classes : ["control-label","col-sm-3"],
-					    label_cnt_classes : ["col-sm-6"] }
+					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],
+					    wrap : true,
+					    wrap_classes : ["col-sm-6"]
+					  }
 			    },
 			    password : {
 				name : "New password",
 				type : "password",
 				ui_opts : { type : "edit", root_classes : ["form-group"], label : true ,
-					    name_classes : ["control-label","col-sm-3"],label_cnt_classes : ["col-sm-6"] }
+					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
 			    },
 			    password_repeat : {
 				name : "Enter password again",
 				type : "password",
 				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,
-					    name_classes :["control-label","col-sm-3"],label_cnt_classes : ["col-sm-6"] }
+					    name_classes :["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
 			    }
 			    
 			}

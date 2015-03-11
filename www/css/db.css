@@ -27,6 +27,21 @@ header{
   vertical-align: top;
 } 
 
+/*
+bootstrap raw modifs.
+*/
+
+
+.input-group[class*="col-"] {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+  
+
+.db[data-type="double"]  .form-control,.db[data-type="angle"]  .form-control{
+  display: inline-block;
+  width: auto;
+}
 
 .left{
   max-height: 70vh;
@@ -43,13 +58,13 @@ span.fa{
 }
 
 label {
-/*  font-family : "Ubuntu";*/
+  font-family : "Ubuntu";
   font-weight: normal;
+  font-size: 1.0em;
 }
 
 .inline{
   display: inline-block;
-  width: auto;
 } 
 
 .divider_bar { 
@@ -1538,9 +1553,11 @@ d3 vector shape
   stroke: white;
   stroke-width: 1px;
   fill: none;
-  */
-  font-family: sans-serif;
   font: 10px sans-serif;
+  */
+  font-size: .5em;
+  font-family: sans-serif;
+
 }
 
 .line {
