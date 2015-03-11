@@ -90,7 +90,6 @@ exports.init=function(pkg,sad){
 				 new_user.save(function(err) {
 				     if (err)
 					 throw err;
-				     
 				     return done(null, new_user, " Gllllleeee");
 				 });
 			     }

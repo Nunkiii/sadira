@@ -367,7 +367,8 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	    ui.type=ui_opts.input_type;
 	else
 	    ui.type="number";
-	ui.className="form-control input-sm";
+	ui.add_class("form-control input-sm");
+	
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
@@ -441,6 +442,11 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	}; 
 	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
 	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v], cdepth);
+	tpl_item.ui.appendChild(vui);
+	
+	tpl_item.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
+	    console.log("Huuum");//tpl_item.ui.replaceChild(tpl_root, );
+	}}};
 	
 	//tpl_item.inputs[v].ui_root.remove_class("container-fluid");
 	//tpl_item.inputs[v].ui_root.add_class("col-md-6");
@@ -452,7 +458,8 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    tpl_item.trigger("change",this.id);
 	});
 
-	tpl_item.ui_childs.add_child(tpl_item.inputs[v], vui);
+	
+	//tpl_item.ui_childs.add_child(tpl_item.inputs[v], vui);
     }
     
     tpl_item.set_value=function(nv){
@@ -490,8 +497,11 @@ template_ui_builders.signup=function(ui_opts, signup){
     var pwr=data.elements.password_repeat;
 
     //var signup_act=local.elements.signup;
-    var signup_act=data.elements.signup;
+    var signup_status=local.elements.action_panel.elements.status;
+    var signup_act=local.elements.action_panel.elements.signup;
 
+    signup_status.ui_root.style.display="none";
+    
     var shib_signup=shib.elements.signup;
 
 
@@ -514,15 +524,13 @@ template_ui_builders.signup=function(ui_opts, signup){
 
     });
 
-    
-    var config=
-	{
-	    allowPassphrases       : true,
-	    maxLength              : 128,
-	    minLength              : 8,
-	    minPhraseLength        : 20,
-	    minOptionalTestsToPass : 3,
-	};
+    var config={
+	allowPassphrases       : true,
+	maxLength              : 128,
+	minLength              : 8,
+	minPhraseLength        : 20,
+	minOptionalTestsToPass : 3,
+    };
     
     if(è(signup.owasp_config)) for(var c in config_in) config[c]=signup.owasp_config[c];
     owaspPasswordStrengthTest.config(config); 
@@ -641,19 +649,38 @@ template_ui_builders.signup=function(ui_opts, signup){
 
     });
 
+    function display_error_status(title, text){
+	signup_status.ui_root.style.display="";
+	signup_status.ui.className="alert alert-danger";
+	signup_status.ui.innerHTML="<strong>"+title+"</strong><p>"+text+"</p>";
+    }
+    
+    function display_info_status(title, text){
+	signup_status.ui_root.style.display="";
+	signup_status.set_title("Success !"); 
+	signup_status.ui.className="alert alert-info alert-lg";
+	signup_status.ui.innerHTML="<strong>"+title+"</strong><p>"+text+"</p>";
+	
+	data.ui_root.style.display="none";
+	signup_act.ui_root.style.display="none";
+    }
 
     signup_act.listen("click", function(){
 	var post_data="email="+encodeURIComponent(email.ui.value)+"&hashpass="+encodeURIComponent(pw.pui.value);
 	console.log("post data = "+ post_data);
-	var rqinit=new request({ cmd : "/signup", data_mode : "", method : "POST", post_data : post_data});
+	var rqinit=new request({ cmd : "/signup", data_mode : "json", method : "POST", post_data : post_data});
 	
 	rqinit.execute(function(error, res){
-	    if(error){
-		console.log("Error rqinit " + error);
-		return;
-	    }
+
+	    if(error)return display_error_status("HTTP request error :", error);
 
 	    console.log("signup Reply : " + JSON.stringify(res));
+
+	    if(è(res.error)){
+		return display_error_status("Signup error : ", res.error);
+	    }
+
+	    return display_info_status("Welcome ! ", " <p>Your account was successfully created on this server.</p><p> You can now login with your credentials.</p>");
 	    
 	});
     });
@@ -1465,10 +1492,17 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 template_ui_builders.combo=function(ui_opts, combo){
 
     var ui=combo.ui=ce("select"); ui.className="form-control";
+
     combo.set_options=function(options){
+	combo.options=options;
 	console.log("Setting options " + JSON.stringify(options));
 	options.forEach(function(ov){
-	    var o=cc("option",ui); o.value=ov; o.innerHTML=ov;
+	    var o=cc("option",ui);
+	    if(typeof ov == "string"){
+		o.value=ov; o.innerHTML=ov;
+	    }else{
+		o.value=ov.value; o.innerHTML=ov.label;
+	    }
 	});
     }
     new_event(combo,"change");
@@ -1478,8 +1512,10 @@ template_ui_builders.combo=function(ui_opts, combo){
 	combo.trigger("change",ui.selectedIndex);
     });
     
-    if(typeof combo.options != 'undefined') 
+    if(typeof combo.options != 'undefined'){
 	combo.set_options(combo.options);
+	combo.value=combo.options[0];
+    }
     
     return ui;
 }
@@ -1610,11 +1646,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var selection=tpl_item.elements.selection;
     var range=tpl_item.elements.range;
     var lines=tpl_item.elements.lines;
-
-        console.log("Building vector ");
     
     new_event(tpl_item,"range_change");
     new_event(tpl_item,"selection_change");
+
     var ui=tpl_item.ui=ce("div");
     var plots = tpl_item.plots=[];
 
@@ -1622,7 +1657,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     
     
     var bn=d3.select(ui);//tpl_item.ui_childs.div);
-    var vw=600, vh=300;
+    var vw=400, vh=200;
     var pr;
     
     var svg = bn.append('svg')

@@ -29,8 +29,8 @@ var cors_headers = {
 };
 
 /*
-Write data sliced in chunks of 1kb. 
-data can be a buffer or a string.
+  Write data sliced in chunks of 1kb. 
+  data can be a buffer or a string.
 */
 
 GLOBAL.write_chunked_data=function(res, data, result_cb){
@@ -38,6 +38,8 @@ GLOBAL.write_chunked_data=function(res, data, result_cb){
     var l=typeof data === "string" ? Buffer.byteLength(data) : data.length;//, [encoding])  
     var chunk_size=1024;
     var bs=0;
+
+
     function write_next_chunk(){
 	if(bs==l){res.end(); if(è(result_cb)) result_cb(null); return;}
 	var btw=bs+chunk_size<l? chunk_size: l-bs;
@@ -45,6 +47,7 @@ GLOBAL.write_chunked_data=function(res, data, result_cb){
 	//console.log("write chunk... " + bs + "/" + l);
 	if(res.write(chunk)) write_next_chunk();
     }
+    
     res.on("drain",function(){
 	console.log("write buffer drain....");
 	write_next_chunk();
@@ -529,7 +532,7 @@ _sadira.prototype.start_worker = function (){
     app.use(bodyParser()); // get information from html forms
 
     app.set('view engine', 'ejs');
-    //app.set("views", "ejs/");
+    app.set("views", "ejs/");
     
     sad.start_session_handling();
     
@@ -968,7 +971,6 @@ _sadira.prototype.initialize_handlers=function(packname){
 	sad.set_user_data(req, index_info);
 	sad.log("rendering index " + JSON.stringify(index_info));
 	res.render('index.ejs', index_info); // load the index.ejs file
-    
     });
     
     sad.app.get('/widget/:tpl_name', function(req, res) {

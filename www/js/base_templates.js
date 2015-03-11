@@ -95,12 +95,18 @@ var base_templates={
 
 		ui_opts : {
 		    name_node : "h3",
-		    fa_icon : "leaf"
+		    fa_icon : "leaf",
+		    root_classes : ["container-fluid"],
+		    child_classes : ["row"]
 		},
 		elements : {
-
+		    
 		    data : {
-			ui_opts : { child_node_type : "form", child_classes : ["form-horizontal"] },
+			ui_opts : {
+			    child_node_type : "form",
+			    child_classes : ["form-horizontal"],
+			    root_classes : ["container-fluid"]
+			},
 			elements : {
 			    
 			    email : {
@@ -125,23 +131,39 @@ var base_templates={
 				type : "password",
 				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,
 					    name_classes :["control-label","col-sm-3"],label_cnt_classes : ["col-sm-6"] }
-			    },
+			    }
+			    
+			}
+		    },
+		    
+		    action_panel : {
+			ui_opts : { root_classes : ["col-md-12"], child_classes : [""]},
+			elements : {
+
 			    signup : {
 				name : "Create new account",
 				type : "action",
 				ui_opts : {
 				    //label: true,
 				    //name_classes :["control-label","col-sm-3"],
-				    wrap : true,
-				    wrap_classes : ["col-md-offset-7 col-md-5"],
+				    //wrap : true,
+				    //wrap_classes : ["col-md-6"],
+				    root_classes : ["col-md-offset-5 col-md-3"],
 				    item_classes : ["btn btn-primary btn-lg"],
-				    root_classes : ["form-group"],
+				    //root_classes : ["form-group"],
 				    //label_cnt_classes : ["col-sm-3","col-sm-offset-5"]
 				}
+			    },
+			    status : {
+				type : "html",
+				value : "<p><strong>Congrats!</strong> You just created your account. Welcome.</p>",
+				ui_opts : {root_classes : ["col-md-6"], item_classes : ["alert alert-info"], }
 			    }
-			}
-		    },
 
+			}
+		    }
+
+		    
 		}
 	    },
 	    
@@ -228,9 +250,15 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	tpl_builder: "vector",
+	ui_opts : { root_classes : ["panel panel-default"]},
 	elements :{
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus"}},  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus"}},
+	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus",
+								item_classes : ["btn btn-primary btn-xs"]
+							       }
+		   },  
+	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus",
+								  item_classes : ["btn btn-primary btn-xs"]
+								 }},
 	    range : {
 		type : "labelled_vector",
 		name : "Range",

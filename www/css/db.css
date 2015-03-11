@@ -42,9 +42,14 @@ span.fa{
   margin-right: .4em;
 }
 
+label {
+/*  font-family : "Ubuntu";*/
+  font-weight: normal;
+}
 
 .inline{
   display: inline-block;
+  width: auto;
 } 
 
 .divider_bar { 
@@ -164,13 +169,12 @@ html.dragging * {
   display: block;
   vertical-align: top;
   opacity: 1.0;
-  overflow:auto;
- 
+  overflow-y: auto;
+  overflow-x :auto;
   margin: 0px;
 }
 
 .divided .divided{
-  overflow: auto;
 }
 
 .v .divided{
@@ -264,6 +268,14 @@ h4 {
 
 .widget_title{
   font-family : "Ubuntu";
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
 }
 
 .navcnt{
@@ -712,9 +724,10 @@ label{
 }
 
 .db[data-type="videocap"]> .row >.db{
-  max-height: 75vh;
+/*  max-height: 75vh; 
   overflow-y: auto;
   overflow-x: hidden;
+*/
   
 }
 
@@ -1253,10 +1266,14 @@ width: calc(100% - 2em);
 */
 }
 .db[data-type="colormap"].un_editable{
+/*
  width: calc(100% - 2em);
+*/
 }
 .db[data-type="colormap"].un_editable>.dbitem{
+/*
  width: calc(100% - 10px);
+*/
 }
 
 .db[data-type="colormap"]>.dbitem>.colormap{

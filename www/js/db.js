@@ -52,6 +52,15 @@ function get_margins(s){
     
 }
 
+
+function get_paddings(s){
+    var w=0,h=0;
+    w=parseFloat(s.getPropertyValue("padding-left"))+parseFloat(s.getPropertyValue("padding-right"));
+    h=parseFloat(s.getPropertyValue("padding-top"))+parseFloat(s.getPropertyValue("padding-bottom"));
+    return {w: w, h: h};
+    
+}
+
 function get_borders(s){
     var w=0,h=0;
     w=parseFloat(s.getPropertyValue("border-left-width"))+parseFloat(s.getPropertyValue("border-right-width"));
@@ -62,8 +71,9 @@ function get_borders(s){
 function get_overflow(wg){
     var s=window.getComputedStyle(wg,null);
     var m=get_margins(s);
+    var p=get_paddings(s);
     var b=get_borders(s);
-    var o={w: m.w+b.w, h: m.h+b.h, sty : s};
+    var o={w: m.w+b.w+p.w, h: m.h+b.h+p.h, sty : s, m : m, p : p, b : b};
     //console.log("overflow " + JSON.stringify(o,null,2));
     return o;
 }
@@ -116,7 +126,8 @@ function divider(cnt, frac, or, heightf){
 	    var fs=window.getComputedStyle(foot,null);
 	    hstring+=" - "+ fs.height;
 	}
-	hstring+=" - " + htop +"px - 50px )";
+
+	hstring+=" - " + htop +"px - 20px )";
 	//console.log("Head height " + hs.height + "footer height " + fs.height + " window " + wh + " htop " + htop);
 
 	//console.log("Setting height to ["+hstring+"]");
@@ -130,53 +141,67 @@ function divider(cnt, frac, or, heightf){
 	var divnoded=get_overflow(divnode);
 	
 	//var sty=document.defaultView.getComputedStyle(cnt);
-	var cntpad=ho?parseFloat(cntd.sty.paddingTop)+parseFloat(cntd.sty.paddingBottom)
-	    : parseFloat(cntd.sty.paddingLeft)+parseFloat(cntd.sty.paddingRight);
-	//var cnth=parseFloat(sty.height);
 	
-	var wreal=ho?parseFloat(cntd.sty.height):parseFloat(cntd.sty.width);
-	var w=wreal-cntpad;
-//	var divh=sty.height;
+
+	// parseFloat(cntd.sty.paddingTop)+parseFloat(cntd.sty.paddingBottom)+
+	//     parseFloat(cntd.sty.marginTop)+parseFloat(cntd.sty.marginBottom)
+	//     : parseFloat(cntd.sty.paddingLeft)+parseFloat(cntd.sty.paddingRight)+
+	//     parseFloat(cntd.sty.marginRight)+parseFloat(cntd.sty.marginLeft);
+	//var cnth=parseFloat(sty.height);
+	//	var divh=sty.height;
 	
 	
 	//sty=document.defaultView.getComputedStyle(l);
-	var ml=ho?get_margins(leftd.sty).h:get_margins(leftd.sty).w;
+
+	//var ml=ho?get_margins(leftd.sty).h:get_margins(leftd.sty).w;
+
 	//var divh=get_inner_dim(leftd.sty,ho);
 	//console.log("Container : w=" + w + " mtot = " + ml );//+ " sty =  " + JSON.stringify(sty));
 	//console.log("Left : w=" + sty.width + " mtot = " + ml + " clientw=" + this.left.clientWidth);
-	var mr=ho?get_margins(rightd.sty).h:get_margins(rightd.sty).w;
+
+	//var mr=ho?get_margins(rightd.sty).h:get_margins(rightd.sty).w;
 
 	//console.log("Right : w=" + sty.width + " mtot = " + mr + " clientw=" + this.right.clientWidth);
-	sty=document.defaultView.getComputedStyle(divnode);
+	//sty=document.defaultView.getComputedStyle(divnode);
 	
-	var divw=ho?parseFloat(divnoded.sty.height)+divnoded.h:parseFloat(divnoded.sty.width)+divnoded.w;
-	//var wp=wreal-mr-ml-divw;
-	var wp=wreal-divw;
 	
 	//if(ho) wp-=0;
 	//console.log("Width tot margins : " + (leftd.w+cntd.w) + " divp="+divp + " nrl " + mrl + " divw " + divw);
+
+	//var cntpad=ho? cntd.m.h+cntd.b.h : cntd.m.w+cntd.b.w;
+	var cntpad=ho? cntd.p.h : cntd.p.w; 
+
+	//var wreal=ho?parseFloat(cntd.sty.height):parseFloat(cntd.sty.width);
+	var wreal=ho?cnt.clientHeight:cnt.clientWidth;
+	//var w=wreal-cntpad;
+
+	
+
+ 	var divw=ho?parseFloat(divnoded.sty.height)+divnoded.h:parseFloat(divnoded.sty.width)+divnoded.w;
+	//var wp=wreal-mr-ml-divw;
+	var wp=wreal-cntpad-divw;
+
+	console.log("Wcont = " + wreal + " padd " + cntpad + " divw " + divw + " -> " + wp );
+	
 	if(ho){
 	    var wl=(frac/100.0*wp)-leftd.h; //-cntd.w;
 	    var wr=((1.0-frac/100.0)*wp)-rightd.h; //-cntd.w;
 	}else{
-	    var wl=(frac/100.0*wp)-leftd.w; //-cntd.w;
-	    var wr=((1.0-frac/100.0)*wp)-rightd.w; //-cntd.w;
+	    var wl=(frac/100.0*wp);//-leftd.w; //-cntd.w;
+	    var wr=((1.0-frac/100.0)*wp);//-rightd.w; //-cntd.w;
 	}
 	//console.log("HO [[" + ho +"]] wl=" + wl + " wr=" + wr + " wt=" + (wl+wr) + " wl+wr+marg="+ (wl+wr+mr+ml)+" wcnt= " + w);
 	if(ho){
 	    
 	    l.style.height = wl + 'px';
 	    r.style.height = wr + 'px';
-	    l.style.width = "calc(100%  )";
-	    r.style.width = "calc(100%  )";
+	    l.style.width = "100%";
+	    r.style.width = "100%";
 	}else{
 
 	    l.style.width = wl + 'px';
-	    r.style.width = (wr-20) + 'px';
-	    l.style.height = "";
-	    r.style.height = "";
-
-
+	    r.style.width = wr + 'px';
+	    hstring=cnt.clientHeight+"px";
 	    divnode.style.height = hstring;
 	    l.style.height = hstring;
 	    r.style.height = hstring;
@@ -1125,12 +1150,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			//h=get_inner_dim(tpl_root.ui_name.style, true);
 			
 			//h=tpl_root.ui_name.clientHeigth;
-			console.log("ui_name : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+			//console.log("ui_name : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
 		    }
 		    if(è(tpl_root.ui_intro)){
 			var of=get_overflow(tpl_root.ui_intro);
 			h+=tpl_root.ui_intro.offsetHeight + of.h;
-			console.log("ui_intro : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+			//console.log("ui_intro : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
 		    }
 		    //console.log("Total height = " + h);
 		    return h;
@@ -1488,7 +1513,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    set_frame_name(e);
 	    
 	    if(!e.ui_opts.label){
-		e.ui_root.add_class("tab-pane");
+		e.ui_root.add_class("tab-pane container-fluid");
 		//e.ui_root.add_class("fade");
 		//if(nframes==0) e.ui_root.add_class("in");
 		e.ui_root.setAttribute("role","tabpanel");
@@ -1689,19 +1714,24 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    //ui_name.appendChild(item_ui);
 	    //if(ui_opts.type!='edit')
-		//  item_ui.add_class("badge");
-	    item_ui.add_class("label_value");
+	    //item_ui.add_class("inline");
+	    ui_content.appendChild(item_ui);
+	    sliding_stuff.push(item_ui);	    
+	    //item_ui.add_class("");
+	    /*
 	    if(è(tpl_root.ui_childs.div)){
 		item_ui.appendChild(tpl_root.ui_childs.div);
 	    }
-	    var item_cnt=cc("div",ui_content); item_cnt.add_class("label_cnt");
+	    var item_cnt=cc("div",ui_content);
+	    item_cnt.add_class("label_cnt");
 	    item_cnt.appendChild(item_ui);
 
 	    if(è(ui_opts.label_cnt_classes))
 		add_classes(ui_opts.label_cnt_classes, item_cnt);
-
-	    
 	    sliding_stuff.push(item_cnt);
+	    */	    
+
+
 	}
 	else{
 	    if(item_ui){

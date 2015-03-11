@@ -13,6 +13,8 @@
   <script src="js/db_basetypes.js"></script>
   <script src="js/base_templates.js"></script> 
   <script src="js/sadira.js"></script> 
+  <link rel="stylesheet" href="/sadira/community/css/default.min.css">
+  <script src="/sadira/community/js/highlight.min.js"></script>
 
   <link rel="stylesheet" href="/sadira/community/css/font-awesome.min.css"> <!-- load fontawesome -->
   <link rel="stylesheet" href="/sadira/js/community/bootstrap/css/bootstrap.min.css"> <!-- load bootstrap css -->
@@ -63,144 +65,158 @@ est uti in officio maneret; nihilo tamen setius principibus Treverorum ad seconv
 quod cum merito eius a se fieri intellegebat, tum magni interesse arbitrabatureius auctoritatem inter suos quam plurimum valere,
 cuius tam egregiam in se voluntatem perspexisset. Id tulit factum graviterIndutiomarus, suam gratiam inter suos minui, et, qui
 iam ante inimico in nos animo fuisset, multo gravius hoc dolore exarsit.
-  </div>
-
-  <script>
+    </div>
     
-   var test_tpl={
-     //name : "Sadira toolkit layout test",
-     ui_opts : { child_view_type : "divider", root: true },
-     elements : {
-       left : {
-	 name : "Left panel",
-	 ui_opts : { child_view_type : "tabbed"},
-	 intro : "Left panel with tabbed childs.",
-	 //type : "html", 
-	 //url : "../about.html",
-	 elements : {
-	   x : {
-	     name : "An exaample string", type : "string", value : "Hello World!",
-	     intro : "A long description of this string item ... ",
-	     ui_opts : { type : "edit" }
-	   },
-	   y : {
-	     name : "Vector display test",
-	     type : "template", template_name : "vector",
-	     value : [0,1,0,1,0,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0,10,100,200,500,700,1000,2000,3000,4000,5000,2000,1000,100]
-	   },
-	   z : {
-	     name : "Another Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01,
-	     ui_opts : { type : "edit" }
-	   },
-	   t : {
-	     name : "Raw text Area",
-	     type : "text",
-	     value : document.getElementById("debello").textContent
-	   },
-	   tabbed_thing: {
-	     name : "Tabbed widget",
-	     intro : "This is a <i>tabbed</i>  child widget layout !",
-	     ui_opts : { child_view_type : "tabbed"},
-	     elements : {
-	       tab1 : {
-		 name : "Tab One",
-		 type : "string",
-		 value : "Def value !",
-		 intro : "Some text areas ...",
-		 elements : {
-		   t0 : {
-		     name : "Raw text Area 1",
-		     type : "text",
-		     value : document.getElementById("debello").textContent
-		   },
-		   t1 : {
-		     name : "Raw text Area 2",
-		     type : "text",
-		     value : document.getElementById("debello").textContent
-		   },
-		   t2 : {
-		     name : "Raw text Area 3",
-		     type : "text",
-		     value : document.getElementById("debello").textContent
-		   }
-		 }
-	       },
-	       tab2 : {
-		 name : "Tab Two",
-		 type : "string",
-		 value : "Def value !"
-	       },
-	       tab3 : {
-		 name : "Tab Tree",
-		 type : "string",
-		 value : "Def value !"
-	       },
-	       tab4 : {
-		 name : "Tab Four",
-		 type : "string",
-		 value : "Def value !"
-	       }
-	     }
-
-
-	   }
+    <script>
+    
+var test_tpl={
+    name : "Sadira Toolkit",
+    subtitle : "layout test",
+    intro : "Test page for various Sadira/tk widgets.",
+    ui_opts : {
+	root : true,
+	child_view_type : "divider",
+	root_classes : ["container-fluid"],
+	child_classes : [""]
+    },
+    elements : {
+	left : {
+	    name : "Left panel", subtitle : "The main left panel",
 	   
-	 }
-	 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
-       },
-       right : {
-	 name : "Right Panel",
-	 //name : "Right pane",
-	 ui_opts : { child_view_type : "divider", divdir : true },
-	 elements : {
-	   test1 : {
-	     name: "First Sub Panel",
-	     ui_opts : { child_view_type : "divider" },
-	     elements : {
-	       left : {
-		 name : "Vector display test",
-		 type : "template", template_name : "vector",
-		 value : [0,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0]
-	       },
-	       right : {
-		 name : "Right pane",
-		 type : "html", 
-		 url : "../gloria-widget/about_gloria.html",
-		 elements : {
-		   
-		 }
-	       }
-	     }
-	       
+	    ui_opts : { name_node : "h2",
+			child_view_type : "tabbed", root_classes : ["container-fluid"]},
+	    intro : '<p class="alert alert-info">Left panel with tabbed childs.</p>',
+	    //type : "html", 
+	    //url : "../about.html",
+	    elements : {
+		x : {
+		    name : "An exaample string", type : "string", value : "Hello World!",
+		    intro : "A long description of this string item ... ",
+		    ui_opts : { type : "edit" }
+		},
+		y : {
+		    name : "Vector display test",
+		    type : "template", template_name : "vector",
+		    value : [0,1,0,1,0,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0,10,100,200,500,700,1000,2000,3000,4000,5000,2000,1000,100]
+		},
+		z : {
+		    name : "Another Test Double", type : "double", value : 3.1415, min : 0, max : 10, step : 0.01,
+		    ui_opts : { type : "edit" }
+		},
+		t : {
+		    name : "Raw text Area",
+		    type : "text",
+		    value : document.getElementById("debello").textContent
 	   },
-	   test2 : {
-	     //name : "Division SUB-test 2",
-		 ui_opts : { child_view_type : "divider" },
-	         elements : {
-		     left : {
-			 name : "Left pane",
-			 type : "html", 
-			 url : "../about.html"
-			 //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
-		     },
-		     right : {
-			 name : "Right pane",
-			 type : "html", 
-			 url : "../gloria-widget/about_gloria.html",
-			 elements : {
-			     
-			 }
-		     }
-		 }
-		 
-	     }
-	 }
-       }
-     }
-   };
+		tabbed_thing: {
+		    name : "Tabbed widget",
+		    intro : "This is a <i>tabbed</i>  child widget layout !",
+		    ui_opts : { child_view_type : "tabbed"},
+		    elements : {
+			tab1 : {
+			    name : "Tab One",
+			    type : "string",
+			    value : "Def value !",
+			    intro : "Some text areas ...",
+			    elements : {
+				t0 : {
+				    name : "Raw text Area 1",
+				    type : "text",
+				    value : document.getElementById("debello").textContent
+				},
+				t1 : {
+				    name : "Raw text Area 2",
+				    type : "text",
+				    value : document.getElementById("debello").textContent
+				},
+				t2 : {
+				    name : "Raw text Area 3",
+				    type : "text",
+				    value : document.getElementById("debello").textContent
+				}
+			    }
+			},
+			tab2 : {
+			    name : "Tab Two",
+			    type : "string",
+			    value : "Def value !"
+			},
+			tab3 : {
+			    name : "Tab Tree",
+			    type : "string",
+			    value : "Def value !"
+			},
+			tab4 : {
+			    name : "Tab Four",
+			    type : "string",
+			    value : "Def value !"
+			}
+		    }
+		    
+		    
+		}
+		
+	    }
+	    //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
+	},
+	right : {
+	    name : "Right Panel",
+	    subtitle : "Main right divided panel",
+	    //name : "Right pane",
+	    ui_opts : { name_node : "h2", child_view_type : "divider", divdir : true, root_classes : ["container-fluid"] },
+	    elements : {
+		test1 : {
+		    name: "First Sub Panel", subtitle : "Another divided child element...",
+		    ui_opts : { child_view_type : "divider", root_classes : ["container-fluid"] },
+		    elements : {
+			left : {
+			    ui_opts : { root_classes  : ["container-fluid"]},
+			    name : "Vector display test",
+			    type : "template", template_name : "vector",
+			    value : [0,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0]
+			},
+			right : {
+			    ui_opts : { root_classes  : ["container-fluid"]},
+			    name : "Right pane",
+			    type : "html", 
+			    url : "/gloria/about_gloria.html",
+			    elements : {
+			       
+			    }
+			}
+		    }
+		    
+		},
+		test2 : {
+		    name : "Division SUB-test 2", subtitle : "Another divided child element...",
+		    ui_opts : { child_view_type : "divider", root_classes : ["container-fluid"] },
+	            elements : {
+			left : {
+			    name : "Left", subtitle : "Left sub pane",
+			    ui_opts : { root_classes  : ["container-fluid"]},
+			    type : "html", 
+			    url : "/XD-1/about.html"
+			    //ui_opts : { sliding : false, sliding_dir : "v", slided : false, root_classes : ["inline"]} 
+			},
+			right : {
+			    name : "Right", subtitle : "Right sub pane",
+			    ui_opts : { root_classes  : ["container-fluid"]},
+			    type : "html", 
+			    url : "/gloria/about_gloria.html",
+			    elements : {
+				
+			    }
+			}
+		    }
+		    
+		}
+	    }
+	}
+    }
+};
 
-   window.sadira.listen("ready", function(){
-     console.log("Building....");
+window.sadira.listen("ready", function(){
+    console.log("Building....");
      var test=tmaster.build_template(test_tpl);
      document.body.appendChild(create_ui({},test));
      test.trigger("view_update");
