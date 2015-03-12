@@ -471,6 +471,16 @@ function attach_ui(tpl, node){
 
 function get_ico(tpl){
     var ico=undefined;
+    
+    if(è(tpl.ui_opts)){
+	if(è(tpl.ui_opts.icon)){
+	    ico= ce("img");
+	    ico.src=tpl.ui_opts.icon;
+	    ico.className="ico";
+	    return ico;
+	}
+    }
+    
     if(è(tmaster.icons)){
 	
 	if(typeof tmaster.icons[tpl.type] != 'undefined'){
@@ -1117,6 +1127,54 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	break;
 
+    case "bbox":
+	break;
+	var tb;
+
+	ui_childs.add_child=function(e,ui,prep){
+	    if(!add_child_common(e,ui,prep)) return;
+
+	    this.add_child_com(e);
+
+	    if(typeof ui_childs.div=='undefined'){
+		tb=ui_childs.div=ce("table"); 
+		ui_childs.div.className="childs";
+		
+		if(typeof ui_opts.child_classes != 'undefined'){
+		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+		    add_classes(ui_opts.child_classes, ui_childs.div);
+		}
+		
+		ui_content.appendChild(ui_childs.div);
+		sliding_stuff.push(ui_childs.div);
+		
+	    }
+	    if(è(e.ui_name))
+		if(e.ui_opts.close) add_close_button(e,e.ui_name);
+
+	    var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
+
+	    var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
+	    
+	    td=cc("td",tr); td.appendChild(e.ui_root); 
+	    
+	    //prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+	    
+	    
+	}
+
+	ui_childs.replace_child=function(nctpl){
+	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	}
+
+	ui_childs.remove_child=function(e){
+	    ui_childs.div.removeChild(e.ui_root);
+	}
+
+	break;
+
 	
     case "divider":
 	//	ui_childs=tpl_root.ui_childs={};
@@ -1579,7 +1637,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	break;
     default:
-	throw "NO VALID CHILD VIEW TYPE";
+	throw (tpl_root.name +" Invalid child view type : " + cvtype);
 	break;
     }
     
@@ -1695,13 +1753,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	item_ui=tpl_root.item_ui=create_item_ui(ui_opts, tpl_root);
 
+	/*
 	if(!item_ui && ui_opts.label){
 	    item_ui=tpl_root.item_ui=cc("div",ui_content);
 	    if(è(tpl_root.ui_childs.div))
 		item_ui.appendChild(tpl_root.ui_childs.div);
 	    
 	}
-
+*/
 	if(ui_opts.label){
 	    if(sliding){
 

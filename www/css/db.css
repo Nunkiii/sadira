@@ -39,8 +39,13 @@ bootstrap raw modifs.
   
 
 .db[data-type="double"]  .form-control,.db[data-type="angle"]  .form-control{
-  display: inline-block;
-  width: auto;
+ display: inline-block;
+/*   width: auto; */
+}
+
+.navbar-brand{
+  font-family : "Ubuntu";
+  font-weight: 600;
 }
 
 .left{
@@ -401,19 +406,20 @@ font-size: 1.2em;
   box-shadow: 0px 0px 10px white;
 /*  background: linear-gradient(rgba(50,50,50,.3), rgba(20,20,50,0.7) 50%, rgba(8,5,13,0.7) ); */
 }
+
+
 .ico{
   width : 1.5em;
   position: relative;
-  top: -.3em;
   margin-right : .3em;
-/*
+}
 
+h1 .ico{
+  width: 2em;
+}
 
-  
-  width: 1em;
-  padding-right: .5em;
-*/
-
+a .ico{
+  top: -.3em; 
 }
 
 .navcnt.bar > nav{
@@ -1368,17 +1374,27 @@ width: calc(100% - 2em);
 /*
 view manager
 */
+
+.db[data-type="view_manager"]{
+  max-height: 70vh;
+  max-width: 100%;
+  overflow-y : auto;
+  overflow-x: hidden;
+}
+.db[data-type="object_editor"]{
+  max-height: 70vh;
+  max-width: 100%;
+  overflow-y : auto;
+  overflow-x: hidden;
+}
+/*
+
+
 .db[data-type="view_manager"] > .child_container {
   max-height: calc(100% - 3em); 
 }
-.db[data-type="view_manager"] > .child_container .tab_section{
-/*
-  overflow: auto;
-  width: auto;
-  max-height: calc(100% - 6.0em);  
-  border: 2px dashed yellow;
-*/
 
+.db[data-type="view_manager"] > .child_container .tab_section{
   height: auto;
   max-height: calc(100% - .6em); 
 }
@@ -1402,7 +1418,7 @@ view manager
   margin-bottom: .2em;
 }
 
-
+*/
 
 .g.cmap_axe{
   stroke-size: 1em;
@@ -1440,16 +1456,9 @@ view manager
   user-select: none;
 }
 
-.db[data-type="view_manager"]{
-  max-height: 78vh;
-  max-width: 100%;
-  overflow-y : auto;
-  overflow-x: hidden;
-}
 
 .intro_btn{
-
-  font-size: .8em;
+  font-size: .5em;
   color: grey;
   padding: .3em;
   cursor: pointer;
@@ -1473,8 +1482,8 @@ WebGL + svg screen
 }
 
 .drawing_node{
-  height : 78vh;
-  max-height : 78vh;
+  height : 70vh;
+  max-height : 70vh;
   width: 100%;
   border: 1px solid lightgrey;
   border-radius: .5em;
