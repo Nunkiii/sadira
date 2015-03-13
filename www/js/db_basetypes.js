@@ -18,8 +18,10 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	var t=tmaster.templates[tn];
 	
 	var tstring="<pre><code>"+JSON.stringify(t,null,5)+"</code></pre>";
+
 	
 	var te=templ.elements[tn]={
+	    
 	    name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
 	    ui_opts : { root_classes : ["panel panel-default"], name_node : "h3"},
 	    elements : {
@@ -76,6 +78,17 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	    create_ui({},tt);
 	    this.ui_root.appendChild(tt.ui_root);
 	});
+	var tico=get_ico(tmaster.templates[t]);
+	if(ù(tico))
+	    if(è(tmaster.templates[t].ui_opts)){
+		if(è(tmaster.templates[t].ui_opts.fa_icon)){
+		    tico=ce("span");
+		    tico.className='fa fa-'+tmaster.templates[t].ui_opts.fa_icon;
+		}
+	    }
+	
+	if(è(tico)) templ.elements[t].ui_title_name.prependChild(tico);
+	
     }
     
     dbt.ui_childs.add_child(templ,templ.ui_root);
