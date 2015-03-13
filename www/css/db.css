@@ -21,6 +21,64 @@ header{
   url('../fonts/ubuntu/ubuntu-L-webfont.svg#UbuntuLight') format('svg');
 }
 
+@font-face {
+  font-family: Aileron;
+  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 100;
+  src: url("../fonts/aileron/Aileron-UltraLight.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 200;
+  src: url("../fonts/aileron/Aileron-Thin.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 300;
+  src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 400;
+  src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 500;
+  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 600;
+  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 700;
+  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Aileron;
+  font-weight: 900;
+  src: url("../fonts/aileron/Aileron-Black.otf") format("opentype");
+}
+
+*{
+  font-family: Aileron;
+
+}
+
 .db  {
   max-width: 100%;
   max-height:100%;
@@ -44,8 +102,8 @@ bootstrap raw modifs.
 }
 
 .navbar-brand{
-  font-family : "Ubuntu";
-  font-weight: 600;
+  font-family : "Aileron";
+  font-weight: 200;
 }
 
 .left{
@@ -63,7 +121,7 @@ span.fa{
 }
 
 label {
-  font-family : "Ubuntu";
+/*  font-family : "Ubuntu";*/
   font-weight: normal;
   font-size: 1.0em;
 }
@@ -287,7 +345,7 @@ h4 {
 }
 
 .widget_title{
-  font-family : "Ubuntu";
+  font-family : "Ubuntu"; 
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -407,6 +465,8 @@ font-size: 1.2em;
 /*  background: linear-gradient(rgba(50,50,50,.3), rgba(20,20,50,0.7) 50%, rgba(8,5,13,0.7) ); */
 }
 
+
+h1,h2,h3,h4{font-family:"Ubuntu";}
 
 .ico{
   width : 1.5em;

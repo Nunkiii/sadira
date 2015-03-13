@@ -477,6 +477,7 @@ function get_ico(tpl){
 	    ico= ce("img");
 	    ico.src=tpl.ui_opts.icon;
 	    ico.className="ico";
+	    console.log("Got icon " + tpl.ui_opts.icon);
 	    return ico;
 	}
     }
@@ -1772,32 +1773,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }
 
-	    //ui_name.appendChild(item_ui);
-	    //if(ui_opts.type!='edit')
-	    //item_ui.add_class("inline");
-	    ui_content.appendChild(item_ui);
-	    sliding_stuff.push(item_ui);	    
-	    //item_ui.add_class("");
-	    /*
-	    if(è(tpl_root.ui_childs.div)){
-		item_ui.appendChild(tpl_root.ui_childs.div);
-	    }
-	    var item_cnt=cc("div",ui_content);
-	    item_cnt.add_class("label_cnt");
-	    item_cnt.appendChild(item_ui);
-
-	    if(è(ui_opts.label_cnt_classes))
-		add_classes(ui_opts.label_cnt_classes, item_cnt);
-	    sliding_stuff.push(item_cnt);
-	    */	    
-
 
 	}
-	else{
-	    if(item_ui){
-		ui_content.appendChild(item_ui);
-		sliding_stuff.push(item_ui);
-	    }
+
+	if(item_ui){
+	    ui_content.appendChild(item_ui);
+	    sliding_stuff.push(item_ui);
 	}
 
 	if(item_ui){
