@@ -1762,7 +1762,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	}
 */
-	if(ui_opts.label){
+	if(ui_opts.label && è(item_ui)){
 	    if(sliding){
 
 	    }else{
