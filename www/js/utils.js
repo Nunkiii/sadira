@@ -82,8 +82,12 @@ HTMLElement.prototype.add_class = function(class_name) {
     }
 };
 
+window.has_class=function(cls, cstring) {
+  return (' ' + cstring + ' ').indexOf(' ' + cls + ' ') > -1;
+}
+
 HTMLElement.prototype.has_class=function(cls) {
-    return (' ' + this.className + ' ').indexOf(' ' + cls + ' ') > -1;
+  return (' ' + this.className + ' ').indexOf(' ' + cls + ' ') > -1;
 }
 
 HTMLElement.prototype.prependChild = function(child) { return this.insertBefore(child, this.firstChild); };

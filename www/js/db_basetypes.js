@@ -17,7 +17,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 
 	var t=tmaster.templates[tn];
 	
-	var tstring="<pre><code>"+JSON.stringify(t,null,5)+"</code></pre>";
+	var tstring="<pre><code>"+JSON.stringify(t,null,10)+"</code></pre>";
 
 	
 	var te=templ.elements[tn]={
@@ -29,7 +29,9 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		    name :"JSON template",
 		    type : "html",
 		    value : tstring,
-		    ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"] }
+		    ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"],
+				highlight_source: true
+			      }
 	    },
 	    tryi : {
 		name : "Build here",
@@ -60,7 +62,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		    name : "Builder JS code",
 		    type : "html",
 		    value : fstring,
-		    ui_opts : {sliding : true, slided : false, label : true}
+		    ui_opts : {sliding : true, slided : false, label : true,	highlight_source: true}
 		};
 	    }
 	}
@@ -309,24 +311,34 @@ template_ui_builders.main_window=function(ui_opts, prog){
 
 template_ui_builders.progress=function(ui_opts, prog){
 
-    var ui=prog.ui=ce("progress");
+    //var ui=prog.ui=ce("div");
+    //ui.className="progress";
 
+    var pui=prog.ui=ce("div");
+    pui.className="progress-bar";
+    var ui=pui;
     if(typeof prog.value ==='undefined') prog.value=0.0;
     if(typeof prog.min ==='undefined') prog.min=0.0;
     if(typeof prog.max ==='undefined') prog.max=100.0;
     
     prog.setup_ui=function(){
-	ui.min=prog.min;
-	ui.max=prog.max;
-	ui.value=prog.value;
+	pui.setAttribute("role","progressbar");
+	pui.setAttribute("aria-valuemin",prog.min);
+	pui.setAttribute("aria-valuemax",prog.max);
     }
 
     prog.set_value=function(v){
-	if(typeof v !=='undefined') prog.value=v;
-	if(isFinite(prog.value))
-	    ui.value=prog.value;
+	if(typeof v !=='undefined')
+	    prog.value=v;
+	if(isFinite(prog.value)){
+	    pui.style.width=prog.value+"%";
+	    pui.setAttribute("aria-valuenow",prog.value);
+	    pui.innerHTML=prog.value+"%";
+	}
     }
     prog.setup_ui();
+    prog.set_value();
+    
     return ui;
 }
 
@@ -1464,11 +1476,12 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     var ui=tpl_item.ui=ce("div");
     
     ui.className="html_content";
+
     tpl_item.set_value=function(nv){
 	if(typeof nv !='undefined')tpl_item.value=nv;
 	ui.innerHTML=tpl_item.value;
-
-	hljs.highlightBlock(ui);
+	if(è(ui_opts.highlight_source))
+	    if(ui_opts.highlight_source) hljs.highlightBlock(ui);
     }
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
@@ -1501,6 +1514,10 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     return tpl_item.ui;
 }
 
+template_ui_builders.code=function(ui_opts, tpl_item){
+    template_ui_builders.html(ui_opts, tpl_item);
+    
+}
 
 template_ui_builders.combo=function(ui_opts, combo){
 
@@ -1635,11 +1652,11 @@ template_ui_builders.action=function(ui_opts, action){
     }else{
 	//ui=action.ui=ce("input"); ui.type="button";
 	
-	if(action.ui_title_name!='undefined'){
+	if(è(action.ui_title_name)){
 	    if(action.ui_name!='undefined')
 		;//action.ui_name.removeChild(action.ui_title_name);
 	}
-	if(action.ui_name!='undefined')
+	if(è(action.ui_name))
 	    action.ui_root.removeChild(action.ui_name);
     }	
 
@@ -1726,10 +1743,11 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
     }
     
-	
-
+    var zoom=tpl_item.elements.btns.elements.zoom;
+    var unzoom=tpl_item.elements.btns.elements.unzoom;
     
-    tpl_item.elements.zoom.listen("click",function(){
+    
+    zoom.listen("click",function(){
 	return;
 	var s=selection.value, r=range.value; 
 
@@ -1748,7 +1766,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     });
 
 
-    tpl_item.elements.unzoom.listen("click",function(){
+    unzoom.listen("click",function(){
 	//brush.extent(range.value);
 	//select_brush.extent(selection.value);
 	
@@ -1793,6 +1811,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
     
     tpl_item.set_range=function(new_range){
+
 	if(è(new_range))
 	    range.set_value(new_range);
 	
@@ -1800,7 +1819,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//tpl_item.trigger("range_change", range.value);
     };
 
-
+    
     function range_changed() {
 	range.set_value(brush.extent());
 

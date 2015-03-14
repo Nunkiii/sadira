@@ -252,15 +252,12 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	tpl_builder: "vector",
-	ui_opts : { root_classes : ["panel panel-default"]},
+	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container-fluid"] },
 	elements :{
-	    zoom : { name: "Zoom in", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-plus",
-								item_classes : ["btn btn-primary btn-xs"]
-							       }
-		   },  
-	    unzoom : { name : "Unzoom", type : "action", ui_opts:{item_classes:["btn-xs"], fa_icon : "search-minus",
-								  item_classes : ["btn btn-primary btn-xs"]
-								 }},
+	    btns : {ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] }, elements : {
+		zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
+		unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
+	    }},
 	    range : {
 		type : "labelled_vector",
 		name : "Range",

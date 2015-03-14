@@ -269,13 +269,13 @@ function divider(cnt, frac, or, heightf){
 
 
 var local_templates=function(){
-  this.templates={};
+    this.templates={};
 }
 
 local_templates.prototype.add_templates=function(templates){
-  for(var tname in templates){
-    this.templates[tname]=templates[tname];
-  }
+    for(var tname in templates){
+	this.templates[tname]=templates[tname];
+    }
 }
 
 local_templates.prototype.update_template=function(tpl_item, tpl){
@@ -379,12 +379,12 @@ function create_item_ui(ui_opts, tpl_node){
     
     var tpl_name=tpl_node.type;
     if(ù(tpl_name)) tpl_name="none";
-//    if(typeof tpl_name=='undefined') 
-//	throw "No valid template name on tpl_node...";
+    //    if(typeof tpl_name=='undefined') 
+    //	throw "No valid template name on tpl_node...";
     
     var builders=[];
 
-//    if(tpl_name=="template"){
+    //    if(tpl_name=="template"){
     //  }
     //console.log("Building ["+tpl_name+"]");//...." + JSON.stringify(tpl_node,null,4));
 
@@ -498,7 +498,7 @@ function get_ico(tpl){
     return ico;
 }
 
-	    
+
 function add_close_button(e, node){
     if(e.ui_opts.close){
 	var close_but = cc("span",node);
@@ -514,7 +514,7 @@ function add_close_button(e, node){
 
 
 function create_ui(global_ui_opts, tpl_root, depth){
-
+    if(ù(tmaster)) throw("NO TMASTER");
 
     if(ù(global_ui_opts)){
 	console.log("Not even the ui_opts... :(");
@@ -525,7 +525,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	console.log("No tpl root !!!");
 	return;
     }
-
+    
+    
     if(!depth)depth=0;
 
     if(!tpl_root.depth)
@@ -549,24 +550,36 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     var ui_opts=tpl_root.ui_opts;    
 
-    //The main widget div
+    if(ù(ui_opts.item_root)){
+	var p=tpl_root.parent;
+	if(è(p)){
+	    if(è(p.ui_opts)){
+		if(è(p.ui_opts.child_classes)){
+		    if(p.ui_opts.child_classes.length>0){
+			if(has_class("btn-group",p.ui_opts.child_classes[0])){
+			    console.log("Setting item_root to true for " + tpl_root.name);
+			    ui_opts.item_root=true;
+			}
+		    }
+		}
+	    }
+	}
+    }
+
     
+    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
+    var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
+    var animate=è(ui_opts.sliding_animate) ? ui_opts.sliding_animate : false;
+    var slided=(typeof ui_opts.slided === 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
+    var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
     var root_node = è(ui_opts.root_node) ? ui_opts.root_node : "div";
-    var ui_root=tpl_root.ui_root=ce(root_node);     
     
+    var sliding_stuff=[];
+    var item_ui,ui_childs,slide_button,ui_root,ui_name,ui_content;
 
-    
-    //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
-    //ui_root.style.display="relative";
-    ui_root.style.zIndex=depth;
-    ui_root.className="db";// container-fluid";
-
-    if(ui_opts.panel)
-	ui_root.className="db panel panel-default";
-    
+    //The main widget div
     clear_events(tpl_root);
 
-    
     //console.log("TPL " + tpl.name + " events : " + tpl.events);
     if(typeof tpl_root.events!='undefined'){
 	//console.log("Setting up events for " + tpl.name + " type " + tpl.type);
@@ -575,40 +588,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    new_event(tpl_root,e); 
 	});
     }//else	console.log("NO events for " + tpl.name + " type " + tpl.type);
-    
-    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
-    var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
-
-
-    var animate=ui_opts.sliding_animate;
-    if(ù(animate))animate=false;
-    
-
-    
-    //if(typeof ui_opts.slided == 'undefined') ui_opts.slided = true;
-    var slided=(typeof ui_opts.slided === 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
-
-    var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
-    
-    var sliding_stuff=[];
-
-    var item_ui;
-    var slide_button;    
-
-    var ui_childs=tpl_root.ui_childs= new child_container(tpl_root);
-    
-    
     //console.log("Create UI : " + JSON.stringify(tpl_root.name) + " ui options  " + JSON.stringify(ui_opts));
-    
-
-    new_event(tpl_root,"slided");
-    new_event(tpl_root,"view_update");
 
     tpl_root.abort_error=function(error_message){
 	ui_root.innerHTML='<div class="big_error">⚠</div><div class="error_content">'+error_message+'</div>';
     }
 
-    
+    new_event(tpl_root, "selected");
+    new_event(tpl_root,"view_update");
+    new_event(tpl_root,"name_changed");
+    new_event(tpl_root,"hide");
+    new_event(tpl_root,"disable");
+
     tpl_root.view_update_childs=function(){
 	//tpl_root.trigger("view_update");
 	for (var e in tpl_root.elements){
@@ -619,183 +610,252 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     }
     /*
-    tpl_root.listen("view_update", function(){
-	for (var e in tpl_root.elements)
-	    tpl_root.elements[e].trigger("view_update");
-    });
+      tpl_root.listen("view_update", function(){
+      for (var e in tpl_root.elements)
+      tpl_root.elements[e].trigger("view_update");
+      });
     */
-    if(typeof tpl_root.type!='undefined'){
-	ui_root.setAttribute("data-type", tpl_root.type);
-	if(tpl_root.type==="template" && è(tpl_root.template_name))
-	    ui_root.setAttribute("data-tpl", tpl_root.template_name);
+
+    function setup_root(){
+	
+	ui_root=tpl_root.ui_root=ce(root_node);
+	
+	//console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
+	//ui_root.style.display="relative";
+	ui_root.style.zIndex=depth;
+	ui_root.className="db";// container-fluid";
+	if(ui_opts.panel) ui_root.add_class("db panel panel-default");
+
+	if(typeof tpl_root.type!='undefined'){
+	    ui_root.setAttribute("data-type", tpl_root.type);
+	    if(tpl_root.type==="template" && è(tpl_root.template_name))
+		ui_root.setAttribute("data-tpl", tpl_root.template_name);
+	}
+	if(depth==0) ui_root.add_class("root");
+	
+	if(typeof ui_opts.root_classes != 'undefined')
+	    add_classes(ui_opts.root_classes, ui_root);
+	
+	if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
+	
+	
+	ui_content=ui_root;
     }
 
-
-    if(depth==0) ui_root.add_class("root");
-    
-    if(typeof ui_opts.root_classes != 'undefined')
-	add_classes(ui_opts.root_classes, ui_root);
-    
-
-
-    if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
-
-
-    
-//    if(typeof tpl_root.name!='undefined'){
-
-    //var ui_name;
-    if(ù(tmaster)) throw("NO TMSATER !!!!");
     /*
       widget name config
-     */
-
-
-    
-    new_event(tpl_root,"name_changed");
-    
-    if(ù(ui_opts.render_name))ui_opts.render_name=true;
-    if(ù(ui_opts.label)) ui_opts.label=false;
-    
-    var ui_name=undefined;
-    var ui_content=ui_root;
-
-
-    function setup_intro(node){
-    	if(è(tpl_root.intro)){
-	    if(ù(tpl_root.intro_visible)) tpl_root.intro_visible=false;
-	    
-	    tpl_root.intro_btn=ce("span");
-	    tpl_root.intro_btn.className="intro_btn fa fa-lightbulb-o";
-	    node.appendChild(tpl_root.intro_btn);
-	    tpl_root.intro_btn.addEventListener("click", function() {
-		tpl_root.intro_div.style.display=tpl_root.intro_visible?"none":"";
-		tpl_root.intro_visible=!tpl_root.intro_visible;
-	    } );
-	}
-    }
-
-    
-    if(è(tpl_root.name) && ui_opts.render_name){
-
-	ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
-
-	if(!ui_opts.label) ui_name.className="row";
-	
-	if(ui_opts.panel){
-	    var phead=cc("div",ui_root); phead.className="panel-heading"; 
-	    var pcontent=cc("div",ui_root); pcontent.className="panel-content";
-	    phead.appendChild(ui_name);
-	    ui_content=pcontent;
-	}
-	
-	tpl_root.get_title_node=function(){ return this.ui_name; }
-
-	tpl_root.rebuild_name=function(){
-	    
-	    //console.log("rebuild name " + tpl_root.name);
-	    ui_name.innerHTML="";
-	    
-	    var ico=get_ico(tpl_root);
-	    
-	    if(!ui_opts.label){
-		//var title_type = (depth>0)?("h"+(depth+2)):"h1";
-		var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
-		
-		var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
-		ui_name_text.className="widget_title";
-		//cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
-		
-		if(è(ui_opts.fa_icon)){
-		    ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
-		    //ui_name_text.innerHTML='<i class="icon-'+ui_opts.fa_icon+'"> </i>';
-		    //var fas=cc("span",ui_name,true);
-		    //fas.className="fa fa-"
-		}
-		
-		ui_name_text.innerHTML+=tpl_root.name+" ";
-		
-		if(è(tpl_root.subtitle)){
-		    cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
-		    ui_name_text.add_class("col-md-12");
-		}else
-		    ui_name_text.add_class("col-md-6");
-		
-  		if(typeof ico!='undefined')
-		    ui_name_text.prependChild(ico);
-
-		setup_intro(ui_name_text);
-		//ui_name_text.add_class("title");
-		//if(tpl_root.depth==1)
-		//	ui_name.add_class("page-header");
-	    }else{
-
-		//console.log("Set label name " + tpl_root.name);
-		ui_name.innerHTML="";
-		if(è(ui_opts.fa_icon)){
-		    ui_name.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
-		}
-		ui_name.innerHTML+=tpl_root.name;
-		if(typeof ico!='undefined')
-		    ui_name.prependChild(ico);
-		setup_intro(ui_name);
-	    }
-	    
-	    if(typeof ui_opts.name_classes != 'undefined'){
-		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
-		add_classes(ui_opts.name_classes, ui_name);
-	    }
-	    
-	    if(typeof tpl_root.tip != 'undefined'){
-		ui_name.setAttribute("title", tpl_root.tip);
-	    }
-	    
-
-	    if(sliding){
-		if(ù(slide_button)){
-		    slide_button=tpl_root.slide_button=cc("button",ui_name); 
-		    slide_button.style.zIndex=ui_root.style.zIndex+1;
-		}else
-		    ui_name.appendChild(slide_button);
-		update_sliding_arrows();
-		//ui_name.appendChild(slide_button);
-	    }
-
-	    
-	}
-	
-	
-	tpl_root.rebuild_name();
-    }else{
-	setup_intro(ui_root);
-    }
-
-    //tpl_root.listen("name_changed", function(){rebuild_name();});
-    
-    tpl_root.set_title=function(title){
-	tpl_root.name=title;
-	//ui_name.innerHTML=title;
-	tpl_root.trigger("name_changed", title);
-	if(è(tpl_root.rebuild_name))
-	    tpl_root.rebuild_name();
-	//	span.appendChild( document.createTextNode("some new content") );
-    }
-    //tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
-
-    
-    /*
-      widget description (intro) setup
     */
-    
-    if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
-	tpl_root.intro_div=cc("div",tpl_root.ui_root);
-	tpl_root.intro_div.className="col-md-12 text-muted";
 
-	tpl_root.intro_div.innerHTML= " "+tpl_root.intro;
-	tpl_root.intro_div.style.display=tpl_root.intro_visible ? "":"none";
-	sliding_stuff.push(tpl_root.intro_div);
+
+    function setup_title(){
+	
+	
+	if(ù(ui_opts.render_name))ui_opts.render_name=true;
+	if(ù(ui_opts.label)) ui_opts.label=false;
+
+	function setup_intro(node){
+    	    if(è(tpl_root.intro)){
+		if(ù(tpl_root.intro_visible)) tpl_root.intro_visible=false;
+		
+		tpl_root.intro_btn=ce("span");
+		tpl_root.intro_btn.className="intro_btn fa fa-lightbulb-o";
+		node.appendChild(tpl_root.intro_btn);
+		tpl_root.intro_btn.addEventListener("click", function() {
+		    tpl_root.intro_div.style.display=tpl_root.intro_visible?"none":"";
+		    tpl_root.intro_visible=!tpl_root.intro_visible;
+		} );
+	    }
+	}
+	
+	if(è(tpl_root.name) && ui_opts.render_name){
+	    
+	    ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
+	    
+	    if(!ui_opts.label) ui_name.className="row";
+	    
+	    if(ui_opts.panel){
+		var phead=cc("div",ui_root); phead.className="panel-heading"; 
+		var pcontent=cc("div",ui_root); pcontent.className="panel-content";
+		phead.appendChild(ui_name);
+		ui_content=pcontent;
+	    }
+	    
+	    tpl_root.get_title_node=function(){ return this.ui_name; }
+	    tpl_root.rebuild_name=function(){
+		
+		//console.log("rebuild name " + tpl_root.name);
+		ui_name.innerHTML="";
+		
+		var ico=get_ico(tpl_root);
+		
+		if(!ui_opts.label){
+		    //var title_type = (depth>0)?("h"+(depth+2)):"h1";
+		    var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		    
+		    var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
+		    ui_name_text.className="widget_title";
+		    //cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
+		    
+		    if(è(ui_opts.fa_icon)){
+			ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+			//ui_name_text.innerHTML='<i class="icon-'+ui_opts.fa_icon+'"> </i>';
+			//var fas=cc("span",ui_name,true);
+			//fas.className="fa fa-"
+		    }
+		    
+		    ui_name_text.innerHTML+=tpl_root.name+" ";
+		    
+		    if(è(tpl_root.subtitle)){
+			cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
+			ui_name_text.add_class("col-md-12");
+		    }else
+			ui_name_text.add_class("col-md-6");
+		    
+  		    if(typeof ico!='undefined')
+			ui_name_text.prependChild(ico);
+		    
+		    setup_intro(ui_name_text);
+		    //ui_name_text.add_class("title");
+		    //if(tpl_root.depth==1)
+		    //	ui_name.add_class("page-header");
+		}else{
+
+		    //console.log("Set label name " + tpl_root.name);
+		    ui_name.innerHTML="";
+		    if(è(ui_opts.fa_icon)){
+			ui_name.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+		    }
+		    ui_name.innerHTML+=tpl_root.name;
+		    if(typeof ico!='undefined')
+			ui_name.prependChild(ico);
+		    setup_intro(ui_name);
+		}
+		
+		if(typeof ui_opts.name_classes != 'undefined'){
+		    //console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+		    add_classes(ui_opts.name_classes, ui_name);
+		}
+		
+		if(typeof tpl_root.tip != 'undefined'){
+		    ui_name.setAttribute("title", tpl_root.tip);
+		}
+		
+
+		if(sliding){
+		    if(ù(slide_button)){
+			slide_button=tpl_root.slide_button=cc("button",ui_name); 
+			slide_button.style.zIndex=ui_root.style.zIndex+1;
+		    }else
+			ui_name.appendChild(slide_button);
+		    
+		    update_sliding_arrows();
+		    //ui_name.appendChild(slide_button);
+		}
+
+		
+	    }
+	    
+	    
+	    tpl_root.rebuild_name();
+	}else{
+	    setup_intro(ui_root);
+	}
+
+	//tpl_root.listen("name_changed", function(){rebuild_name();});
+	
+	tpl_root.set_title=function(title){
+	    tpl_root.name=title;
+	    //ui_name.innerHTML=title;
+	    tpl_root.trigger("name_changed", title);
+	    if(è(tpl_root.rebuild_name))
+		tpl_root.rebuild_name();
+	    //	span.appendChild( document.createTextNode("some new content") );
+	}
+	//tpl_root.set_title(tpl_root.name ? tpl_root.name : "");
+
+	
+	/*
+	  widget description (intro) setup
+	*/
+	
+	if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
+	    tpl_root.intro_div=cc("div",tpl_root.ui_root);
+	    tpl_root.intro_div.className="col-md-12 text-muted";
+
+	    tpl_root.intro_div.innerHTML= "<div class='alert alert-info'>"+tpl_root.intro+"</div>";
+	    tpl_root.intro_div.style.display=tpl_root.intro_visible ? "":"none";
+	    sliding_stuff.push(tpl_root.intro_div);
+	}
+
+	if(ui_opts.editable){
+	    
+	    var clickable_zone;
+	    
+	    if(ui_opts.type==="edit"){
+		ui_root.add_class("un_editable");
+		
+		var vt=child_view_type();
+		clickable_zone=ui_name;
+	    }else{
+		ui_root.add_class("editable");
+		clickable_zone=ui_root;
+	    }
+
+	    console.log("click zone is " + clickable_zone);
+	    
+	    tpl_root.switch_edit_mode=function(){
+		if(ui_opts.type=="edit"){
+		    ui_opts.type="short";
+		}else{
+		    ui_opts.type="edit";
+		}
+		
+		console.log("switching edit mode to " + ui_opts.type);
+		rebuild();
+		
+	    }
+	    
+	    clickable_zone.addEventListener("click", function(e){
+		
+		//console.log("Drawing " + tpl_root.name + " : EDITABLE CLICK type = " + ui_opts.type);
+		
+		tpl_root.switch_edit_mode();
+		e.cancelBubble = true;
+		
+		if (e.stopPropagation){
+		    e.stopPropagation();
+		    //console.log(tpl_root.name + " : editable stop propagation...");
+		}
+		
+		return false;
+	    }, false);
+	}
+	
+	/*
+	if(typeof tpl_root.clicked != 'undefined'){
+	    //console.log("CLICKABLE found! " + tpl_root.name);
+	    var clickable_zone;
+	    clickable_zone=ui_root;
+	    ui_root.className+=" clickable";
+	    
+	    clickable_zone.addEventListener("click", function(e){
+		tpl_root.clicked(e);
+		
+		e.cancelBubble = true;
+		
+		if (e.stopPropagation){
+		    e.stopPropagation();
+		    //console.log(tpl_root.name + " : editable stop propagation...");
+		}
+		return false;
+	    }, false);
+	}
+	*/
+
+
     }
 
+    
     /* Toolbar */
     
 
@@ -807,81 +867,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(è(ui_opts.enable_wm)){
 	
     }
-    
-    function update_sliding_arrows(){
-	slide_button.className="slide_button fa";
-	slide_button.className+=" "+sliding_dir;
-	//slide_button.innerHTML= slided ? "❌" : "▶" ;
-	//▲❌▼
-	slide_button.className+=slided? " fa-chevron-circle-left" : " fa-chevron-circle-right";
-    }
 
-    function update_sliding_ui(){
-	
-	var marg=[];
-	
-	if(animate){
-	    
-	    switch(sliding_dir){
-	    case "h":
-		marg[0]="marginLeft";
-		marg[1]="marginLeft";
-		break;
-	    case "v":
-		marg[0]="marginTop";
-		marg[1]="marginBottom";
-		break;
-	    default: throw("Bug!!here "); return;
-	    };
-	}
-	
-	
-	
-	if(slided){
-	    
-	    sliding_stuff.forEach(function (s){
-		if(animate){
-		    s.style[marg[0]]="0%";
-		    s.style[marg[1]]="0%";
-		    s.style.opacity="1.0";
-		}else
-		    s.style.display=s.disp_orig;
-		
-		
-	    });
-	    if(è(ui_name)){
-		ui_name.remove_class("unslided");
-		ui_name.add_class("slided");
-	    }
-	}else{
-	    sliding_stuff.forEach(function (s){
-		if(animate){
-		    s.style[marg[0]]="-100%";
-		    s.style[marg[1]]="-100%";
-		    s.style.opacity="0.0";
-		}else s.style.display="none";
-	    });
-	    if(è(ui_name)){
-		ui_name.remove_class("slided");
-		ui_name.add_class("unslided");
-	    }
-	}
-	
-	//if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
-	
-	update_sliding_arrows();
-	
-	if(!animate)tpl_root.trigger("slided", slided);
-	//tpl_root.trigger("slided", slided);
-	//if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
-    }
-    
+
     
     
     //   }
     
     
-    new_event(tpl_root, "selected");
+    
     //console.log("Created selected event on " + e.name);
 
 
@@ -906,7 +899,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
     function rebuild(){
-
 	//if (typeof tpl_root.sliding != 'undefined') 
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
 	//console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
@@ -917,17 +909,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); 
 	tpl_root.parent.ui_childs.replace_child(tpl_root); 
-
-//	var cnt=tpl_root.ui_childs; //new_ui.container=tpl_root.container;
-	
-//	if(typeof cnt!="undefined"){
-
-//	    cnt.replace_child(tpl_root, new_ui);
-	    //ui_root=new_ui;
-	// }
-	// else{
-	//     console.log(tpl_root.name + " cannot rebuild : undef container  " );
-	// }
     }
 
     function child_view_type(){
@@ -936,79 +917,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	return tpl_root.parent.ui_opts.child_view_type;
     }
     
-    if(ui_opts.editable){
 
-	var clickable_zone;
-
-	if(ui_opts.type==="edit"){
-	    ui_root.add_class("un_editable");
-
-	    var vt=child_view_type();
-
-
-	    // if(vt){
-	    // 	if(vt === "tabbed" || vt === "radio"){
-	    // 	    console.log("Root zone....");
-	    // 	    clickable_zone=ui_root;
-
-	    // 	}
-	    // 	else
-	    // 	    clickable_zone=ui_name;
-	    // }else
-	    
-	    clickable_zone=ui_name;
-	}else{
-	    ui_root.add_class("editable");
-	    clickable_zone=ui_root;
-	}
-
-	tpl_root.switch_edit_mode=function(){
-	    if(ui_opts.type=="edit"){
-		ui_opts.type="short";
-	    }else{
-		ui_opts.type="edit";
-	    }
-	    
-	    console.log("switching edit mode to " + ui_opts.type);
-	    rebuild();
-
-	}
-  
-	clickable_zone.addEventListener("click", function(e){
-	    
-	    //console.log("Drawing " + tpl_root.name + " : EDITABLE CLICK type = " + ui_opts.type);
-	    
-	    tpl_root.switch_edit_mode();
-	    e.cancelBubble = true;
-	    
-	    if (e.stopPropagation){
-		e.stopPropagation();
-		//console.log(tpl_root.name + " : editable stop propagation...");
-	    }
-	    
-	    return false;
-	}, false);
-    }
-
-    
-    if(typeof tpl_root.clicked != 'undefined'){
-	//console.log("CLICKABLE found! " + tpl_root.name);
-	var clickable_zone;
-	clickable_zone=ui_root;
-	ui_root.className+=" clickable";
-
-	clickable_zone.addEventListener("click", function(e){
-	    tpl_root.clicked(e);
-
-	    e.cancelBubble = true;
-	    
-	    if (e.stopPropagation){
-		e.stopPropagation();
-		//console.log(tpl_root.name + " : editable stop propagation...");
-	    }
-	    return false;
-	}, false);
-    }
 
     
 
@@ -1022,624 +931,646 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //console.log("Config " + tpl_root.name + " child view ["+cvtype+"] type " + tpl_root.type);
 
 
+    function setup_childs(){
 
-    
-    function add_child_common(e, ui, prep){
+	ui_childs=tpl_root.ui_childs= new child_container(tpl_root);
 	
-	if(è(e.ui_opts)){
-	    if(e.ui_opts.in_root){
-		prep ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
-		return false;
-	    }
-	}
-	return true;
-    }
-
-    //ui_root.add_class(cvtype);
-
-
-    switch(cvtype){
-	
-    case "div":
-//	ui_childs=tpl_root.ui_childs={};
-
-	ui_childs.add_child=function(e,ui,prep){
-
-	    if(!add_child_common(e,ui,prep)) return;
-
-	    this.add_child_com(e);
+	function add_child_common(e, ui, prep){
 	    
-	    if(typeof ui_childs.div=='undefined'){
-		var child_node_type = è(ui_opts.child_node_type) ? ui_opts.child_node_type : "div"
-		ui_childs.div=ce(child_node_type); 
-		//ui_childs.div.className="container-fluid";
-		
-		if(typeof ui_opts.child_classes != 'undefined'){
-		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
-		    add_classes(ui_opts.child_classes, ui_childs.div);
+	    if(è(e.ui_opts)){
+		if(e.ui_opts.in_root){
+		    prep ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
+		    return false;
 		}
-		
-		ui_content.appendChild(ui_childs.div);
-		sliding_stuff.push(ui_childs.div);
-		
 	    }
-	    if(è(e.ui_name))
-		if(e.ui_opts.close) add_close_button(e,e.ui_name);
-	    //ui.add_class("row");
-	    prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+	    return true;
 	}
 	
-
-	ui_childs.replace_child=function(nctpl){
-	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
-	}
-
-	ui_childs.remove_child=function(e){
-	    ui_childs.div.removeChild(e.ui_root);
-	}
-
-	break;
-
-    case "table":
-	var tb;
-	ui_childs.add_child=function(e,ui,prep){
-	    if(!add_child_common(e,ui,prep)) return;
-
-	    this.add_child_com(e);
-
-	    if(typeof ui_childs.div=='undefined'){
-		tb=ui_childs.div=ce("table"); 
-		ui_childs.div.className="childs";
-		
-		if(typeof ui_opts.child_classes != 'undefined'){
-		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
-		    add_classes(ui_opts.child_classes, ui_childs.div);
-		}
-		
-		ui_content.appendChild(ui_childs.div);
-		sliding_stuff.push(ui_childs.div);
-		
-	    }
-	    if(è(e.ui_name))
-		if(e.ui_opts.close) add_close_button(e,e.ui_name);
-
-	    var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
-
-	    var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
-	    
-	    td=cc("td",tr); td.appendChild(e.ui_root); 
-	    
-	    //prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
-	    
-	    
-	}
-
-	ui_childs.replace_child=function(nctpl){
-	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
-	}
-
-	ui_childs.remove_child=function(e){
-	    ui_childs.div.removeChild(e.ui_root);
-	}
-
-	break;
-
-    case "bbox":
-	break;
-	var tb;
-
-	ui_childs.add_child=function(e,ui,prep){
-	    if(!add_child_common(e,ui,prep)) return;
-
-	    this.add_child_com(e);
-
-	    if(typeof ui_childs.div=='undefined'){
-		tb=ui_childs.div=ce("table"); 
-		ui_childs.div.className="childs";
-		
-		if(typeof ui_opts.child_classes != 'undefined'){
-		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
-		    add_classes(ui_opts.child_classes, ui_childs.div);
-		}
-		
-		ui_content.appendChild(ui_childs.div);
-		sliding_stuff.push(ui_childs.div);
-		
-	    }
-	    if(è(e.ui_name))
-		if(e.ui_opts.close) add_close_button(e,e.ui_name);
-
-	    var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
-
-	    var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
-	    
-	    td=cc("td",tr); td.appendChild(e.ui_root); 
-	    
-	    //prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
-	    
-	    
-	}
-
-	ui_childs.replace_child=function(nctpl){
-	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
-	}
-
-	ui_childs.remove_child=function(e){
-	    ui_childs.div.removeChild(e.ui_root);
-	}
-
-	break;
-
+	//ui_root.add_class(cvtype);
 	
-    case "divider":
-	//	ui_childs=tpl_root.ui_childs={};
 	
-	var ho=false;
-
-	ui_childs.add_child=function(e,ui,prep){
-	    if(!add_child_common(e,ui,prep)) return;
+	switch(cvtype){
 	    
-	    this.add_child_com(e);
-	    if(è(ui_opts.divdir)) ho=ui_opts.divdir;
-
-	    if(typeof ui_childs.divider=='undefined'){
-		//ui_childs.div=ce("div"); 
-		//ui_childs.div.className="childs";
+	case "div":
+	    //	ui_childs=tpl_root.ui_childs={};
+	    
+	    ui_childs.add_child=function(e,ui,prep){
 		
-		//ui_childs.divider=new divider(ui_childs.div, 50,ho );
-		var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
-		console.log("split at " + split_frac);
-
-		ui_childs.divider=new divider(ui_root, split_frac,ho, function(){
-		    var h=0;
-		    if(è(tpl_root.ui_head)){
-			var of=get_overflow(tpl_root.ui_head);
-			h=tpl_root.ui_head.offsetHeight + of.h;
-			return h;
+		if(!add_child_common(e,ui,prep)) return;
+		
+		this.add_child_com(e);
+		
+		if(ù(ui_childs.div)){
+		    var child_node_type = è(ui_opts.child_node_type) ? ui_opts.child_node_type : "div"
+		    ui_childs.div=ce(child_node_type); 
+		    //ui_childs.div.className="container-fluid";
+		    
+		    if(typeof ui_opts.child_classes != 'undefined'){
+			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+			add_classes(ui_opts.child_classes, ui_childs.div);
 		    }
 		    
-		    if(è(tpl_root.ui_name)){
-			var of=get_overflow(tpl_root.ui_name);
-			h=tpl_root.ui_name.offsetHeight + of.h;
-			//h=get_inner_dim(tpl_root.ui_name.style, true);
+		    ui_content.appendChild(ui_childs.div);
+		    sliding_stuff.push(ui_childs.div);
+		    
+		}
+		if(è(e.ui_name))
+		    if(e.ui_opts.close) add_close_button(e,e.ui_name);
+		//ui.add_class("row");
+		prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+	    }
+	    
+
+	    ui_childs.replace_child=function(nctpl){
+		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+		ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    }
+
+	    ui_childs.remove_child=function(e){
+		ui_childs.div.removeChild(e.ui_root);
+	    }
+
+	    break;
+
+	case "table":
+	    var tb;
+	    ui_childs.add_child=function(e,ui,prep){
+		if(!add_child_common(e,ui,prep)) return;
+
+		this.add_child_com(e);
+
+		if(typeof ui_childs.div=='undefined'){
+		    tb=ui_childs.div=ce("table"); 
+		    ui_childs.div.className="childs";
+		    
+		    if(typeof ui_opts.child_classes != 'undefined'){
+			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+			add_classes(ui_opts.child_classes, ui_childs.div);
+		    }
+		    
+		    ui_content.appendChild(ui_childs.div);
+		    sliding_stuff.push(ui_childs.div);
+		    
+		}
+		if(è(e.ui_name))
+		    if(e.ui_opts.close) add_close_button(e,e.ui_name);
+
+		var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
+
+		var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
+		
+		td=cc("td",tr); td.appendChild(e.ui_root); 
+		
+		//prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+		
+		
+	    }
+
+	    ui_childs.replace_child=function(nctpl){
+		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+		ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    }
+
+	    ui_childs.remove_child=function(e){
+		ui_childs.div.removeChild(e.ui_root);
+	    }
+
+	    break;
+
+	case "bbox":
+	    break;
+	    var tb;
+
+	    ui_childs.add_child=function(e,ui,prep){
+		if(!add_child_common(e,ui,prep)) return;
+
+		this.add_child_com(e);
+
+		if(typeof ui_childs.div=='undefined'){
+		    tb=ui_childs.div=ce("table"); 
+		    ui_childs.div.className="childs";
+		    
+		    if(typeof ui_opts.child_classes != 'undefined'){
+			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+			add_classes(ui_opts.child_classes, ui_childs.div);
+		    }
+		    
+		    ui_content.appendChild(ui_childs.div);
+		    sliding_stuff.push(ui_childs.div);
+		    
+		}
+		if(è(e.ui_name))
+		    if(e.ui_opts.close) add_close_button(e,e.ui_name);
+
+		var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
+
+		var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
+		
+		td=cc("td",tr); td.appendChild(e.ui_root); 
+		
+		//prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
+		
+		
+	    }
+
+	    ui_childs.replace_child=function(nctpl){
+		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+		ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    }
+
+	    ui_childs.remove_child=function(e){
+		ui_childs.div.removeChild(e.ui_root);
+	    }
+
+	    break;
+
+	    
+	case "divider":
+	    //	ui_childs=tpl_root.ui_childs={};
+	    
+	    var ho=false;
+
+	    ui_childs.add_child=function(e,ui,prep){
+		if(!add_child_common(e,ui,prep)) return;
+		
+		this.add_child_com(e);
+		if(è(ui_opts.divdir)) ho=ui_opts.divdir;
+
+		if(typeof ui_childs.divider=='undefined'){
+		    //ui_childs.div=ce("div"); 
+		    //ui_childs.div.className="childs";
+		    
+		    //ui_childs.divider=new divider(ui_childs.div, 50,ho );
+		    var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
+		    console.log("split at " + split_frac);
+
+		    ui_childs.divider=new divider(ui_root, split_frac,ho, function(){
+			var h=0;
+			if(è(tpl_root.ui_head)){
+			    var of=get_overflow(tpl_root.ui_head);
+			    h=tpl_root.ui_head.offsetHeight + of.h;
+			    return h;
+			}
 			
-			//h=tpl_root.ui_name.clientHeigth;
-			//console.log("ui_name : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+			if(è(tpl_root.ui_name)){
+			    var of=get_overflow(tpl_root.ui_name);
+			    h=tpl_root.ui_name.offsetHeight + of.h;
+			    //h=get_inner_dim(tpl_root.ui_name.style, true);
+			    
+			    //h=tpl_root.ui_name.clientHeigth;
+			    //console.log("ui_name : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+			}
+			if(è(tpl_root.ui_intro)){
+			    var of=get_overflow(tpl_root.ui_intro);
+			    h+=tpl_root.ui_intro.offsetHeight + of.h;
+			    //console.log("ui_intro : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
+			}
+			//console.log("Total height = " + h);
+			return h;
+		    });
+
+		    tpl_root.listen("view_update", function(){
+			//console.log("Divider "+tpl_root.name+" : View Update!");
+			ui_childs.divider.update();
+			tpl_root.view_update_childs();
+		    });
+
+		    ui_childs.divider.listen("drag_end", function(){
+			//console.log("Divider "+tpl_root.name+" : DRAG View Update!");
+			//ui_childs.divider.update();
+			tpl_root.view_update_childs();
+		    });
+
+
+		    if(typeof ui_opts.child_classes != 'undefined'){
+			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
+			add_classes(ui_opts.child_classes, ui_childs.div);
 		    }
-		    if(è(tpl_root.ui_intro)){
-			var of=get_overflow(tpl_root.ui_intro);
-			h+=tpl_root.ui_intro.offsetHeight + of.h;
-			//console.log("ui_intro : total height overflow [" + of.w+ "," + of.h +"] h= " + h);
-		    }
-		    //console.log("Total height = " + h);
-		    return h;
-		});
-
-		tpl_root.listen("view_update", function(){
-		    //console.log("Divider "+tpl_root.name+" : View Update!");
-		    ui_childs.divider.update();
-		    tpl_root.view_update_childs();
-		});
-
-		ui_childs.divider.listen("drag_end", function(){
-		    //console.log("Divider "+tpl_root.name+" : DRAG View Update!");
-		    //ui_childs.divider.update();
-		    tpl_root.view_update_childs();
-		});
-
-
-		if(typeof ui_opts.child_classes != 'undefined'){
-		    //console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
-		    add_classes(ui_opts.child_classes, ui_childs.div);
-		}
-		
-		//ui_root.appendChild(ui_childs.div);
-		//sliding_stuff.push(ui_childs.div);
-		//ui_childs.div.add_class(ho?"h":"v");
-		ui_root.add_class(ho?"h":"v");
-		
-		on_ui_childs_ready();
-	    }
-
-
-	    e.parent=tpl_root;
-	    prep ? ui_root.prependChild(ui) : ui_root.appendChild(ui);
-
-	    if(ù(ui_childs.divider.left)){
-		ui_childs.divider.left=ui;
-		ui.add_class("divided");
-		ui.add_class("one");
-		var divnode = ui_childs.divider.divnode=cc('div',ui_root);
-		divnode.add_class("divider_bar");
-		var divnode_rotate=cc("span",divnode); divnode_rotate.add_class("divnode_rotate");
-		divnode_rotate.innerHTML="↴"; 
-		divnode_rotate.addEventListener("click", function(){
-		    ui_root.remove_class(ho?"h":"v");
-		    ho=!ho;
+		    
+		    //ui_root.appendChild(ui_childs.div);
+		    //sliding_stuff.push(ui_childs.div);
+		    //ui_childs.div.add_class(ho?"h":"v");
 		    ui_root.add_class(ho?"h":"v");
-		    ui_childs.divider.set_orientation(ho);
-		    tpl_root.trigger("view_update");
-		})
-	    }else
-		if(ù(ui_childs.divider.right)){
-		    ui_childs.divider.right=ui;
+		    
+		    on_ui_childs_ready();
+		}
+
+		
+		//e.parent=tpl_root;
+		prep ? ui_root.prependChild(ui) : ui_root.appendChild(ui);
+
+		if(ù(ui_childs.divider.left)){
+		    ui_childs.divider.left=ui;
 		    ui.add_class("divided");
-		    ui.add_class("two");
-		    ui_childs.divider.update();
-		}else{
-		    console.log("Error ! already 2 childs in divider panned child view! ");
-		}
-	    
-	}
-	
-
-	ui_childs.replace_child=function(nctpl){
-	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    ui_root.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
-	}
-	
-	ui_childs.remove_child=function(e){
-	    ui_root.removeChild(e.ui_root);
-	}
-
-	break;
-
-
-
-    case "bar":
-	//console.log("ui root " + ui_root.nodeName);
-//	ui_childs=tpl_root.ui_childs={};
-	//tpl_root.ui_root.appendChild(ui_childs.div);
-//	ui_childs.div=item_ui;
-	//ui_childs.div.className="childs";
-	var nav;
-	ui_childs.add_child=function(e,ui,prep){
-	    
-	    
-	    if(!add_child_common(e,ui,prep)) return;
-	    
-	    this.add_child_com(e);
-	    //console.log("BAR add child on " + ui_childs.div.nodeName);
-
-	    if(typeof ui_childs.div=='undefined'){
-
-		var navcnt=cc("div",ui_root); navcnt.className="navcnt";
-		nav=tpl_root.nav=cc("nav",navcnt);
-		//nav=tpl_root.nav=ce("nav");
-		navcnt.add_class(cvtype);
-		//ui_root.appendChild(navcnt);
+		    ui.add_class("one");
+		    var divnode = ui_childs.divider.divnode=cc('div',ui_root);
+		    divnode.add_class("divider_bar");
+		    var divnode_rotate=cc("span",divnode); divnode_rotate.add_class("divnode_rotate");
+		    divnode_rotate.innerHTML="↴"; 
+		    divnode_rotate.addEventListener("click", function(){
+			ui_root.remove_class(ho?"h":"v");
+			ho=!ho;
+			ui_root.add_class(ho?"h":"v");
+			ui_childs.divider.set_orientation(ho);
+			tpl_root.trigger("view_update");
+		    })
+		}else
+		    if(ù(ui_childs.divider.right)){
+			ui_childs.divider.right=ui;
+			ui.add_class("divided");
+			ui.add_class("two");
+			ui_childs.divider.update();
+		    }else{
+			console.log("Error ! already 2 childs in divider panned child view! ");
+		    }
 		
-		if(ui_opts.bar){
-		    nav.appendChild(ui_name);
-		    ui_name.add_class("dbname_bar");
-		}
-
-		ui_childs.div=ce("div");
-		ui_childs.div.className="childs";
-		
-		if(typeof ui_opts.child_classes != 'undefined')
-		    add_classes(ui_opts.child_classes, ui_childs.div);
-		
-		ui_root.appendChild(ui_childs.div);
-		sliding_stuff.push(nav);
-		sliding_stuff.push(ui_childs.div);
-
-		on_ui_childs_ready();
-	    }
-
-	    function nav_include_div(e){
-		ui_childs.div.appendChild(e.ui_root);
 	    }
 	    
-	    function nav_include(e){
-		if(e.ui_opts.bar){ 
-		    var liti=cc("li",nav);//
+
+	    ui_childs.replace_child=function(nctpl){
+		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+		ui_root.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    }
+	    
+	    ui_childs.remove_child=function(e){
+		ui_root.removeChild(e.ui_root);
+	    }
+
+	    break;
+
+
+
+	case "bar":
+	    //console.log("ui root " + ui_root.nodeName);
+	    //	ui_childs=tpl_root.ui_childs={};
+	    //tpl_root.ui_root.appendChild(ui_childs.div);
+	    //	ui_childs.div=item_ui;
+	    //ui_childs.div.className="childs";
+	    var nav;
+	    ui_childs.add_child=function(e,ui,prep){
+		
+		
+		if(!add_child_common(e,ui,prep)) return;
+		
+		this.add_child_com(e);
+		//console.log("BAR add child on " + ui_childs.div.nodeName);
+
+		if(typeof ui_childs.div=='undefined'){
+
+		    var navcnt=cc("div",ui_root); navcnt.className="navcnt";
+		    nav=tpl_root.nav=cc("nav",navcnt);
+		    //nav=tpl_root.nav=ce("nav");
+		    navcnt.add_class(cvtype);
+		    //ui_root.appendChild(navcnt);
+		    
+		    if(ui_opts.bar){
+			nav.appendChild(ui_name);
+			ui_name.add_class("dbname_bar");
+		    }
+
+		    ui_childs.div=ce("div");
+		    ui_childs.div.className="childs";
+		    
+		    if(typeof ui_opts.child_classes != 'undefined')
+			add_classes(ui_opts.child_classes, ui_childs.div);
+		    
+		    ui_root.appendChild(ui_childs.div);
+		    sliding_stuff.push(nav);
+		    sliding_stuff.push(ui_childs.div);
+
+		    on_ui_childs_ready();
+		}
+
+		function nav_include_div(e){
+		    ui_childs.div.appendChild(e.ui_root);
+		}
+		
+		function nav_include(e){
+		    if(e.ui_opts.bar){ 
+			var liti=cc("li",nav);//
+
+			if(ui_opts.close){
+			    if(è(e.ui_name)) add_close_button(e,e.ui_name);
+			    else
+				add_close_button(e,liti);
+			}
+
+			liti.appendChild(e.ui_root);
+			e.bar_replace=function(){
+			    var newliti=ce("li"); newliti.appendChild(this.ui_root);
+			    nav.replaceChild(newliti, liti);
+			    liti=newliti;
+			}
+		    }else
+			nav_include_div(e);
+		}
+		function nav_include_sliding(e){
+		    
+		    var liti=e.liti=cc("li",nav);//
 
 		    if(ui_opts.close){
 			if(è(e.ui_name)) add_close_button(e,e.ui_name);
 			else
 			    add_close_button(e,liti);
 		    }
+		    
+		    e.listen("slided", function(slided){
+			if(slided){
+			    if(è(e.nav))
+				e.nav.prependChild(e.ui_name);
+			    else
+				e.ui_root.prependChild(e.ui_name);
+			    
+			    liti.add_class("disabled");
+			}else{
+			    //if(!ui_opts.bar)
+			    liti.appendChild(e.ui_name);
+			    liti.remove_class("disabled");
+			}
+		    });
+		    
+		    liti.appendChild(e.ui_name);
+		    
+		    if(!e.ui_opts.label)
+			ui_childs.div.appendChild(ui);
 
-		    liti.appendChild(e.ui_root);
 		    e.bar_replace=function(){
-			var newliti=ce("li"); newliti.appendChild(this.ui_root);
+			var newliti=ce("li"); newliti.appendChild(this.ui_name);
 			nav.replaceChild(newliti, liti);
 			liti=newliti;
 		    }
-		}else
-		    nav_include_div(e);
-	    }
-	    function nav_include_sliding(e){
-		
-		var liti=e.liti=cc("li",nav);//
-
-		if(ui_opts.close){
-		    if(è(e.ui_name)) add_close_button(e,e.ui_name);
-		    else
-			add_close_button(e,liti);
+		    
+		    e.trigger("slided",e.ui_opts.slided);
 		}
-		
-		e.listen("slided", function(slided){
-		    if(slided){
-			if(è(e.nav))
-			    e.nav.prependChild(e.ui_name);
-			else
-			    e.ui_root.prependChild(e.ui_name);
-			
-			liti.add_class("disabled");
-		    }else{
-			//if(!ui_opts.bar)
-			liti.appendChild(e.ui_name);
-			liti.remove_class("disabled");
-		    }
-		});
-		
-		liti.appendChild(e.ui_name);
-		
-		if(!e.ui_opts.label)
-		    ui_childs.div.appendChild(ui);
 
-		e.bar_replace=function(){
-		    var newliti=ce("li"); newliti.appendChild(this.ui_name);
-		    nav.replaceChild(newliti, liti);
-		    liti=newliti;
-		}
-		
-		e.trigger("slided",e.ui_opts.slided);
-	    }
-
-	    if(e.ui_name){
-		if(typeof e.ui_opts !=='undefined'){
-		    if(typeof e.ui_opts.sliding !== 'undefined'){
-			if(e.ui_opts.sliding===true){
-			    nav_include_sliding(e);
-			}else{
-			    nav_include(e);
-			}
+		if(e.ui_name){
+		    if(typeof e.ui_opts !=='undefined'){
+			if(typeof e.ui_opts.sliding !== 'undefined'){
+			    if(e.ui_opts.sliding===true){
+				nav_include_sliding(e);
+			    }else{
+				nav_include(e);
+			    }
+			}else nav_include(e);
 		    }else nav_include(e);
-		}else nav_include(e);
-		//liti.innerHTML=e.title;
-		//cc("li",nav).innerHTML=e.name;
-	    }
-	    
-
-	}
-	
-	ui_childs.remove_child=function(e){
-	    ui_childs.div.removeChild(e.ui_root);
-	}
-
-
-	ui_childs.replace_child=function(new_ctpl){
-	    //var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-	    //console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-	    if(typeof new_ctpl.bar_replace!=='undefined')
-		new_ctpl.bar_replace();
-
-	    ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
-
-	    // if(oldui.parentNode===ui_childs.div)
-	    // 	ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
-
-	}
-//	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;
-	
-	break;
-
-    case "tabbed":
-    case "pills":
-    case "radio":
-	
-	//var div=this.div=ce("div"); 
-	//div.className="tab_widget";
-	//    add_classes(classes,div)
-
-	//var navcnt=cc("div",ui_root); navcnt.className="navcnt";
-
-	var nav=this.nav=cc("ul",ui_root);
-	
-	nav.className="nav";
-	if(typeof ui_opts.tab_classes != 'undefined')
-	    add_classes(ui_opts.tab_classes, nav);
-	else{
-	    nav.add_class(cvtype==="tabbed" ? "nav-tabs" : "nav-pills");
-	}
-	
-	var cnt=this.cnt=cc("div", ui_content);
-	var navcnt=nav;
-	navcnt.add_class(cvtype);
-	//cnt.add_class("child_container");
-	cnt.add_class("tab-content");
-	//cnt.add_class("tab-content");
-
-	
-	sliding_stuff.push(nav);
-	sliding_stuff.push(cnt);
-	//var lm=this;
-	
-	new_event(tpl_root,"element_selected");
-	//this.frames=[];
-	var nframes=0;
-	//    var last_sel_frame;
-	var selected_frame;
-
-	var select_frame=function(f){
-	    //console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
-
-	    if(typeof selected_frame!='undefined'){
-		selected_frame.ui_root.style.display='none';
-		selected_frame.ui_root.remove_class("active");
-		//selected_frame.ui_root.add_class("normal_tab");
-		//	    last_sel_frame=this.selected_frame;
-		
-		//selected_frame.li.remove_class("selected");
-		selected_frame.li.remove_class("active");
-		
-		cnt.replaceChild(f.ui_root,selected_frame.ui_root);
-	    }else
-		cnt.appendChild(f.ui_root);
-	    
-	    f.ui_root.style.display='block';
-	    selected_frame=f;
-	    
-	    selected_frame.li.add_class("active");
-	    selected_frame.ui_root.add_class("active");
-	    
-	    if(è(f.rad)) f.rad.checked=true;
-
-	    if(è(f.parent))
-		f.parent.trigger("element_selected", f);
-	    else
-		console.log("No parent??");
-	    f.trigger("selected");
-
-
-	    return f;
-	}
-	
-	ui_childs.remove_child=function(e){
-	    this.remove_child_com(e);
-
-	    /*
-	    if(e === selected_frame){
-
-		var prev=e.ui_root.previousSibling;
-		while(prev && prev.nodeName!="LI"){
-		    prev=prev.previousSibling;
+		    //liti.innerHTML=e.title;
+		    //cc("li",nav).innerHTML=e.name;
 		}
-		if(prev) 
-		    console.log("Found prev " + prev.nodeName + " fdiv? " + prev.div);
-		if(prev) 
-		    this.select_frame(prev);
-	    }
-	    */
-	    cnt.removeChild(e.ui_root);
-	    nav.removeChild(e.li);
-	    selected_frame=undefined;
-	    nframes--;
-	};
-	
-	var rad_group;
+		
 
-	var set_frame_name=function(e){
-	    if(ù(e.a)){ e.a=cc("a",e.li); e.a.href="javascript:void(0)";}
-	    
-	    e.a.innerHTML="";
-	    if(è(e.ui_opts.fa_icon)){
-		e.a.innerHTML='<span class="fa fa-'+e.ui_opts.fa_icon+'"> </span>';
 	    }
 	    
-	    if(e.name){
- 		e.a.innerHTML+=e.name;
+	    ui_childs.remove_child=function(e){
+		ui_childs.div.removeChild(e.ui_root);
 	    }
+
+
+	    ui_childs.replace_child=function(new_ctpl){
+		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
+		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
+		if(typeof new_ctpl.bar_replace!=='undefined')
+		    new_ctpl.bar_replace();
+
+		ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
+
+		// if(oldui.parentNode===ui_childs.div)
+		// 	ui_childs.div.replaceChild(new_ctpl.ui_root, new_ctpl.ui_root_old);
+
+	    }
+	    //	tpl_root.ui_childs=ui_childs=tpl_root.parent.ui_childs;
+	    
+	    break;
+
+	case "tabbed":
+	case "pills":
+	case "radio":
+	    
+	    //var div=this.div=ce("div"); 
+	    //div.className="tab_widget";
+	    //    add_classes(classes,div)
+
+	    //var navcnt=cc("div",ui_root); navcnt.className="navcnt";
+
+	    var nav=this.nav=cc("ul",ui_root);
+	    
+	    nav.className="nav";
+	    if(typeof ui_opts.tab_classes != 'undefined')
+		add_classes(ui_opts.tab_classes, nav);
 	    else{
-		if(e.type)
-		    e.a.innerHTML="Another " +e.type;
+		nav.add_class(cvtype==="tabbed" ? "nav-tabs" : "nav-pills");
+	    }
+	    
+	    var cnt=this.cnt=cc("div", ui_content);
+	    var navcnt=nav;
+	    navcnt.add_class(cvtype);
+	    //cnt.add_class("child_container");
+	    cnt.add_class("tab-content");
+	    cnt.add_class(cvtype);
+	    //cnt.add_class("tab-content");
+
+	    
+	    sliding_stuff.push(nav);
+	    sliding_stuff.push(cnt);
+	    //var lm=this;
+	    
+	    new_event(tpl_root,"element_selected");
+	    //this.frames=[];
+	    var nframes=0;
+	    //    var last_sel_frame;
+	    var selected_frame;
+
+	    var select_frame=function(f){
+		//console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
+
+		if(typeof selected_frame!='undefined'){
+		    selected_frame.ui_root.style.display='none';
+		    selected_frame.ui_root.remove_class("active");
+		    //selected_frame.ui_root.add_class("normal_tab");
+		    //	    last_sel_frame=this.selected_frame;
+		    
+		    //selected_frame.li.remove_class("selected");
+		    selected_frame.li.remove_class("active");
+		    
+		    cnt.replaceChild(f.ui_root,selected_frame.ui_root);
+		}else
+		    cnt.appendChild(f.ui_root);
+		
+		f.ui_root.style.display='block';
+		selected_frame=f;
+		
+		selected_frame.li.add_class("active");
+		selected_frame.ui_root.add_class("active");
+		
+		if(è(f.rad)) f.rad.checked=true;
+
+		if(è(f.parent))
+		    f.parent.trigger("element_selected", f);
 		else
-		    e.a.innerHTML="Container";
-	    }
+		    console.log("No parent??");
+		f.trigger("selected");
 
-	    var ico=get_ico(e);
-  	    if(è(ico))
-		e.a.prependChild(ico);
-	    
-	    if(e.ui_opts.close) add_close_button(e,e.a);
-	    
-	    if(cvtype==="radio") {
-		if(ù(rad_group))rad_group=Math.random().toString(36).substring(2);
-		e.rad=cc("input",e.a);
-		e.rad.type="radio";
-		e.rad.name=rad_group;
-	    }
-	}
-	
-	var add_frame=function(e){
-	    //console.log("Add tab/radio frame " + e.name);
-	    e.li=cc("li", nav); e.li.setAttribute("role","presentation");
 
-	    e.get_title_node=function(){
-		//console.log("tab/rad get title node ! ");
+		return f;
+	    }
+	    
+	    ui_childs.remove_child=function(e){
+		this.remove_child_com(e);
+
+		/*
+		  if(e === selected_frame){
+
+		  var prev=e.ui_root.previousSibling;
+		  while(prev && prev.nodeName!="LI"){
+		  prev=prev.previousSibling;
+		  }
+		  if(prev) 
+		  console.log("Found prev " + prev.nodeName + " fdiv? " + prev.div);
+		  if(prev) 
+		  this.select_frame(prev);
+		  }
+		*/
+		cnt.removeChild(e.ui_root);
+		nav.removeChild(e.li);
+		selected_frame=undefined;
+		nframes--;
+	    };
+	    
+	    var rad_group;
+
+	    var set_frame_name=function(e){
+		if(ù(e.a)){ e.a=cc("a",e.li); e.a.href="javascript:void(0)";}
+		
+		e.a.innerHTML="";
+		if(è(e.ui_opts.fa_icon)){
+		    e.a.innerHTML='<span class="fa fa-'+e.ui_opts.fa_icon+'"> </span>';
+		}
+		
+		if(e.name){
+ 		    e.a.innerHTML+=e.name;
+		}
+		else{
+		    if(e.type)
+			e.a.innerHTML="Another " +e.type;
+		    else
+			e.a.innerHTML="Container";
+		}
+
+		var ico=get_ico(e);
+  		if(è(ico))
+		    e.a.prependChild(ico);
+		
+		if(e.ui_opts.close) add_close_button(e,e.a);
+		
+		if(cvtype==="radio") {
+		    if(ù(rad_group))rad_group=Math.random().toString(36).substring(2);
+		    e.rad=cc("input",e.a);
+		    e.rad.type="radio";
+		    e.rad.name=rad_group;
+		}
+	    }
+	    
+	    var add_frame=function(e){
+		//console.log("Add tab/radio frame " + e.name);
+		e.li=cc("li", nav); e.li.setAttribute("role","presentation");
+
+		e.get_title_node=function(){
+		    //console.log("tab/rad get title node ! ");
+		    return e.li;
+		}
+		
+		set_frame_name(e);
+		
+		if(!e.ui_opts.label){
+		    e.ui_root.add_class("tab-pane container-fluid");
+		    //e.ui_root.add_class("fade");
+		    //if(nframes==0) e.ui_root.add_class("in");
+		    e.ui_root.setAttribute("role","tabpanel");
+		    e.ui_root.style.display='none';
+		    
+		    e.li.addEventListener("click",function(){
+			//console.log("Li Click !!");
+			select_frame(e); //xd.fullscreen(false);
+
+		    });
+		    //e.tabdiv.appendChild(e.ui_root);
+		    nframes++;
+		    //if(this.frames.length==1) 
+		    
+		    if(ù(selected_frame))
+			select_frame(e);
+		    
+		}//else console.log("LAAABELLL " + e.name);
+		
+		e.listen("name_changed", function(new_title){
+		    set_frame_name(e);
+		});
+
 		return e.li;
 	    }
 	    
-	    set_frame_name(e);
 	    
-	    if(!e.ui_opts.label){
-		e.ui_root.add_class("tab-pane container-fluid");
-		//e.ui_root.add_class("fade");
-		//if(nframes==0) e.ui_root.add_class("in");
-		e.ui_root.setAttribute("role","tabpanel");
-		e.ui_root.style.display='none';
-		
-		e.li.addEventListener("click",function(){
-		    //console.log("Li Click !!");
-		    select_frame(e); //xd.fullscreen(false);
+	    //tpl_root.ui_childs=ui_childs=new tab_widget(tpl_root);
 
-		});
-		//e.tabdiv.appendChild(e.ui_root);
-		nframes++;
-		//if(this.frames.length==1) 
-		
-		if(ù(selected_frame))
-		    select_frame(e);
-		
-	    }//else console.log("LAAABELLL " + e.name);
+	    //ui_childs.div.add_class("childs");
 	    
-	    e.listen("name_changed", function(new_title){
-		set_frame_name(e);
-	    });
-
-	    return e.li;
-	}
-	
-	
-	//tpl_root.ui_childs=ui_childs=new tab_widget(tpl_root);
-
-	//ui_childs.div.add_class("childs");
-	
-	if(typeof ui_opts.child_classes != 'undefined')
-	    add_classes(ui_opts.child_classes, ui_childs.div);
-	
-	//ui_root.appendChild(ui_childs.div);
-	//sliding_stuff.push(ui_childs.div);
-	
-	ui_childs.add_child=function(e,ui,prep){
-	    //console.log("tab/radio add child " + e + " name=" + e.name);
-	    this.add_child_com(e);
-	    //e.parent=tpl_root;
+	    if(typeof ui_opts.child_classes != 'undefined')
+		add_classes(ui_opts.child_classes, ui_childs.div);
 	    
-	    if(add_child_common(e,ui,prep)){
-		if(typeof tpl_root.ui_childs=='undefined'){
-		    
+	    //ui_root.appendChild(ui_childs.div);
+	    //sliding_stuff.push(ui_childs.div);
+	    
+	    ui_childs.add_child=function(e,ui,prep){
+		//console.log("tab/radio add child " + e + " name=" + e.name);
+		this.add_child_com(e);
+		//e.parent=tpl_root;
+		
+		if(add_child_common(e,ui,prep)){
+		    if(typeof tpl_root.ui_childs=='undefined'){
+			
+		    }
+		    var li=add_frame(e);
+		    ui.f=li;
 		}
-		var li=add_frame(e);
-		ui.f=li;
+		//f.div.appendChild(ui);
 	    }
-	    //f.div.appendChild(ui);
-	}
-	
-	ui_childs.replace_child=function(new_ctpl){
-	    if(selected_frame===new_ctpl){
-		cnt.replaceChild(new_ctpl.ui_root,new_ctpl.ui_root_old);
-	    }
-	    console.log("TAB replace node " + new_ctpl.name + " ");
-	    //ui.f.div.replaceChild(new_ctpl.ui_root, oldui);
 	    
-	}
-	on_ui_childs_ready();
+	    ui_childs.replace_child=function(new_ctpl){
+		if(selected_frame===new_ctpl){
+		    cnt.replaceChild(new_ctpl.ui_root,new_ctpl.ui_root_old);
+		}
+		console.log("TAB replace node " + new_ctpl.name + " ");
+		//ui.f.div.replaceChild(new_ctpl.ui_root, oldui);
+		
+	    }
+	    on_ui_childs_ready();
 
-	break;
-    default:
-	throw (tpl_root.name +" Invalid child view type : " + cvtype);
-	break;
+	    break;
+	default:
+	    throw (tpl_root.name +" Invalid child view type : " + cvtype);
+	    break;
+	}
+
+
+	for (var e in tpl_root.elements){
+	    var el=tpl_root.elements[e];
+	    el.parent=tpl_root;
+	    var ui=create_ui(global_ui_opts,el, depth+1);
+
+	    if(ù(ui)){
+		console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
+	    }else{
+		ui_childs.add_child(el,ui);
+	    }
+	    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
+	}
+    }
+
+    tpl_root.hide=function(hide){
+	ui_root.style.display=hide? "none":"";
     }
     
     tpl_root.disable_rec=function(dis, rec){
@@ -1668,19 +1599,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
     }
 
-    var nch=0;
-    for (var e in tpl_root.elements){
-	var el=tpl_root.elements[e];
-	el.container=ui_childs;
-	el.parent=tpl_root;
-	//console.log(tpl_root.name +  " adding child " + e + " name " + el.name);
-	var ui=create_ui(global_ui_opts,el, depth+1);
-	//var ui=create_ui({},el, depth+1);
-
-	ui_childs.add_child(el,ui);
-	nch++;
-	//console.log(tpl_root.name +  " adding child " + el.name + " OK!");
-    }
     //console.log(tpl_root.name +  " added "+nch+"childs");
     
     if(false && è(tpl_root.toolbar)){
@@ -1749,169 +1667,252 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    head.appendChild(tpl_root.ui_intro);
     }
 
-    
-    try{
-	
-	item_ui=tpl_root.item_ui=create_item_ui(ui_opts, tpl_root);
 
-	/*
-	if(!item_ui && ui_opts.label){
-	    item_ui=tpl_root.item_ui=cc("div",ui_content);
-	    if(è(tpl_root.ui_childs.div))
-		item_ui.appendChild(tpl_root.ui_childs.div);
+    function setup_item(){
+	
+	try{
+	    
+	    item_ui=tpl_root.item_ui=create_item_ui(ui_opts, tpl_root);
+	    
+	    if(ui_opts.label && è(item_ui)){
+		if(sliding){
+		    new_event(tpl_root,"slided");
+
+		}else{
+		    if(è(ui_name)){
+			var uid=Math.random().toString(36).substring(2); item_ui.id=uid;
+			ui_name.setAttribute("for",uid);
+		    }
+		    
+		}
+		
+		
+	    }
+	    
+	    
+	    if(item_ui){
+
+		if(!ui_opts.item_root){
+		    ui_content.appendChild(item_ui);
+		    sliding_stuff.push(item_ui);
+		}
+
+		if(è(ui_opts.wrap)){
+		    var iui;
+		    
+		    iui=ce("div");
+		    
+		    if(è(ui_opts.wrap_classes)){
+			console.log("Adding wrap " + JSON.stringify(ui_opts.wrap_classes) +" to " + tpl_root.name);
+			add_classes(ui_opts.wrap_classes, iui);
+		    }
+		    else
+			iui.add_class("col-md-5");
+		    
+		    iui.appendChild(item_ui);
+		    if(!ui_opts.item_root)
+			ui_content.appendChild(iui);
+		}
+		
+		
+		if(è(ui_opts.item_classes))	add_classes(ui_opts.item_classes, item_ui);
+		//if(è(tpl_root.on_attached))	tpl_root.on_attached();
+	    }
 	    
 	}
-*/
-	if(ui_opts.label && è(item_ui)){
-	    if(sliding){
+	catch(e){
+	    console.log("Error building "+tpl_root.name+" : " + dump_error(e));
+	}
+    }
+    
 
-	    }else{
+    	
+	function update_sliding_arrows(){
+	    slide_button.className="slide_button fa";
+	    slide_button.className+=" "+sliding_dir;
+	    //slide_button.innerHTML= slided ? "❌" : "▶" ;
+	    //▲❌▼
+	    slide_button.className+=slided? " fa-chevron-circle-left" : " fa-chevron-circle-right";
+	}
+
+	function update_sliding_ui(){
+	    
+	    var marg=[];
+	    
+	    if(animate){
+		
+		switch(sliding_dir){
+		case "h":
+		    marg[0]="marginLeft";
+		    marg[1]="marginLeft";
+		    break;
+		case "v":
+		    marg[0]="marginTop";
+		    marg[1]="marginBottom";
+		    break;
+		default: throw("Bug!!here "); return;
+		};
+	    }
+	    
+	    
+	    
+	    if(slided){
+		
+		sliding_stuff.forEach(function (s){
+
+		    if(animate){
+			s.style[marg[0]]="0%";
+			s.style[marg[1]]="0%";
+			s.style.opacity="1.0";
+		    }else
+			s.style.display=s.disp_orig;
+		    
+		    
+		});
 		if(è(ui_name)){
-		    var uid=Math.random().toString(36).substring(2); item_ui.id=uid;
-		    ui_name.setAttribute("for",uid);
+		    ui_name.remove_class("unslided");
+		    ui_name.add_class("slided");
 		}
-		
-	    }
-
-
-	}
-
-	if(item_ui){
-	    ui_content.appendChild(item_ui);
-	    sliding_stuff.push(item_ui);
-	}
-
-	if(item_ui){
-	    if(è(ui_opts.wrap)){
-		var iui;
-		
-		iui=ce("div");
-		
-		if(è(ui_opts.wrap_classes)){
-		    console.log("Adding wrap " + JSON.stringify(ui_opts.wrap_classes) +" to " + tpl_root.name);
-		    add_classes(ui_opts.wrap_classes, iui);
+	    }else{
+		sliding_stuff.forEach(function (s){
+		    if(animate){
+			s.style[marg[0]]="-100%";
+			s.style[marg[1]]="-100%";
+			s.style.opacity="0.0";
+		    }else s.style.display="none";
+		});
+		if(è(ui_name)){
+		    ui_name.remove_class("slided");
+		    ui_name.add_class("unslided");
 		}
-		else
-		    iui.add_class("col-md-5");
-		
-		iui.appendChild(item_ui);
-		ui_content.appendChild(iui);
 	    }
-
 	    
-	    if(è(ui_opts.item_classes))	add_classes(ui_opts.item_classes, item_ui);
-	    if(è(tpl_root.on_attached))	tpl_root.on_attached();
+	    //if(item_ui)console.log(tpl_root.name + " update UI slided = " + slided);
 	    
+	    update_sliding_arrows();
 	    
-
+	    if(!animate)tpl_root.trigger("slided", slided);
+	    //tpl_root.trigger("slided", slided);
+	    //if(typeof ui_opts.on_slide!='undefined') ui_opts.on_slide(slided);
 	}
 	
-    }
-    catch(e){
-	console.log("Error building "+tpl_root.name+" : " + dump_error(e));
-    }
 
     
-    if(sliding){
+    function setup_sliding(){
 
-	if(tpl_root.parent)
-	    if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
-		if(tpl_root.parent.ui_opts.child_view_type == "bar") 
-		    //if(!tpl_root.ui_opts.bar) 
-		    sliding_stuff.push(ui_root);
-	
-	
-	
-	switch(sliding_dir){
-	case "h":
-	    marg="marginLeft";
-	    //disp="inline-block";
-	    //dispi="inline-block";
-	    break;
-	case "v":
-	    marg="marginTop";
-	    //disp="inline-block"; 
-	    //dispi="inline-block";
-	    // disp="block";
-	    // dispi="block";
-	    break;
-	default: throw("Bug!!here "); return;
-	};
-	
 	new_event(tpl_root, "slided");
 
-	for(var si=0;si<sliding_stuff.length;si++){
-	    s=sliding_stuff[si];
-//	sliding_stuff.forEach(function (s){
-	    
-	    s.disp_orig=s.style.display;
-	    
-	    if(animate){
 
-		s.add_class("sliding");
+	if(sliding){
+	    
+	    if(tpl_root.parent)
+		if(typeof tpl_root.parent.ui_opts.child_view_type != "undefined")
+		    if(tpl_root.parent.ui_opts.child_view_type == "bar") 
+			//if(!tpl_root.ui_opts.bar) 
+			sliding_stuff.push(ui_root);
+	    
+	    switch(sliding_dir){
+	    case "h":
+		marg="marginLeft";
+		//disp="inline-block";
+		//dispi="inline-block";
+		break;
+	    case "v":
+		marg="marginTop";
+		//disp="inline-block"; 
+		//dispi="inline-block";
+		// disp="block";
+		// dispi="block";
+		break;
+	    default: throw("Bug!!here "); return;
+	    };
+	    
+	    for(var si=0;si<sliding_stuff.length;si++){
+		s=sliding_stuff[si];
+		//	sliding_stuff.forEach(function (s){
 		
-		//console.log("ENABLE sliding! ");
-		s.addEventListener("transitionstart",function(){
-		    //  console.log("Ani start ! " + slided );
-		}, false);
+		s.disp_orig=s.style.display;
 		
-		s.addEventListener("transitionend",function(){
-		    //console.log("Ani end ! "+ slided );
-		    if(!slided)
-			s.style.display="none";
-		    tpl_root.trigger("slided", slided);
-		    //if(typeof tpl_root.on_slide != 'undefined') tpl_root.on_slide(slided);
-		}, false);
-	    }
-	}
-
-	//console.log("adding slide button click event for  " + tpl_root.name);
-
-	var click_element = è(tpl_root.ui_title_name)? tpl_root.ui_title_name : slide_button;
-	
-	click_element.addEventListener("click",function(e){
-	    //slide_button.addEventListener("click",function(e){
-	    //console.log(tpl_root.name + "  SLIDE click !  " + slided);
-	    slided=!slided;
-	    
-	    sliding_stuff.forEach(function (s){
-		//console.log("display stuff " + s.disp_orig );
-		s.style.display=s.disp_orig;
-
-	    });
-
-	    if(animate){
-		setTimeout(function(){
-		    update_sliding_ui();
+		if(animate){
 		    
-		}, 100);
-	    }else
-		update_sliding_ui();
-	    
-	    e.cancelBubble = true;
-	    
-	    if (e.stopPropagation){
-		e.stopPropagation();
-		//console.log(tpl_root.name + " : SLIDE stop propagation...");
+		    s.add_class("sliding");
+		    
+		    //console.log("ENABLE sliding! ");
+		    s.addEventListener("transitionstart",function(){
+			//  console.log("Ani start ! " + slided );
+		    }, false);
+		    
+		    s.addEventListener("transitionend",function(){
+			//console.log("Ani end ! "+ slided );
+			if(!slided)
+			    s.style.display="none";
+			tpl_root.trigger("slided", slided);
+			//if(typeof tpl_root.on_slide != 'undefined') tpl_root.on_slide(slided);
+		    }, false);
+		}
 	    }
-
-	    return false;
-	}, false);
-
-
-	if(!slided){
-	    sliding_stuff.forEach(function (s){
-		s.style.display="none";
-	    });
+	    
+	    //console.log("adding slide button click event for  " + tpl_root.name);
+	    
+	    var click_element = è(tpl_root.ui_title_name)? tpl_root.ui_title_name : slide_button;
+	    
+	    click_element.addEventListener("click",function(e){
+		//slide_button.addEventListener("click",function(e){
+		//console.log(tpl_root.name + "  SLIDE click !  " + slided);
+		slided=!slided;
+		
+		sliding_stuff.forEach(function (s){
+		    //console.log("display stuff " + s.disp_orig );
+		    s.style.display=s.disp_orig;
+		    
+		});
+		
+		if(animate){
+		    setTimeout(function(){
+			update_sliding_ui();
+			
+		    }, 100);
+		}else
+		    update_sliding_ui();
+		
+		e.cancelBubble = true;
+		
+		if (e.stopPropagation){
+		    e.stopPropagation();
+		    //console.log(tpl_root.name + " : SLIDE stop propagation...");
+		}
+		
+		return false;
+	    }, false);
+	    
+	    
+	    if(!slided){
+		sliding_stuff.forEach(function (s){
+		    s.style.display="none";
+		});
+		
+	    }
+	    
+	    update_sliding_ui();
 	    
 	}
-
-	update_sliding_ui();
-
     }
 
     
+    if(ui_opts.item_root){
+	ui_root=ce("div");
+	setup_item();
+	ui_root=item_ui;
+	ui_content=ui_root;
+    }else{
+	setup_root();
+	setup_title();
+	setup_childs();
+	setup_item();
+	setup_sliding();
+    }
 
+    
     if(ui_opts.root){
 	//console.log("Root widget ! " + tpl_root.name + " opts " + JSON.stringify(ui_opts));
 	tpl_root.listen("view_update",function(){
@@ -1929,6 +1930,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	});
 	//tpl_root.trigger("view_update");
     }
+
+
+
     
     return ui_root;
 }
