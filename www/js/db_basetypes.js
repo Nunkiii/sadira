@@ -426,7 +426,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("div");
+    //var ui=tpl_item.ui=ce("div");
 
     new_event(tpl_item,"change");
     
@@ -434,7 +434,6 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
     tpl_item.inputs=[];
     
     //tpl_item.inputs[v].ui_root.remove_class("container-fluid");
-    //tpl_item.ui_root.add_class("container");
     
     var cdepth=tpl_item.depth? tpl_item.depth+1:1;
     if(typeof tpl_item.value==='undefined') tpl_item.value=[];
@@ -467,11 +466,12 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	}; 
 	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
 	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v], cdepth);
-	tpl_item.ui.appendChild(vui);
-	
-	tpl_item.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
-	    console.log("Huuum");//tpl_item.ui.replaceChild(tpl_root, );
-	}}};
+	//tpl_item.ui.appendChild(vui);
+	tpl_item.ui_childs.add_child(tpl_item.inputs[v], vui);
+
+	// tpl_item.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
+	//     console.log("Huuum");//tpl_item.ui.replaceChild(tpl_root, );
+	// }}};
 	
 	//tpl_item.inputs[v].ui_root.remove_class("container-fluid");
 	//tpl_item.inputs[v].ui_root.add_class("col-md-6");
@@ -484,9 +484,11 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	});
 
 	
-	//tpl_item.ui_childs.add_child(tpl_item.inputs[v], vui);
+	
     }
-    
+
+    tpl_item.ui_childs.div.add_class("inline");
+
     tpl_item.set_value=function(nv){
 	//console.log("TPLI set value " + JSON.stringify(nv));
 	if(typeof nv !='undefined'){
@@ -506,7 +508,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 
     //console.log("Done building LABVEC : " + tpl_item.name);
 
-    return tpl_item.ui;
+    //return tpl_item.ui;
 }
 
 

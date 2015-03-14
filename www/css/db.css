@@ -120,9 +120,10 @@ span.fa{
 }
 
 label {
-/*  font-family : "Ubuntu";
+  /*  font-family : "Ubuntu";
   font-weight: normal;
-*/
+  */
+  vertical-align: top;
   font-size: 1.0em;
 }
 
@@ -878,18 +879,20 @@ label .form-control{
 
 
 .db .un_editable{
-  border: 1px solid transparent;
+  border-radius: .5em;
+  border: 2px solid transparent;
 }
 .db .editable{
-  border: 1px solid transparent;
+  border-radius: .5em;
+  border: 2px solid transparent;
 }
 
 .db .un_editable:hover{
-  border: 1px dashed black;
+  box-shadow : 0px 0px 5px lightgrey;
   cursor: pointer;
 }
 .db .editable:hover{
-  border : 1px dashed lightgrey;
+  box-shadow : 0px 0px 5px blue;
   cursor: pointer;
 }
 /*
@@ -1296,8 +1299,9 @@ progress[value]::-webkit-progress-value {
   max-width: 100%;
 }
 
-.db[data-tpl="vector"]{
-/*
+.db[data-tpl="geometry"] .form-control{
+width: auto;
+  /*
 width: calc(100% - 1em);
 */
 
@@ -1781,15 +1785,16 @@ Child representations
 }
 
 .action_box.vertical {
-  width: 90%;
-  margin-left: 5%;
+  width: 70%;
+  margin-left: 15%;
 }
 
 .action_box.vertical > .db {
   width: calc(100% - 1.5em);
 /*  background : rgba(30,30,80,.7); 
-  margin-top: 1em;
 */
+  margin-bottom: 1em;
+
 }
 
 .proc_monitor{

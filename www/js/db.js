@@ -556,7 +556,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(è(p.ui_opts)){
 		if(è(p.ui_opts.child_classes)){
 		    if(p.ui_opts.child_classes.length>0){
-			if(has_class("btn-group",p.ui_opts.child_classes[0])){
+			if(has_class("btn-group",p.ui_opts.child_classes[0]) || has_class("btn-group-vertical",p.ui_opts.child_classes[0])){
 			    console.log("Setting item_root to true for " + tpl_root.name);
 			    ui_opts.item_root=true;
 			}
@@ -1903,7 +1903,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root=ce("div");
 	setup_item();
 	ui_root=item_ui;
-	ui_content=ui_root;
+	tpl_root.ui_root=tpl_root.ui_content=ui_content=ui_root;
     }else{
 	setup_root();
 	setup_title();
