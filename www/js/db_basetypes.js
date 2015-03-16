@@ -1574,6 +1574,7 @@ template_ui_builders.code=function(ui_opts, tpl_item){
 template_ui_builders.combo=function(ui_opts, combo){
 
     var ui;
+    new_event(combo,"change");
 
     combo.set_options=function(options){
 	combo.options=options;
@@ -1596,10 +1597,14 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 	combo.set_value=function(v){
 	    if(è(v))combo.value=v;
-	    else combo.value=combo.options[0]; 
+	    else{
+		if(è(combo.options))
+		    if(combo.options.length>0)
+			combo.value=combo.options[0];
+
+	    }
 	    combo.ui.value=combo.value;
 	}
-	new_event(combo,"change");
 	
 	ui.addEventListener("change",function(){
 	    combo.value=combo.options[ui.selectedIndex];
@@ -1610,7 +1615,11 @@ template_ui_builders.combo=function(ui_opts, combo){
 	ui=combo.ui=ce("span"); ui.className="";
 	combo.set_value=function(v){
 	    if(è(v))combo.value=v;
-	    else combo.value=combo.options[0]; 
+	    else{
+		if(è(combo.options))
+		    if(combo.options.length>0)
+			combo.value=combo.options[0];
+	    }
 	    ui.innerHTML=combo.value;
 	}
     }

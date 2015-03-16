@@ -442,7 +442,7 @@ function new_event(tpl_item, event_name){
 	    };
 	    cb.persist=persist;
 	    cbn.push(cb);
-	    //console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
+	    console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
 	};
 
 	tpl_item.unlisten=function(event_name, cb){

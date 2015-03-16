@@ -2,7 +2,7 @@
 function widget(g){
     this.title="widget!";
     this.build(g);
-    return this;
+    //return this;
 }
 
 widget.prototype.build=function(g){
