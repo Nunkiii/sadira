@@ -78,7 +78,6 @@ header{
   font-family: Aileron;
   max-width: 100%;
   max-height:100%;
-  vertical-align: top;
 } 
 
 /*
@@ -137,6 +136,21 @@ pre {
   padding-left: .5em;
   padding-right: .5em;
 } 
+
+.brand_name {
+  background : #404040;
+  color: white;
+}
+
+.brand_link {
+  font-size : 1.3em;
+  color: white;
+}
+
+.soft_table {
+  background: grey;
+  color: white;
+}
 
 
 .divider_bar { 

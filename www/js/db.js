@@ -354,6 +354,7 @@ local_templates.prototype.build_template=function(template_name){
 	tplo=template_name;
     
     var tpl= clone_obj(tplo);
+    tpl.template_name=template_name;
     //  console.log("TPL= " + JSON.stringify(tpl));
     this.substitute_templates(tpl);
 
@@ -364,6 +365,7 @@ local_templates.prototype.build_template=function(template_name){
 
 template_ui_builders={};
 
+/*
 template_ui_builders.default_before=function(ui_opts, tpl_item){
     tpl_item.get_value=function(){return tpl_item.value; }
 }
@@ -372,6 +374,13 @@ template_ui_builders.default_after=function(ui_opts, tpl_item){
     if(typeof tpl_item.set_value != 'undefined' && typeof tpl_item.value != 'undefined'){
 	//tpl_item.set_value(tpl_item.value);
     }
+}
+*/
+
+function create_widget(t){
+    var widget_template=tmaster.build_template(t);
+    create_ui({},widget_template);
+    return widget_template;
 }
 
 
@@ -409,7 +418,7 @@ function create_item_ui(ui_opts, tpl_node){
 	//return;
     }
 
-    template_ui_builders.default_before(ui_opts,tpl_node);
+    //template_ui_builders.default_before(ui_opts,tpl_node);
     
     var ui;
 
@@ -422,7 +431,7 @@ function create_item_ui(ui_opts, tpl_node){
 	//console.log("warning: no UI returned for type " + tpl_name);
     }
     
-    template_ui_builders.default_after(ui_opts,tpl_node);
+    //template_ui_builders.default_after(ui_opts,tpl_node);
     return ui;
 }
 
@@ -477,6 +486,8 @@ function get_ico(tpl){
 	    ico= ce("img");
 	    ico.src=tpl.ui_opts.icon;
 	    ico.className="ico";
+	    if(è(tpl.ui_opts.icon_size))
+		ico.style.width=tpl.ui_opts.icon_size;
 	    console.log("Got icon " + tpl.ui_opts.icon);
 	    return ico;
 	}
@@ -514,6 +525,7 @@ function add_close_button(e, node){
 
 
 function create_ui(global_ui_opts, tpl_root, depth){
+
     if(ù(tmaster)) throw("NO TMASTER");
 
     if(ù(global_ui_opts)){
@@ -538,7 +550,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.ui_opts=global_ui_opts;
 	
 	
-	//console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
+	
 	
 	if(ù(tpl_root.ui_opts.type))
 	    tpl_root.ui_opts.type="short";
@@ -550,6 +562,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     var ui_opts=tpl_root.ui_opts;    
 
+
+    
     if(ù(ui_opts.item_root)){
 	var p=tpl_root.parent;
 	if(è(p)){
@@ -566,6 +580,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
     }
 
+    //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
     
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
     var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
@@ -594,7 +609,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.innerHTML='<div class="big_error">⚠</div><div class="error_content">'+error_message+'</div>';
     }
 
-    new_event(tpl_root, "selected");
+    new_event(tpl_root,"selected");
     new_event(tpl_root,"view_update");
     new_event(tpl_root,"name_changed");
     new_event(tpl_root,"hide");
@@ -603,8 +618,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
     tpl_root.view_update_childs=function(){
 	//tpl_root.trigger("view_update");
 	for (var e in tpl_root.elements){
-	    
+	    //console.log(tpl_root.name + " update childs for " + e);
+	    //if(è(tpl_root.elements[e].trigger))
 	    tpl_root.elements[e].trigger("view_update");
+	    //if(è(tpl_root.elements[e].trigger))
 	    tpl_root.elements[e].view_update_childs();
 	}
 
@@ -626,11 +643,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.className="db";// container-fluid";
 	if(ui_opts.panel) ui_root.add_class("db panel panel-default");
 
-	if(typeof tpl_root.type!='undefined'){
+	if(è(typeof tpl_root.type))
 	    ui_root.setAttribute("data-type", tpl_root.type);
-	    if(tpl_root.type==="template" && è(tpl_root.template_name))
-		ui_root.setAttribute("data-tpl", tpl_root.template_name);
-	}
+	
+	if(è(tpl_root.template_name))
+	    ui_root.setAttribute("data-tpl", tpl_root.template_name);
+
 	if(depth==0) ui_root.add_class("root");
 	
 	if(typeof ui_opts.root_classes != 'undefined')
@@ -671,8 +689,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
 	    
-	    if(!ui_opts.label) ui_name.className="row";
-	    
+	    //if(!ui_opts.label) ui_name.className="row";
+			    
 	    if(ui_opts.panel){
 		var phead=cc("div",ui_root); phead.className="panel-heading"; 
 		var pcontent=cc("div",ui_root); pcontent.className="panel-content";
@@ -681,6 +699,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    
 	    tpl_root.get_title_node=function(){ return this.ui_name; }
+
 	    tpl_root.rebuild_name=function(){
 		
 		//console.log("rebuild name " + tpl_root.name);
@@ -706,10 +725,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    ui_name_text.innerHTML+=tpl_root.name+" ";
 		    
 		    if(è(tpl_root.subtitle)){
-			cc("small",ui_name_text).innerHTML=tpl_root.subtitle;
-			ui_name_text.add_class("col-md-12");
-		    }else
-			ui_name_text.add_class("col-md-6");
+			var subtitle=cc("small",ui_name_text);
+			subtitle.innerHTML=tpl_root.subtitle;
+			//subtitle.className="col-sm-12 col-md-6";
+		    }
 		    
   		    if(typeof ico!='undefined')
 			ui_name_text.prependChild(ico);
@@ -780,9 +799,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
 	    tpl_root.intro_div=cc("div",tpl_root.ui_root);
-	    tpl_root.intro_div.className="col-md-12 text-muted";
+	    tpl_root.intro_div.className="text-muted";
 
-	    tpl_root.intro_div.innerHTML= "<div class='alert alert-info'>"+tpl_root.intro+"</div>";
+	    tpl_root.intro_div.innerHTML= "<div class='alert alert-default'>"+tpl_root.intro+"</div>";
 	    tpl_root.intro_div.style.display=tpl_root.intro_visible ? "":"none";
 	    sliding_stuff.push(tpl_root.intro_div);
 	}
@@ -1688,7 +1707,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		
 	    }
-	    
+
+	    if(ui_opts.label){
+
+	    }
 	    
 	    if(item_ui){
 

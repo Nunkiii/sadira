@@ -14,8 +14,15 @@ var base_templates={
 	        //value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },
+	    status : {
+		//name : "Status",
+		ui_opts : {root_classes : ["inline"],  label : true},
+		type : "status",
+		value : "blue",
+		value_labels : { blue : "disconnected", green : "connected", red : "error"}
+	    },
 	    connect : {
-		ui_opts : {root_classes : ["inline"], item_classes : ["btn-xs"]},
+		ui_opts : {root_classes : ["inline"], item_classes : ["btn btn-default btn-xs"], fa_icon : "link"},
 		type: "action",
 		name : "connect"
 	    },
@@ -23,13 +30,6 @@ var base_templates={
 		ui_opts : {sliding : true, slided : false, root_classes : ["inline"],  label : true},
 		name : "Messages",
 		type : "text"
-	    },
-	    status : {
-		name : "Status",
-		ui_opts : {root_classes : ["inline"],  label : true},
-		type : "status",
-		value : "blue",
-		value_labels : { blue : "not connected", green : "connected", red : "error"}
 	    }
 	} 
     },
@@ -263,7 +263,8 @@ var base_templates={
 		name : "Range",
 		value_labels : ["start","end"],
 		value : [0, 0],
-		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false},
+		ui_opts: {
+		    root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false},
 	    },
 	    selection : {
 		type : "labelled_vector",
@@ -286,9 +287,76 @@ var base_templates={
 	name : "Sadira/tk templates",
 	tpl_builder : "dbtemplates",
 	ui_opts : {root_classes : ["container-fluid"]},
-	elements : {}
-    }
+	elements : {
+	    build_progress : { name : "Building templates ... ", type : "progress", value : 0}
+	}
+    },
 
+    sadira_home : {
+	//name : "The Quarklib/Sadira project",
+	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container"], child_view_type : "tabbed", name_node : "h2"},
+	elements : {
+	    welcome : {
+		name : "Sadira",
+		type : "html",
+		url : "/sadira/welcome.html",
+		ui_opts : {item_classes : ["container"], name_node:"h2"}
+	    },
+	    deps : {
+		name : "Software deps",
+		type : "template",
+		template_name : "soft_links",
+		ui_opts : {item_classes : ["container"], name_node:"h2"}
+	    }
+	}
+    },
+    
+    soft_tpl : {
+	name : "SoftName",
+	type : "url",
+	ui_opts : {
+	    root_classes : ["panel panel-default row"],
+	    name_classes : [],
+	    item_classes : ["col-xs-offset-1 col-xs-5 col-sm-offset-1 col-sm-3"],
+	    icon : "/sadira/icons/brands/nodejs.svg",
+	    //icon_size : "4em",
+	    name_node : "h3"
+	}
+    },
+    
+    soft_links : {
+	name : "Dependencies",
+	subtitle : "Software used by Sadira",
+	intro : "<p>This will contain description and links to all external libraries and software used within the Sadira project.</p>",
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    child_classes : ["container-fluid"],
+	    intro_visible : true
+	    //child_view_type : "table"
+	},
+	elements : {
+	    node : {
+		type : "template", template_name : "soft_tpl",
+		ui_opts : {
+		    icon : "/sadira/icons/brands/nodejs.svg",
+		},
+		name : "Node.js",
+		intro : "<p>Node.js® is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.</p>",
+		value : "https://nodejs.org/"
+	    },
+	    mongo : {
+		type : "template", template_name : "soft_tpl",ui_opts : {icon : "/sadira/icons/brands/logo-mongodb.png"},
+		name : "mongo DB",
+		intro : "<p><strong>Agile and Scalable.</strong>MongoDB makes working with a database simple and elegant, providing agility and freedom to scale.</p>",
+		value : "http://www.mongodb.org/"
+	    }
+
+	    
+	}
+	
+	
+    }
+    
 };
 
 

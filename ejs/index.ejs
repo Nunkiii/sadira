@@ -8,6 +8,13 @@
     <style>
 
     </style>
+
+    <script>
+      window.addEventListener("load", function(){
+      var sadira_home_widget=create_widget("sadira_home");
+      document.getElementById("main").appendChild(sadira_home_widget.ui_root);
+      });
+    </script>
   </head>
   
   <body>
@@ -15,7 +22,7 @@
       <% include parts/header %>
     </header>
     
-    <div class="container">
+    <div class="container-fluid" id="main">
 
       <div style="float: right">
 	<!-- <a href="http://gloria-project.eu" target="_blank" style="display: inline-block;"> -->
@@ -34,93 +41,11 @@
 	  <% } %>	
 	  </h4>
       </div>
-      
-      <h2>The Quarklib/Sadira project</h2>
 
-      <div class="panel panel-default">
-	<div class="panel-heading">
-	    <p>
-	      Qk/Sadira is aimed to be a scientific-oriented computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web-browsers.
-	    </p>
-	</div>
-	<div class="panel-body">
-	  <p>
-	    The goal of Qk/Sadira is to ease the setup of scientific data acquisition, processing and design tasks, from the scientific researcher point of view. It should provide interfaces for data processing pipeline user interfaces as well as entry points for low-level, high performance data analysis/reduction algorithms. At such it can provide to existing data processing applications:
-	  </p>
-	  
-	  <p><ul>
-	    <li>a HTML5/CSS3/JavaScript/HTML toolkit based on templates, linked with local websotorage or 'cloud-side' <a href="mongodb.org">mongodb,</a> document</li> serialization,
-	    <li>peer to peer data and processing exchange between servers and web-browsers,</li>
-	    <li>a rich user management system, able to manage various login methods and user connexion and collaboration facilities.</li>
-	  </ul></p>
-	</div>
-      </div>	
-      
-      
-      
-    <!-- <p>Sadira is a web 2.0 general purpose, astronomy oriented data management system, which uses both a relational (MySQL) and a non-relational (MongoDB) database. It will be used within GLORIA to collect and make accessible telescope and user data, in particular images.</p> -->
-	
-      <!-- <p>Sadira implements a HTTP server that can be contacted by client telescope owners, experiments, to send and receive various data. It can be extended to support other protocols.</p> -->
-      
-      <!-- <p>The user interface is a web application that permits user accounts management (permissions, groups), the definition of observatories, telescope and instruments. In particular for each instrument, it allows to define the specific data structure and its metadata. These are typically encoded into FITS files. It will also provide a visual interactive access to these information via web browser. </p> -->
-      
-      
-      <!-- <h3>Main components</h3> -->
-	
-      <!-- <p> -->
-      <!--   <ol> -->
-	<!--     <li>MongoDB replica-set, sharded. MySQL cluster</li> -->
-	<!--     <li>Core classes for browser sessions</li> -->
-	<!--     <li>HTTP file server, POST server for receiving data, REST GET server for retrieving data</li> -->
-	<!--     <li>HTTP WebSocket server with a binary message protocol for complex and fast interaction with the client browsers</li> -->
-	<!--     <li>Users and groups accounts management</li> -->
-	<!--     <li>Core graphical user interface classes and widgets</li> -->
-	<!--     <li>FITS file access, web visualization widget</li> -->
-	<!--     <li>FITS based observations management</li> -->
-	<!--     <li>Core software documentation</li> -->
-	<!--     <li>User components documentation</li> -->
-	<!--   </ol> -->
-	<!-- </p> -->
-	
-	<div class="panel panel-default">
-	  <div class="panel-heading"> <h3>Online demos</h3> </div>
-	  <div class="panel-body">
-	    <blockquote>
-	      <p>
-		Example experiments : 		
-	      </p>
-	    </blockquote>
-	  </div>
-	  <div class="panel-body">
-	    <ul>
-	      <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/xd1">XD-1 FITS viewer</a></li>
-	      <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/videocap">Webcam/DVD/Cardboard spectrograph</a></li>
-	    </ul>
-	  </div>
-	</div>
-	
-	<div class="panel panel-default">
-	  <div class="panel-heading"> 
-	    <h3>Source code</h3>
-	  </div>
-	  <div class="panel-body">
-	    <p>The source code is available on github within several source packages</p>
-	  </div>
-	  <table class="table">
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/sadira"> sadira </a> </td><td>Core component</td></tr>
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-fits"> node-fits </a></td><td>Node.JS FITS frontend</td></tr>
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-sbig"> node-sbig </a></td><td>SBIG cameras Node.JS frontend</td></tr>
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/XD-1"> XD-1 </a></td><td>JS/WebGL FITS viewer</td></tr>
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-gloria-dbms"> node-gloria-dbms </a></td><td>GLORIA image database services</td></tr>
-	    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/gloria-widget"> gloria-widget </a></td><td> GLORIA image database browser</td></tr>
-	  </table>
-	</div>
     </div>
-	
-    
     <footer>
       <% include parts/footer %>
     </footer>
     
-</body>
+  </body>
 </html>

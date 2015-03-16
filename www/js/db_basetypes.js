@@ -13,48 +13,61 @@ template_ui_builders.dbtypes=function(ui_opts, dbt){
 template_ui_builders.dbtemplates=function(ui_opts, dbt){
     var templ={name : "Tmaster :" ,elements: {}, ui_opts : { child_classes : ["container-fluid"]} };
     var ntpl=0;
-    for(var tn in tmaster.templates){
-
-	var t=tmaster.templates[tn];
-	
-	var tstring="<pre><code>"+JSON.stringify(t,null,10)+"</code></pre>";
-
-	
-	var te=templ.elements[tn]={
+    var build_progress=dbt.elements.build_progress;
+    
+    setTimeout(function(){
+	var nt=0,ti=0;
+	for(var tn in tmaster.templates) nt++;
+	for(var tn in tmaster.templates){
+	    ti++;
+	    build_progress.set_value(ti*100.0/nt);
+	    var t=tmaster.templates[tn];
+	    var tstring="<pre><code>"+JSON.stringify(t,null,2)+"</code></pre>";
 	    
-	    name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
-	    ui_opts : { root_classes : ["panel panel-default"], name_node : "h3"},
-	    elements : {
-		code : {
-		    name :"JSON template",
-		    type : "html",
-		    value : tstring,
-		    ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"],
-				highlight_source: true
-			      }
-	    },
-	    tryi : {
-		name : "Build here",
-		type : "action",
-		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : []},
-		tn : tn
-	    },
-	    try : {
-		name : "Try in new page...",
-		type : "action",
-		link : "/widget/"+tn,
+	    
+	    var te=templ.elements[tn]={
 		
-		ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : ["inline"]}
+		name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
+		ui_opts : { root_classes : ["panel panel-default"], name_node : "h3"},
+		elements : {
+		    code : {
+			name :"JSON template",
+			type : "html",
+			value : tstring,
+			ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"],
+				    highlight_source: true
+				  }
+		    },
+		    tryi : {
+			name : "Build here",
+			type : "action",
+			ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : []},
+			tn : tn
+		    },
+		    try : {
+			name : "Try in new page...",
+			type : "action",
+			link : "/widget/"+tn,
+			
+			ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : ["inline"]}
+		    }
+		} };
+	    
+	    var builder;
+	    
+	    if(è(t.type)){
+		builder=template_ui_builders[t.type];
 	    }
-	} };
-	
-	if(è(t.tpl_builder)){
-	    //console.log("Scanning " + tn + " builder " + t.tpl_builder);
-	    var builder=template_ui_builders[t.tpl_builder];
+	    
+	    if(è(t.tpl_builder)){
+		//console.log("Scanning " + tn + " builder " + t.tpl_builder);
+		builder=template_ui_builders[t.tpl_builder];
+	    }
+	    
 	    if(ù(builder)){
 		te.elements.builder={
-		    name : "Invalid builder",
-		    ui_opts : { label: true, name_classes : ["label label-danger"]}
+		    name : "No builder",
+		    ui_opts : { label: true, name_classes : ["label label-warning"]}
 		};	
 	    }else{
 		var fstring="<pre><code>"+builder.toString()+"</pre></code>";
@@ -62,38 +75,42 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		    name : "Builder JS code",
 		    type : "html",
 		    value : fstring,
-		    ui_opts : {sliding : true, slided : false, label : true,	highlight_source: true}
+		ui_opts : {sliding : true, slided : false, label : true, highlight_source: true}
 		};
 	    }
+	    
+	    if(t.subtitle) te.subtitle=t.subtitle;
+	    if(t.intro) te.intro=t.intro;
+	    ntpl++;
 	}
-	if(t.subtitle) te.subtitle=t.subtitle;
-	if(t.intro) te.intro=t.intro;
-	ntpl++;
-    }
+	
+	templ.subtitle = ntpl + " templates in use : "
 
-    templ.subtitle = ntpl + " templates in use : "
-    create_ui({},templ);
-    for(var t in templ.elements) {
-	var tryi=templ.elements[t].elements.tryi;
-	tryi.listen("click", function(){
-	    var tt=tmaster.build_template(this.tn);
-	    create_ui({},tt);
-	    this.ui_root.appendChild(tt.ui_root);
-	});
-	var tico=get_ico(tmaster.templates[t]);
-	if(ù(tico))
-	    if(è(tmaster.templates[t].ui_opts)){
-		if(è(tmaster.templates[t].ui_opts.fa_icon)){
-		    tico=ce("span");
-		    tico.className='fa fa-'+tmaster.templates[t].ui_opts.fa_icon;
+	create_ui({},templ);
+	for(var t in templ.elements) {
+	    var tryi=templ.elements[t].elements.tryi;
+	    tryi.listen("click", function(){
+		var tt=tmaster.build_template(this.tn);
+		create_ui({},tt);
+		this.ui_root.appendChild(tt.ui_root);
+	    });
+	    var tico=get_ico(tmaster.templates[t]);
+	    if(ù(tico))
+		if(è(tmaster.templates[t].ui_opts)){
+		    if(è(tmaster.templates[t].ui_opts.fa_icon)){
+			tico=ce("span");
+			tico.className='fa fa-'+tmaster.templates[t].ui_opts.fa_icon;
+		    }
 		}
-	    }
+	    
+	    if(è(tico)) templ.elements[t].ui_title_name.prependChild(tico);
+	    
+	}
 	
-	if(è(tico)) templ.elements[t].ui_title_name.prependChild(tico);
-	
-    }
-    
-    dbt.ui_childs.add_child(templ,templ.ui_root);
+	dbt.ui_childs.add_child(templ,templ.ui_root);
+	build_progress.hide();
+
+    }, 500);
 }
 
 template_ui_builders.sadira=function(ui_opts, sad){
@@ -154,6 +171,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	
 	status.set_value("green");
 	messages.append("Connected to " + url.value + "\n");
+	connect.ui_opts.fa_icon="unlink";
 	connect.set_title("Disconnect");
     });
 	
@@ -168,6 +186,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	
 	status.set_value("blue");
 	messages.append("Disconnected" + "\n");
+	connect.ui_opts.fa_icon="link";
 	connect.set_title("Connect");
     });
     
@@ -175,11 +194,13 @@ template_ui_builders.sadira=function(ui_opts, sad){
 
 	console.log("CONNECT CLICK");
 	
-	if(!sad.online)
+	if(!sad.online){
 	    sad.connect();
+	}
 	else{
 	    sad.disconnect();
 	}
+
     });
 
 
@@ -320,6 +341,7 @@ template_ui_builders.progress=function(ui_opts, prog){
     if(typeof prog.value ==='undefined') prog.value=0.0;
     if(typeof prog.min ==='undefined') prog.min=0.0;
     if(typeof prog.max ==='undefined') prog.max=100.0;
+    if(typeof prog.max ==='undefined') prog.value=0.0;
     
     prog.setup_ui=function(){
 	pui.setAttribute("role","progressbar");
@@ -487,7 +509,7 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	
     }
 
-    tpl_item.ui_childs.div.add_class("inline");
+    //tpl_item.ui_childs.div.add_class("inline");
 
     tpl_item.set_value=function(nv){
 	//console.log("TPLI set value " + JSON.stringify(nv));
@@ -1083,7 +1105,6 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	
 	var ui=tpl_item.ui=ce(è(ui_opts.text_node)?ui_opts.text_node :"span");
 	//ui.className="value";
-	
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    if(è(tpl_item.value))
@@ -1091,7 +1112,14 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    else
 		ui.innerHTML="?";
 	}
-
+	
+	tpl_item.set_alert=function(m){
+	    var t=m.type==="error"?"danger":m.type;
+	    ui.className="alert alert-"+t+" alert-sm";
+	    tpl_item.set_value("<strong>"+m.type+" :</strong>"+m.content);
+	    
+	}
+	
 	tpl_item.set_value();
 	break;
 
@@ -1139,6 +1167,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
+
+
     
     return tpl_item.ui;
 }
@@ -1284,23 +1314,23 @@ template_ui_builders.date=function(ui_opts, tpl_item){
 
 template_ui_builders.url=function(ui_opts, url){
     
-    
+    console.log("building URL " + url.name + " : " + url.value);
     var ui;
 
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     switch (ui_opts.type){
-
 	
     case "short":
-	ui=url.ui=ce("span");
+	ui=url.ui=ce("a");
 	//ui.className="value";
 	url.set_value=function(nv){
 	    if(typeof nv !='undefined')
 		url.value=nv;
-	    if(typeof url.value !=='undefined')
-		ui.innerHTML=url.value;
+	    if(typeof url.value !=='undefined'){
+		ui.href=url.value;
+		ui.innerHTML="<span class='fa fa-external-link'> </span>" + url.value;
+	    }
 	}
-
 	url.set_value();
 	break;
     case "edit": 
@@ -1575,12 +1605,6 @@ template_ui_builders.action=function(ui_opts, action){
     
     action.ui=ui;
     
-    ui.innerHTML="";
-    if(è(ui_opts.fa_icon)){
-	console.log("Setting fa icon !! ");
-	ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
-    }
-    ui.innerHTML+=action.name;
 
     if(ù(ui_opts.item_classes))
 	ui.className="btn btn-default btn-sm";
@@ -1589,7 +1613,14 @@ template_ui_builders.action=function(ui_opts, action){
 	    add_classes(ui_opts.item_classes, ui);
 	    delete ui_opts.item_classes;
 	}
-    
+
+    ui.innerHTML="";
+    if(è(ui_opts.fa_icon)){
+	//console.log("Setting fa icon !! ");
+	ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+    }
+    ui.innerHTML+=action.name;
+
     // if(è(ui_opts.btn_type))
     // 	ui.className+=" btn-"+ui_opts.btn_type;
     
@@ -1605,7 +1636,12 @@ template_ui_builders.action=function(ui_opts, action){
 
 
     action.listen("name_changed", function(title){
-	ui.textContent=title;
+	ui.innerHTML="";
+	if(è(ui_opts.fa_icon)){
+	    //console.log("Setting fa icon !! ");
+	    ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+	}
+	ui.innerHTML+=action.name;
     });
     /*    
 	  var pmon=new proc_monitor;
