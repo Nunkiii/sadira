@@ -488,7 +488,7 @@ function get_ico(tpl){
 	    ico.className="ico";
 	    if(è(tpl.ui_opts.icon_size))
 		ico.style.width=tpl.ui_opts.icon_size;
-	    console.log("Got icon " + tpl.ui_opts.icon);
+	    //console.log("Got icon " + tpl.ui_opts.icon);
 	    return ico;
 	}
     }
@@ -547,22 +547,19 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(ù(tpl_root.ui_opts)){
 
 	//tpl_root.ui_opts={};
-	tpl_root.ui_opts=global_ui_opts;
-	
-	
-	
-	
+	tpl_root.ui_opts=clone_obj(global_ui_opts);
+
 	if(ù(tpl_root.ui_opts.type))
 	    tpl_root.ui_opts.type="short";
     }
-    else
-	for(var o in global_ui_opts) 
-	    if(ù(tpl_root.ui_opts[o]))
-		tpl_root.ui_opts[o]=global_ui_opts[o];
+    //    else
+    for(var o in global_ui_opts){
+	//console.log(tpl_root.name + " : Global ui opts are : " + JSON.stringify(global_ui_opts));
+	//if(ù(tpl_root.ui_opts[o]))
+	tpl_root.ui_opts[o]=global_ui_opts[o];
+    }
     
     var ui_opts=tpl_root.ui_opts;    
-
-
     
     if(ù(ui_opts.item_root)){
 	var p=tpl_root.parent;
@@ -820,16 +817,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		clickable_zone=ui_root;
 	    }
 
-	    console.log("click zone is " + clickable_zone);
-	    
 	    tpl_root.switch_edit_mode=function(){
 		if(ui_opts.type=="edit"){
-		    ui_opts.type="short";
+		    ui_opts.type=global_ui_opts.type="short";
 		}else{
-		    ui_opts.type="edit";
+		    ui_opts.type=global_ui_opts.type="edit";
 		}
 		
-		console.log("switching edit mode to " + ui_opts.type);
+		//console.log("switching edit mode to " + ui_opts.type);
 		rebuild();
 		
 	    }
@@ -919,11 +914,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     function rebuild(){
 	//if (typeof tpl_root.sliding != 'undefined') 
+
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
 	//console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
+
 	tpl_root.ui_root_old=tpl_root.ui_root;
 	//tpl_root.parent.ui_childs.div.removeChild(tpl_root.ui_root); //div.appendChild(new_ui);
+
 	
+	//global_ui_opts.type =ui_opts.type=="edit"?"short":"edit";	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	
 	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); 

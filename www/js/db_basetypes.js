@@ -389,6 +389,11 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     //console.log("double builder :  " + JSON.stringify(ui_opts));
     new_event(tpl_item,"change");
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+    
+    tpl_item.set_default_value=function(){
+	tpl_item.set_value(tpl_item.default_value);
+    }
+
 
     switch (ui_opts.type){
     case "short":
@@ -405,35 +410,44 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 	},false);
 
-	tpl_item.set_value();
+	
 
 	break;
+
     case "edit": 
+
 	var ui=tpl_item.ui=ce("input");
+
 	if(ui_opts.input_type)
 	    ui.type=ui_opts.input_type;
 	else
 	    ui.type="number";
+
 	ui.add_class("form-control input-sm");
+	
+	tpl_item.set_placeholder_value=function(){
+	    if(è(tpl_item.holder_value)){
+		//console.log("Setting placeholder value");
+		ui.setAttribute("placeholder",tpl_item.holder_value);
+	    }
+	}
 	
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
 
 	tpl_item.get_value=function(){return tpl_item.value;}
-	tpl_item.set_value=function(nv){if(typeof nv !='undefined')tpl_item.value=nv; ui.value=tpl_item.value}
-
-	tpl_item.set_default_value=function(){
-	    var v=tpl_item.default_value;
-	    if(ù(v)) v=tpl_item.value; 
-	    if(è(v)){
-		console.log("Setting placeholder value");
-		ui.setAttribute("placeholder",v);
+	tpl_item.set_value=function(nv){
+	    if(è(nv)){
+		tpl_item.value=nv;
 	    }
+	    if(è(tpl_item.value)){
+		ui.value=tpl_item.value;
+	    }
+	    else 
+		tpl_item.set_placeholder_value();
 	}
 	
-	tpl_item.set_default_value();
-
 	ui.addEventListener("change",function(){
 	    tpl_item.value=this.value*1.0; 
 	    tpl_item.trigger("change", tpl_item.value);
@@ -443,6 +457,12 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type " + ui_opts.type + " for " + tpl_item.name;
     }
+
+    if(è(tpl_item.value))
+	tpl_item.set_value();
+    else
+	tpl_item.set_default_value();
+    
     return tpl_item.ui;
 }
 
@@ -1553,31 +1573,53 @@ template_ui_builders.code=function(ui_opts, tpl_item){
 
 template_ui_builders.combo=function(ui_opts, combo){
 
-    var ui=combo.ui=ce("select"); ui.className="form-control";
+    var ui;
 
     combo.set_options=function(options){
 	combo.options=options;
 	console.log("Setting options " + JSON.stringify(options));
-	options.forEach(function(ov){
-	    var o=cc("option",ui);
-	    if(typeof ov == "string"){
-		o.value=ov; o.innerHTML=ov;
-	    }else{
-		o.value=ov.value; o.innerHTML=ov.label;
+
+	if(ui_opts.type==="edit")
+	    options.forEach(function(ov){
+		var o=cc("option",ui);
+		if(typeof ov === "string"){
+		    o.value=ov; o.innerHTML=ov;
+		}else{
+		    o.value=ov.value; o.innerHTML=ov.label;
 	    }
-	});
+	    });
     }
-    new_event(combo,"change");
     
-    ui.addEventListener("change",function(){
-	combo.value=combo.options[ui.selectedIndex];
-	combo.trigger("change",ui.selectedIndex);
-    });
+    if(ui_opts.type==="edit"){
+	
+	ui=combo.ui=ce("select"); ui.className="form-control";
+
+	combo.set_value=function(v){
+	    if(è(v))combo.value=v;
+	    else combo.value=combo.options[0]; 
+	    combo.ui.value=combo.value;
+	}
+	new_event(combo,"change");
+	
+	ui.addEventListener("change",function(){
+	    combo.value=combo.options[ui.selectedIndex];
+	    combo.trigger("change",combo.value);
+	});
     
+    }else{
+	ui=combo.ui=ce("span"); ui.className="";
+	combo.set_value=function(v){
+	    if(è(v))combo.value=v;
+	    else combo.value=combo.options[0]; 
+	    ui.innerHTML=combo.value;
+	}
+    }
+
     if(typeof combo.options != 'undefined'){
 	combo.set_options(combo.options);
-	combo.value=combo.options[0];
     }
+
+    combo.set_value();
     
     return ui;
 }

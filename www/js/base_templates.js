@@ -297,16 +297,18 @@ var base_templates={
 	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container"], child_view_type : "tabbed", name_node : "h2"},
 	elements : {
 	    welcome : {
-		name : "Sadira",
+		name : "Qk/Sadira",
 		type : "html",
 		url : "/sadira/welcome.html",
-		ui_opts : {item_classes : ["container"], name_node:"h2"}
+		ui_opts : {
+		    item_classes : ["container-fluid"], name_node:"h2"
+		}
 	    },
 	    deps : {
 		name : "Software deps",
 		type : "template",
 		template_name : "soft_links",
-		ui_opts : {item_classes : ["container"], name_node:"h2"}
+		ui_opts : {item_classes : ["container-fluid"], name_node:"h2"}
 	    }
 	}
     },
