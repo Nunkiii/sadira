@@ -442,7 +442,7 @@ function new_event(tpl_item, event_name){
 	    };
 	    cb.persist=persist;
 	    cbn.push(cb);
-	    console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
+	    //console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
 	};
 
 	tpl_item.unlisten=function(event_name, cb){
@@ -468,6 +468,10 @@ function new_event(tpl_item, event_name){
 		cb.call(tpl_item,data);
 	    });
 	};
+
+	tpl_item.has_event=function(event_name){
+	    return è(tpl_item.event_callbacks[event_name]);
+	}
     }
     //console.log("Creating callback on " + tpl_item.name);
     if(typeof tpl_item.event_callbacks[event_name]==='undefined')

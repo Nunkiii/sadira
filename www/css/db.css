@@ -3,8 +3,6 @@ Main Sadira toolkit CSS template
 On top of bootsrap 3
 */
 
-
-
 header{
   display: flex;
 }
@@ -78,7 +76,15 @@ header{
   font-family: Aileron;
   max-width: 100%;
   max-height:100%;
+
 } 
+
+body
+{
+  /*
+  font-size: 1.5vw;
+*/
+}
 
 /*
 bootstrap raw modifs.
@@ -101,7 +107,8 @@ bootstrap raw modifs.
 
 .navbar-brand{
   font-family : "Aileron";
-  font-weight: 200;
+  font-weight: 500;
+
 }
 
 .left{
@@ -147,7 +154,7 @@ pre {
   color: white;
 }
 
-.soft_table {
+table.soft_table {
   background: grey;
   color: white;
 }
@@ -325,6 +332,9 @@ float: left;
 */
 }
 
+.nav-tabs>li {
+  margin-bottom: -2px;
+}
 
 
 span.label_value {
@@ -808,6 +818,15 @@ sliding
 
 label{
   margin-right: .5em;
+
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
 }
 
 .editable > label{
@@ -818,13 +837,19 @@ label{
 }
 
 .db[data-type="videocap"] canvas {
+
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
   margin-right: auto;
   display: block;
-  
+  z-index: 1;  
   width: 100%;
+
+}
+
+.tab_pane {
+  border-top: none;
 }
 
 .db[data-type="videocap"]> .row >.db{
@@ -892,22 +917,26 @@ label .form-control{
 */
 
 
-.db .un_editable{
-  border-radius: .5em;
-  border: 2px solid transparent;
-}
-.db .editable{
+.un_editable{
+  cursor: pointer;
   border-radius: .5em;
   border: 2px solid transparent;
 }
 
-.db .un_editable:hover{
-  box-shadow : 0px 0px 5px lightgrey;
+.editable{
   cursor: pointer;
+  color: blue;
+  
+  border-radius: .5em;
+  border: 2px solid transparent;
 }
-.db .editable:hover{
-  box-shadow : 0px 0px 5px blue;
-  cursor: pointer;
+
+.un_editable:hover{
+  text-shadow : 0px 0px 5px lightgrey;
+
+}
+.editable:hover{
+  text-shadow : 0px 0px 5px lightgrey;
 }
 /*
 .db .editable .dbname:hover{
@@ -1183,9 +1212,6 @@ Text input
 }
 
 
-video{
-border : 2px solid blue;
-}
 
 
 progress[value] {
@@ -1547,6 +1573,7 @@ view manager
   font-size: .7em;
   color: grey;
   padding: .3em;
+  padding-left : 1em;
   cursor: pointer;
 }
 
@@ -1840,6 +1867,13 @@ Chat
    cursor: pointer;
    border: 1px solid yellow;
 }
+
+
+@media only screen and (min-device-width: 1024px) {
+  body{
+  }
+}
+
 
 
 /*
