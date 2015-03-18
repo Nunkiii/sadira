@@ -1061,14 +1061,11 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 
 template_ui_builders.bool=function(ui_opts, tpl_item){
 
-    
-    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-
+    ui_opts.type=è(ui_opts.type) ? ui_opts.type : "short";
     
     new_event(tpl_item,"change");
+
     switch (ui_opts.type){
-	
-	
     case "short":
 	var ui=tpl_item.ui=ce("span");
 	ui.className="value";

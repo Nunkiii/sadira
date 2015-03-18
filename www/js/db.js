@@ -370,7 +370,7 @@ local_templates.prototype.build_template=function(template_name){
 	    throw "Unknown template " + template_name;
 	tpl.template_name=template_name;
     }else{
-	console.log("Template is an object " + typeof template_name + " : " + JSON.stringify(tpl));
+	//console.log("Template is an object " + typeof template_name + " : " + JSON.stringify(tpl));
 	tpl=template_name;
     }
     
@@ -577,6 +577,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     for(var o in global_ui_opts){
 	//console.log(tpl_root.name + " : Global ui opts are : " + JSON.stringify(global_ui_opts));
 	//if(ù(tpl_root.ui_opts[o]))
+	//console.log("forcing global opt " + o + " to " + global_ui_opts[o] +" for " + tpl_root.name );
 	tpl_root.ui_opts[o]=global_ui_opts[o];
     }
     
@@ -589,7 +590,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(è(p.ui_opts.child_classes)){
 		    if(p.ui_opts.child_classes.length>0){
 			if(has_class("btn-group",p.ui_opts.child_classes[0]) || has_class("btn-group-vertical",p.ui_opts.child_classes[0])){
-			    console.log("Setting item_root to true for " + tpl_root.name);
+			    //console.log("Setting item_root to true for " + tpl_root.name);
 			    ui_opts.item_root=true;
 			}
 		    }
@@ -597,7 +598,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	}
     }
-
+    
+    //console.log(tpl_root.name + " : create_ui. global ui opts are : " + JSON.stringify(global_ui_opts));
+    
     //console.log("create UI type "+ tpl_root.type + " name " + tpl_root.name + " : "  + JSON.stringify(global_ui_opts) + " tpl " + JSON.stringify(tpl_root.ui_opts) );
     
     var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;

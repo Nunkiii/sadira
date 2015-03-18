@@ -102,7 +102,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	
 	rng=etpl.elements.range;
 
-	for(var v in rng) console.log(" rnv " + v);
+	//for(var v in rng) console.log(" rnv " + v);
 
 	
 	uniform=etpl.elements.uniform;
