@@ -10,7 +10,7 @@ var base_templates={
 		name : "Server",
 		type : "url",
 		ui_opts : { editable : true, root_classes : ["inline"],  label : true},
-		value : "ws://sadira.iasfbo.inaf.it"
+		default_value : "ws://sadira.iasfbo.inaf.it"
 	        //value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },

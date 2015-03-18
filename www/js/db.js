@@ -735,10 +735,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    tpl_root.intro_visible=!tpl_root.intro_visible;
 		} );
 	    }
-	    if(ui_opts.save)
-		setup_save(node);
 
 	}
+
+	if(ui_opts.save)
+	    setup_save(ui_root);
+
 	
 	if(è(tpl_root.name) && ui_opts.render_name){
 	    

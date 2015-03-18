@@ -1335,8 +1335,14 @@ template_ui_builders.url=function(ui_opts, url){
     var ui;
 
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+
+
+    url.set_default_value=function(){
+	url.set_value(url.default_value);
+    }
+    
     switch (ui_opts.type){
-	
+
     case "short":
 	ui=url.ui=ce("a");
 	//ui.className="value";
@@ -1348,7 +1354,6 @@ template_ui_builders.url=function(ui_opts, url){
 		ui.innerHTML="<span class='fa fa-external-link'> </span>" + url.value;
 	    }
 	}
-	url.set_value();
 	break;
     case "edit": 
 
@@ -1433,21 +1438,22 @@ template_ui_builders.url=function(ui_opts, url){
 	}else{
 	    ui=url.ui=ce("input");
 	    ui.type="url";
-	    url.set_default_value=function(){
-		var v=url.default_value;
-		if(ù(v)) v=url.value; 
+
+	    url.set_holder_value=function(){
+		var v=url.holder_value;
 		if(è(v)){
 		    //console.log("Setting placeholder value");
 		    ui.setAttribute("placeholder",v);
 		}
-		
 	    }
-
+	    
 	    url.set_value=function(nv){
 		if(typeof nv !='undefined')
 		    url.value=nv;
 		if(typeof url.value !=='undefined')
 		    ui.value=url.value;
+		else
+		    url.set_holder_value();
 	    }
 	    url.get_value=function(){
 		return ui.value;
@@ -1459,12 +1465,13 @@ template_ui_builders.url=function(ui_opts, url){
 		    url.onchange();
 	    }
 	}
-	url.set_default_value();
 	
 	break;
     default: 
 	throw "Unknown UI type ";
     }
+
+    url.set_default_value();
 
     
     return url.ui;
