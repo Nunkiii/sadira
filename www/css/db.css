@@ -1471,11 +1471,17 @@ view manager
   overflow-y : auto;
   overflow-x: hidden;
 }
+
 .db[data-type="object_editor"]{
   max-height: 70vh;
   max-width: 100%;
   overflow-y : auto;
   overflow-x: hidden;
+}
+
+.vlimit{
+  max-height: 70vh;
+  overflow-y : auto;
 }
 /*
 

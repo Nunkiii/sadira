@@ -190,7 +190,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 
 template_ui_builders.sadira=function(ui_opts, sad){
   
-    console.log("sadira link constructor !");
+    //console.log("sadira link constructor !");
     
     
     new_event(sad,"socket_close");
@@ -831,7 +831,7 @@ template_ui_builders.login=function(ui_opts, login){
     var mode;
 
     if(ù(login.user_id))login.user_id="";
-    console.log("LOGIN : " + login.user_id);
+    //console.log("LOGIN : " + login.user_id);
     
     
     function check(){

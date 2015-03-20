@@ -326,6 +326,7 @@ local_templates.prototype.update_template=function(tpl_item, tpl){
 	switch(o){
 	case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; break;
 	case "subtitle" : if(!tpl_item.subtitle) tpl_item.subtitle=tpl.subtitle; break;
+	case "intro" : if(!tpl_item.intro) tpl_item.intro=tpl.intro; break;
 	case "elements" : break; 
 	case "ui_opts" : break;
 	default:
@@ -671,7 +672,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.className="db";// container-fluid";
 	if(ui_opts.panel) ui_root.add_class("db panel panel-default");
 
-	if(è(typeof tpl_root.type))
+	if(è(tpl_root.type))
 	    ui_root.setAttribute("data-type", tpl_root.type);
 	
 	if(è(tpl_root.template_name))
@@ -707,7 +708,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     */
 
     function setup_save(node){
-	console.log(tpl_root.name +  " : setup save !");
+	//console.log(tpl_root.name +  " : setup save !");
 	
 	var bbox=create_widget({
 	    ui_opts : { child_classes : ["btn-group pull-right"]},
@@ -1507,6 +1508,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    navcnt.add_class(cvtype);
 	    //cnt.add_class("child_container");
 	    cnt.add_class("tab-content");
+	    if(è(ui_opts.tab_scroll_height)){
+		cnt.style.maxHeight=ui_opts.tab_scroll_height;
+		cnt.style.overflowY="auto";
+	    }
 	    cnt.add_class(cvtype);
 	    //cnt.add_class("tab-content");
 
@@ -1839,7 +1844,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			iui=tpl_root.wrap_ui=ce("div");
 			
 			if(è(ui_opts.wrap_classes)){
-			    console.log("Adding wrap " + JSON.stringify(ui_opts.wrap_classes) +" to " + tpl_root.name);
+			    //console.log("Adding wrap " + JSON.stringify(ui_opts.wrap_classes) +" to " + tpl_root.name);
 			    add_classes(ui_opts.wrap_classes, iui);
 			}
 
@@ -1885,8 +1890,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 				tpl_root.set_default_value();
 			    });
 			    //item_ui=iui;
-
-			    console.log("DEFVAL SET !!!");
+			    
+			    
 			    
 			}
 
