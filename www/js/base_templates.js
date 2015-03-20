@@ -4,31 +4,38 @@ var base_templates={
 	//type : "template",
 	tpl_builder  : "sadira",
 	name : "Websocket link",
-	ui_opts : { child_classes : [], child_view_type : "div"},
+	ui_opts : { child_classes : ["container-fluid"], child_view_type : "div"},
 	elements : {
 	    url : {
 		name : "Server",
 		type : "url",
-		ui_opts : { editable : true, root_classes : ["inline"],  label : true},
+		ui_opts : {
+		    root_classes : ["inline"], name_classes : [], item_classes : ["inline"],
+		    editable : true,  label : true
+		},
 		default_value : "ws://sadira.iasfbo.inaf.it"
 	        //value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },
 	    status : {
 		//name : "Status",
-		ui_opts : {root_classes : ["inline"],  label : true},
+		ui_opts : {root_classes : [], name_classes : [], item_classes : ["panel-header"],  item_root : true},
 		type : "status",
 		value : "blue",
 		value_labels : { blue : "disconnected", green : "connected", red : "error"}
 	    },
 	    connect : {
-		ui_opts : {root_classes : ["inline"], item_classes : ["btn btn-default btn-xs"], fa_icon : "link"},
+		ui_opts : {root_classes : [], name_classes : [],  item_classes : ["btn btn-default btn-xs"], fa_icon : "link"},
 		type: "action",
 		name : "connect"
 	    },
 	    messages : {
-		ui_opts : {sliding : true, slided : false, root_classes : ["inline"],  label : true},
-		name : "Messages",
+		ui_opts : {
+		    sliding : true, slided : false,
+		    root_classes : ["inline"], name_classes : [],  item_classes : [],  
+		    label : true
+		},
+		name : "Info",
 		type : "text"
 	    }
 	} 
@@ -80,9 +87,8 @@ var base_templates={
 	intro_visible : true,
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts :{
-	    child_view_type : "tabbed",
-	    tab_classes : ["nav-pills"],
-	    root_classes : ["container"],
+	    child_view_type : "pills",
+	    root_classes : ["container-fluid"],
 	    child_classes : ["container"]
 	},
 
@@ -113,7 +119,7 @@ var base_templates={
 				//
 				name : "Email address",
 				type : "string",
-				default_value : "name@example.org",
+				holder_value : "name@example.org",
 				ui_opts : { type : "edit",
 					    root_classes : ["form-group"],
 					    label : true,
@@ -293,17 +299,28 @@ var base_templates={
     },
 
     sadira_home : {
-	//name : "The Quarklib/Sadira project",
-	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container"], child_view_type : "tabbed", name_node : "h2"},
+	    
+	name : "INAF/IASF-Bologna ☄",
+	subtitle : "— Astro-web-software",
+	intro : "    <blockquote><p>Qk/Sadira is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p></blockquote>",
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    child_classes : ["container"],
+	    child_view_type : "pills",
+	    name_node : "h2",
+	    icon : "/sadira/icons/inaf_iasfbo.png",
+	    icon_size : "5em",
+	    intro_visible : true
+	},
 	elements : {
 	    welcome : {
 		name : "Qk/Sadira",
 		type : "html",
 		url : "/sadira/welcome.html",
-		ui_opts : {
-		    item_classes : ["container-fluid"], name_node:"h2"
-		}
+		ui_opts : { render_name : false}
+			  
 	    },
+	    
 	    deps : {
 		name : "Software deps",
 		type : "template",

@@ -388,18 +388,23 @@ _sadira.prototype.register_interprocess_service = function (service_name, result
 _sadira.prototype.start_session_handling = function (){
 
     var options = {};
+
+    if(è(this.options.redis)){
+	for( var o in this.options.redis) options[o]=this.options.redis[o];
+    }
+
+    this.log("Redis session : connect : options " + JSON.stringify(options));
+
     var session=require('express-session');
     var redis_session_store = require("connect-redis")(session);
     
-    this.app.use(session(
-	{
-	    secret: 'vivalabirravivalabirravivalabirra',
-	    store : new redis_session_store(options)
-	}
-    ));
-
-
+    this.app.use(session({
+	secret: 'vivalabirravivalabirravivalabirra',
+	store : new redis_session_store(options)
+    }));
+    
 }
+
 /* Start master process */
 
 _sadira.prototype.start_master = function (){
@@ -522,7 +527,7 @@ _sadira.prototype.start_worker = function (){
     
     var sad=this;
     
-    sad.log("Worker " + this.cluster.worker.id + " starting ...");
+//    sad.log("Worker " + this.cluster.worker.id + " starting ...");
 
     var app=this.app=express();
     app.sadira=this;
@@ -607,21 +612,19 @@ _sadira.prototype.create_http_server = function(cb){
 	
 	var http_port = parseInt(sad.options.http_port, 10);
 	
-	sad.log("setting up HTTP server on port " + http_port + " ...");
+	
 	
 	if(sad.options.http_proxy){
-
 	    var http_proxy = require('http-proxy');
 	    var proxy_config={
 		target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
 	    };
-	
-	    sad.log("\t-> proxy to " + proxy_config.target);
+	    sad.log("starting HTTP server on port " + http_port + " -> proxy to " + proxy_config.target);
 	    sad.http_proxy=http_proxy.createServer(proxy_config);
 	    sad.http_proxy.on('error', handle_proxy_error);
-	    
-	}
-
+	}else 
+	    sad.log("starting HTTP server on port " + http_port + " NO proxy.");
+	
 	try{
 	    var http = require('http');
 	    
@@ -645,7 +648,7 @@ _sadira.prototype.create_http_server = function(cb){
 	    sad.http_server.on("close", function (sock) {
 		cb("http socket closed");
 	    });
-	    console.log("http listen on " + http_port);
+	    //console.log("http listen on " + http_port);
 	    sad.http_server.listen(http_port);
 
 	}
@@ -660,8 +663,8 @@ _sadira.prototype.create_http_server = function(cb){
 
 	var https_port = parseInt(sad.options.https_port, 10);
 
-	sad.log("setting up HTTPS server on port " + https_port + " ...");
-
+	
+	
 	if(!è(sad.options.ssl)) throw ("No SSL config found !");
 	if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
 	if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
@@ -687,10 +690,11 @@ _sadira.prototype.create_http_server = function(cb){
 		secure : false
 	    };
 
-	    sad.log("\t-> proxy to " + proxy_config.target);	
+	    sad.log("setting up HTTPS server on port " + https_port + " -> proxy to " + proxy_config.target);	
 	    sad.https_proxy=http_proxy.createServer(proxy_config);
 	    sad.https_proxy.on('error', handle_proxy_error);
-	}
+	}else
+	    sad.log("setting up HTTPS server on port " + https_port + " NO proxy");
 	
         //Certificates for the https server
 
@@ -916,6 +920,7 @@ function clone(obj) {
 
 
 _sadira.prototype.initialize_handlers=function(packname){
+
     var sad=this;
     //var cwd=process.cwd();
     var pkg=sad.options[packname];
@@ -962,14 +967,14 @@ _sadira.prototype.initialize_handlers=function(packname){
 	    //return next("No user");//res.redirect('/signin')
 	}
 
-	console.log("Set user data to " + JSON.stringify(data));
+	//console.log("Set user data to " + JSON.stringify(data));
     }
     
     sad.app.get('/', function(req, res, next) {
 	
 	var index_info={};
 	sad.set_user_data(req, index_info);
-	sad.log("rendering index " + JSON.stringify(index_info));
+	//sad.log("rendering index " + JSON.stringify(index_info));
 	res.render('index.ejs', index_info); // load the index.ejs file
     });
     

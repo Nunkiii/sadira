@@ -43,7 +43,8 @@ srz_mem.prototype.initialize=function(buf, chunk_size){
     if(sz_data>SRZ_MEM_SIZE_MAX) throw "Object size too large : " + sz_data + " > " +  SRZ_MEM_SIZE_MAX;
     this.sz_data=sz_data;
     this.chunk_size= typeof chunk_size == 'undefined' ? SRZ_MEM_CHUNK_SIZE : chunk_size;
-    this.log("srz_mem ready: bytes " + this.sz_data + " chunk size " + this.chunk_size  );
+
+    //this.log("srz_mem ready: bytes " + this.sz_data + " chunk size " + this.chunk_size  );
 }
 
 srz_mem.prototype.store_chunk=function(dgram){

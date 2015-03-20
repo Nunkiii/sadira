@@ -36,7 +36,7 @@ var dialog = function (header, mgr){
     if(typeof header != 'undefined')this.set_header(header);
     if(typeof mgr != 'undefined')this.mgr=mgr;
 
-    console.log("creating dialog " + JSON.stringify(header));
+    //console.log("creating dialog " + JSON.stringify(header));
 }
 
 dialog.prototype.log = function(msg){
@@ -87,7 +87,7 @@ dialog.prototype.srz_initiate=function(srz, status_cb){
     if(typeof srz.header!=='undefined')
 	for(var h in srz.header) srz_head[h]=srz.header[h];
     this.send_datagram(srz_head,null,function(error){
-	console.log("Zweeeeror  " + error);
+	status_cb(error);
     });
 }
 
@@ -113,7 +113,7 @@ srz_setup=function(dlg){
 		    throw "No serializer oid received!!";
 		status_head.oid=oid;
 		
-		console.log("SRZ request ID=" + oid + " func is " + typeof dlg.srz_request);
+		//console.log("SRZ request ID=" + oid + " func is " + typeof dlg.srz_request);
 		
 		dlg.srz_request(dgram, function(error, srz){
 		    //console.log("Ok here... srz = " + typeof srz);
@@ -141,27 +141,30 @@ srz_setup=function(dlg){
 	}
 	else
 	    if(srcmd=='req_reply'){
-		console.log("request reply !");
+		
 		var oid=dgram.header.oid;
 		if(typeof oid=='undefined') throw "No serializer oid received!!";
 		
 		var srz=dlg.get_serializer(oid);
 		
+		
 		if(dgram.header.status==true){
+
 		    
 		    srz.on_accept();
 		    var chunk_dgram, ready=true;
 
+		    
 		    while (1){
-			//console.log("DG");
+			
 			chunk_dgram=new DGM.datagram({type: 'srz', cmd: 'cnk', oid: oid});
-			//console.log("DG2");
+			
 			if(! srz.write_chunk(chunk_dgram) ){
-			    console.log("last chunk written");
+			    //console.log("last chunk written");
 			    delete dlg.serializers[oid];
 			    break;
 			}
-
+			
 			//console.log("DG3");			
 			dlg.send(chunk_dgram, function(error){
 			    if(error) throw "error send chunk " + error;
@@ -174,8 +177,10 @@ srz_setup=function(dlg){
 		    }	
 		    
 		}
-		else
+		else{
+		    console.log("dgram header status is not true " + dgram.header.error_message);
 		    srz.on_error(dgram.header.error_message);
+		}
 	    }
 	else
 	    if(srcmd=='cnk'){ //data chunk
@@ -362,7 +367,7 @@ dialog_manager.prototype.process_datagram=function(dgram){
 		}else{
 
 		    hshk_head.status=true;
-		    dlg.log("Eval handler [" + hndl_name + "] OK ");
+		    //dlg.log("Eval handler [" + hndl_name + "] OK ");
 
 		    if(typeof hhead != 'undefined') for (var hh in hhead) hshk_head[hh]=hhead[hh];
 		    if(typeof hdata != 'undefined') hshk_data=hdata;

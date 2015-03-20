@@ -1,14 +1,17 @@
+/*Pierre Sprimont, CNR/INAF, Bologna, 2015 */
+
 var DLG = require("../www/js/dialog");
 
 var redis_cnx;
 var redis_pubcnx;
-
 
 exports.init=function(pkg, app){
     
     app.log("Chat module slave: init...");
     app.dialog("demo.chat", demo_chat);
 
+    
+    
     var redis = require("redis");
     
     redis_cnx = redis.createClient({detect_buffers: true});
@@ -58,6 +61,7 @@ function demo_chat (dlg, status_cb){
     });
 
     var chat_events={};
+
     function listen_chat_event(chanel, what, event_cb){
 	var ename=chanel+"_"+what;
 	DLG.new_event(chat_events, ename);
@@ -72,9 +76,7 @@ function demo_chat (dlg, status_cb){
     dlg.listen("connect", function (dgram){
 
 	//for(var p in dlg.cnx.request) console.log("cnxpr " + p);
-	
 	//redis_pubcnx.publish("chat", "Client connected ! "+dlg.cnx.request.remoteAddress );
-
 	
 	redis_cnx.listen("chat_event", chat_msg_handler);
 	
@@ -92,7 +94,6 @@ function demo_chat (dlg, status_cb){
 		
 	    }
 	}
-
 	
 	dlg.listen("chat_message", function(dgram){
 

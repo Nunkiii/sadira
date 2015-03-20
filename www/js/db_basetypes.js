@@ -1,8 +1,83 @@
+function config_common_input(tpl_item){
+
+    new_event(tpl_item,"change");
+    tpl_item.set_default_value=function(){
+	tpl_item.set_value(tpl_item.default_value);
+    }
+    switch (tpl_item.ui_opts.type){
+    case "short":
+	tpl_item.ui.add_class("control-label");
+	break;
+	
+    case "edit": 
+	tpl_item.get_value=function(){return tpl_item.value;}
+	tpl_item.set_value=function(nv){
+	    if(è(nv)){
+		var ch=(nv!=tpl_item.value);
+		tpl_item.value=nv;
+		if(ch)
+		    tpl_item.trigger("change", tpl_item.value);
+	    }
+	    if(è(tpl_item.value)){
+		tpl_item.ui.value=tpl_item.value;
+	    }
+	    else 
+		tpl_item.set_placeholder_value();
+	}
+	tpl_item.set_placeholder_value=function(){
+	    if(è(tpl_item.holder_value)){
+		//console.log("Setting placeholder value");
+		tpl_item.ui.setAttribute("placeholder",tpl_item.holder_value);
+	    }
+	}
+	
+	tpl_item.ui.addEventListener("change",function(){
+	    tpl_item.set_value(this.value); 
+	    
+	    
+	},false);
+
+	
+	break;
+    default: break;
+    };
+
+    //if(è(tpl_item.ui_name)) tpl_item.ui_name.add_class("control-label");
+    
+    if(è(tpl_item.value))
+	tpl_item.set_value();
+    else
+	tpl_item.set_default_value();
+    
+}
+
 template_ui_builders.dbtypes=function(ui_opts, dbt){
 
     for(var dt in template_ui_builders){
 	var t=template_ui_builders[dt];
-	var tple={ name : dt, ui_opts : { name_node : "h4"} };
+	var fstring="<pre><code>"+t.toString()+"</pre></code>";
+	var tple={
+	    name : dt,
+	    ui_opts : {
+		name_node : "h4",
+		root_classes : ["container-fluid panel panel-default"],
+		child_classes : ["inline"]},
+	    elements : {
+		code : {
+		    name :"JS builder",
+		    type : "html",
+		    value : fstring,
+		    ui_opts : {
+			//editable : true,
+			sliding:true,
+			slided:false,
+			label : true,
+			root_classes : ["inline"],
+			highlight_source: true
+		    }
+		}
+	    }
+	};
 	create_ui({},tple);
 	dbt.ui_childs.add_child(tple,tple.ui_root);
     }
@@ -117,18 +192,17 @@ template_ui_builders.sadira=function(ui_opts, sad){
   
     console.log("sadira link constructor !");
     
-    var widget_prefix="widgets";
-    var server_prefix="";
     
     new_event(sad,"socket_close");
     new_event(sad,"socket_error");
     new_event(sad,"socket_connect");
-    
-    //console.log("Building " + sad.name + " type " + sad.type); for(var e in sad) console.log("se " + e);
-    //sad.value=get_server_address();
+
     
     var url=sad.elements.url;
 
+    url.default_value=get_ws_server_address();
+    url.set_default_value();
+    
     var connect=sad.elements.connect;
     var status=sad.elements.status;
     var messages=sad.elements.messages;    
@@ -219,10 +293,11 @@ template_ui_builders.sadira=function(ui_opts, sad){
 
     }
     
-    sad.connect=function(){
+    sad.connect=function(ecb){
+	
 	if(sad.online){
 	    messages.append("Already connected to " + url.value + "\n");
-	    return;
+	    return è(ecb)? ecb(): undefined;
 	}
 
 	var ws_host=url.value;
@@ -239,7 +314,6 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	return cb("Sorry, you need a browser with webstorage support");
 	}
 	*/
-	
 
 	switch (socket_mode){
 	case "webrtc" :
@@ -259,33 +333,25 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	    */
 	    break;
 	default:
-	
-	    try {
-		window.WebSocket = window.WebSocket || window.MozWebSocket;
-		
-		//Checking web socket support 
-		
-		if (!window.WebSocket) {
-		    throw { message : "Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser" };
-		}
-
-		wsock = new WebSocket(ws_host);
-		wsock.binaryType = "arraybuffer";
+	    window.WebSocket = window.WebSocket || window.MozWebSocket;
+	    
+	    //Checking web socket support 
+	    
+	    if (!window.WebSocket) {
+		var estr="Sorry, but your browser doesn't support WebSockets.<br>Please install a modern web browser!";
+		sad.trigger("socket_error",estr); 
+		if(è(ecb)) ecb(estr);
 	    }
-	    catch (e){
-		sad.trigger("socket_error", e.message);
-	    }
+	    
+	    wsock = new WebSocket(ws_host);
+	    wsock.binaryType = "arraybuffer";
 	    break;
 	};
 
-	if(!wsock){
-	    messages.append("Cannot create socket!");
-	    return;
-	}
-	
 	sad.wsock=wsock;
 
-	wsock.onclose = function () {
+	wsock.onclose = function (ev) {
+	    //if(è(ecb)) ecb(JSON.stringify(ev));
 	    sad.trigger("socket_close", this);
 	    sad.online=false;
 	};
@@ -294,6 +360,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	    sad.online=true;
 	};
 	wsock.onerror = function (error) {
+	    if(è(ecb)) ecb(JSON.stringify(error));
 	    sad.trigger("socket_error", error);
 	};
 	
@@ -317,7 +384,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	
 	};
 
-	
+	if(è(ecb)) ecb();
     }
 
 
@@ -387,12 +454,9 @@ template_ui_builders.status=function(ui_opts, tpl_item){
 
 template_ui_builders.double=function(ui_opts, tpl_item){
     //console.log("double builder :  " + JSON.stringify(ui_opts));
-    new_event(tpl_item,"change");
+
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-    
-    tpl_item.set_default_value=function(){
-	tpl_item.set_value(tpl_item.default_value);
-    }
+
 
 
     switch (ui_opts.type){
@@ -409,9 +473,6 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	    tpl_item.trigger("change", tpl_item.value);
 
 	},false);
-
-	
-
 	break;
 
     case "edit": 
@@ -425,43 +486,18 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 	ui.add_class("form-control input-sm");
 	
-	tpl_item.set_placeholder_value=function(){
-	    if(è(tpl_item.holder_value)){
-		//console.log("Setting placeholder value");
-		ui.setAttribute("placeholder",tpl_item.holder_value);
-	    }
-	}
 	
 	if(tpl_item.min) ui.min=tpl_item.min;
 	if(tpl_item.max) ui.max=tpl_item.max;
 	if(tpl_item.step) ui.step=tpl_item.step;
 
-	tpl_item.get_value=function(){return tpl_item.value;}
-	tpl_item.set_value=function(nv){
-	    if(è(nv)){
-		tpl_item.value=nv;
-	    }
-	    if(è(tpl_item.value)){
-		ui.value=tpl_item.value;
-	    }
-	    else 
-		tpl_item.set_placeholder_value();
-	}
-	
-	ui.addEventListener("change",function(){
-	    tpl_item.value=this.value*1.0; 
-	    tpl_item.trigger("change", tpl_item.value);
-
-	},false);
 	break;
     default: 
 	throw "Unknown UI type " + ui_opts.type + " for " + tpl_item.name;
     }
 
-    if(è(tpl_item.value))
-	tpl_item.set_value();
-    else
-	tpl_item.set_default_value();
+    config_common_input(tpl_item);
+    
     
     return tpl_item.ui;
 }
@@ -1114,8 +1150,6 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
     if(ù(ui_opts.type)) ui_opts.type="short";
 
-    new_event(tpl_item,"change");
-
     switch (ui_opts.type){
 	
     case "short":
@@ -1132,12 +1166,17 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	
 	tpl_item.set_alert=function(m){
 	    var t=m.type==="error"?"danger":m.type;
-	    ui.className="alert alert-"+t+" alert-sm";
-	    tpl_item.set_value("<strong>"+m.type+" :</strong>"+m.content);
+	    ui.className="";
 	    
+	    if(è(ui_opts.item_classes))
+		add_classes(ui_opts.item_classes, ui);
+	    ui.add_class("alert-"+t);
+	    
+	    tpl_item.set_value(//tpl_item.value +
+			       "<strong>"+m.type+" :</strong>"+m.content+"<br/>");
+	    //tpl_item.set_value(m.type+" :"+m.content);
 	}
-	
-	tpl_item.set_value();
+
 	break;
 
     case "edit": 
@@ -1146,46 +1185,13 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	var ui=tpl_item.ui=ce("input");
 	ui.type="text";
 	ui.className="form-control";
-	var default_value=tpl_item.value;
-	
-	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.value=tpl_item.value;
-	}
-
-	ui.addEventListener("change",function(){
-	    //console.log("str changed " + this.value);
-	    tpl_item.value=this.value; 
-	    tpl_item.trigger("change", tpl_item.value);
-	    
-	    //tpl_item.switch_edit_mode();
-	});
-
-	
-	// ui.onchange=function(){
-	//     tpl_item.value=this.value; 
-	//     if(tpl_item.onchange)
-	// 	tpl_item.onchange();
-	// }
-
-	tpl_item.set_default_value=function(){
-	    var v=tpl_item.default_value;
-	    //if(ù(v)) v=tpl_item.value; 
-	    if(è(v)){
-		//console.log("Setting placeholder value");
-		ui.setAttribute("placeholder",v);
-	    }else
-		tpl_item.set_value();
-	}
-
-	tpl_item.set_default_value();
 	
 	break;
     default: 
 	throw "Unknown UI type ";
     }
 
-
+    config_common_input(tpl_item);
     
     return tpl_item.ui;
 }
@@ -1331,15 +1337,10 @@ template_ui_builders.date=function(ui_opts, tpl_item){
 
 template_ui_builders.url=function(ui_opts, url){
     
-    console.log("building URL " + url.name + " : " + url.value);
+    //console.log("building URL " + url.name + " : " + url.value);
     var ui;
 
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-
-
-    url.set_default_value=function(){
-	url.set_value(url.default_value);
-    }
     
     switch (ui_opts.type){
 
@@ -1438,32 +1439,9 @@ template_ui_builders.url=function(ui_opts, url){
 	}else{
 	    ui=url.ui=ce("input");
 	    ui.type="url";
+	    ui.className="form-control";
 
-	    url.set_holder_value=function(){
-		var v=url.holder_value;
-		if(è(v)){
-		    //console.log("Setting placeholder value");
-		    ui.setAttribute("placeholder",v);
-		}
-	    }
 	    
-	    url.set_value=function(nv){
-		if(typeof nv !='undefined')
-		    url.value=nv;
-		if(typeof url.value !=='undefined')
-		    ui.value=url.value;
-		else
-		    url.set_holder_value();
-	    }
-	    url.get_value=function(){
-		return ui.value;
-	    }
-	    
-	    ui.onchange=function(){
-		url.value=this.value; 
-		if(url.onchange)
-		    url.onchange();
-	    }
 	}
 	
 	break;
@@ -1471,7 +1449,7 @@ template_ui_builders.url=function(ui_opts, url){
 	throw "Unknown UI type ";
     }
 
-    url.set_default_value();
+    config_common_input(url);
 
     
     return url.ui;
@@ -1578,7 +1556,6 @@ template_ui_builders.code=function(ui_opts, tpl_item){
 template_ui_builders.combo=function(ui_opts, combo){
 
     var ui;
-    new_event(combo,"change");
 
     combo.set_options=function(options){
 	combo.options=options;
@@ -1599,21 +1576,6 @@ template_ui_builders.combo=function(ui_opts, combo){
 	
 	ui=combo.ui=ce("select"); ui.className="form-control";
 
-	combo.set_value=function(v){
-	    if(è(v))combo.value=v;
-	    else{
-		if(è(combo.options))
-		    if(combo.options.length>0)
-			combo.value=combo.options[0];
-
-	    }
-	    combo.ui.value=combo.value;
-	}
-	
-	ui.addEventListener("change",function(){
-	    combo.value=combo.options[ui.selectedIndex];
-	    combo.trigger("change",combo.value);
-	});
     
     }else{
 	ui=combo.ui=ce("span"); ui.className="";
@@ -1631,9 +1593,19 @@ template_ui_builders.combo=function(ui_opts, combo){
     if(typeof combo.options != 'undefined'){
 	combo.set_options(combo.options);
     }
-
-    combo.set_value();
     
+    config_common_input(combo);
+    
+    combo.set_default_value=function(){
+	if(è(combo.default_value)) return combo.set_value(combo.default_value);
+
+	if(è(combo.options))
+	    if(combo.options.length>0)
+		return combo.set_value(combo.options[0]);
+
+	if(è(combo.holder_value)) combo.set_holder_value(combo.holder_value);
+    }	
+	
     return ui;
 }
 
@@ -1642,13 +1614,14 @@ template_ui_builders.combo=function(ui_opts, combo){
 template_ui_builders.action=function(ui_opts, action){
     
     var ui;
-
+    var bnode=è(ui_opts.button_node)?ui_opts.button_node:"button";
     if(è(action.link)){
 	ui = ce("a");
 	ui.href=action.link;
 
     }else{
-	ui = ce("button");
+	ui = ce(bnode);
+
 	new_event(action,"click");
 	ui.type="button";
 
@@ -1672,10 +1645,13 @@ template_ui_builders.action=function(ui_opts, action){
     ui.innerHTML="";
     if(è(ui_opts.fa_icon)){
 	//console.log("Setting fa icon !! ");
-	ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+	if(bnode!=="span")
+	    ui.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
+	else
+	    ui.add_class("fa fa-"+ui_opts.fa_icon);
     }
     ui.innerHTML+=action.name;
-
+    
     // if(è(ui_opts.btn_type))
     // 	ui.className+=" btn-"+ui_opts.btn_type;
     
