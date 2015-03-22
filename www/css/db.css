@@ -105,11 +105,6 @@ bootstrap raw modifs.
 */
 }
 
-.navbar-brand{
-  font-family : "Aileron";
-  font-weight: 500;
-
-}
 
 .left{
   max-height: 70vh;
@@ -845,6 +840,34 @@ label{
 }
 .un_editable > label{
   cursor : pointer;
+}
+
+.navbar-default {
+  background-color : transparent;
+}
+
+.navbar-brand{
+  font-family : "Aileron";
+  font-weight: 300;
+}
+
+.navbar-brand small{
+  font-family : "Aileron";
+  font-weight: 200;
+}
+
+
+.navbar-brand > *{
+
+		 margin: 0px;
+	       padding: 0px;
+	       font-family : "Aileron";
+	       font-weight: 500;
+}
+
+
+.noborder {
+	  border: 0px;
 }
 
 .db[data-type="videocap"] canvas {

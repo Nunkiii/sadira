@@ -294,7 +294,10 @@ var base_templates={
 	tpl_builder : "dbtemplates",
 	ui_opts : {root_classes : ["container-fluid"]},
 	elements : {
-	    build_progress : { name : "Building templates ... ", type : "progress", value : 0}
+	    build_progress : {
+		name : "Building templates ... ",
+		type : "progress", value : 0
+	    }
 	}
     },
 
@@ -374,6 +377,100 @@ var base_templates={
 	}
 	
 	
+    },
+
+    ui_demo : {
+	type : "ui_demo",
+	name : "Toolkit test", subtitle : "Sadira/Tk sandbox",
+	intro : "<p>Write the template and builder code for your widget then try to run it</p>",
+	ui_opts : {
+	    root: true,
+	    root_classes : ["container-fluid"],
+	    child_classes : ["row"]
+	},
+	//toolbar : {},
+
+	elements : {
+	    code : {
+		//name : "Widget source code",
+		ui_opts : {
+		    root_classes : ["col-md-6"],
+		    child_classes : ["container-fluid"],
+		    child_view_type : "tabbed"
+		},
+		elements : {
+		    widget : {
+			name : "Choose an existing template :",
+			type : "template_list",
+			ui_opts: {
+			    type : "edit",style:"mmenu",label:true, in_root: "prepend",
+			    root_classes : ["container-fluid"],
+			}
+		    },
+		    template : {
+			name : "Template",subtitle : "Edit source code (in JavaScript for simplicity)",
+			type : "code",
+			default_value : '{\n\ttype : "hello",\n\tname : "Hello",\n\tsubtitle : "Hello Sadira/Tk!",\n\t elements : {\n\t\tbtn : {\n\t\t\ttype : "action",\n\t\t\tname : "Click me !"\n\t\t},\n\t\ttext : {\n\t\t\tname : "Result :",\n\t\t\t type : "string"\n\t\t}\n\t}\n}',
+
+			//default_value: '{}',
+			ui_opts : {
+			    type : "edit",
+			    root_classes : ["container-fluid"],
+			    highlight_source : true
+			}
+		    },
+		    builder : {
+			name : "Template builder",subtitle : "Edit your widget builder source code",
+			type : "code",
+			default_value : 'function(ui_opts, hello_tpl){\n\thello_tpl.get("btn").listen("click", function(){\n\t\thello_tpl.get("text").set_value("Hello World!");\n\t});\n }',
+			ui_opts : {
+			    type : "edit",
+			    root_classes : ["container-fluid"],
+			    
+			    highlight_source : true
+			}
+		    },
+	    	    compile : {
+			name : "Compilation",
+			ui_opts : {
+			    root_classes : ["container-fluid"],
+			    child_classes : ["container-fluid"],
+			},
+			elements : {
+			    build : {
+				name : "Build/rebuild widget",
+				type : "action",
+				ui_opts : {item_classes : ["btn btn-primary"], item_root : true}
+			    },
+			    status : {
+				ui_opts : { root_classes : ["row"], label:true},
+				type : "string",
+				name : "JS compile"
+			    },
+			    build_status : {
+				ui_opts : { root_classes : ["row" ], label:true},
+				type : "string",
+				name : "Widget build"
+			    }
+			}
+
+		    },
+
+		}
+	    },
+
+	    view : {
+		//name : "Widget",
+		ui_opts : {
+		    root_classes : ["col-md-6"],
+		    child_classes : ["container-fluid"],
+		}
+		
+	    }
+
+	}
+
+
     }
     
 };

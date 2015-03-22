@@ -297,6 +297,10 @@ var local_templates=function(){
     this.templates={};
 }
 
+local_templates.prototype.set_template=function(tname, template){
+    this.templates[tname]=template;
+}
+
 local_templates.prototype.add_templates=function(templates){
     for(var tname in templates){
 	this.templates[tname]=templates[tname];
@@ -338,22 +342,27 @@ local_templates.prototype.update_template=function(tpl_item, tpl){
 local_templates.prototype.substitute_template=function(tpl_item){
     //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
 
-    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined'){
-	var tpl=this.templates[tpl_item.template_name];
-	if(typeof tpl==='undefined')
-	    throw "Unknwon template " + tpl_item.template_name;
-	//console.log("subst for " + tpl_item.name + " tpl " + tpl.template_name);
+    var ttype;
+    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined')
+	ttype=tpl_item.template_name;
+    else
+	ttype=tpl_item.type;
 	
-	if(typeof tpl.template_name !='undefined'){
-	    var tpls=this.templates[tpl.template_name];
-	    if(typeof tpls==='undefined')
-		throw "Unknwon template " + tpl.template_name;
-	    this.update_template(tpl_item, tpls);
-	}
-	this.update_template(tpl_item, tpl);
-	return true;
+    
+    var tpl=this.templates[ttype];
+    if(ù(tpl)) return;
+    //	throw "Unknwon template " + tpl_item.template_name;
+    //console.log("subst for " + tpl_item.name + " tpl " + tpl.template_name);
+	
+    if(typeof tpl.template_name !='undefined'){
+	var tpls=this.templates[tpl.template_name];
+	if(typeof tpls==='undefined')
+	    throw "Unknwon template " + tpl.template_name;
+	this.update_template(tpl_item, tpls);
     }
-    return false;
+    this.update_template(tpl_item, tpl);
+    return true;
+    
 }
 
 local_templates.prototype.substitute_templates=function(tpl){
@@ -366,30 +375,24 @@ local_templates.prototype.substitute_templates=function(tpl){
 	    this.substitute_templates(tpl.toolbar[tbi]);
 	}
     }
+    return tpl;
 }
 
-local_templates.prototype.build_template=function(template_name){
+local_templates.prototype.build_template=function(template){
 
     var tpl;
 
-    if(typeof template_name === 'string'){ 
-	tpl=clone_obj(this.templates[template_name]);
+    if(typeof template === 'string'){ 
+	tpl=clone_obj(this.templates[template]);
 	if(typeof tpl === 'undefined') 
-	    throw "Unknown template " + template_name;
-	tpl.template_name=template_name;
+	    throw "Unknown template " + template;
+	tpl.template=template;
     }else{
-	//console.log("Template is an object " + typeof template_name + " : " + JSON.stringify(tpl));
-	tpl=template_name;
+	//console.log("Template is an object " + typeof template + " : " + JSON.stringify(tpl));
+	tpl=template;
     }
-    
-    //var tpl= clone_obj(tplo);
-    
-    //console.log("TPL= " + JSON.stringify(tpl));
-    this.substitute_templates(tpl);
 
-    //    console.log("TPL AFTER= " + JSON.stringify(tpl,null,4));
-    //  console.log("TPL= " + JSON.stringify(this.templates));
-    return tpl;
+    return this.substitute_templates(tpl);
 }
 
 template_ui_builders={};
@@ -507,6 +510,19 @@ function attach_ui(tpl, node){
     tpl.view_update_childs(); 
 }
 
+function get_ico_string(tpl){
+    if(è(tpl.ui_opts)){
+	if(è(tpl.ui_opts.icon)){
+	    var s='<img src="'+tpl.ui_opts.icon+'" class="ico" ';
+	    if(è(tpl.ui_opts.icon_size))
+		s+='style="width:'+tpl.ui_opts.icon_size+'"';
+	    s+=">"
+	    //console.log("Got icon " + tpl.ui_opts.icon);
+	    return s;
+	}
+    }
+    return undefined;
+}
 function get_ico(tpl){
     var ico=undefined;
     
@@ -575,7 +591,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	//tpl_root.ui_opts={};
 	tpl_root.ui_opts=clone_obj(global_ui_opts);
-
+	
 	if(ù(tpl_root.ui_opts.type))
 	    tpl_root.ui_opts.type="short";
     }
@@ -701,8 +717,107 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    tpl_root.debug.append(msg);
 	}
-    }
 
+	tpl_root.get=function(name){
+	    for(var e in tpl_root.elements){
+		if(e===name) return tpl_root.elements[e];
+	    }
+	    for(var e in tpl_root.elements){
+		var n=tpl_root.elements[e].get(name);
+		if(n) return n;
+	    }
+	    return undefined;
+	}
+
+	if(è(tpl_root.toolbar)){
+	    
+	    //ui_root.removeChild(ui_name);
+	    
+	    //var head=tpl_root.ui_head=cc("header", ui_root, true);
+	    //head.add_class("db");
+	    var tb=tpl_root.toolbar;
+	    var toolbar=tpl_root.ui_toolbar=cc("nav",ui_root,true);
+	    toolbar.className="navbar" ;
+	    if(tb.ui_opts&& tb.ui_opts.toolbar_classes)
+		add_classes(tb.ui_opts.toolbar_classes,toolbar);
+	    else
+		toolbar.add_class("navbar-default");// navbar-nav ";// navbar-right";
+
+	    
+	    toolbar.setAttribute("role","navigation");
+	    var cnt=cc("div",toolbar); cnt.className="container-fluid";
+	    var navhead=tb.navhead=cc("div",cnt);navhead.className="navbar-header";
+	    var togb=cc("button",navhead); togb.className="navbar-toggle collapsed";
+	    togb.setAttribute("data-toggle", "collapse");
+	    var s=cc("span",togb); s.className="sr-only"; s.innerHTML="Toggle navigation";
+	    cc("span",togb).className="icon-bar";
+	    cc("span",togb).className="icon-bar";
+	    cc("span",togb).className="icon-bar";
+	    
+	    var togid=Math.random().toString(36).substring(2);
+	    togb.setAttribute("data-target", "#"+togid);
+
+	    var tita=tb.nava=cc("a",navhead); tita.className="navbar-brand";
+	    tita.setAttribute("href","javascript:void(0)");
+	    /*
+
+	      
+	    tita.innerHTML=tpl_root.name;
+	    */
+	    var dnav=cc("div", cnt); dnav.className="collapse navbar-collapse";  dnav.id=togid;
+
+
+	    var unav=tb.unav=cc("ul",dnav);
+	    unav.className="nav";
+	    
+	    if(tb.ui_opts&& tb.ui_opts.nav_classes)
+		add_classes(tb.ui_opts.nav_classes,unav);
+	    else
+		unav.add_class("navbar-nav");// navbar-nav ";// navbar-right";
+			       
+	    toolbar.add=function(node,ul){
+		node.add_class("navbar-link");
+		if(node.nodeName==="A") node.setAttribute("href","javascript:void(0)");
+		var li=cc("li",ul);
+		li.appendChild(node);
+		return li;
+	    };
+	    
+	    function fill_elements(ul, elements){
+		for(var tbi in elements){
+		    var ti=elements[tbi];
+		    //ttpl.parent=tpl_root;
+		    //console.log(tpl_root.name +  " adding toolbar child " + e + " name " + el.name + " elements " + JSON.stringify(ttpl.elements)) ;
+		    //var ui=create_ui(global_ui_opts,ttpl, depth+1);
+		    //toolbar.appendChild(ttpl.ui_root);
+		    if(è(ti.elements)){
+			var li=ti.ul=cc("li",ul);
+			var tita=ti.a=cc("a",li); tita.className="dropdown-toggle";
+			tita.setAttribute("href","javascript:void(0)");
+			tita.setAttribute("data-toggle","dropdown");
+			tita.setAttribute("role","button");
+			tita.setAttribute("aria-expanded",false);
+			tita.innerHTML=ti.name+' <span class="caret"></span>';
+			var sub_ul=ti.subul=cc("ul",li); sub_ul.className="dropdown-menu";
+			sub_ul.setAttribute("role","menu");
+			fill_elements(sub_ul,ti.elements);
+		    }else{
+			var tita=ti.a=ce("a");
+			tita.innerHTML=ti.name;
+			ti.li=toolbar.add(tita,ul);
+		    }
+		}
+	    }
+	    
+	    //fill_elements(unav,tb);
+	    
+	    if(è(tpl_root.ui_intro))
+		head.appendChild(tpl_root.ui_intro);
+	}
+	
+	
+    }
+    
     /*
       widget name config
     */
@@ -767,6 +882,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
 
+	    if(tpl_root.toolbar){
+		ui_name=tpl_root.toolbar.nava;//.appendChild(ui_name);
+	    }else
+		ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
 	    //if(!ui_opts.label) ui_name.className="row";
 			    
 	    if(ui_opts.panel){
@@ -786,11 +905,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		var ico=get_ico(tpl_root);
 		
 		if(!ui_opts.label){
-		    //var title_type = (depth>0)?("h"+(depth+2)):"h1";
-		    var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+		    //var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
+
 		    
-		    var ui_name_text=tpl_root.ui_title_name= cc(name_node, ui_name);
-		    ui_name_text.className="widget_title";
+		    var hnode=  depth===0 ? "h1" : (((depth<4)?("h"+(depth+1)):"h4"));
+		    
+		    var name_node=è(ui_opts.name_node) ? ui_opts.name_node : hnode;
+
+		    var ui_name_text;
+		    if(false&&tpl_root.toolbar){
+			ui_name_text=tpl_root.ui_title_name=tpl_root.toolbar.nava;
+		    }else{
+			ui_name_text=tpl_root.ui_title_name=cc(name_node, ui_name);
+			//ui_name_text.className="widget_title";
+		    }
 		    //cc("span",ui_name);// sliding ? cc("label",ui_name) : cc("div",ui_name);
 		    
 		    if(è(ui_opts.fa_icon)){
@@ -1020,11 +1148,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//global_ui_opts.type =ui_opts.type=="edit"?"short":"edit";	
 	var new_ui=create_ui(global_ui_opts,tpl_root, depth );
 	
-	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot); 
-	tpl_root.parent.ui_childs.replace_child(tpl_root); 
+	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot);
+	if(tpl_root.parent && tpl_root.parent.ui_childs){
+	    tpl_root.parent.ui_childs.replace_child(tpl_root);
+	    tpl_root.parent.trigger("child_rebuild", tpl_root);
+	}
+	else
+	    ui_root.parentNode.replaceChild(tpl_root.ui_root, tpl_root.ui_root_old);
 	
 	tpl_root.trigger("rebuild", tpl_root.ui_opts.type);
-	tpl_root.parent.trigger("child_rebuild", tpl_root);
+
     }
 
     function child_view_type(){
@@ -1032,38 +1165,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(ù(tpl_root.parent.ui_opts)) return undefined;
 	return tpl_root.parent.ui_opts.child_view_type;
     }
-    
-
-
-    
-
-
-
-
-    //var ne=0; for (var e in tpl_root.elements){ console.log(tpl_root.name + " + E("+ne+")="+e); ne++; }
-    //console.log(tpl_root.name + " : -->Nchilds = " + ne);
-    //if(!tpl_root.elements) return ui_root;
-    
-    //console.log("Config " + tpl_root.name + " child view ["+cvtype+"] type " + tpl_root.type);
-
 
     function setup_childs(){
 
 	ui_childs=tpl_root.ui_childs= new child_container(tpl_root);
 	
 	function add_child_common(e, ui, prep){
-	    
 	    if(è(e.ui_opts)){
 		if(e.ui_opts.in_root){
-		    prep ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
+		    e.ui_opts.in_root === "prepend" ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
 		    return false;
 		}
 	    }
 	    return true;
 	}
-	
-	//ui_root.add_class(cvtype);
-	
 	
 	switch(cvtype){
 	    
@@ -1465,45 +1580,54 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	case "pills":
 	case "radio":
 	    
-	    //var div=this.div=ce("div"); 
-	    //div.className="tab_widget";
-	    //    add_classes(classes,div)
 
-	    //var navcnt=cc("div",ui_root); navcnt.className="navcnt";
 	    var nav;
-	    if(è(ui_opts.tabs_on_name)){
-		nav=this.nav=cc("ul",ui_name);
-		tpl_root.ui_title_name.style.display="inline-block";
-		tpl_root.ui_title_name.style.borderBottom="1px solid lightgrey";
-
-		// tpl_root.ui_title_name.style.margin="0em";
-		// tpl_root.ui_title_name.style.padding="0em";
-		tpl_root.ui_title_name.style.paddingRight=".5em";
-		//tpl_root.ui_title_name.style.paddingBottom=".5em";
-		// tpl_root.ui_title_name.style.position="relative";
-
-		tpl_root.ui_title_name.style.bottom="0px";
+	    var uic=ui_content;
+	    
+	    if(è(tpl_root.toolbar)){
+		nav=tpl_root.toolbar.unav;
+	    }else{
 		
-		//nav.style.position="relative";
-		//nav.style.top="1.75em";
-		nav.style.marginBottom="-7px";
+		if(è(ui_opts.tabs_on_name)){
+		    
+		    nav=this.nav=cc("ul",ui_name);
+		    tpl_root.ui_title_name.style.display="inline-block";
+		    tpl_root.ui_title_name.style.borderBottom="1px solid lightgrey";
+		    
+		    // tpl_root.ui_title_name.style.margin="0em";
+		    // tpl_root.ui_title_name.style.padding="0em";
+		    tpl_root.ui_title_name.style.paddingRight=".5em";
+		    //tpl_root.ui_title_name.style.paddingBottom=".5em";
+		    // tpl_root.ui_title_name.style.position="relative";
+		    
+		    tpl_root.ui_title_name.style.bottom="0px";
+		    
+		    //nav.style.position="relative";
+		    //nav.style.top="1.75em";
+		    nav.style.marginBottom="-7px";
+		
+		    
+		    //ui_name.
+		    nav.style.display="inline-block";
+		}
+		
+		else{
+		    var div=ui_childs.div=cc("div", ui_content); 
+		    nav=this.nav=cc("ul",div);
+		    uic=div;
+		}
 		
 		
-		//ui_name.
-		nav.style.display="inline-block";
-	    }
-				
-	    else
-		nav=this.nav=cc("ul",ui_root);
-
-	    nav.className="nav";
-	    if(typeof ui_opts.tab_classes != 'undefined')
-		add_classes(ui_opts.tab_classes, nav);
-	    else{
-		nav.add_class(cvtype==="tabbed" ? "nav-tabs" : "nav-pills");
+		nav.className="nav";
+		
+		if(typeof ui_opts.tab_classes != 'undefined')
+		    add_classes(ui_opts.tab_classes, nav);
+		else{
+		    nav.add_class(cvtype==="tabbed" ? "nav-tabs" : "nav-pills");
+		}
 	    }
 	    
-	    var cnt=this.cnt=cc("div", ui_content);
+	    var cnt=this.cnt=cc("div", uic);
 	    var navcnt=nav;
 	    navcnt.add_class(cvtype);
 	    //cnt.add_class("child_container");
@@ -1710,8 +1834,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 	}
-    }
 
+	tpl_root.add_child=function(tpl){
+	    if(è(tpl_root.ui_childs))
+		tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
+	}
+    }
+    
     tpl_root.hide=function(hide){
 	ui_root.style.display=hide? "none":"";
     }
@@ -1744,71 +1873,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     //console.log(tpl_root.name +  " added "+nch+"childs");
     
-    if(false && è(tpl_root.toolbar)){
-	
-	//ui_root.removeChild(ui_name);
-
-	//var head=tpl_root.ui_head=cc("header", ui_root, true);
-	//head.add_class("db");
-
-	var toolbar=tpl_root.ui_toolbar=cc("nav",ui_root,true);
-	toolbar.className="navbar navbar-default";
-	toolbar.setAttribute("role","navigation");
-	var cnt=cc("div",toolbar); cnt.className="container-fluid";
-	var navhead=cc("div",cnt);navhead.className="navbar-header";
-	var togb=cc("button",navhead); togb.className="navbar-toggle collapsed";
-	togb.setAttribute("data-toggle", "collapse");
-	var s=cc("span",togb); s.className="sr-only"; s.innerHTML="Toggle navigation";
-	cc("span",togb).className="icon-bar";
-	cc("span",togb).className="icon-bar";
-	cc("span",togb).className="icon-bar";
-	
-	var togid=Math.random().toString(36).substring(2);
-	togb.setAttribute("data-target", "#"+togid);
-	var tita=cc("a",navhead); tita.className="navbar-brand";
-	tita.setAttribute("href","javascript:void(0)");
-
-	//if(è(tpl_root.ui_name))
-	//  tita.appendChild(tpl_root.ui_name);
-	tita.innerHTML=tpl_root.name;
-
-	var dnav=cc("div", cnt); dnav.className="collapse navbar-collapse";  dnav.id=togid;
-	var unav=cc("ul",dnav); unav.className="nav navbar-nav";
-
-
-	
-	function fill_elements(ul, elements){
-	    for(var tbi in elements){
-		var ti=elements[tbi];
-		//ttpl.parent=tpl_root;
-		//console.log(tpl_root.name +  " adding toolbar child " + e + " name " + el.name + " elements " + JSON.stringify(ttpl.elements)) ;
-		//var ui=create_ui(global_ui_opts,ttpl, depth+1);
-		//toolbar.appendChild(ttpl.ui_root);
-		var li=cc("li",ul);
-		
-		if(è(ti.elements)){
-		    var tita=cc("a",li); tita.className="dropdown-toggle";
-		    tita.setAttribute("href","javascript:void(0)");
-		    tita.setAttribute("data-toggle","dropdown");
-		    tita.setAttribute("role","button");
-		    tita.setAttribute("aria-expanded",false);
-		    tita.innerHTML=ti.name+' <span class="caret"></span>';
-		    var sub_ul=cc("ul",li); sub_ul.className="dropdown-menu";
-		    sub_ul.setAttribute("role","menu");
-		    fill_elements(sub_ul,ti.elements);
-		}else{
-		    var tita=cc("a",li); tita.className="navbar-link";
-		    tita.setAttribute("href","javascript:void(0)");
-		    tita.innerHTML=ti.name;
-		}
-	    }
-	}
-
-	fill_elements(unav,tpl_root.toolbar);
-	
-	if(è(tpl_root.ui_intro))
-	    head.appendChild(tpl_root.ui_intro);
-    }
 
 
     function setup_item(){
@@ -1941,8 +2005,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		if(è(ui_opts.item_classes))	add_classes(ui_opts.item_classes, item_ui);
 		//if(è(tpl_root.on_attached))	tpl_root.on_attached();
+
+
+		
 	    }
+
 	    
+	    if(è(tpl_root.set_value)){
+		if(ù(tpl_root.set_default_value)){
+		    tpl_root.set_default_value=function(){
+			if(è(this.default_value)) this.set_value(this.default_value);
+		    }
+		    tpl_root.set_default_value();
+		}
+	    }
 	}
 	catch(e){
 	    console.log("Error building "+tpl_root.name+" : " + dump_error(e));
@@ -2166,4 +2242,3 @@ function attach_menu(tpl_root, menu){
     menu.ul.style.zIndex=20;
     tpl_root.ui_root.replaceChild(menu.ul, tpl_root.ui_name); 
 }
-

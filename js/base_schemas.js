@@ -30,7 +30,6 @@ var t_user = new schema({
 	    type: String,
 	    default : ""
 	},
-	groups : [{type : schema.Types.ObjectId, ref : 'groups' }]
     },
     facebook         : {
 	id           : String,
@@ -51,8 +50,9 @@ var t_user = new schema({
 	name         : String
     },
     shibb : {
-
-    }
+	
+    },
+    groups : [{type : schema.Types.ObjectId, ref : 'groups' }]
 });
 
 t_user.post('init', function(user) {
