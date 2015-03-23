@@ -1343,10 +1343,11 @@ progress[value]::-webkit-progress-value {
 .form-control[data-type="template_list"]{
  width: auto;
 }
-*/
+
 .input-group select.form-control{
  width: auto;
 }
+*/
 
 .db[data-tpl="geometry"] .form-control{
 width: auto;

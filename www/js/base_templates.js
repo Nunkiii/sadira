@@ -257,7 +257,7 @@ var base_templates={
     },
     vector : {
 	name : "Vector view",
-	tpl_builder: "vector",
+	type: "vector",
 	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container-fluid"] },
 	elements :{
 	    btns : {ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] }, elements : {
@@ -400,14 +400,16 @@ var base_templates={
 		},
 		elements : {
 		    widget : {
-			name : "Choose an existing template :",
+			name : "Choose an existing widget to start with :",
 			ui_opts: {
 			    type : "edit",//,
+			    label : true,
 			    in_root: "prepend",
 			    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
 			},
 			elements :{
 			    tlist : {
+				//name : "Choose:",
 				type : "template_list",
 				//type : "string",
 				ui_opts : {

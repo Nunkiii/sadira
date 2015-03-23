@@ -70,8 +70,14 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
     tpl_set.listen("click", function(){
 	var tpl_name=tpl_select.value;
 	demo.debug("Applying template  " + tpl_name);
-	builder.set_value(template_ui_builders[tpl_name].toString());
-	template.set_value(JSON.stringify(tmaster.templates[tpl_name],null,5));
+	if(è(template_ui_builders[tpl_name]))
+	    builder.set_value(template_ui_builders[tpl_name].toString());
+	else
+	    builder.set_value("function(ui_opts, tpl){}");
+	if(è(tmaster.templates[tpl_name]))
+	    template.set_value(JSON.stringify(tmaster.templates[tpl_name],null,5));
+	else
+	    template.set_value("{}");
     });
     
     build.listen("click",function(){
@@ -1899,13 +1905,13 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var vw=400, vh=200;
     var pr;
     
-    var svg = bn.append('svg')
+    var svg = tpl_item.svg=bn.append('svg')
 	.attr("viewBox", "0 0 "+vw+" "+vh)
     //.attr("preserveAspectRatio", "none");
 	.attr("preserveAspectRatio", "xMinYMin meet");
     //base_node.appendChild(svg.ownerSVGElement);
 
-    tpl_item.svg=svg.node(); //[0][0].ownerSVGElement;
+    tpl_item.svg_node=svg.node(); //[0][0].ownerSVGElement;
     
     var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 50}; //ui_opts.margin;
     //var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
@@ -2104,6 +2110,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    yscale.domain(yr);
 
 	tpl_item.redraw();
+
 	if(è(brush))brush.extent(range.value);
 	if(è(select_brush))select_brush.extent(selection.value);
 	
@@ -2127,10 +2134,10 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
     
     tpl_item.redraw=function(){
-	//console.log("redraw " + plots.length);
+
 	if(range.value[0]==null || range.value[1]==null){
 	    //this.set_range([0,this.value.length-1]);
-	    //console.log("Vector : No range set !");
+	    console.log("Vector : No range set !");
 	    return;
 	}
 
@@ -2139,7 +2146,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
 	svg.select("g").remove();
 	context=tpl_item.context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
-	
+
+		
 	var xsvg = context.append("g")
 	    .attr("class", "axis")
 	    .attr("transform", "translate(0," + height + ")")
@@ -2161,6 +2169,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	xsvg.call(xAxis);
 	ysvg.call(yAxis);
 
+	
 	
 	// ysvg.each(function(){
 	// 		 console.log("YAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
