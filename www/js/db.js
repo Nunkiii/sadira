@@ -343,11 +343,16 @@ local_templates.prototype.substitute_template=function(tpl_item){
     //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
 
     var ttype;
-    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined')
+    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined'){
 	ttype=tpl_item.template_name;
-    else
-	ttype=tpl_item.type;
-	
+	tpl_item.type=tpl_item.template_name;
+    }
+
+    var ttype=tpl_item.type;
+    if(ù(ttype)){
+	console.log("Undefined template ! widget name["+tpl_item.name+"]");
+	return;
+    }
     
     var tpl=this.templates[ttype];
     if(ù(tpl)) return;
@@ -386,7 +391,7 @@ local_templates.prototype.build_template=function(template){
 	tpl=clone_obj(this.templates[template]);
 	if(typeof tpl === 'undefined') 
 	    throw "Unknown template " + template;
-	tpl.template=template;
+	tpl.type=template;
     }else{
 	//console.log("Template is an object " + typeof template + " : " + JSON.stringify(tpl));
 	tpl=template;
@@ -688,11 +693,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_root.className="db";// container-fluid";
 	if(ui_opts.panel) ui_root.add_class("db panel panel-default");
 
-	if(è(tpl_root.type))
+	if(è(tpl_root.type)){
 	    ui_root.setAttribute("data-type", tpl_root.type);
+	    ui_root.setAttribute("data-tpl", tpl_root.type);
+	    //console.log(tpl_root.name + " set type to " + tpl_root.type);
+	}
 	
-	if(è(tpl_root.template_name))
-	    ui_root.setAttribute("data-tpl", tpl_root.template_name);
+//	if(è(tpl_root.template_name))
+//	    ui_root.setAttribute("data-tpl", tpl_root.template_name);
 
 	if(depth==0) ui_root.add_class("root");
 	
@@ -705,26 +713,37 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	ui_content=ui_root;
 
 	tpl_root.debug=function(msg){
-	    if(ù(tpl_root.debug)){
-		tpl_root.debug=create_widget({
-		    name : "Debug", type: "text",
+	    if(ù(tpl_root.debug_widget)){
+		tpl_root.debug_widget=create_widget({
+		    name : "Widget debug", type: "text",
 		    ui_opts : {
 			sliding : true, animate : true, slided : true, label : true,
-			item_classes : ["panel panel-default"]
+			root_classes : ["container-fluid alert alert-warning"],
+			item_classes : ["container-fluid"]
+			//name_classes : ["text-danger"]
 		    }
 		});
-		ui_content.appendChild(tpl_root.debug.ui_root);
+		ui_content.appendChild(tpl_root.debug_widget.ui_root);
 	    }
-	    tpl_root.debug.append(msg);
+	    tpl_root.debug_widget.append(msg+"<br/>");
+	    
 	}
 
+	console.log("Adding get to " + tpl_root.name);
 	tpl_root.get=function(name){
 	    for(var e in tpl_root.elements){
-		if(e===name) return tpl_root.elements[e];
+		//console.log(tpl_root.name+ " : looking child  [" + e + "] for name ["+name+"]");
+		if(e===name)
+		    return tpl_root.elements[e];
 	    }
 	    for(var e in tpl_root.elements){
-		var n=tpl_root.elements[e].get(name);
-		if(n) return n;
+		try{
+		    var n=tpl_root.elements[e].get(name);
+		    if(n) return n;
+		}
+		catch(err){
+		    console.log("Error looking for [" + e + "] in [" + tpl_root.name + "] : " + err);
+		}
 	    }
 	    return undefined;
 	}
@@ -1835,10 +1854,27 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 	}
 
-	tpl_root.add_child=function(tpl){
+	tpl_root.add_child=function(tpl, key){
+	    if(è(key)){
+		if(ù(tpl_root.elements)) tpl_root.elements={};
+		tpl_root.elements[key]=tpl;
+	    }
 	    if(è(tpl_root.ui_childs))
 		tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
 	}
+
+	tpl_root.update_child=function(tpl, child_key){
+	    var child=tpl_root.get(child_key);
+	    if(ù(child)){
+		return tpl_root.add_child(tpl,child_key);
+		//return tpl_root.debug("update_child error: "+tpl_root.name+" : No such child " + child_key);
+	    }
+
+	    tpl_root.elements[child_key]=tpl;
+	    child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
+
+	}
+
     }
     
     tpl_root.hide=function(hide){
@@ -2201,9 +2237,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     
     if(ui_opts.item_root){
-	ui_root=ce("div");
+	//ui_root=ce("div");
+	setup_root();
 	setup_item();
-	ui_root=item_ui;
+	item_ui.setAttribute("data-type", tpl_root.type);
+	ui_root=item_ui; 
 	tpl_root.ui_root=tpl_root.ui_content=ui_content=ui_root;
     }else{
 	setup_root();

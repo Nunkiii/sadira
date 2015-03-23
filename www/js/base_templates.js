@@ -401,10 +401,34 @@ var base_templates={
 		elements : {
 		    widget : {
 			name : "Choose an existing template :",
-			type : "template_list",
 			ui_opts: {
-			    type : "edit",style:"mmenu",label:true, in_root: "prepend",
-			    root_classes : ["container-fluid"],
+			    type : "edit",//,
+			    in_root: "prepend",
+			    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
+			},
+			elements :{
+			    tlist : {
+				type : "template_list",
+				//type : "string",
+				ui_opts : {
+				    type : "edit",
+				    item_classes : [],
+				    //style:"menu",
+				    text_node : "span",
+				    label : true,
+				    item_root : true,
+				}
+			    },
+			    tpl_set : {
+				type : "action",
+				name : "Set template in editor",
+				ui_opts : {
+				    button_node : "span",
+				    item_classes : ["btn btn-info "], fa_icon : "play",
+				    //item_root : true,
+				    root_classes : ["input-group-btn"]
+				}
+			    }
 			}
 		    },
 		    template : {
@@ -443,12 +467,14 @@ var base_templates={
 				ui_opts : {item_classes : ["btn btn-primary"], item_root : true}
 			    },
 			    status : {
-				ui_opts : { root_classes : ["row"], label:true},
+				ui_opts : {
+				    root_classes : ["well row"], label:true
+				},
 				type : "string",
 				name : "JS compile"
 			    },
 			    build_status : {
-				ui_opts : { root_classes : ["row" ], label:true},
+				ui_opts : { root_classes : ["well row" ], label:true},
 				type : "string",
 				name : "Widget build"
 			    }
@@ -460,10 +486,10 @@ var base_templates={
 	    },
 
 	    view : {
-		//name : "Widget",
+		name : "Your widget",
 		ui_opts : {
-		    root_classes : ["col-md-6"],
-		    child_classes : ["container-fluid"],
+		    root_classes : ["col-md-6 "],
+		    child_classes : ["container-fluid panel panel-default"],
 		}
 		
 	    }

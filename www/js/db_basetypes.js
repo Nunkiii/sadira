@@ -53,6 +53,7 @@ function config_common_input(tpl_item){
 
 
 template_ui_builders.ui_demo=function(ui_opts, demo){
+    
     var template=demo.get("template");
     var builder=demo.get("builder");
     var build=demo.get("build");
@@ -60,11 +61,25 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
     var build_status=demo.get("build_status");
     var view=demo.get("view");
 
+    var tpl_select=demo.get("tlist");
+    var tpl_set=demo.get("tpl_set");
+
+    function build_widget(){
+    }
+    
+    tpl_set.listen("click", function(){
+	var tpl_name=tpl_select.value;
+	demo.debug("Applying template  " + tpl_name);
+	builder.set_value(template_ui_builders[tpl_name].toString());
+	template.set_value(JSON.stringify(tmaster.templates[tpl_name],null,5));
+    });
+    
     build.listen("click",function(){
 	var user_template, user_builder;
-	var builder_code="user_builder = " + builder.value;
-	var template_code="user_template="+template.value;
-	console.log("Eval [" + builder_code + "] tpl [" + template_code+"]");
+	var builder_code,template_code;
+	builder_code="user_builder = " + builder.value;
+	template_code="user_template="+template.value;
+
 	try{
 	    
 	    eval(template_code);
@@ -75,7 +90,7 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
 		    template_ui_builders.hello=user_builder;
 		    tmaster.set_template("hello", user_template);
 		    var user_widget=create_widget("hello");
-		    view.add_child(user_widget);
+		    view.update_child(user_widget, "userw");
 		    build_status.set_alert({ type : "success", content : "Widget created"});
 		}
 		catch(e){
@@ -84,13 +99,14 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
 		
 	    }
 	    catch(e){
-		console.log("E : " + dump_error(e));
+		//console.log("E : " + dump_error(e));
 		status.set_alert({type : "error", content : "Error compiling JS for builder : <pre>" + dump_error(e)+"</pre>"});
 	    }
 	}
 	catch(e){
 	    status.set_alert({type: "error", content : "Error compiling JS for template : <pre>" + dump_error(e)+"</pre>"});
 	}
+	//build.parent.debug("Eval [" + builder_code + "] tpl [" + template_code+"]");
 
 	
 	
@@ -1607,8 +1623,8 @@ template_ui_builders.code=function(ui_opts, tpl_item){
 	ui.setAttribute("contentEditable", true);
 	ui.setAttribute("spellCheck",false);
 	ui.addEventListener("input", function(){
-	    //console.log("Changed !!!");
-	    tpl_item.value=ui.innerText;
+	    //tpl_item.debug("Changed !!! [" + ui.innerHTML + "]");
+	    tpl_item.value=ui.innerHTML;
 	    if(è(ui_opts.highlight_source))
 		;//if(ui_opts.highlight_source) hljs.highlightBlock(ui);
 	    
@@ -1687,18 +1703,20 @@ template_ui_builders.combo=function(ui_opts, combo){
 	
     }else{
 	ui=combo.ui=ce("span"); ui.className="";
-	combo.set_value=function(v){
-	    if(è(v))combo.value=v;
-	    else{
-		if(è(combo.options))
-		    if(combo.options.length>0)
-			combo.value=combo.options[0];
-	    }
-	    ui.innerHTML=combo.value;
-	}
     }
 
-
+    combo.set_value=function(v){
+	if(è(v))combo.value=v;
+	/*
+	else{
+	    if(è(combo.options))
+		if(combo.options.length>0)
+		    combo.value=combo.options[0];
+	}*/
+	ui.innerHTML=combo.value;
+    }
+    
+    
 
     if(style!=='menu')
 	config_common_input(combo);
@@ -1709,11 +1727,12 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 	if(è(combo.options))
 	    if(combo.options.length>0)
-		return combo.set_value(combo.options[0]);
+		return combo.set_value(combo.options[0].value);
 
 	if(è(combo.holder_value)) combo.set_holder_value(combo.holder_value);
     }	
-	
+
+    combo.set_default_value();
     return ui;
 }
 
