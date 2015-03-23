@@ -3,10 +3,6 @@ Main Sadira toolkit CSS template
 On top of bootsrap 3
 */
 
-header{
-  display: flex;
-}
-
 @font-face{
   font-family:'Ubuntu'; 
   font-style:normal; 
@@ -73,9 +69,12 @@ header{
 }
 
 .db  {
-  font-family: Aileron;
   max-width: 100%;
+  font-family: Aileron;
+
+/*
   max-height:100%;
+*/
 
 } 
 
@@ -88,14 +87,15 @@ body
 
 /*
 bootstrap raw modifs.
-*/
+
 
 
 .input-group[class*="col-"] {
   padding-left: 15px;
   padding-right: 15px;
 }
-  
+
+*/
 
 .db[data-type="double"]  .form-control,.db[data-type="angle"]  .form-control{
   display: inline-block;
@@ -943,7 +943,7 @@ label.slided{
 /*
   
 
-label .form-control{
+  label .form-control{
   width: auto;
   display: inline-block;
 
@@ -1284,41 +1284,11 @@ progress[value]::-webkit-progress-value {
   padding-left: .5em;
 }
 
-
-
 .hscroll {
   max-width: calc(100% - 2em);
   overflow-x: auto;
 }
 
-
-.db[data-type="string"] .dbname{
-   display : inline-block;
-}
-.db[data-type="url"] .dbname{
-/*   display : inline-block;*/
-}
-.db[data-type="local_file"] .dbname{
-   display : inline-block;
-}
-.db[data-type="double"] .dbname{
-   display : inline-block;
-}
-.db[data-type="angle"] .dbname{
-   display : inline-block;
-}
-.db[data-type="bool"] .dbname{
-   display : inline-block;
-}
-.db[data-type="date"] .dbname{
-   display : inline-block;
-}
-.db[data-type="bytesize"] .dbname{
-   display : inline-block;
-}
-.db[data-type="status"] .dbname{
-   display : inline-block;
-}
 
 .db[data-type="text"]{
 
@@ -1329,16 +1299,6 @@ progress[value]::-webkit-progress-value {
   */
 }
 
-.db[data-type="text"]>.dbitem{
-  /*
-  border: 2px solid red;
-  height: 50%;
-  width: 50%;
-  display: inline-block;
-  */
-  overflow: auto;
-  max-width: 100%;
-}
 /*
 .form-control[data-type="template_list"]{
  width: auto;
@@ -1358,45 +1318,8 @@ width: calc(100% - 1em);
 }
 .db[data-tpl="vector"]>div{
   position: relative;
-
-/*
-  width:100%;
-  */
-}
-.db[data-tpl="vector"]>.dbitem>svg{
-/*
-  width:100%;
-max-height: 20em;
-*/
-}
-/*
-.db[data-type="text"]>.dbitem::-webkit-scrollbar{
-  display: block;
-}
-*/ 
-
-.db[data-type="text"]>.dbitem >pre{
-  white-space: pre-wrap;
 }
 
-
-
-.db[data-type="action"]{
-  display : inline-block;
-}
-
-.db[data-tpl="image_db_browser"]{
-/*
-  height: calc(100% - 5em);
-  margin-left: 25%;
-  width: 50%;
-  overflow-y: scroll;
-*/
-}
-
-.db[data-tpl="vector"]{
-
-}
 
 
 /* 

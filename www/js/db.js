@@ -729,7 +729,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	}
 
-	console.log("Adding get to " + tpl_root.name);
+	//console.log("Adding get to " + tpl_root.name);
 	tpl_root.get=function(name){
 	    for(var e in tpl_root.elements){
 		//console.log(tpl_root.name+ " : looking child  [" + e + "] for name ["+name+"]");
@@ -1051,15 +1051,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(ui_opts.editable){
 	    
 	    var clickable_zone;
-	    
-	    if(ui_opts.type==="edit"){
-		ui_name.add_class("un_editable");
-		
-		var vt=child_view_type();
+	    if(è(ui_name)){
+		if(ui_opts.type==="edit"){
+		    ui_name.add_class("un_editable");
+		    //var vt=child_view_type();
+		}else{
+		    ui_name.add_class("editable");
+		}
 		clickable_zone=ui_name;
+
 	    }else{
-		ui_name.add_class("editable");
-		clickable_zone=ui_name;
+		clickable_zone=ui_content;
 	    }
 
 	    tpl_root.switch_edit_mode=function(){

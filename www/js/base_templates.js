@@ -1,39 +1,65 @@
 var base_templates={
 
     sadira : {
-	//type : "template",
-	tpl_builder  : "sadira",
-	name : "Websocket link",
-	ui_opts : { child_classes : ["container-fluid"], child_view_type : "div"},
+	type : "sadira",
+	//name : "Websocket",
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    root_node : "form",
+	    child_classes : ["form-group input-group"]
+	},
 	elements : {
 	    url : {
 		name : "Server",
 		type : "url",
 		ui_opts : {
-		    root_classes : ["inline"], name_classes : [], item_classes : ["inline"],
-		    editable : true,  label : true
+		    //root_classes : ["input-group"],
+		    name_node : "a",
+		    name_classes : [],
+		    item_classes : ["input-group"],
+		    type : "edit",
+		    //editable : true,
+		    label : true,
+		    item_root : true
 		},
 		default_value : "ws://sadira.iasfbo.inaf.it"
 	        //value : "ws://localhost"
 		//value : "ws://localhost:9999"
 	    },
+
 	    status : {
 		//name : "Status",
-		ui_opts : {root_classes : [], name_classes : [], item_classes : ["panel-header"],  item_root : true},
+		ui_opts : {
+		    //root_classes : ["input-group-addon"],
+		    //name_classes : [],
+		    item_classes : ["input-group-addon"],
+		    item_root : true
+		},
 		type : "status",
 		value : "blue",
 		value_labels : { blue : "disconnected", green : "connected", red : "error"}
 	    },
-	    connect : {
-		ui_opts : {root_classes : [], name_classes : [],  item_classes : ["btn btn-default btn-xs"], fa_icon : "link"},
+	    	    connect : {
+		ui_opts : {
+		    root_classes : ["input-group-btn"],
+		    button_node : "span",
+		    name_classes : [],
+		    item_classes : ["btn btn-info"],
+		    fa_icon : "link"
+		    //item_root : true
+		},
 		type: "action",
 		name : "connect"
 	    },
+
 	    messages : {
 		ui_opts : {
 		    sliding : true, slided : false,
-		    root_classes : ["inline"], name_classes : [],  item_classes : [],  
-		    label : true
+		    root_classes : [],
+		    name_classes : [],
+		    item_classes : [],  
+		    label : true,
+		    in_root : "append"
 		},
 		name : "Info",
 		type : "text"

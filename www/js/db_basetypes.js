@@ -64,12 +64,11 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
     var tpl_select=demo.get("tlist");
     var tpl_set=demo.get("tpl_set");
 
-    function build_widget(){
-    }
+    view.set_title("No widget to show");
     
     tpl_set.listen("click", function(){
 	var tpl_name=tpl_select.value;
-	demo.debug("Applying template  " + tpl_name);
+	this.parent.debug("Applying template  " + tpl_name);
 	if(è(template_ui_builders[tpl_name]))
 	    builder.set_value(template_ui_builders[tpl_name].toString());
 	else
@@ -79,6 +78,12 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
 	else
 	    template.set_value("{}");
     });
+
+    function clear_widget(w){
+	view.set_title("No widget to show");
+	if(è(w))
+	    view.update_child(w, "userw");
+    }
     
     build.listen("click",function(){
 	var user_template, user_builder;
@@ -95,8 +100,7 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
 		    status.set_alert({ type : "success", content : "JS code compiled"});
 		    template_ui_builders.hello=user_builder;
 		    tmaster.set_template("hello", user_template);
-		    var user_widget=create_widget("hello");
-		    view.update_child(user_widget, "userw");
+		    clear_widget(create_widget("hello"));
 		    build_status.set_alert({ type : "success", content : "Widget created"});
 		}
 		catch(e){
@@ -1511,8 +1515,6 @@ template_ui_builders.url=function(ui_opts, url){
 	    ui=url.ui=ce("input");
 	    ui.type="url";
 	    ui.className="form-control";
-
-	    
 	}
 	
 	break;
