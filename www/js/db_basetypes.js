@@ -1713,6 +1713,11 @@ template_ui_builders.combo=function(ui_opts, combo){
 	ui=combo.ui=ce("span"); ui.className="";
     }
 
+    combo.set_holder_value=function(v){
+	combo.set_value(v);
+
+    }
+    
     combo.set_value=function(v){
 	if(è(v))combo.value=v;
 	/*

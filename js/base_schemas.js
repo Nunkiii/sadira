@@ -5,14 +5,21 @@ var crypto=require('crypto');
 var crypto_uts=require("../js/crypto");
 
 var t_group = new schema({
-    name: { type: String, required: true, unique: true },
-    description : { type: String, default : "Group description here" },
+  name: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  description : {
+    type: String,
+    default : "Group description here"
+  },
 });
 
 
 var t_permission = new schema({
-    r : { g : [{type : schema.Types.ObjectId, ref : 'groups'}], u : [{type : schema.Types.ObjectId, ref : 'users'}] },
-    w : { g : [{type : schema.Types.ObjectId, ref : 'groups'}], u : [{type : schema.Types.ObjectId, ref : 'users'}] },
+  r : { g : [{type : schema.Types.ObjectId, ref : 'group_model'}], u : [{type : schema.Types.ObjectId, ref : 'user_model'}] },
+  w : { g : [{type : schema.Types.ObjectId, ref : 'group_model'}], u : [{type : schema.Types.ObjectId, ref : 'user_model'}] },
 });
 
 var t_user = new schema({
@@ -29,7 +36,7 @@ var t_user = new schema({
 	username: {
 	    type: String,
 	    default : ""
-	},
+	}
     },
     facebook         : {
 	id           : String,
@@ -52,53 +59,53 @@ var t_user = new schema({
     shibb : {
 	
     },
-    groups : [{type : schema.Types.ObjectId, ref : 'groups' }]
+    groups : [{type : schema.Types.ObjectId, ref : 'group_model' }]
 });
 
 t_user.post('init', function(user) {
-    console.log("post init user " + user.local.email);
-    if(user.local.username===""){
-	console.log("Creating default username...");
-	user.local.username=crypto.randomBytes(32).toString('base64');//Math.random().toString(36).substring(2)
-    }
+  console.log("post init user " + user.local.email);
+  if(user.local.username===""){
+    console.log("Creating default username...");
+    user.local.username=crypto.randomBytes(32).toString('base64');//Math.random().toString(36).substring(2)
+  }
 });
 
 t_user.pre('save', function(callback) {
-    console.log("pre save user !!");
-    var user = this;
-    
-    if (!user.isModified('local.hashpass')){
-	console.log("NOT hashing password....!");
-	return callback();
+  console.log("pre save user !!");
+  var user = this;
+  
+  if (!user.isModified('local.hashpass')){
+    console.log("NOT hashing password....!");
+    return callback();
+  }
+  
+  crypto_uts.hash_password(user.local.hashpass, function(err, hash_data){
+    if (err){
+      console.log("Error hashing password " + err);
+      return callback(err);
     }
-
-    crypto_uts.hash_password(user.local.hashpass, function(err, hash_data){
-	if (err){
-	    console.log("Error hashing password " + err);
-	    return callback(err);
-	}
-	console.log("OK passwd hashed " + JSON.stringify(hash_data));
-	user.local.hashpass = hash_data.hash;
-	user.local.salt = hash_data.salt;
-	callback();
-	console.log("OK callback called...");
-    });
+    console.log("OK passwd hashed " + JSON.stringify(hash_data));
+    user.local.hashpass = hash_data.hash;
+    user.local.salt = hash_data.salt;
+    callback();
+    console.log("OK callback called...");
+  });
 });
 
 
 t_user.methods.check_password = function(clearpass, cb) {
-    var user = this;
-    crypto_uts.check_password(user.local.hashpass, user.local.salt, clearpass, cb);
-
-    // function(err, match){
-    // 	if(err) return cb(err);
-
-    // 	console.log("Check passowrd " + user.local.hashpass + " clear try " + clearpass + " match " + match);
-    // 	cb(null, match);
-    // 	console.log("cbok");
-    // });
+  var user = this;
+  crypto_uts.check_password(user.local.hashpass, user.local.salt, clearpass, cb);
+  
+  // function(err, match){
+  // 	if(err) return cb(err);
+  
+  // 	console.log("Check passowrd " + user.local.hashpass + " clear try " + clearpass + " match " + match);
+  // 	cb(null, match);
+  // 	console.log("cbok");
+  // });
 };
-    
-module.exports.users = mongoose.model('users', t_user);
-module.exports.groups = mongoose.model('groups', t_group);
-module.exports.permissions = mongoose.model('permissions', t_permission);
+
+module.exports.users = mongoose.model('user_model', t_user);
+module.exports.groups = mongoose.model('group_model', t_group);
+module.exports.permissions = mongoose.model('permission_model', t_permission);
