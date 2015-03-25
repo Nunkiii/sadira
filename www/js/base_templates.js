@@ -425,61 +425,68 @@ var base_templates={
 		    child_view_type : "tabbed"
 		},
 		elements : {
-		    widget : {
-			name : "Choose an existing widget to start with :",
-			ui_opts: {
-			    type : "edit",//,
-			    label : true,
-			    in_root: "prepend",
-			    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
-			},
-			elements :{
-			    tlist : {
-				//name : "Choose:",
-				type : "template_list",
-				//type : "string",
+		    source : {
+			name : "Source code",
+			ui_opts : {child_view_type : "tabbed"},
+			elements : {
+			    template : {
+				name : "Template",subtitle : "Edit source code (in JavaScript for simplicity)",
+				type : "code",
+				default_value : '{\n\ttype : "hello",\n\tname : "Hello",\n\tsubtitle : "Hello Sadira/Tk!",\n\t elements : {\n\t\tbtn : {\n\t\t\ttype : "action",\n\t\t\tname : "Click me !"\n\t\t},\n\t\ttext : {\n\t\t\tname : "Result :",\n\t\t\t type : "string"\n\t\t}\n\t}\n}',
+				
+				//default_value: '{}',
 				ui_opts : {
 				    type : "edit",
-				    item_classes : [],
-				    //style:"menu",
-				    text_node : "span",
-				    label : true,
-				    item_root : true,
+				    root_classes : ["container-fluid"],
+				    highlight_source : true
 				}
 			    },
-			    tpl_set : {
-				type : "action",
-				name : "Set template in editor",
+			    builder : {
+				name : "Template builder",subtitle : "Edit your widget builder source code",
+				type : "code",
+				default_value : 'function(ui_opts, hello_tpl){\n\thello_tpl.get("btn").listen("click", function(){\n\t\thello_tpl.get("text").set_value("Hello World!");\n\t});\n }',
 				ui_opts : {
-				    button_node : "span",
-				    item_classes : ["btn btn-info "], fa_icon : "play",
-				    //item_root : true,
-				    root_classes : ["input-group-btn"]
+				    type : "edit",
+				    root_classes : ["container-fluid"],
+				    
+				    highlight_source : true
 				}
-			    }
-			}
-		    },
-		    template : {
-			name : "Template",subtitle : "Edit source code (in JavaScript for simplicity)",
-			type : "code",
-			default_value : '{\n\ttype : "hello",\n\tname : "Hello",\n\tsubtitle : "Hello Sadira/Tk!",\n\t elements : {\n\t\tbtn : {\n\t\t\ttype : "action",\n\t\t\tname : "Click me !"\n\t\t},\n\t\ttext : {\n\t\t\tname : "Result :",\n\t\t\t type : "string"\n\t\t}\n\t}\n}',
-
-			//default_value: '{}',
-			ui_opts : {
-			    type : "edit",
-			    root_classes : ["container-fluid"],
-			    highlight_source : true
-			}
-		    },
-		    builder : {
-			name : "Template builder",subtitle : "Edit your widget builder source code",
-			type : "code",
-			default_value : 'function(ui_opts, hello_tpl){\n\thello_tpl.get("btn").listen("click", function(){\n\t\thello_tpl.get("text").set_value("Hello World!");\n\t});\n }',
-			ui_opts : {
-			    type : "edit",
-			    root_classes : ["container-fluid"],
+			    },
+			    widget : {
+				name : "Choose an existing widget to start with :",
+				ui_opts: {
+				    type : "edit",//,
+				    label : true,
+				    in_root: "prepend",
+				    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
+				},
+				elements :{
+				    tlist : {
+					//name : "Choose:",
+					type : "template_list",
+					//type : "string",
+					ui_opts : {
+					    type : "edit",
+					    item_classes : [],
+					    //style:"menu",
+					    text_node : "span",
+					    label : true,
+					    item_root : true,
+					}
+				    },
+				    tpl_set : {
+					type : "action",
+					name : "Set template in editor",
+					ui_opts : {
+					    button_node : "span",
+					    item_classes : ["btn btn-info "], fa_icon : "play",
+					    //item_root : true,
+					    root_classes : ["input-group-btn"]
+					}
+				    }
+				}
+			    },
 			    
-			    highlight_source : true
 			}
 		    },
 	    	    compile : {
@@ -491,7 +498,7 @@ var base_templates={
 			elements : {
 			    build : {
 				name : "Build/rebuild widget",
-				type : "action",
+					type : "action",
 				ui_opts : {item_classes : ["btn btn-primary"], item_root : true}
 			    },
 			    status : {
@@ -507,9 +514,9 @@ var base_templates={
 				name : "Widget build"
 			    }
 			}
-
+			
 		    },
-
+		    
 		}
 	    },
 

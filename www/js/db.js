@@ -1194,7 +1194,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	function add_child_common(e, ui, prep){
 	    if(è(e.ui_opts)){
 		if(e.ui_opts.in_root){
-		    e.ui_opts.in_root === "prepend" ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
+		    if(e.ui_opts.in_root === "prepend"){
+			if(è(ui_name) && è(ui_name.nextSibling))
+			    ui_content.insertBefore(ui, ui_name.nextSibling);
+			else
+			    ui_content.prependChild(ui)
+		    }else
+			ui_content.appendChild(ui);
+		    //e.ui_opts.in_root === "prepend" ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
 		    return false;
 		}
 	    }
