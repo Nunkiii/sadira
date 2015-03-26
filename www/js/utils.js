@@ -1,3 +1,65 @@
+var nodejs= typeof module !== 'undefined' && typeof GLOBAL !== 'undefined'; //Checking if we are in Node
+
+//Make a "true" copy of an object as the = in js returns only a reference (pointer).
+//This is stupid?
+
+function clone_obj(obj) {
+     if(obj == null || typeof(obj) != 'object')
+        return obj;
+
+    var temp = obj.constructor(); // changed
+
+    for(var key in obj)
+        temp[key] = clone_obj(obj[key]);
+    return temp;
+  
+
+  var new_obj = (o instanceof Array) ? [] : {};
+  
+  for (i in o) {
+//    if (i == 'clone') continue; //?
+    if (o[i] && typeof o[i] == "object") {
+      new_obj[i] = clone_obj(o[i]);//.hyperclone();
+    } else 
+    new_obj[i] = o[i];
+  } 
+  
+  return new_obj;
+}
+
+//Display JSON avoiding the circular objects.
+
+function jstringify(object, n){ 
+    
+    //console.log('JS' );
+    
+    var cache=[];
+    var nn=5;
+    if(n) nn=n;
+    
+    return JSON.stringify(object,function(key, value) {
+	if (typeof value.nodeName != 'undefined' )  return;
+	if (typeof value === 'object' && value !== null) {
+	    if (cache.indexOf(value) !== -1) {
+		// Circular reference found, discard key
+		return;
+	    }
+	    // Store value in our collection
+	    cache.push(value);
+	}
+	//console.log('JS END' );
+	return value;
+    } , nn );
+    
+    
+    cache = null; // Enable garbage collection
+}
+
+if(nodejs){
+    GLOBAL.clone_obj=clone_obj;
+    GLOBAL.jstringify=jstringify;
+}else{
+  
 function ce(n){
   return document.createElement(n);
 }
@@ -106,60 +168,6 @@ function create_std_button(button_name, callback){
 
 
 
-//Make a "true" copy of an object as the = in js returns only a reference (pointer).
-//This is stupid?
-
-function clone_obj(obj) {
-     if(obj == null || typeof(obj) != 'object')
-        return obj;
-
-    var temp = obj.constructor(); // changed
-
-    for(var key in obj)
-        temp[key] = clone_obj(obj[key]);
-    return temp;
-  
-
-  var new_obj = (o instanceof Array) ? [] : {};
-  
-  for (i in o) {
-//    if (i == 'clone') continue; //?
-    if (o[i] && typeof o[i] == "object") {
-      new_obj[i] = clone_obj(o[i]);//.hyperclone();
-    } else 
-    new_obj[i] = o[i];
-  } 
-  
-  return new_obj;
-}
-
-//Display JSON avoiding the circular objects.
-
-function jstringify(object, n){ 
-    
-    //console.log('JS' );
-    
-    var cache=[];
-    var nn=5;
-    if(n) nn=n;
-    
-    return JSON.stringify(object,function(key, value) {
-	if (typeof value.nodeName != 'undefined' )  return;
-	if (typeof value === 'object' && value !== null) {
-	    if (cache.indexOf(value) !== -1) {
-		// Circular reference found, discard key
-		return;
-	    }
-	    // Store value in our collection
-	    cache.push(value);
-	}
-	//console.log('JS END' );
-	return value;
-    } , nn );
-    
-    
-    cache = null; // Enable garbage collection
-}
 
 function capitalise_first_letter(string){
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -759,3 +767,4 @@ var proc_monitor=function(){
 
 
     
+}

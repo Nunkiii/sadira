@@ -1,4 +1,4 @@
-var crypto=require('crypto');
+var crypto=require('./crypto');
 
 function get_console_password(prompt, callback) {
 
@@ -108,7 +108,7 @@ function get_strong_console_password(user, cb, config_in){
 
 exports.init=function(pkg,app){
 
-    var dbn=app.mongo.config.mongo_db;
+    //var dbn=app.mongo.config.mongo_db;
 
     function on_error(e){
 	app.log("Bootstrap fatal error : " + e);
@@ -127,6 +127,8 @@ exports.init=function(pkg,app){
 	    console.log("Updating q "+JSON.stringify(q)+" soi " + JSON.stringify(soi)+ " setkeys " + JSON.stringify(setkeys));
 
 	    collection.update(q, { $set : setkeys, $setOnInsert : soi } , { upsert : true, w : 1}, function(error, res){
+
+
 		if(error){
 		    console.log("Error insert key " + error);
 		    return cb(error);
@@ -187,37 +189,64 @@ exports.init=function(pkg,app){
     
     setTimeout(function(){
 	app.log("Sadira bootstrapping");
+
 	
 	// hash_user_password("123456", function(error, hash_data){
 	//     app.log("Hash data : " + JSON.stringify(hash_data));
 	    
 	// });
-	
+	var admin_name="god";
+	//get_strong_console_password(admin_name,function(error, pw){
 	    
-	get_strong_console_password("god",function(error, pw){
+	    //if(error) return on_error(error);
 	    
-	    if(error) return on_error(error);
-	    	    
-	    crypto.hash_password(pw, function(error, hash_data){
-		//app.log("Hash data : " + JSON.stringify(hash_data));
+	    
+	    var admin_user=app.tmaster.create_object("user");
+	    var admin_local_access=app.tmaster.create_object("local_access");
+	var admin_group=app.tmaster.create_object("user_group");
+	    
+	    admin_group.get("group_name").value="admin";
+	    admin_group.get("description").value="God-like users";
+	var pw="123";
+	    admin_local_access.set_password(pw);
+	    admin_local_access.elements.username.value=admin_name;
 		
-		var default_groups = [{name : "admin"},{name : "users"}];
-		var default_users = [{
-		    login_name : "god",
-		    hashpass : hash_data.hash,
-		    salt : hash_data.salt,
-		    groups : ["admin"]
-		}];
-
-		init_mongo(default_groups, default_users, function(error){
-		    if(error) return on_error(error);
-		    console.log("Bootstrap done.");
+	    add(get(admin_user,"credentials"),'local',admin_local_access);
+	    
+	    app.mongo.db.collection("user").drop();
+	    app.mongo.db.collection("user_group").drop();
+	    
+	    app.mongo.update_doc({ doc : admin_group, path : "name", value : "admin", opts : { upsert: true} }, function(error, res){
+		
+		if(error){
+		    return console.log("Error creating admin group : " + error);
+		}
+		
+		app.mongo.update_doc({
+		    doc : admin_user, path : 'credentials.local.username', value : admin_name,
+		    opts : { upsert: true}
+		},function(error, res){
+		    
+		    if(error){
+			return console.log("Error creating admin user : " + error);
+		    }
+		    
+		    console.log("admin user created!");
+		    
+		    app.mongo.find1({type: "user", path:'credentials.local.username', value : admin_name},function(err, user) {
+			if(err){
+			    return console.log("EEE " + err);
+			}
+			console.log("got admin " + JSON.stringify(user));
+		    });
+		    
 		    
 		});
-	    },{
-		minLength              : 5,
-		minOptionalTestsToPass : 0
-	    });
+		
+	    // },{
+	    // 	minLength              : 5,
+	    // 	minOptionalTestsToPass : 0
+	    // });
 	});
 	
 	

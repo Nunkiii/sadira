@@ -1,3 +1,8 @@
+
+// Global object base of all ui template constructors.
+
+template_ui_builders={};
+
 // This configures an HTML element to be editable and performs the DB action required.
 // All parameters are given as HTML tag property attributes.
 
@@ -272,137 +277,6 @@ function divider(cnt, frac, or, heightf){
 }
 
 /*
-  Template base functions
-*/
-
-function build_data_structure_rec(t){
-    var data={};
-    if(è(t.value)) data.value=t.value;
-    if(è(t.elements)){
-	data.elements={};
-	for(var te in t.elements)
-	    data.elements[te]=build_data_structure(t.elements[te]);
-    }
-    return data;
-}
-function build_data_structure(t,obj){
-    return è(obj) ? {obj : build_data_structure_rec(t[obj])} : build_data_structure_rec(t);
-}
-    
-function encode_data_structure(t){
-}
-
-
-var local_templates=function(){
-    this.templates={};
-}
-
-local_templates.prototype.set_template=function(tname, template){
-    this.templates[tname]=template;
-}
-
-local_templates.prototype.add_templates=function(templates){
-    for(var tname in templates){
-	this.templates[tname]=templates[tname];
-    }
-}
-
-local_templates.prototype.update_template=function(tpl_item, tpl){
-    var toup=["elements","ui_opts"];
-    
-    //console.log("Subst template for " + tpl.template_name +" : " + tpl_item.name + " tname is " + tpl_item.template_name);
-    
-    for(var ti=0;ti< toup.length;ti++){
-	var t=toup[ti];
-	//console.log("Check " + t + " typof " + typeof tpl_item[t] );
-	
-	if(typeof tpl[t]!='undefined'){
-	    if(typeof tpl_item[t]=='undefined')
-		tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
-	    else
-		for(var o in tpl[t]){
-		    if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
-		}
-	}
-    }
-    
-    for(var o in tpl){
-	switch(o){
-	case "name" : if(!tpl_item.name) tpl_item.name=tpl.name; break;
-	case "subtitle" : if(!tpl_item.subtitle) tpl_item.subtitle=tpl.subtitle; break;
-	case "intro" : if(!tpl_item.intro) tpl_item.intro=tpl.intro; break;
-	case "elements" : break; 
-	case "ui_opts" : break;
-	default:
-	    tpl_item[o]=clone_obj(tpl[o]);
-	}
-    }
-}
-
-local_templates.prototype.substitute_template=function(tpl_item){
-    //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
-
-    var ttype;
-    if(tpl_item.type=="template" && typeof tpl_item.template_name!='undefined'){
-	ttype=tpl_item.template_name;
-	tpl_item.type=tpl_item.template_name;
-    }
-
-    var ttype=tpl_item.type;
-    if(ù(ttype)){
-	console.log("Undefined template ! widget name["+tpl_item.name+"]");
-	return;
-    }
-    
-    var tpl=this.templates[ttype];
-    if(ù(tpl)) return;
-    //	throw "Unknwon template " + tpl_item.template_name;
-    //console.log("subst for " + tpl_item.name + " tpl " + tpl.template_name);
-	
-    if(typeof tpl.template_name !='undefined'){
-	var tpls=this.templates[tpl.template_name];
-	if(typeof tpls==='undefined')
-	    throw "Unknwon template " + tpl.template_name;
-	this.update_template(tpl_item, tpls);
-    }
-    this.update_template(tpl_item, tpl);
-    return true;
-    
-}
-
-local_templates.prototype.substitute_templates=function(tpl){
-    this.substitute_template(tpl);
-    for (var e in tpl.elements){
-	this.substitute_templates(tpl.elements[e]);
-    }
-    if(è(tpl.toolbar)){
-	for(var tbi in tpl.toolbar){
-	    this.substitute_templates(tpl.toolbar[tbi]);
-	}
-    }
-    return tpl;
-}
-
-local_templates.prototype.build_template=function(template){
-
-    var tpl;
-
-    if(typeof template === 'string'){ 
-	tpl=clone_obj(this.templates[template]);
-	if(typeof tpl === 'undefined') 
-	    throw "Unknown template " + template;
-	tpl.type=template;
-    }else{
-	//console.log("Template is an object " + typeof template + " : " + JSON.stringify(tpl));
-	tpl=template;
-    }
-
-    return this.substitute_templates(tpl);
-}
-
-template_ui_builders={};
-
-/*
 template_ui_builders.default_before=function(ui_opts, tpl_item){
     tpl_item.get_value=function(){return tpl_item.value; }
 }
@@ -581,7 +455,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	console.log("Not even the ui_opts... :(");
 	return;
     }
-
+    
     if(ù(tpl_root)){
 	console.log("No tpl root !!!");
 	return;
@@ -712,24 +586,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	ui_content=ui_root;
 
-	tpl_root.debug=function(msg){
-	    if(ù(tpl_root.debug_widget)){
-		tpl_root.debug_widget=create_widget({
-		    name : "Widget debug", type: "text",
-		    ui_opts : {
-			sliding : true, animate : true, slided : true, label : true,
-			root_classes : ["container-fluid alert alert-warning"],
-			item_classes : ["container-fluid"]
-			//name_classes : ["text-danger"]
-		    }
-		});
-		ui_content.appendChild(tpl_root.debug_widget.ui_root);
-	    }
-	    tpl_root.debug_widget.append(msg+"<br/>");
-	    
-	}
-
-	//console.log("Adding get to " + tpl_root.name);
 	tpl_root.get=function(name){
 	    for(var e in tpl_root.elements){
 		//console.log(tpl_root.name+ " : looking child  [" + e + "] for name ["+name+"]");
@@ -747,6 +603,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    return undefined;
 	}
+	
+	
+	tpl_root.debug=function(msg){
+	    if(ù(tpl_root.debug_widget)){
+		tpl_root.debug_widget=create_widget({
+		    name : "Widget debug", type: "text",
+		    ui_opts : {
+			sliding : true, animate : true, slided : true, label : true,
+			root_classes : ["container-fluid alert alert-warning"],
+			item_classes : ["container-fluid"]
+			//name_classes : ["text-danger"]
+		    }
+		});
+		ui_content.appendChild(tpl_root.debug_widget.ui_root);
+	    }
+	    tpl_root.debug_widget.append(msg+"<br/>");
+	    
+	}
+
 
 	if(è(tpl_root.toolbar)){
 	    

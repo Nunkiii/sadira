@@ -496,5 +496,5 @@ Object.size = function(obj) {
 if(nodejs){
     exports.dialog=dialog;
     exports.dialog_manager=dialog_manager;
-    exports.new_event=new_event;
+    GLOBAL.new_event=new_event;
 }

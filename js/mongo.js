@@ -1,26 +1,47 @@
 // Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
 // Do what you want with this file.
 
-var mongoose = require('mongoose');
 
-exports.connect=function(config_in, cb) {
+var mongo = require('mongodb');
 
-    var	config=this.config={
+//var Db = mongo.Db,
+var MongoClient = mongo.MongoClient,
+Server = mongo.Server,
+ReplSetServers = mongo.ReplSetServers,
+ObjectID = mongo.ObjectID,
+Binary = mongo.Binary,
+GridStore = mongo.GridStore,
+Grid = mongo.Grid,
+Code = mongo.Code;
+
+var BSON = mongo.BSON;
+
+var assert = require('assert');
+
+function server(pkg,app) {
+    this.sad=app;
+    var config_in=pkg.opts;
+    var def_port=27017;
+    var config=this.config={
 	mongo_host : "localhost",
-	mongo_port : 27017,
+	mongo_port : def_port,
 	mongo_db : "sadira",
+	replica_set_name : "sadira_repset",
 	replica_set_enable : false,
 	replica_set :[
 	    {
 		ip : "192.168.166.230",
+		port : def_port,
 		options : { safe:true, auto_reconnect: true }
 	    },
 	    {
 		ip : "192.168.166.231",
+		port : def_port,
 		options : { safe:true, auto_reconnect: true }
 	    },
 	    {
 		ip : "192.168.166.232",
+		port : def_port,
 		options : { safe:true, auto_reconnect: true }
 	    }
 	]
@@ -30,96 +51,133 @@ exports.connect=function(config_in, cb) {
 	for (var c in config_in) config[c]=config_in[c];
     }
 
-    // if(è(config.replica_set)){
-    // 	for(var rsi in config.replica_set){
-    // 	    if(ù(config.replica_set[rsi].port))
-    // 		config.replica_set[rsi].port=Connection.DEFAULT_PORT;
-    // 	}
-    // }
-
+    if(è(config.replica_set)){
+    	for(var rsi in config.replica_set){
+    	    if(ù(config.replica_set[rsi].port))
+    		config.replica_set[rsi].port=def_port;
+    	}
+    }
     
-    var cfg=config;
-    var u='mongodb://';
+}
 
+server.prototype.disconnect = function(cb) {
+    if(ù(this.srv)) cb("Mongo server NOT connected!");
+
+    this.srv=undefined;
+}
+
+server.prototype.connect = function(cb, options_in) {
+    var mongo=this;
+    
+    if(è(mongo.client)) cb("Mongo server already connected!");
+    var cfg=this.config;
+    
     try{
+
+	var url = 'mongodb://';
+	
 	if(cfg.replica_set_enable){
-	    
-	    //var rset=[];
+	    var v=false;
 	    for(var rssi in cfg.replica_set){
-		
+		if(v)url+=',';
 		var rss=cfg.replica_set[rssi];
-		u+=rss.ip; if(è(rss.port))u+=":"+rss.port;
-		//rset.push(new Server(rss.ip,rss.port,rss.options));
+		rset.push(new Server(rss.ip,rss.port,rss.options));
+		url+=rss.ip+':'+rss.port;
+		v=true;
 	    }
-	    //this.srv = new ReplSetServers(rset);
-	}else{
-	    u+=cfg.mongo_host;
-	    if(è(cfg.mongo_port))
-		u+=":"+cfg.mongo_port;
-	    console.log("Create mongo server link " + cfg.mongo_host);
-	    //this.srv=new Server(cfg.mongo_host, cfg.mongo_port);
+	    url+='/'+cfg.mongo_db+'?replicaSet='+cfg.replical_set_name;
 	    
+	}else{
+	    
+	    url+=cfg.mongo_host+':'+cfg.mongo_port+'/'+cfg.mongo_db;
 	}
-	u+="/"+cfg.mongo_db;
-	console.log("Mongoose connecting to " + u);
-	mongoose.connect(u, function(error) {
-	    if(error) return cb(error);
-	    cb(null,mongoose);
+	
+	var options={
+	    raw: true, native_parser : true
+	};
+	if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
+	
+	console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
+	
+	MongoClient.connect(url, options, function(err, db) {
+	    if(err){
+		var em="Mongo error while opening DB [" + dbname + "] : " + err;
+		console.log(em);
+		mongo.db=undefined;
+		return cb(em);
+	    }
+	    mongo.db=db;
+	    cb(null,db);
 	});
     }
     catch (e){
 	cb("Mongo exception : " + e);
     }
+}
+
+server.prototype.write_doc=function(doc, cb, options_in){
+    var options={w: 'majority', wtimeout: 10000, serializeFunctions: true, forceServerObjectId: true};
+    if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
+    var data=get_template_data(doc);
+    //console.log("read data " + JSON.stringify(data));
+
+
+    this.db.collection(doc.type).insertOne(data, options, cb);
+}
+
+function create_query(opts, value){
+    var op='';
+    if(è(opts.path)){
+	var splitpath=opts.path.split('.');
+	
+	for(var pe=0;pe<splitpath.length;pe++){
+	    op+='els.'+splitpath[pe]+'.';
+	}
+    }
+    op+='value';
+
+    var q={}; q[op]=opts.value;
+    return q;
+}
+
+server.prototype.update_doc=function(opts, cb){
+    var doc=opts.doc;
+    var q=create_query(opts);
+    var options={w: 'majority', wtimeout: 10000, forceServerObjectId: true};
+    if(è(opts.opts))for (var oi in opts.opts) options[oi]=opts.opts[oi];
+    var data=get_template_data(doc);
+
+    console.log("read data " + JSON.stringify(data));
+
+    this.db.collection(doc.type).findOneAndUpdate(q,data, options, cb);
+}
+
+
+
+server.prototype.find1=function(opts, cb){
+    var type=opts.type;
+    var value=opts.value;
+    
+    var op='';
+    if(è(opts.path)){
+	var splitpath=opts.path.split('.');
+	
+	for(var pe=0;pe<splitpath.length;pe++){
+	    op+='els.'+splitpath[pe]+'.';
+	}
+    }
+    op+='value';
+
+    var q={}; q[op]=value;
+    
+    //console.log(type+ " : finding " + op + " = " + value);
+    this.db.collection(type).findOne(q, {}, cb);
+    //function(error, res){});
+	
     
 }
 
-exports.disconnect = function(cb) {
-    //if(ù(this.srv)) cb("Mongo server NOT connected!");
-    //this.srv=undefined;
-    mongoose.disconnect();
-}
-
-// exports.server.prototype.connect = function(cb) {
-    
-//     //if(è(this.srv)) cb("Mongo server already connected!");
-//  }
-
-
-// exports.server.prototype.open_db = function(dbname, cb, options_in) {
-
-//     var mongo=this;
-        
-//     if(ù(this.db_link)) this.db_link={};
-//     if(è(this.db_link[dbname])) cb(null, dblink[dbname]);
-//     if(ù(this.srv)) cb("Mongo server NOT connected!");
-    
-//     var options={safe:true, auto_reconnect: true };
-//     if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
-
-    
-//     var dbo =new Db(dbname, this.srv, options);
-
-//     dbo.open(function(err, db) {
-// 	if(err){
-// 	    var em="Mongo error while attempting at opening DB [" + dbname + "] : " + err;
-// 	    console.log(em);
-// 	    cb(em);
-// 	}else{
-// 	    mongo.db_link[dbname]=db; 
-// 	    cb(null,db);
-// 	}
-//     });
-//     /*
-//       var adminDb = db.admin();
-//       // List all the available databases
-//       adminDb.listDatabases(function(err, dbs) {
-//       assert.equal(null, err);
-//       assert.ok(dbs.databases.length > 0);
-//       if(cb) cb(dbs);
-//       //db.close();
-//       });
-//     */
-// }
+module.exports.server=server;
 
 
 // exports.server.prototype.close = function() {

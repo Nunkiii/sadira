@@ -8,6 +8,7 @@ var url = require("url");
 var bson = require("./www/js/community/bson");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
+var utils = require("./www/js/utils");
 var BSON=bson().BSON;
 var express=require("express");
 
@@ -16,6 +17,10 @@ var express=require("express");
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
+
+
+var tpl=require('./js/tpl');
+
 
 /*
   Headers to add when allowing cross-origin requests.
@@ -173,7 +178,6 @@ var _sadira = function(){
     var sad=this;
 
     this.dialog_handlers = {};
-    
     this.common_header_data={};
 
     //Configuring cluster (multi process spawn with port sharing) and inter-process communications
@@ -238,6 +242,15 @@ var _sadira = function(){
     if(sad.options.ncpu==0)sad.options.ncpu=system_ncpu;
     
     try{
+	
+	var tpl_mgr=this.tpl_mgr=require('./www/js/tpl_mgr');
+	var base_templates=require('./www/js/base_templates');
+	var system_templates=require('./js/tpl');
+
+	var tmaster=this.tmaster= new tpl_mgr.local_templates();
+	
+	tmaster.add_templates(base_templates);
+	tmaster.add_templates(system_templates);
 
 	this.cluster.isMaster ?  this.start_master() : this.start_worker();
 	//Loading handlers.
@@ -287,9 +300,9 @@ var ip_service=function(service_name, sad){
     this.peers = {};
     this.service=service_name;
     
-    DLG.new_event(this,"message");
-    DLG.new_event(this,"connect");
-    DLG.new_event(this,"disconnect");
+    new_event(this,"message");
+    new_event(this,"connect");
+    new_event(this,"disconnect");
 
     this.client_connect=function(data){
 	//var client_socket = new ip_socket(this.service, sad);
@@ -299,7 +312,7 @@ var ip_service=function(service_name, sad){
 	
 	p=this.peers[data.wid+"_"+data.id]={ wid: data.wid, id: data.id };
 
-	DLG.new_event(p,"message");
+	new_event(p,"message");
 
 	p.send=function(data){
 	    sad.cluster.workers[this.wid].send({ id : this.id, cmd : "route", data : data  });
@@ -343,9 +356,9 @@ var ip_socket=function(service_name, sad){
 
     //this.name="SOCKET_"+this.id;
     
-    DLG.new_event(this,"message");
-    DLG.new_event(this,"connected");
-    DLG.new_event(this,"disconnected");
+    new_event(this,"message");
+    new_event(this,"connected");
+    new_event(this,"disconnected");
     
     // if(sad.cluster.isMaster){
     // 	this.send=function(command, data, result_cb){
@@ -831,7 +844,7 @@ _sadira.prototype.handle_websocket_requests=function(ws_server){
 	var cnx = request.accept(null, request.origin); 
 	cnx.dialogs=new DLG.dialog_manager(cnx, sad); //Each connexion has its own dialog manager, handling all dialogs on this websocket connexion.
 	cnx.request=request;
-	DLG.new_event(cnx, "closed");
+	new_event(cnx, "closed");
 	
 	cnx.on('message', function(message) {// Incoming message from web client
 	    try{
@@ -933,7 +946,8 @@ _sadira.prototype.initialize_handlers=function(packname){
 	var wpack=require(pkg_file);
 
 	var initf = sad.cluster.isMaster ? wpack.init_master : wpack.init;
-	if(è(initf))
+	//console.log("Initf is [" + initf + "]");
+	if(initf!==undefined)
 	    initf(pkg[w],sad);
 	else{
 	    //sad.log("No pkg init function!");
@@ -1025,7 +1039,7 @@ _sadira.prototype.initialize_handlers=function(packname){
 //Main sadira instance. Should be in another file...
 
 try{
-    exports.sadira = new _sadira();
+    GLOBAL.sadira = new _sadira();
 }
 
 catch (e){

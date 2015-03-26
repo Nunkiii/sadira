@@ -53,14 +53,10 @@
 
   <script>
     window.addEventListener("load",function(){
-    var login=tmaster.build_template("login");
+    var login=create_widget("login");
     login.user_id="<%= user_id %>";
-
-
-    create_ui({ },login,5);
-
-    attach_ui(login,document.getElementById("login"));
-    });
+        attach_ui(login,document.getElementById("login"));
+    });		
   </script>
 
   <script>

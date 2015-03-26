@@ -15,8 +15,8 @@ var bodyParser   = require('body-parser');
 //var session      = require('express-session');
 
 
-var schemas = require('../js/base_schemas');
-var users=schemas.users;
+//var schemas = require('../js/base_schemas');
+//var users=schemas.users;
 
 
 exports.isAuthenticated = passport.authenticate('basic', { session : false });
@@ -24,7 +24,7 @@ exports.isAuthenticated = passport.authenticate('basic', { session : false });
 exports.init=function(pkg,sad){
 
     var app=sad.app;
-  
+    var mongo=app.mongo;
     //app.set('view engine', 'ejs'); // set up ejs for templating
     // required for passport
     
@@ -63,8 +63,8 @@ exports.init=function(pkg,sad){
 			 // find a user whose email is the same as the forms email
 			 // we are checking to see if the user trying to login already exists
 			 console.log("Begin signup  process for " + email);
-			 
-			 users.findOne({ 'local.email' :  email }, function(err, user) {
+			 mongo.find1({type: "user", path:'credentials.local.email', value : email},function(err, user) {
+			     //users.findOne({ 'local.email' :  email }, 
 			     //users.findOne({}, function(err, user) {
 			     // if there are any errors, return the error
 			     if (err){
@@ -76,21 +76,22 @@ exports.init=function(pkg,sad){
 				 console.log("Email already taken " + email);
 				 return done(null, false, 'That email address is already registered.');
 			     } else {
+
 				 // if there is no user with that email
 				 // create the user
 				 console.log("Begin signup  process... create user");
 				 
-				 var new_user = new users();
+				 var new_user = app.tmaster.build_template("user");
+				 var access=app.tmaster.build_template("local_access");
 				 
-				 // set the user's local credentials
-				 new_user.local.email    = email;
-				 new_user.local.hashpass = hashpass;
-			     
+				 access.elements.hashpass.value=hashpass;
+				 access.elements.username.email=email;
+				 add(get(admin_user,"credentials"),'local',access);
+				 
 				 // save the user
-				 new_user.save(function(err) {
-				     if (err)
-					 throw err;
-				     return done(null, new_user, " Gllllleeee");
+				 mongo.write_doc(new_user, function(err, r) {
+				     if (err) return done(err);
+				     return done(null, new_user);
 				 });
 			     }
 			     
@@ -117,7 +118,7 @@ exports.init=function(pkg,sad){
 	console.log("Login init for " + email + " pass " + hashpass);
 	// find a user whose email is the same as the forms email
 	// we are checking to see if the user trying to login already exists
-	users.findOne({ 'local.email' :  email }, function(err, user) {
+	mongo.find1({type: "user", path:'credentials.local.email', value : email},function(err, user) {
 	    //users.findOne({}, function(err, user) {
 	    // if there are any errors, return the error before anything else
 	    if (err){
@@ -129,9 +130,7 @@ exports.init=function(pkg,sad){
 	    if (!user)
 		return done(null, null, "User not found !");
 	    
-	    // if the user is found but the password is wrong
 	    user.check_password(hashpass, function(error, match){
-
 		if(error)
 		    return done(error);
 		console.log("checkpass match = " + match);
@@ -140,11 +139,7 @@ exports.init=function(pkg,sad){
 		
 		return done(null, null, "Oops! Wrong password");
 		
-
 	    });
-	    
-	    
-
 	});
 	
     }));

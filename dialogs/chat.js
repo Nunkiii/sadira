@@ -17,8 +17,8 @@ exports.init=function(pkg, app){
     redis_cnx = redis.createClient({detect_buffers: true});
     redis_pubcnx = redis.createClient({detect_buffers: true});
 
-    DLG.new_event(redis_cnx, "chat_event");
-    
+  new_event(redis_cnx, "chat_event");
+  
     redis_cnx.on("subscribe", function (channel, count) {
 	app.log("redis: subscribed to channel ["+channel+"]");
 	
@@ -64,7 +64,7 @@ function demo_chat (dlg, status_cb){
 
     function listen_chat_event(chanel, what, event_cb){
 	var ename=chanel+"_"+what;
-	DLG.new_event(chat_events, ename);
+	new_event(chat_events, ename);
 	chat_events.listen(ename,event_cb);
     }
     

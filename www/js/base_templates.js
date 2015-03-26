@@ -1,5 +1,30 @@
 var base_templates={
-
+    main_window:{},
+    progress:{},
+    status:{},
+    double:{ db_type: "Number"},
+    labelled_vector:{ db_type: "[Number]"},
+    local_file:{},
+    bytesize:{db_type: "Number"},
+    bool:{db_type: "Boolean"},
+    string:{db_type: "String"},
+    text:{db_type: "String"},
+    password:{db_type: "String"},
+    date:{db_type: "Date"},
+    url:{db_type: "String"},
+    image_url:{},
+    html:{db_type: "String"},
+    code:{db_type: "String"},
+    combo:{db_type: "String"},
+    template_list:{},
+    action:{},
+    color:{db_type: "String"},
+    angle:{db_type: "Number"},
+    expo_setup:{},
+    colormap:{db_type: "[[Number]]"},
+    demo_multilayer:{},
+    object_editor:{},
+    xd1_layer:{},
     sadira : {
 	type : "sadira",
 	//name : "Websocket",
@@ -271,8 +296,8 @@ var base_templates={
 	name : "Sadira system monitor",
 	elements : {
 	    cnx : {
-		type : "template",
-		template_name : "sadira",
+		
+		type : "sadira",
 		name : "Link"
 	    },
 	    workers : {
@@ -352,8 +377,8 @@ var base_templates={
 	    
 	    deps : {
 		name : "Software deps",
-		type : "template",
-		template_name : "soft_links",
+		
+		type : "soft_links",
 		ui_opts : {item_classes : ["container-fluid"], name_node:"h2"}
 	    }
 	}
@@ -384,7 +409,7 @@ var base_templates={
 	},
 	elements : {
 	    node : {
-		type : "template", template_name : "soft_tpl",
+		 type : "soft_tpl",
 		ui_opts : {
 		    icon : "/sadira/icons/brands/nodejs.svg",
 		},
@@ -393,7 +418,7 @@ var base_templates={
 		value : "https://nodejs.org/"
 	    },
 	    mongo : {
-		type : "template", template_name : "soft_tpl",ui_opts : {icon : "/sadira/icons/brands/logo-mongodb.png"},
+		 type : "soft_tpl",ui_opts : {icon : "/sadira/icons/brands/logo-mongodb.png"},
 		name : "mongo DB",
 		intro : "<p><strong>Agile and Scalable.</strong>MongoDB makes working with a database simple and elegant, providing agility and freedom to scale.</p>",
 		value : "http://www.mongodb.org/"
@@ -536,4 +561,7 @@ var base_templates={
     
 };
 
+var nodejs= typeof module !== 'undefined'; //Checking if we are in Node
 
+if(nodejs)
+    module.exports=base_templates;
