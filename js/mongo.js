@@ -120,12 +120,10 @@ server.prototype.write_doc=function(doc, cb, options_in){
     if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
     var data=get_template_data(doc);
     //console.log("read data " + JSON.stringify(data));
-
-
     this.db.collection(doc.type).insertOne(data, options, cb);
 }
 
-function create_query(opts, value){
+function create_query(opts){
     var op='';
     if(è(opts.path)){
 	var splitpath=opts.path.split('.');
@@ -140,9 +138,33 @@ function create_query(opts, value){
     return q;
 }
 
-server.prototype.update_doc=function(opts, cb){
-    var doc=opts.doc;
-    var q=create_query(opts);
+server.prototype.update_doc=function(doc,a,b){
+    var opts=null,cb=null;
+    if(is_function(a)){
+	cb=a;
+	if(b!==undefined) opts=b; 
+    }else{
+	opts=a;
+	cb=b;
+    }
+    if(!cb){
+	throw "No cb given to update_doc!";
+    }
+    var q;
+
+    if(opts){
+	q=create_query(opts);
+    }else{
+	if(doc.db!==undefined)
+	    if(doc.db.id!==undefined){
+		q={ _id : doc.db.id };
+	    }
+    }
+
+    if(q===undefined){
+	return cb("Cannot create query !, check update_doc call");
+    }
+    
     var options={w: 'majority', wtimeout: 10000, forceServerObjectId: true};
     if(è(opts.opts))for (var oi in opts.opts) options[oi]=opts.opts[oi];
     var data=get_template_data(doc);
@@ -155,23 +177,10 @@ server.prototype.update_doc=function(opts, cb){
 
 
 server.prototype.find1=function(opts, cb){
-    var type=opts.type;
-    var value=opts.value;
-    
-    var op='';
-    if(è(opts.path)){
-	var splitpath=opts.path.split('.');
-	
-	for(var pe=0;pe<splitpath.length;pe++){
-	    op+='els.'+splitpath[pe]+'.';
-	}
-    }
-    op+='value';
 
-    var q={}; q[op]=value;
-    
+    var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
-    this.db.collection(type).findOne(q, {}, cb);
+    this.db.collection(opts.type).findOne(q, {}, cb);
     //function(error, res){});
 	
     

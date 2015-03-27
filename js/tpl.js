@@ -87,8 +87,6 @@ module.exports={
 		elements : {}
 	    },
 	    groups : {
-		name : "Groups",
-		subtitle : "User groups the user is member",
 		type : "group_data"
 	    }
 	},
@@ -100,7 +98,9 @@ module.exports={
 	name : "A User group",
 	elements : {
 	    group_name : {
-		name : "Group name", subtitle : "String identifier for the group", type : "string"
+		name : "Group name",
+		subtitle : "String identifier for the group",
+		type : "string"
 	    },
 	    description : {
 		type : "html",
@@ -112,12 +112,14 @@ module.exports={
 	    });
 	}
     },
-    
     group_data : {
 	name : "User groups",
-	value: [],
+	name : "Groups",
+	subtitle : "User groups the user belongs to",
 	object_builder : function (gd){
-	    gd.add_group=function(gname){};
+	    gd.add_group=function(gname){
+		
+	    };
 	    //sadira.mongo.find1({ type:'group', value
 	}
 	

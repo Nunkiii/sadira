@@ -216,14 +216,14 @@ exports.init=function(pkg,app){
 	    app.mongo.db.collection("user").drop();
 	    app.mongo.db.collection("user_group").drop();
 	    
-	    app.mongo.update_doc({ doc : admin_group, path : "name", value : "admin", opts : { upsert: true} }, function(error, res){
+	    admin_group.serialize({path : "name", value : "admin", opts : { upsert: true} }, function(error, res){
 		
 		if(error){
 		    return console.log("Error creating admin group : " + error);
 		}
 		
-		app.mongo.update_doc({
-		    doc : admin_user, path : 'credentials.local.username', value : admin_name,
+		admin_user.serialize({
+		    path : 'credentials.local.username', value : admin_name,
 		    opts : { upsert: true}
 		},function(error, res){
 		    

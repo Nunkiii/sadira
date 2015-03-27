@@ -55,7 +55,14 @@ function jstringify(object, n){
     cache = null; // Enable garbage collection
 }
 
+function is_function(o) {
+    var getType = {};
+    return o && getType.toString.call(o) == '[object Function]';
+}
+
+
 if(nodejs){
+    GLOBAL.is_function=is_function;
     GLOBAL.clone_obj=clone_obj;
     GLOBAL.jstringify=jstringify;
 }else{

@@ -169,6 +169,54 @@ function dispatcher(name) {
 
 
 /**
+ * Permission class. 
+ * @class perm
+ */
+
+function perm(){
+    this.r = { g : [], u : [] };
+    this.w = { g : [], u : [] };
+}
+
+perm.prototype.grant=function(gr){
+    for(var m in Object.keys(this)){
+	if(gr[m]!==undefined){
+	    var ks=this[m];
+	    for(var t in Object.keys(ks)){
+		var a=gr[m][t];
+		if(a!==undefined){
+		    for(var tid=0;tid<a.length;tid++){
+			console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
+			ks[t].push(a[tid]);
+		    }
+		}
+		
+	    }
+	}
+    }
+}
+
+/**
+ * API class. 
+ * @class api
+ */
+
+
+function api(){
+    
+    var opts = this.opts={
+	http : {
+	    type : 'get'
+	},
+	ws : {
+	    
+	}
+    };
+    
+}
+
+
+/**
  * Main framework class. A single instance of this class is created at startup. 
  * @class _sadira
  */
@@ -247,13 +295,40 @@ var _sadira = function(){
 	var base_templates=require('./www/js/base_templates');
 	var system_templates=require('./js/tpl');
 
+	tpl_mgr.local_templates.prototype.object_builder=function(obj){
+	    console.log("Object builder !");
+
+	    obj.serialize=function(a,b){
+		if(b===undefined)
+		    sad.mongo.update_doc(this,a);
+		else
+		    sad.mongo.update_doc(this,a,b);
+	    };
+	    obj.dbcreate=function(a,b){
+		if(is_function(a))
+		    sad.mongo.write_doc(obj, a);
+		else{
+		    if(!is_function(b)) throw ("Excpecting cb after options in obj.create, or cb as only arg !");
+		    sad.mongo.write_doc(obj, b,a);
+		}
+	    };
+	    obj.db={ perm : new perm()};
+	    
+	    //obj.db.perm.grant();
+	    
+	}
+
+	
 	var tmaster=this.tmaster= new tpl_mgr.local_templates();
+	GLOBAL.create_object=tmaster.create_object;
 	
 	tmaster.add_templates(base_templates);
 	tmaster.add_templates(system_templates);
 
 	this.cluster.isMaster ?  this.start_master() : this.start_worker();
+
 	//Loading handlers.
+
 	sad.initialize_handlers("handlers");
 	sad.initialize_handlers("dialogs");
 

@@ -81,15 +81,16 @@ exports.init=function(pkg,sad){
 				 // create the user
 				 console.log("Begin signup  process... create user");
 				 
-				 var new_user = app.tmaster.build_template("user");
-				 var access=app.tmaster.build_template("local_access");
+				 var new_user = create_object("user");
+				 var access=create_object("local_access");
 				 
-				 access.elements.hashpass.value=hashpass;
-				 access.elements.username.email=email;
-				 add(get(admin_user,"credentials"),'local',access);
+				 access.set('hashpass',hashpass);
+				 access.set('username',email);
+
+				 new_user.get("credentials").add('local',access);
 				 
 				 // save the user
-				 mongo.write_doc(new_user, function(err, r) {
+				 new_user.dbcreate( function(err, r) {
 				     if (err) return done(err);
 				     return done(null, new_user);
 				 });
