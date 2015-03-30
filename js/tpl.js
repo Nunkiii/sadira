@@ -60,20 +60,16 @@ module.exports={
 	    
 	    
 	    la.set_password=function(clear_password){
-		try{
-		    var h=crypto.createHash('sha256');
-		    var salt=crypto.randomBytes(32);//.toString('base64');
-		    
-		    h.update(salt);
-		    h.update(clear_password,'utf-8');
-		    
-		    la.elements.hashpass.value=h.digest('base64'),
-		    la.elements.hashpass.value=salt.toString('base64')
-		}
-		catch(e){
-		    cb("crypto error " + e);
-		}
+		var h=crypto.createHash('sha256');
+		var salt=crypto.randomBytes(32);//.toString('base64');
 		
+		h.update(salt);
+		h.update(clear_password,'utf-8');
+		
+		la.set('hashpass',h.digest('base64'))
+		    .set('salt',salt.toString('base64'));
+		
+		return la;
 	    };
 	}
     },
@@ -97,7 +93,7 @@ module.exports={
     user_group : {
 	name : "A User group",
 	elements : {
-	    group_name : {
+	    name : {
 		name : "Group name",
 		subtitle : "String identifier for the group",
 		type : "string"

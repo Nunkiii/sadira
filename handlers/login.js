@@ -27,7 +27,7 @@ exports.init=function(pkg,sad){
     var mongo=app.mongo;
     //app.set('view engine', 'ejs'); // set up ejs for templating
     // required for passport
-    
+
     app.use(passport.initialize());
     app.use(passport.session()); // persistent login sessions
     //app.use(flash()); // use connect-flash for flash messages stored in session
@@ -63,7 +63,8 @@ exports.init=function(pkg,sad){
 			 // find a user whose email is the same as the forms email
 			 // we are checking to see if the user trying to login already exists
 			 console.log("Begin signup  process for " + email);
-			 mongo.find1({type: "user", path:'credentials.local.email', value : email},function(err, user) {
+			 
+			 mongo.find_user( email, function(err, user) {
 			     //users.findOne({ 'local.email' :  email }, 
 			     //users.findOne({}, function(err, user) {
 			     // if there are any errors, return the error
@@ -82,15 +83,15 @@ exports.init=function(pkg,sad){
 				 console.log("Begin signup  process... create user");
 				 
 				 var new_user = create_object("user");
-				 var access=create_object("local_access");
-				 
-				 access.set('hashpass',hashpass);
-				 access.set('username',email);
+
+				 var access=create_object("local_access")
+				     .set('hashpass',hashpass)
+				     .set('username',email);
 
 				 new_user.get("credentials").add('local',access);
 				 
 				 // save the user
-				 new_user.dbcreate( function(err, r) {
+				 new_user.save( function(err, r) {
 				     if (err) return done(err);
 				     return done(null, new_user);
 				 });

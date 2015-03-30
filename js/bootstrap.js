@@ -200,49 +200,72 @@ exports.init=function(pkg,app){
 	    
 	    //if(error) return on_error(error);
 	    
+
+	
+
+var pw="123";
 	    
-	    var admin_user=app.tmaster.create_object("user");
-	    var admin_local_access=app.tmaster.create_object("local_access");
-	var admin_group=app.tmaster.create_object("user_group");
-	    
-	    admin_group.get("group_name").value="admin";
-	    admin_group.get("description").value="God-like users";
-	var pw="123";
-	    admin_local_access.set_password(pw);
-	    admin_local_access.elements.username.value=admin_name;
+	//app.mongo.db.collection("user").drop();
+	//app.mongo.db.collection("user_group").drop();
+
+	app.mongo.find1({type : 'user_group', path : 'name', value : 'admin'}, function(err, admin_group){
+	    if(err){
+		throw "error looking for admin group " + err;
+	    }
+	    if(admin_group)
+		console.log("We found the admin group " + JSON.stringify(admin_group) );
+	    else{
 		
-	    add(get(admin_user,"credentials"),'local',admin_local_access);
-	    
-	    app.mongo.db.collection("user").drop();
-	    app.mongo.db.collection("user_group").drop();
-	    
-	    admin_group.serialize({path : "name", value : "admin", opts : { upsert: true} }, function(error, res){
-		
-		if(error){
-		    return console.log("Error creating admin group : " + error);
-		}
-		
-		admin_user.serialize({
-		    path : 'credentials.local.username', value : admin_name,
-		    opts : { upsert: true}
-		},function(error, res){
-		    
-		    if(error){
-			return console.log("Error creating admin user : " + error);
-		    }
-		    
-		    console.log("admin user created!");
-		    
-		    app.mongo.find1({type: "user", path:'credentials.local.username', value : admin_name},function(err, user) {
-			if(err){
-			    return console.log("EEE " + err);
-			}
-			console.log("got admin " + JSON.stringify(user));
+      		var admin_group=app.tmaster.create_object("user_group")
+		    .set("name","admin")
+		    .set("description","God-like users")
+		    .save(function(err){
+			if(err) throw "error saving admin group " + err;
+			console.log("Ok, admin group saved!");
 		    });
-		    
-		    
+		
+	    }
+	    
+	});
+	
+	app.mongo.find_user(admin_name, function(err, admin_user){
+
+	    if(err){
+		throw "error looking for admin user " + err;
+	    }
+	    
+	    if(admin_user){
+		console.log("Admin user already exists....");
+	    }else{
+		console.log("creating admin user.....");
+		admin_user=create_object("user");
+	    }
+	    var admin_local_access=admin_user.get('credentials.local');
+	    
+	    if(admin_local_access===undefined){
+		admin_local_access=create_object("local_access");
+		admin_user.get('credentials').add('local',admin_local_access);
+	    }
+	    
+	    admin_local_access.set('username',admin_name)
+		.set_password(pw);
+	    
+	    console.log("saving admin user.....");
+	    
+	    admin_user.save(function(err){
+		if(err) throw "error saving admin user " + err;
+		console.log("Ok, admin user saved!");
+		app.mongo.find_user(admin_name,function(err, user) {
+		    if(err){
+			return console.log("EEE " + err);
+		    }
+		    console.log("got admin " + JSON.stringify(user));
 		});
 		
+	    })
+	    
+	//}
+	    
 	    // },{
 	    // 	minLength              : 5,
 	    // 	minOptionalTestsToPass : 0

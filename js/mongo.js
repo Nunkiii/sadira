@@ -115,14 +115,6 @@ server.prototype.connect = function(cb, options_in) {
     }
 }
 
-server.prototype.write_doc=function(doc, cb, options_in){
-    var options={w: 'majority', wtimeout: 10000, serializeFunctions: true, forceServerObjectId: true};
-    if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
-    var data=get_template_data(doc);
-    //console.log("read data " + JSON.stringify(data));
-    this.db.collection(doc.type).insertOne(data, options, cb);
-}
-
 function create_query(opts){
     var op='';
     if(è(opts.path)){
@@ -138,14 +130,47 @@ function create_query(opts){
     return q;
 }
 
+server.prototype.write_doc=function(doc, a,b){
+    var options_in, cb;
+    if(is_function(a)){
+	cb=a;
+    }else{
+	options_in=a;
+	cb=b;
+    }
+    if(cb===undefined){
+	throw("write_doc : you need to provide a callback function !");
+    }
+    
+    var options={w: 'majority', wtimeout: 10000, serializeFunctions: true, forceServerObjectId: true};
+    
+    if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
+
+
+    var data=get_template_data(doc);
+    //console.log("read data " + JSON.stringify(data));
+    if(doc.id()!==undefined){
+	var q={ _id : doc.id() };
+	this.db.collection(doc.type).findOneAndUpdate(q,data, options, cb);
+    }
+    else
+	this.db.collection(doc.type).insertOne(data, options, cb);
+
+    
+    return doc;
+}
+
+/*
 server.prototype.update_doc=function(doc,a,b){
+
     var opts=null,cb=null;
+
     if(is_function(a)){
 	cb=a;
 	if(b!==undefined) opts=b; 
     }else{
 	opts=a;
-	cb=b;
+	if(b!==undefined) cb=b; 
     }
     if(!cb){
 	throw "No cb given to update_doc!";
@@ -173,18 +198,53 @@ server.prototype.update_doc=function(doc,a,b){
 
     this.db.collection(doc.type).findOneAndUpdate(q,data, options, cb);
 }
-
+*/
 
 
 server.prototype.find1=function(opts, cb){
 
     var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
-    this.db.collection(opts.type).findOne(q, {}, cb);
+    this.db.collection(opts.type).findOne(q, {}, function (err, data){
+
+	if(err) return cb(err);
+	if(!data) return cb(null);
+
+	var obj=create_object(opts.type);
+
+	console.log("Find returned " + obj + " name " + obj.name);
+	set_template_data(obj, data);
+	cb(null,obj);
+	
+    });
     //function(error, res){});
 	
     
 }
+
+
+server.prototype.find_user=function(identifier, cb){
+    var mongo=this;
+    mongo.find1({type: "user", path:'credentials.local.email', value : identifier},function(err, user) {
+	if(err) return cb(err);
+	if(user===undefined){
+	    
+	    mongo.find1({type: "user", path:'credentials.local.username', value : identifier},function(err, user) {
+		if(err) return cb(err);
+		if(user===undefined){
+		    return cb(null);
+		}
+		return cb(null,user);
+		
+	    });
+	    
+	}else
+	    return cb(null,user);
+	
+    });
+}
+
+
 
 module.exports.server=server;
 

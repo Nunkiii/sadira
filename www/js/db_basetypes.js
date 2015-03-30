@@ -86,8 +86,10 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
     }
     
     build.listen("click",function(){
+
 	var user_template, user_builder;
 	var builder_code,template_code;
+
 	builder_code="user_builder = " + builder.value;
 	template_code="user_template="+template.value;
 

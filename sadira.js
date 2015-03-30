@@ -296,31 +296,25 @@ var _sadira = function(){
 	var system_templates=require('./js/tpl');
 
 	tpl_mgr.local_templates.prototype.object_builder=function(obj){
-	    console.log("Object builder !");
+	    //console.log("Object builder !");
 
-	    obj.serialize=function(a,b){
-		if(b===undefined)
-		    sad.mongo.update_doc(this,a);
-		else
-		    sad.mongo.update_doc(this,a,b);
+	    
+	    obj.save=function(a,b){return sad.mongo.write_doc(this,a,b);};
+	    //obj.dbcreate=function(a,b){return sad.mongo.write_doc(this,a,b);};
+	    //obj.db={
+	    //perm : new perm()
+	    //};
+
+	    obj.id=function(){
+		return obj.db===undefined ? undefined : obj.db.id;
 	    };
-	    obj.dbcreate=function(a,b){
-		if(is_function(a))
-		    sad.mongo.write_doc(obj, a);
-		else{
-		    if(!is_function(b)) throw ("Excpecting cb after options in obj.create, or cb as only arg !");
-		    sad.mongo.write_doc(obj, b,a);
-		}
-	    };
-	    obj.db={ perm : new perm()};
 	    
 	    //obj.db.perm.grant();
-	    
 	}
-
+	
 	
 	var tmaster=this.tmaster= new tpl_mgr.local_templates();
-	GLOBAL.create_object=tmaster.create_object;
+	GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
 	
 	tmaster.add_templates(base_templates);
 	tmaster.add_templates(system_templates);

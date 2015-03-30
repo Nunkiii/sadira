@@ -297,52 +297,33 @@ function create_widget(t){
 
 function create_item_ui(ui_opts, tpl_node){
     
-    var tpl_name=tpl_node.type;
-    if(ù(tpl_name)) tpl_name="none";
-    //    if(typeof tpl_name=='undefined') 
-    //	throw "No valid template name on tpl_node...";
-    
     var builders=[];
 
-    //    if(tpl_name=="template"){
-    //  }
-    //console.log("Building ["+tpl_name+"]");//...." + JSON.stringify(tpl_node,null,4));
-
-    if(tpl_name!=="template"){
-	var builder=template_ui_builders[tpl_name];
-	if(è(builder))
-	    builders.push(builder);
-    }else{
-    }
-    
-    if(è(tpl_node.tpl_builder)){
-	//console.log("Applying tpl_builder : " + tpl_node.tpl_builder);
-	var builder=template_ui_builders[tpl_node.tpl_builder];
-	if(è(builder)) builders.push(builder);
-	else
-	    console.log("Error : builder not found : " + tpl_node.tpl_builder);
-	//tpl_name=tpl_node.tpl_builder;
-    }//else return;
-
-    if (builders.length==0){
-	//console.log("Cannot build "+ tpl_node.name+" : no builder for object type " + tpl_name +"");
-	//return;
+    if(tpl_node.btype!==undefined){
+	//console.log(tpl_node.name + " adding base builder " + tpl_node.btype);
+	var t=template_ui_builders[tpl_node.btype];
+	if(t!==undefined)
+	    builders.push(t); 
     }
 
-    //template_ui_builders.default_before(ui_opts,tpl_node);
-    
+    if(tpl_node.type!==undefined){
+	//console.log(tpl_node.name + " adding main builder " + tpl_node.type);
+	var t=template_ui_builders[tpl_node.type];
+	if(t!==undefined)
+	    builders.push(t); 
+    }
+
     var ui;
 
+    //if(builders.length===0)
+   // 	console.log("NO builder " + b + " for " + tpl_node.name + " T["+tpl_node.type+"]["+tpl_node.btype+"]");
+    
     for(var b=0;b<builders.length;b++){
+	//console.log("Calling builder " + b + " for " + tpl_node.name + " T["+tpl_node.type+"]");
 	var bui=builders[b](ui_opts, tpl_node);
 	if(typeof ui==='undefined') ui=bui;
     }
     
-    if(typeof ui==='undefined'){
-	//console.log("warning: no UI returned for type " + tpl_name);
-    }
-    
-    //template_ui_builders.default_after(ui_opts,tpl_node);
     return ui;
 }
 

@@ -93,7 +93,6 @@ var base_templates={
     },
     login : {
 	name : "Login",
-	type : "login",
 	ui_opts : {sliding: true, slided : false, label : true, label_node : "label",
 		   root_node : "li",
 		   child_classes : ["navbar-form", "navbar-right"],
