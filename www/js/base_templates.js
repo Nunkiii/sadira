@@ -307,7 +307,6 @@ var base_templates={
     },
     vector : {
 	name : "Vector view",
-	type: "vector",
 	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container-fluid"] },
 	elements :{
 	    btns : {ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] }, elements : {
@@ -335,13 +334,11 @@ var base_templates={
     dbtypes : {
 	name : "Datatypes",
 	subtitle : "Available sadira/tk datatypes",
-	tpl_builder : "dbtypes",
 	ui_opts : {root_classes : ["container-fluid"], child_classes : ["container"]},
 	elements : {}
     },
     dbtemplates : {
 	name : "Sadira/tk templates",
-	tpl_builder : "dbtemplates",
 	ui_opts : {root_classes : ["container-fluid"]},
 	elements : {
 	    build_progress : {
@@ -430,7 +427,6 @@ var base_templates={
     },
 
     ui_demo : {
-	type : "ui_demo",
 	name : "Toolkit test", subtitle : "Sadira/Tk sandbox",
 	intro : "<p>Write the template and builder code for your widget then try to run it</p>",
 	ui_opts : {
