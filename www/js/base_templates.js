@@ -93,10 +93,12 @@ var base_templates={
     },
     login : {
 	name : "Login",
-	ui_opts : {sliding: true, slided : false, label : true, label_node : "label",
-		   root_node : "li",
-		   child_classes : ["navbar-form", "navbar-right"],
-		   item_classes : []},
+	ui_opts : {
+	    sliding: true, slided : false, label : true, label_node : "label",
+	    
+	    root_node : "li",
+	    child_classes : ["navbar-form", "navbar-right"],
+	    item_classes : []},
 	elements : {
 	    user: {
 		type: "string",
@@ -135,11 +137,12 @@ var base_templates={
 	    // }
 	}
     },
-    
+    marked : {
+	name : "MD Text",
+	type : "html"
+    },
     signup : {
 	name : "Sign Up",
-	//type : "action",
-	tpl_builder : "signup",
 	subtitle : "Choose a method for login",
 	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p><p>Additional features might be available if your account is linked to a social-network account. You'll can configure your account settings on your user page once logged in. </p> ",
 	intro_visible : true,
@@ -147,7 +150,8 @@ var base_templates={
 	ui_opts :{
 	    child_view_type : "pills",
 	    root_classes : ["container-fluid"],
-	    child_classes : ["container"]
+	    child_classes : ["container"],
+	    intro_stick: true
 	},
 
 	elements : {

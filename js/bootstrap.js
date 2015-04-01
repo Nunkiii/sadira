@@ -1,4 +1,5 @@
-var crypto=require('./crypto');
+//var crypto=require('./crypto');
+var crypto = require('crypto');
 
 function get_console_password(prompt, callback) {
 
@@ -236,6 +237,7 @@ exports.init=function(pkg,app){
 		admin_local_access=create_object("local_access");
 		admin_user.get('credentials').add('local',admin_local_access);
 	    }
+
 	    
 	    admin_local_access.set('username',admin_name)
 		.set_password(pw);
@@ -275,7 +277,13 @@ exports.init=function(pkg,app){
 	
 
 	var pw="123";
-	    
+
+	var h=crypto.createHash('sha256');
+	h.update(pw,'utf-8');
+	pw=h.digest('base64');
+
+	console.log("Admin hashed pw ["+pw+"] !!!!");
+	
 	//app.mongo.db.collection("user").drop();
 	//app.mongo.db.collection("user_group").drop();
 

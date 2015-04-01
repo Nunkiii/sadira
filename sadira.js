@@ -15,7 +15,7 @@ var express=require("express");
 
 // var passport = require('passport');
 // var flash    = require('connect-flash');
-var morgan       = require('morgan');
+//var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 
@@ -753,12 +753,9 @@ _sadira.prototype.start_master = function (){
 _sadira.prototype.start_worker = function (){
     
     var sad=this;
-    
 //    sad.log("Worker " + this.cluster.worker.id + " starting ...");
-
     var app=this.app=express();
     app.sadira=this;
-
 //    app.use(morgan('dev')); // log every request to the console
     app.use(cookieParser()); // read cookies
     app.use(bodyParser()); // get information from html forms

@@ -250,8 +250,8 @@ exports.init=function(pkg,sad, cb){
 	    
 	    req.logIn(user, function(err) {
 		if (err) { return next(err); }
-		var ejsd={}; sad.set_user_data(req,ejsd);
-		return res.json(ejsd);
+		//var ejsd={}; sad.set_user_data(req,ejsd);
+		return res.json(user);
 	    });
 	})(req, res, next);
     });

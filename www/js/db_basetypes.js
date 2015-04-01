@@ -971,20 +971,28 @@ template_ui_builders.login=function(ui_opts, login){
 	user_password=this.value;
 	check();
     });
+
+    var hh=new sjcl.hash.sha256();
+    hh.update("123");
+    var hhh=hh.finalize();
+    //var hp=ab2b64(hh);
+    var hp = sjcl.codec.base64.fromBits(hhh);  
+    console.log("HH ["+hh+"] HP["+hp+"]");
     
     login_tpl.listen("click",function(){
 	switch(mode){
 	case "login" :
 	    console.log("Login " + user_name + " pw " + user_password);
 	    register_mode();
-	    var hp=ab2b64(sjcl.hash.sha256.hash(user_password));
-	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
+	    var hp=sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(user_password));
 	    user_password="*";
+	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
+
 	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
 	    var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
 	    
 	    rqinit.execute(function(error, res){
-		
+
 		if(error){
 		    console.log("Error login " + error);
 		    return;
@@ -1583,6 +1591,12 @@ template_ui_builders.image_url=function(ui_opts, tpl_item){
     return tpl_item.ui;
 }
 
+template_ui_builders.marked=function(ui_opts, tpl_item){
+    //var marked = require('marked');
+    console.log(marked('I am using __markdown__.'));
+
+    tpl_item.set_value("<h1>Hello World!</h1>");
+}
 
 template_ui_builders.html=function(ui_opts, tpl_item){
 
