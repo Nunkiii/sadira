@@ -4,14 +4,23 @@
   <head>	
     <% include ./parts/head %>
     <title> <%= tpl_name %> </title>
+    <% if(header===true){ %>
+    <style>
+      body{
+      padding-top: 70px;
+      }
+    </style>
+    <% } %>	
   </head>
-
+  
   <body>
+    <% if(header===true){ %>
     <header>
       <% include parts/header %>
     </header>
+    <% } %>	
     <main id="content"> </main>
-
+    
     <!-- <footer> -->
     <!--   <% include parts/footer %> -->
     <!-- </footer> -->

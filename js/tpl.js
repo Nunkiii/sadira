@@ -83,7 +83,6 @@ module.exports={
 		elements : {}
 	    },
 	    groups : {
-		type : "group_data"
 	    }
 	},
 	object_builder : function(user){
@@ -105,6 +104,12 @@ module.exports={
 	},
 	object_builder : function(group){
 	    group.listen('server_data',function(data){
+	    });
+
+	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
+		var gp=g.db.perm();
+		var gu=u.db.perm();
+		
 	    });
 	}
     },

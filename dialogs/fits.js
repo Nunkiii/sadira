@@ -1,9 +1,10 @@
 var SRZ=require('../www/js/serializer.js');
 var fits = require('../../node-fits/build/Release/fits.node');
 
-exports.init=function(pkg, app){
-  console.log("Init fits !");
+exports.init=function(pkg, app,cb){
+  //console.log("Init fits !");
   app.dialog("fits.test_get_data", test_get_data);
+  cb();
 }
 
 var layer_defaults = [ 

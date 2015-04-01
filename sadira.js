@@ -6,6 +6,7 @@ var fs = require("fs");
 var path = require("path");
 var url = require("url");
 var bson = require("./www/js/community/bson");
+var async = require("./www/js/community/async");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
 var utils = require("./www/js/utils");
@@ -18,9 +19,7 @@ var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 
-
 var tpl=require('./js/tpl');
-
 
 /*
   Headers to add when allowing cross-origin requests.
@@ -82,6 +81,15 @@ GLOBAL.reply_json=function(res,data,result_cb){
     //console.log("Sending JSON length = " + l);
 
 }
+
+/*
+
+*/
+
+GLOBAL.get_parameters=function(req){
+    var url_parts = url.parse(req.url,true);
+    return url_parts.query;
+}    
 
 /*
   Retrieve the JSON parsed object from a request's query string argument given by key
@@ -173,21 +181,48 @@ function dispatcher(name) {
  * @class perm
  */
 
-function perm(){
+GLOBAL.perm=function(gr){
+
     this.r = { g : [], u : [] };
     this.w = { g : [], u : [] };
+    this.x = { g : [], u : [] };
+
+    if(gr!==undefined) this.grant(gr);
+}
+
+perm.prototype.toString=function(){
+    var s='';
+    for(var m in ['r','w','x']){
+	s+= "[Mode " + m + " : ";
+	var ks=this[m];
+	for(var t in ks){
+	    var kt=ks[t];
+	    s+=" for " + t + "[";
+	    for(var tid=0;tid<kt.length;tid++){
+		s+="id:"+ kt[tid]+",";
+	    }
+	    s+="], ";
+	}
+	s+="], ";
+    }
+    return s;
 }
 
 perm.prototype.grant=function(gr){
-    for(var m in Object.keys(this)){
+    for(var m in ['r','w','x']){
 	if(gr[m]!==undefined){
 	    var ks=this[m];
-	    for(var t in Object.keys(ks)){
+	    for(var t in ks){
 		var a=gr[m][t];
 		if(a!==undefined){
-		    for(var tid=0;tid<a.length;tid++){
-			console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
+		    if(typeof a==='string'){
+			
 			ks[t].push(a[tid]);
+		    }else{
+			for(var tid=0;tid<a.length;tid++){
+			    console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
+			    ks[t].push(a[tid]);
+			}
 		    }
 		}
 		
@@ -196,24 +231,16 @@ perm.prototype.grant=function(gr){
     }
 }
 
+perm.prototype.check_user=function(user){
+    user.get('groups');
+}
+
 /**
  * API class. 
  * @class api
  */
 
 
-function api(){
-    
-    var opts = this.opts={
-	http : {
-	    type : 'get'
-	},
-	ws : {
-	    
-	}
-    };
-    
-}
 
 
 /**
@@ -282,7 +309,7 @@ var _sadira = function(){
 		sad.options[p] = jcmdline[p]; //Overwriting with user given options.
 	}
 	catch(e){
-	    sad.log("Fatal error : Config file JSON parsing error : " + dump_error(e));
+	    sad.log("Fatal error : Config file JSON parsing error : " + e);
 	    process.exit(1);
 	}
     }
@@ -295,6 +322,16 @@ var _sadira = function(){
 	var base_templates=require('./www/js/base_templates');
 	var system_templates=require('./js/tpl');
 
+	function create_group_cache(cb){
+	    sad.mongo.find( { type: 'group'}, function(err, groups){
+		for(var i=0;i<groups.length;i++)
+		    console.log("Group : " + JSON.stringify(groups[i]));
+		
+	    });
+	}
+	
+
+	
 	tpl_mgr.local_templates.prototype.object_builder=function(obj){
 	    //console.log("Object builder !");
 
@@ -308,13 +345,32 @@ var _sadira = function(){
 	    obj.id=function(){
 		return obj.db===undefined ? undefined : obj.db.id;
 	    };
+	    obj.perm=function(){
+		return obj.db===undefined ? undefined : obj.db.p;
+	    }
+	    
+	    // obj.handle_request=function(req_name, req_cb){
+	    // 	if(obj.apis===undefined) obj.apis={};
+	    // 	obj.apis[req_name]=req_cb;
+	    // };
+	    
 	    
 	    //obj.db.perm.grant();
 	}
+
+	
+	//tpl_mgr.template_object.prototype.check_permission=function(perm, cb){}
+
+	
+	tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
+	    if(this.apis===undefined) this.apis={};
+	    this.apis[opts.name]={ opts : opts, cb: cb };
+	};
 	
 	
 	var tmaster=this.tmaster= new tpl_mgr.local_templates();
 	GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
+	GLOBAL.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
 	
 	tmaster.add_templates(base_templates);
 	tmaster.add_templates(system_templates);
@@ -322,18 +378,107 @@ var _sadira = function(){
 	this.cluster.isMaster ?  this.start_master() : this.start_worker();
 
 	//Loading handlers.
-
-	sad.initialize_handlers("handlers");
-	sad.initialize_handlers("dialogs");
-
-	if(!this.cluster.isMaster && è(argv['bootstrap'])) {
-	    if(this.cluster.worker.id==1){
-		var bs=require("./js/bootstrap.js");
-		bs.init({},this);
-	    }else{
-		this.log("Not worker 1 not bootstrap !!");
+	
+	sad.initialize_plugins(function(error){
+	    if(error){
+		throw error;
 	    }
-	}
+	    
+	    if(sad.cluster.isMaster) return;
+	    
+	    
+	    sad.set_user_data=function(req, data){
+		for(var p in sad.common_header_data)
+		    data[p]=sad.common_header_data[p];
+		
+		data.user_id="";
+		
+		if (req.user) {
+		    if(req.user.local.email){
+			data.user_id=req.user.local.email;
+		    }
+		    else{
+			if(req.user.facebook.name){
+			    data.user_id=req.user.facebook.name;
+			}
+			else{
+			    if(req.user.google.name)
+				data.user_id=req.user.google.name;
+			}
+		    }
+		    
+		    //return next("No user");//res.redirect('/signin')
+		}
+		
+	    //console.log("Set user data to " + JSON.stringify(data));
+	    };
+	    
+	    sad.app.get('/', function(req, res, next) {
+		res.redirect('/widget/sadira_home');
+		//var index_info={};
+		//sad.set_user_data(req, index_info);
+		//sad.log("rendering index " + JSON.stringify(index_info));
+		//res.render('index.ejs', index_info); // load the index.ejs file
+	    });
+	    
+	    sad.app.get('/widget/:tpl_name', function(req, res) {
+		var p=get_parameters(req);
+		var header=(p.header!==undefined)? p.header:true;
+		var ejs_data={ tpl_name : req.params.tpl_name, header : header};
+		sad.set_user_data(req,ejs_data);
+		res.render('widget.ejs', ejs_data ); // load the index.ejs file
+	    });
+	    
+	    
+	    /*
+	      sad.app.all('*', function(request, res){
+	      for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
+	      });
+	    */
+	    
+	    sad.app.get('*', function(request, res){
+		
+		//The request was not handled by custom url handlers.
+		//If enabled, proxying the query to another web service
+		
+		try{
+		    //sad.log("proxy request https? " + request.connection.encrypted );
+		    
+		    if(request.connection.encrypted){ //https connexion
+			if(sad.options.https_proxy){
+			    //console.log("Proxy https " + request.url);
+			    sad.https_proxy.web(request, res);
+			    return;
+			}else return res.status('Not found', 404);
+		    }else{
+			if(sad.options.http_proxy){
+			    //console.log("Proxy http " + request.url);
+			    sad.http_proxy.web(request, res);
+			    return;
+			}else return res.status('Not found', 404);
+		    }
+		}
+	    
+		catch (e){
+		    sad.log('Proxy error : ' + dump_error(e));
+		    return res.status('Sadira: Proxy error : ' + e, 500);
+		}
+	    });
+
+	    
+	
+	    //create_group_cache();
+	    
+	    if(!sad.cluster.isMaster && è(argv['bootstrap'])) {
+		if(sad.cluster.worker.id==1){
+		    var bs=require("./js/bootstrap.js");
+		    bs.init({},sad);
+		}else{
+		    sad.log("Not worker 1 not bootstrap !!");
+		}
+	    }
+
+	});
 	
     }
     catch (e){
@@ -1001,107 +1146,55 @@ function clone(obj) {
 }
 
 
-_sadira.prototype.initialize_handlers=function(packname){
+_sadira.prototype.initialize_plugins=function(cb){
 
     var sad=this;
     //var cwd=process.cwd();
-    var pkg=sad.options[packname];
-    if(!pkg) return;
-
-    for(w=0;w<pkg.length;w++){
-	var pkg_file = pkg[w].file;
-	//sad.log("Init "+packname+" : ["+pkg_file+"]");
-	//var wpack=require(cwd+"/"+pkg_file);
-	var wpack=require(pkg_file);
-
-	var initf = sad.cluster.isMaster ? wpack.init_master : wpack.init;
-	//console.log("Initf is [" + initf + "]");
-	if(initf!==undefined)
-	    initf(pkg[w],sad);
-	else{
-	    //sad.log("No pkg init function!");
+    var plugs=sad.options.plugins;
+    
+    if(plugs===undefined) {
+	return;
+    }
+    
+    var pload_func=function(pn) {
+	return function(cb){
+	    //var pn=pn;
+	    //sad.log("Loading plugin [" + pn + "]" );
+	    
+	    var p=plugs[pn];
+	    if( p.file === undefined) return cb("No javascript file defined in plugin " + pn);
+	    //sad.log("Init "+packname+" : ["+pkg_file+"]");
+	    //var wpack=require(cwd+"/"+pkg_file);
+	    var pack=require(p.file);
+	    var initf = sad.cluster.isMaster ? pack.init_master : pack.init;
+	    
+	    sad.log("Loading plugin [" + pn + "]" + p.file);
+	    if(initf!==undefined)
+		initf(p,sad,cb);
+	    else{
+		sad.log("No pkg init function for plugin ["+pn+"]!");
+	    }
 	}
+    }
+    
+    var ploads=[];
+    for(var pn in plugs){
+	//f.pname=pn;
+	if(plugs[pn].enabled!==false)
+	    ploads.push(pload_func(pn));
 	//sad.log("Init "+packname+" : ["+pkg_file+"] DONE");
     }
-
-    if(sad.cluster.isMaster) return;
     
-
-    sad.set_user_data=function(req, data){
-	for(var p in sad.common_header_data)
-	    data[p]=sad.common_header_data[p];
+    async.series(ploads, function(err, res){
 	
-	data.user_id="";
-	
-	if (req.user) {
-	    if(req.user.local.email){
-		data.user_id=req.user.local.email;
-	    }
-	    else{
-		if(req.user.facebook.name){
-		    data.user_id=req.user.facebook.name;
-		}
-		else{
-		    if(req.user.google.name)
-			data.user_id=req.user.google.name;
-		}
-	    }
-	    
-	    //return next("No user");//res.redirect('/signin')
+	if(err){
+	    return cb("Fatal error while loading plugins : " + err);
 	}
 
-	//console.log("Set user data to " + JSON.stringify(data));
-    }
-    
-    sad.app.get('/', function(req, res, next) {
+	cb(null);
+    });
 	
-	var index_info={};
-	sad.set_user_data(req, index_info);
-	//sad.log("rendering index " + JSON.stringify(index_info));
-	res.render('index.ejs', index_info); // load the index.ejs file
-    });
-    
-    sad.app.get('/widget/:tpl_name', function(req, res) {
-	var ejs_data={ tpl_name : req.params.tpl_name};
-	sad.set_user_data(req,ejs_data);
-	res.render('widget.ejs', ejs_data ); // load the index.ejs file
-    });
-
-
-    /*
-    sad.app.all('*', function(request, res){
-	for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
-    });
-*/
-    
-    sad.app.get('*', function(request, res){
-	
-	//The request was not handled by custom url handlers.
-	//If enabled, proxying the query to another web service
-	
-	try{
-	    //sad.log("proxy request https? " + request.connection.encrypted );
-	    
-	    if(request.connection.encrypted){ //https connexion
-		if(sad.options.https_proxy){
-		    //console.log("Proxy https " + request.url);
-		    sad.https_proxy.web(request, res);
-		    return;
-		}else return res.status('Not found', 404);
-	    }else{
-		if(sad.options.http_proxy){
-		    //console.log("Proxy http " + request.url);
-		    sad.http_proxy.web(request, res);
-		    return;
-		}else return res.status('Not found', 404);
-	    }
-	}
-
-	catch (e){
-	    sad.log('Proxy error : ' + dump_error(e));
-	    return res.status('Sadira: Proxy error : ' + e, 500);
-	}
-    });
+	//console.log("Plugins loaded !!!");
 }
 
 

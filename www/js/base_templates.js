@@ -101,7 +101,7 @@ var base_templates={
 	    user: {
 		type: "string",
 		name : "User",
-		default_value : "e-mail or username",
+		holder_value : "e-mail or username",
 		ui_opts : { type : "edit", label : true, root_classes : ["form-group"], item_classes : ["input-sm"]}
 	    },
 	    password :{
@@ -119,12 +119,20 @@ var base_templates={
 	    },
 	    login : {
 		name : "Log in",
-		type : "action"
+		type : "action",
+		ui_opts : {
+		    item_classes : ["btn btn-primary"],
+		    root_classes : ["form-group"]
+		}
 	    },
-	    fb_login : {
-		name : "Facebook log in",
-		type : "action"
-	    }
+	    // fb_login : {
+	    // 	name : "Facebook log in",
+	    // 	type : "action",
+	    // 	ui_opts : {
+	    // 	    item_classes : ["btn btn-primary"],
+	    // 	    root_classes : ["form-group"]
+	    // 	}
+	    // }
 	}
     },
     
@@ -352,7 +360,7 @@ var base_templates={
 	    
 	name : "INAF/IASF-Bologna ☄",
 	subtitle : "— Astro-web-software",
-	intro : "    <blockquote><p>Qk/Sadira is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p></blockquote>",
+	
 	ui_opts : {
 	    root_classes : ["container-fluid"],
 	    child_classes : ["container"],
@@ -360,14 +368,15 @@ var base_templates={
 	    name_node : "h2",
 	    icon : "/sadira/icons/inaf_iasfbo.png",
 	    icon_size : "5em",
-	    intro_visible : true
+	    intro_stick : true
 	},
 	elements : {
 	    welcome : {
 		name : "Qk/Sadira",
 		type : "html",
+		intro : "<p>Qk/Sadira is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p>",
 		url : "/sadira/welcome.html",
-		ui_opts : { render_name : false}
+		ui_opts : { intro_stick : true}
 			  
 	    },
 	    
@@ -400,7 +409,7 @@ var base_templates={
 	ui_opts : {
 	    root_classes : ["container-fluid"],
 	    child_classes : ["container-fluid"],
-	    intro_visible : true
+	    intro_stick : true
 	    //child_view_type : "table"
 	},
 	elements : {

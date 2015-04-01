@@ -21,10 +21,10 @@ var bodyParser   = require('body-parser');
 
 exports.isAuthenticated = passport.authenticate('basic', { session : false });
 
-exports.init=function(pkg,sad){
+exports.init=function(pkg,sad, cb){
 
     var app=sad.app;
-    var mongo=app.mongo;
+    var mongo=sad.mongo;
     //app.set('view engine', 'ejs'); // set up ejs for templating
     // required for passport
 
@@ -120,26 +120,30 @@ exports.init=function(pkg,sad){
 	console.log("Login init for " + email + " pass " + hashpass);
 	// find a user whose email is the same as the forms email
 	// we are checking to see if the user trying to login already exists
-	mongo.find1({type: "user", path:'credentials.local.email', value : email},function(err, user) {
+	mongo.find_user(email,function(err, user) {
 	    //users.findOne({}, function(err, user) {
 	    // if there are any errors, return the error before anything else
 	    if (err){
 		console.log("Error looking for user " + err);
 		return done(err);
 	    }
-	    console.log("---> User is " + JSON.stringify(user));
+
 	    // if no user is found, return the message
-	    if (!user)
-		return done(null, null, "User not found !");
+	    if (user===undefined)
+		return done(null, false, { message  :  "User not found !" });
+
+	    user=create_object_from_data(user);
+	    console.log("---> User is " + JSON.stringify(user));
 	    
-	    user.check_password(hashpass, function(error, match){
+	    user.get('local').check_password(hashpass, function(error, match){
 		if(error)
-		    return done(error);
+		    return done(null, false, { message : "checkpass error : "+error } );
+		
 		console.log("checkpass match = " + match);
 		if(match)
-		    return done(null, user, "Yeah!Login!!");
+		    return done(null, user,  { message : "Yeah!Login!!" });
 		
-		return done(null, null, "Oops! Wrong password");
+		return done(null, false, { message : "Oops! Wrong password" });
 		
 	    });
 	});
@@ -239,7 +243,7 @@ exports.init=function(pkg,sad){
 	passport.authenticate('local-login', function(err, user, info) {
 	    if (err) { return next(err); }
 	    if (!user) {
-		return res.json({error : "Login failed !"});
+		return res.json({error : "Login failed !" + JSON.stringify(info)});
 	    }
 
 	    //console.log("Got user " + JSON.stringify(user) + " login ... type is " + typeof(req.logIn) );
@@ -449,7 +453,10 @@ exports.init=function(pkg,sad){
 		successRedirect : '/user',
 		failureRedirect : '/'
 	    }));
-    
+
+
+    cb(null);
+
 }
 
 function login( req, res, next){

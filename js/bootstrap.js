@@ -186,56 +186,46 @@ exports.init=function(pkg,app){
 	
     }
 
-    
-    setTimeout(function(){
-	app.log("Sadira bootstrapping");
 
-	
-	// hash_user_password("123456", function(error, hash_data){
-	//     app.log("Hash data : " + JSON.stringify(hash_data));
-	    
-	// });
-	var admin_name="god";
-	//get_strong_console_password(admin_name,function(error, pw){
-	    
-	    //if(error) return on_error(error);
-	    
-
-	
-
-var pw="123";
-	    
-	//app.mongo.db.collection("user").drop();
-	//app.mongo.db.collection("user_group").drop();
-
+    function check_admin_group(cb){
 	app.mongo.find1({type : 'user_group', path : 'name', value : 'admin'}, function(err, admin_group){
 	    if(err){
-		throw "error looking for admin group " + err;
+		return cb("error looking for admin group " + err);
 	    }
-	    if(admin_group)
+
+	    if(admin_group){
+		admin_group=create_object_from_data(admin_group);
 		console.log("We found the admin group " + JSON.stringify(admin_group) );
+		return cb(null, admin_group);
+	    }
 	    else{
 		
       		var admin_group=app.tmaster.create_object("user_group")
 		    .set("name","admin")
 		    .set("description","God-like users")
 		    .save(function(err){
-			if(err) throw "error saving admin group " + err;
+			if(err)
+			    return cb("error saving admin group " + err);
 			console.log("Ok, admin group saved!");
+			return cb(null,admin_group);
 		    });
 		
 	    }
 	    
 	});
-	
-	app.mongo.find_user(admin_name, function(err, admin_user){
+    }
 
+    function check_admin_user(admin_name, pw, admin_group, cb){
+
+	app.mongo.find_user(admin_name, function(err, admin_user){
+	    
 	    if(err){
-		throw "error looking for admin user " + err;
+		return cb("error looking for admin user " + err);
 	    }
 	    
 	    if(admin_user){
 		console.log("Admin user already exists....");
+		admin_user=create_object_from_data(admin_user);
 	    }else{
 		console.log("creating admin user.....");
 		admin_user=create_object("user");
@@ -257,12 +247,51 @@ var pw="123";
 		console.log("Ok, admin user saved!");
 		app.mongo.find_user(admin_name,function(err, user) {
 		    if(err){
-			return console.log("EEE " + err);
+			return cb("Error saving admin user : " + err);
 		    }
-		    console.log("got admin " + JSON.stringify(user));
+		    return cb(null,user);
 		});
 		
-	    })
+	    });
+	
+	});
+    }
+			   
+    
+    setTimeout(function(){
+	app.log("Sadira bootstrapping");
+
+	
+	// hash_user_password("123456", function(error, hash_data){
+	//     app.log("Hash data : " + JSON.stringify(hash_data));
+	    
+	// });
+	var admin_name="god";
+	//get_strong_console_password(admin_name,function(error, pw){
+	    
+	    //if(error) return on_error(error);
+	    
+
+	
+
+	var pw="123";
+	    
+	//app.mongo.db.collection("user").drop();
+	//app.mongo.db.collection("user_group").drop();
+
+	check_admin_group(function(err, admin_group){
+	    if(err) throw("Bootstrap error : " + err);
+	    
+	    check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
+		if(err) throw("Bootstrap error : " + err);
+		
+		console.log("Bootsrap done : " + JSON.stringify(admin_user));
+
+
+		//admin_user.handle_request("toto", function(){});
+	    });
+
+	});
 	    
 	//}
 	    
@@ -270,7 +299,6 @@ var pw="123";
 	    // 	minLength              : 5,
 	    // 	minOptionalTestsToPass : 0
 	    // });
-	});
 	
 	
     }, 500);

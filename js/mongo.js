@@ -200,6 +200,22 @@ server.prototype.update_doc=function(doc,a,b){
 }
 */
 
+server.prototype.find=function(opts, cb){
+
+    var q=create_query(opts);
+    //console.log(type+ " : finding " + op + " = " + value);
+    this.db.collection(opts.type).find(q, {}, cb);
+	// var objects=[];
+	// for(var i=0;i<data.length;i++){
+	//     objects[i]=create_object(opts.type);
+	//     //console.log("Find returned " + obj + " name " + obj.name);
+	//     set_template_data(objects[i], data[i]);
+	// }
+	
+	
+    
+}
+
 
 server.prototype.find1=function(opts, cb){
 
@@ -210,15 +226,11 @@ server.prototype.find1=function(opts, cb){
 	if(err) return cb(err);
 	if(!data) return cb(null);
 
-	var obj=create_object(opts.type);
-
-	console.log("Find returned " + obj + " name " + obj.name);
-	set_template_data(obj, data);
-	cb(null,obj);
+	cb(null,data);
 	
     });
     //function(error, res){});
-	
+    
     
 }
 

@@ -736,15 +736,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	function setup_intro(node){
     	    if(è(tpl_root.intro)){
-		if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
-		
-		tpl_root.intro_btn=ce("span");
-		tpl_root.intro_btn.className="intro_btn fa fa-lightbulb-o";
-		node.appendChild(tpl_root.intro_btn);
-		tpl_root.intro_btn.addEventListener("click", function() {
-		    tpl_root.intro_div.style.display=ui_opts.intro_visible?"none":"";
-		    ui_opts.intro_visible=!ui_opts.intro_visible;
-		} );
+		//if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
+
+		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
+		    tpl_root.intro_btn=ce("span");
+		    tpl_root.intro_btn.className="intro_btn fa fa-lightbulb-o";
+		    node.appendChild(tpl_root.intro_btn);
+		    tpl_root.intro_btn.addEventListener("click", function() {
+			tpl_root.intro_div.style.display=ui_opts.intro_visible?"none":"";
+			ui_opts.intro_visible=!ui_opts.intro_visible;
+		    } );
+		}
 	    }
 
 	}
@@ -895,12 +897,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		tpl_root.intro_div.className="text-muted";
 	    }
 	    else{
-		tpl_root.intro_div=cc("div",tpl_root.ui_root);
+		tpl_root.intro_div=cc("blockquote",tpl_root.ui_root);
 		tpl_root.intro_div.className="text-muted col-sm-12";
 	    }
 
 	    tpl_root.intro_div.innerHTML= "<div class='alert alert-default'>"+tpl_root.intro+"</div>";
-	    tpl_root.intro_div.style.display=ui_opts.intro_visible ? "":"none";
+
+	    tpl_root.intro_div.style.display= (ui_opts.intro_visible || ui_opts.intro_stick) ? "":"none";
 	    sliding_stuff.push(tpl_root.intro_div);
 	}
 

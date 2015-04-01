@@ -6,8 +6,8 @@
 
 //console.log("Adding get to " + tpl_root.name);
 function get(tpl, name){
-    for(var e in tpl.elements){
-	//console.log(tpl.name+ " : looking child  [" + e + "] for name ["+name+"]");
+  for(var e in tpl.elements){
+      console.log(tpl.type + "["+tpl.name+ "] : looking child  [" + e + "] for name ["+name+"]");
 	if(e===name)
 		return tpl.elements[e];
     }
@@ -198,12 +198,26 @@ local_templates.prototype.common_builder=function(obj){
     
 }
 
+
+function template_object(){}
+
+
+local_templates.prototype.create_object_from_data=function(data){
+
+  var obj=create_object(data.type);
+  console.log("Create from data " + obj.type + " name " + obj.name);
+
+  set_template_data(obj, data);
+  return obj;
+}
+
+
 local_templates.prototype.create_object=function(template){
     var tmaster=this;
     //console.log("create tpl "+template+"pname = " + typeof this);
     //for(var k in Object.keys(this)) console.log("tmk " + k + " v=" + this[k]);
 
-    if(template===undefined) return {};
+    if(template===undefined) return new template_object();
     
     var obj=this.build_template(template);
 
@@ -228,8 +242,16 @@ local_templates.prototype.build_template=function(template){
     var tpl;
 
     if(typeof template === 'string'){ 
-	//console.log("Building template " + template);
-	tpl=clone_obj(this.templates[template]);
+	
+	var master_tpl=this.templates[template];
+	//tpl=clone_obj(master_tpl);
+	console.log("Building template " + template);
+	tpl=new template_object();
+
+	for(var key in master_tpl)
+            if (master_tpl.hasOwnProperty(key))
+		tpl[key] = clone_obj(master_tpl[key]);
+	
 	if(tpl === undefined) 
 	    throw "Unknown template " + template;
 
@@ -256,8 +278,11 @@ var nodejs= typeof module !== 'undefined'; //Checking if we are in Node
 
 if(nodejs){
     module.exports.local_templates=local_templates;
+    module.exports.template_object=template_object;
+    
     GLOBAL.get_template_data=get_template_data;
     GLOBAL.set_template_data=set_template_data;
     GLOBAL.get=get;
     GLOBAL.add=add;
+    
 }

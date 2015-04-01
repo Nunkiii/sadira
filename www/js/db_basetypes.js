@@ -977,7 +977,9 @@ template_ui_builders.login=function(ui_opts, login){
 	case "login" :
 	    console.log("Login " + user_name + " pw " + user_password);
 	    register_mode();
-	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(user_password);
+	    var hp=ab2b64(sjcl.hash.sha256.hash(user_password));
+	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
+	    user_password="*";
 	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
 	    var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
 	    
@@ -987,10 +989,12 @@ template_ui_builders.login=function(ui_opts, login){
 		    console.log("Error login " + error);
 		    return;
 		}
+		console.log("Received this " + JSON.stringify(res));
 		
 		if(è(res.error))
 		    return error_mode(res.error);
-		console.log("Received this " + JSON.stringify(res));
+
+		
 		login.user_id=res.user_id;
 		success_mode();
 		// var server_key=res.key;

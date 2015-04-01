@@ -894,7 +894,7 @@ label{
   
 }
 
-
+/*
 .db[data-type="login"] {
   display: table-cell;
   vertical-align: middle;  
@@ -904,13 +904,13 @@ label{
   vertical-align: bottom;
   margin-right: 1em;
 }
-
+*/
 .db[data-type="login"] label{
   color: lightgrey;
   font-weight: normal;
   margin-right: .5em;
 }
-
+/*
 .db[data-type="login"] label.unslided{
   cursor : pointer;
   margin-top: 1em;
@@ -922,7 +922,7 @@ label{
   color: springgreen;
   margin-top: 1em;
 }
-
+*/
 	     
 /*
 label.unslided{

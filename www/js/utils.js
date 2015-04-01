@@ -10,21 +10,21 @@ function clone_obj(obj) {
     var temp = obj.constructor(); // changed
 
     for(var key in obj)
-        temp[key] = clone_obj(obj[key]);
+        if (obj.hasOwnProperty(key))  temp[key] = clone_obj(obj[key]);
     return temp;
-  
+    
 
-  var new_obj = (o instanceof Array) ? [] : {};
+//   var new_obj = (o instanceof Array) ? [] : {};
   
-  for (i in o) {
-//    if (i == 'clone') continue; //?
-    if (o[i] && typeof o[i] == "object") {
-      new_obj[i] = clone_obj(o[i]);//.hyperclone();
-    } else 
-    new_obj[i] = o[i];
-  } 
+//    for (i in o) {
+// //    if (i == 'clone') continue; //?
+//     if (o[i] && typeof o[i] == "object") {
+//       new_obj[i] = clone_obj(o[i]);//.hyperclone();
+//     } else 
+//     new_obj[i] = o[i];
+//   } 
   
-  return new_obj;
+//   return new_obj;
 }
 
 //Display JSON avoiding the circular objects.
@@ -328,6 +328,16 @@ function bson_query(query, result_cb, opts){
     }, opts);
 }
 
+    function ab2b64( buffer ) {
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
+    }
+
 
 var request = function (opts){
     if(è(opts.cmd)) opts.url=opts.cmd;
@@ -340,15 +350,6 @@ var request = function (opts){
     if(ù(opts.key)) opts.key="req";
     if(ù(opts.method)) opts.method="GET";
 
-    function ab2b64( buffer ) {
-	var binary = '';
-	var bytes = new Uint8Array( buffer );
-	var len = bytes.byteLength;
-	for (var i = 0; i < len; i++) {
-            binary += String.fromCharCode( bytes[ i ] );
-	}
-	return window.btoa( binary );
-    }
     
     this.build_url_string_json=function(){
 	this.url_string=opts.host+opts.url;
