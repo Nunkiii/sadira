@@ -117,16 +117,25 @@ server.prototype.connect = function(cb, options_in) {
 
 function create_query(opts){
     var op='';
-    if(è(opts.path)){
-	var splitpath=opts.path.split('.');
-	
-	for(var pe=0;pe<splitpath.length;pe++){
-	    op+='els.'+splitpath[pe]+'.';
-	}
-    }
-    op+='value';
+    var q={};
+    
+    if(opts.id!==undefined){
+	q._id=ObjectID(opts.id);
 
-    var q={}; q[op]=opts.value;
+    }else{
+	if(è(opts.path)){
+	    var splitpath=opts.path.split('.');
+	    
+	    for(var pe=0;pe<splitpath.length;pe++){
+		op+='els.'+splitpath[pe]+'.';
+	    }
+	}
+	op+='value';
+	q[op]=opts.value;
+    }
+    
+    console.log("Query is " + JSON.stringify(q) );
+    
     return q;
 }
 

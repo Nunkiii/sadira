@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Sadira astro-web framework - Written by Pierre Sprimont <nunki@unseen.is> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
+// Sadira astro-web framework - Written by Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
 
 var fs = require("fs");
 var path = require("path");
@@ -11,13 +11,14 @@ var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
 var utils = require("./www/js/utils");
 var BSON=bson().BSON;
-var express=require("express");
 
-// var passport = require('passport');
-// var flash    = require('connect-flash');
-//var morgan       = require('morgan');
+
+var express=require("express");
+var exsession = require('express-session');
+var methodov = require('method-override');
 var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
+var logger = require('connect-logger');
 
 var tpl=require('./js/tpl');
 
@@ -176,6 +177,7 @@ function dispatcher(name) {
 }
 
 
+
 /**
  * Permission class. 
  * @class perm
@@ -239,6 +241,7 @@ perm.prototype.check_user=function(user){
  * API class. 
  * @class api
  */
+
 
 
 
@@ -374,111 +377,54 @@ var _sadira = function(){
 	
 	tmaster.add_templates(base_templates);
 	tmaster.add_templates(system_templates);
+	
+	
+	tmaster.templates.user_group.object_builder =function(group){
+	    group.listen('server_data',function(data){
+	    });
 
-	this.cluster.isMaster ?  this.start_master() : this.start_worker();
+	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
+		var gp=g.db.perm();
+		var gu=u.db.perm();
+		
+	    });
+	};
 
 	//Loading handlers.
 	
-	sad.initialize_plugins(function(error){
-	    if(error){
-		throw error;
-	    }
+
+
+	function started(start_error){
+
+	    if(start_error) throw "Error starting : " + start_error;
 	    
-	    if(sad.cluster.isMaster) return;
-	    
-	    
-	    sad.set_user_data=function(req, data){
-		for(var p in sad.common_header_data)
-		    data[p]=sad.common_header_data[p];
+	    //start_func(function(e){
+	    sad.initialize_plugins(function(error){
 		
-		data.user_id="";
-		
-		if (req.user) {
-		    if(req.user.local.email){
-			data.user_id=req.user.local.email;
-		    }
-		    else{
-			if(req.user.facebook.name){
-			    data.user_id=req.user.facebook.name;
-			}
-			else{
-			    if(req.user.google.name)
-				data.user_id=req.user.google.name;
-			}
-		    }
-		    
-		    //return next("No user");//res.redirect('/signin')
+		if(error){
+		    throw error;
 		}
 		
-	    //console.log("Set user data to " + JSON.stringify(data));
-	    };
-	    
-	    sad.app.get('/', function(req, res, next) {
-		res.redirect('/widget/sadira_home');
-		//var index_info={};
-		//sad.set_user_data(req, index_info);
-		//sad.log("rendering index " + JSON.stringify(index_info));
-		//res.render('index.ejs', index_info); // load the index.ejs file
-	    });
-	    
-	    sad.app.get('/widget/:tpl_name', function(req, res) {
-		var p=get_parameters(req);
-		var header=(p.header!==undefined)? p.header:true;
-		var ejs_data={ tpl_name : req.params.tpl_name, header : header};
-		sad.set_user_data(req,ejs_data);
-		res.render('widget.ejs', ejs_data ); // load the index.ejs file
-	    });
-	    
-	    
-	    /*
-	      sad.app.all('*', function(request, res){
-	      for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
-	      });
-	    */
-	    
-	    sad.app.get('*', function(request, res){
+		if(sad.cluster.isMaster) return;
 		
-		//The request was not handled by custom url handlers.
-		//If enabled, proxying the query to another web service
+		//create_group_cache();
 		
-		try{
-		    //sad.log("proxy request https? " + request.connection.encrypted );
-		    
-		    if(request.connection.encrypted){ //https connexion
-			if(sad.options.https_proxy){
-			    //console.log("Proxy https " + request.url);
-			    sad.https_proxy.web(request, res);
-			    return;
-			}else return res.status('Not found', 404);
+		if(!sad.cluster.isMaster && è(argv['bootstrap'])) {
+		    if(sad.cluster.worker.id==1){
+			var bs=require("./js/bootstrap.js");
+			bs.init({},sad);
 		    }else{
-			if(sad.options.http_proxy){
-			    //console.log("Proxy http " + request.url);
-			    sad.http_proxy.web(request, res);
-			    return;
-			}else return res.status('Not found', 404);
+			sad.log("Not worker 1 not bootstrap !!");
 		    }
 		}
-	    
-		catch (e){
-		    sad.log('Proxy error : ' + dump_error(e));
-		    return res.status('Sadira: Proxy error : ' + e, 500);
-		}
+		
 	    });
+	}
 
-	    
+
+	sad.cluster.isMaster ? this.start_master(started) : this.start_worker(started);
 	
-	    //create_group_cache();
-	    
-	    if(!sad.cluster.isMaster && è(argv['bootstrap'])) {
-		if(sad.cluster.worker.id==1){
-		    var bs=require("./js/bootstrap.js");
-		    bs.init({},sad);
-		}else{
-		    sad.log("Not worker 1 not bootstrap !!");
-		}
-	    }
-
-	});
+	//	});
 	
     }
     catch (e){
@@ -627,14 +573,17 @@ _sadira.prototype.start_session_handling = function (){
     
     this.app.use(session({
 	secret: 'vivalabirravivalabirravivalabirra',
-	store : new redis_session_store(options)
+	store : new redis_session_store(options),
+	saveUninitialized: true,
+	resave: true
     }));
+    
     
 }
 
 /* Start master process */
 
-_sadira.prototype.start_master = function (){
+_sadira.prototype.start_master = function (cb){
 
     //Starting cluster
     var sad=this;
@@ -742,7 +691,7 @@ _sadira.prototype.start_master = function (){
 		sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
 	    
 	    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
-	    
+	    cb(null);
 	}
 	
     });
@@ -750,20 +699,164 @@ _sadira.prototype.start_master = function (){
 
 /* Start worker process */
 
-_sadira.prototype.start_worker = function (){
+_sadira.prototype.start_worker = function (cb){
     
     var sad=this;
-//    sad.log("Worker " + this.cluster.worker.id + " starting ...");
-    var app=this.app=express();
-    app.sadira=this;
-//    app.use(morgan('dev')); // log every request to the console
-    app.use(cookieParser()); // read cookies
-    app.use(bodyParser()); // get information from html forms
+
+    var app=sad.app=express();
+    
+    //app.use(logger());
+    app.sadira=sad;
+    //app.set('view engine', 'ejs'); // set up ejs for templating
+    // required for passport
 
     app.set('view engine', 'ejs');
     app.set("views", "ejs/");
+
+    
+    app.use(cookieParser());
+    app.use(bodyParser.urlencoded({ extended : true}));
+    app.use(bodyParser.json());
+    
+    app.use(methodov());
+
     
     sad.start_session_handling();
+
+    var passport = require('passport');
+
+    app.use(passport.initialize());
+    app.use(passport.session()); // persistent login sessions
+
+    sad.passport=passport;
+
+    
+    //app.use(exsession({ secret: 'keyboard cat' }));
+
+    sad.app.get('/widget/:tpl_name', function(req, res) {
+	var p=get_parameters(req);
+	var header=(p.header!==undefined)? p.header:true;
+	var ejs_data={ tpl_name : req.params.tpl_name, header : header};
+	//sad.set_user_data(req,ejs_data);
+	res.render('widget.ejs', ejs_data ); // load the index.ejs file
+    });
+    
+    sad.app.get('/whoami', function(req, res) {
+	console.log("Whooo ?? " + JSON.stringify(req.user));
+	res.json(req.user);
+    });
+    /*
+      sad.app.all('*', function(request, res){
+      for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
+      });
+    */
+
+    sad.app.get('/tt',  function(req, res, next) {
+	sad.passport.authenticate('session', function(err,user,info) {
+	})(req,res,next);
+	console.log("TT user is " + req.user);
+    });
+    
+    sad.app.use(function(req, res, next) {
+	console.log("Cookies : " + JSON.stringify(req.cookies));
+	console.log("Session : " + JSON.stringify(req.session));
+	console.log("PPort : " + JSON.stringify(req._passport));
+
+	console.log("User auth ?? : " + req.isAuthenticated());
+	
+	if(req.user!==undefined){
+	    console.log("We have a user !!");
+	    
+	}else{
+	    console.log("noooooo nobody");
+	}
+	next();
+    });	
+
+    console.log("Handling main route....");
+    
+    sad.app.get('/',  function(req, res, next) {
+	
+	res.redirect('/widget/sadira_home');
+	
+	//var index_info={};
+	//sad.set_user_data(req, index_info);
+	//sad.log("rendering index " + JSON.stringify(index_info));
+	//res.render('index.ejs', index_info); // load the index.ejs file
+    });
+    
+	    
+
+    
+    sad.app.get('*', function(request, res){
+	
+	//The request was not handled by custom url handlers.
+	//If enabled, proxying the query to another web service
+	
+	try{
+	    //sad.log("proxy request https? " + request.connection.encrypted );
+		    
+	    if(request.connection.encrypted){ //https connexion
+		if(sad.options.https_proxy){
+		    //console.log("Proxy https " + request.url);
+		    sad.https_proxy.web(request, res);
+		    return;
+		}else return res.status('Not found', 404);
+	    }else{
+		if(sad.options.http_proxy){
+		    //console.log("Proxy http " + request.url);
+			    sad.http_proxy.web(request, res);
+		    return;
+		}else return res.status('Not found', 404);
+	    }
+	}
+	    
+	catch (e){
+	    sad.log('Proxy error : ' + dump_error(e));
+	    return res.status('Sadira: Proxy error : ' + e, 500);
+	}
+    });
+    
+    
+    
+    
+    //    sad.log("Worker " + this.cluster.worker.id + " starting ...");
+    //    app.use(morgan('dev')); // log every request to the console
+    
+    
+    
+    
+    
+
+
+    /*
+    sad.set_user_data=function(req, data){
+	for(var p in sad.common_header_data)
+	    data[p]=sad.common_header_data[p];
+	
+	data.user_id="";
+	
+	if (req.user) {
+	    if(req.user.local.email){
+		data.user_id=req.user.local.email;
+	    }
+	    else{
+		if(req.user.facebook.name){
+		    data.user_id=req.user.facebook.name;
+		}
+		else{
+		    if(req.user.google.name)
+			data.user_id=req.user.google.name;
+		}
+	    }
+	    
+	    //return next("No user");//res.redirect('/signin')
+	}
+	
+	//console.log("Set user data to " + JSON.stringify(data));
+    };
+    */
+
     
     process.on('message', function(m){ //Handling incoming messages from master process.
 
@@ -813,7 +906,7 @@ _sadira.prototype.start_worker = function (){
 	sad.create_websocket_server();
 	sad.create_webrtc_server();		
 
-	
+	cb(null);
 
     });
     
@@ -1156,7 +1249,7 @@ _sadira.prototype.initialize_plugins=function(cb){
     var pload_func=function(pn) {
 	return function(cb){
 	    //var pn=pn;
-	    //sad.log("Loading plugin [" + pn + "]" );
+	    sad.log("Loading plugin [" + pn + "]" );
 	    
 	    var p=plugs[pn];
 	    if( p.file === undefined) return cb("No javascript file defined in plugin " + pn);
@@ -1169,12 +1262,14 @@ _sadira.prototype.initialize_plugins=function(cb){
 	    if(initf!==undefined)
 		initf(p,sad,cb);
 	    else{
-		sad.log("No pkg init function for plugin ["+pn+"]!");
+		console.log("No pkg init function for plugin ["+pn+"]!");
+		cb(null);
 	    }
 	}
     }
     
     var ploads=[];
+
     for(var pn in plugs){
 	//f.pname=pn;
 	if(plugs[pn].enabled!==false)
@@ -1185,13 +1280,14 @@ _sadira.prototype.initialize_plugins=function(cb){
     async.series(ploads, function(err, res){
 	
 	if(err){
+	    
 	    return cb("Fatal error while loading plugins : " + err);
 	}
-
+	console.log("Plugins loaded !!!");
 	cb(null);
     });
 	
-	//console.log("Plugins loaded !!!");
+    
 }
 
 

@@ -910,6 +910,11 @@ label{
   font-weight: normal;
   margin-right: .5em;
 }
+
+.db[data-type="login"] >a{
+  display : inline-block;
+  }
+
 /*
 .db[data-type="login"] label.unslided{
   cursor : pointer;

@@ -1,4 +1,11 @@
-var passport = require('passport');
+
+
+// var passport = require('passport');
+// var flash    = require('connect-flash');
+//var morgan       = require('morgan');
+
+
+
 var local_strategy = require('passport-local').Strategy;
 var facebook_strategy = require('passport-facebook').Strategy;
 var google_strategy = require('passport-google-oauth').OAuth2Strategy;
@@ -10,8 +17,6 @@ var google_strategy = require('passport-google-oauth').OAuth2Strategy;
 var crypto=require('crypto');
 
 //var morgan       = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser   = require('body-parser');
 //var session      = require('express-session');
 
 
@@ -19,32 +24,54 @@ var bodyParser   = require('body-parser');
 //var users=schemas.users;
 
 
-exports.isAuthenticated = passport.authenticate('basic', { session : false });
+//exports.isAuthenticated = passport.authenticate('basic', { session : false });
 
 exports.init=function(pkg,sad, cb){
 
-    var app=sad.app;
+
     var mongo=sad.mongo;
-    //app.set('view engine', 'ejs'); // set up ejs for templating
-    // required for passport
-
-    app.use(passport.initialize());
-    app.use(passport.session()); // persistent login sessions
-    //app.use(flash()); // use connect-flash for flash messages stored in session
-
+    var app=sad.app;
+    var passport=sad.passport;
     
+    // Initialize Passport!  Also use passport.session() middleware, to support
+    // persistent login sessions (recommended).
+    //app.use(flash());
+    //app.use(app.router);
+    //app.use(express.static('public'));
+    
+    //app.use(flash()); // use connect-flash for flash messages stored in session
     // used to serialize the user for the session
+
     passport.serializeUser(function(user, done) {
-	done(null, user.id);
+	//console.log("Serialize USER ! " + user.db.id);
+	done(null, user.db.id);
     });
 
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
-	users.findById(id, function(err, user) {
-	    done(err, user);
-	});
-    });
+	//console.log("Deserialize USER ID " + id);
+	
+	mongo.find1({ type : "user", id : id},
 
+		    done
+
+		    /*
+		    function(err, user) {
+			
+			if(err){
+			    console.log("Error looking up user " + err);
+			}
+			
+			if(user!==undefined)
+			    done(err, user);
+			else
+			    done("User (id + "+id+") not found !");
+		    }
+
+		    */
+		   );
+    });
+    
     // we are using named strategies since we have one for login and one for signup
     // by default, if there was no name, it would just be called 'local'
     
@@ -80,14 +107,14 @@ exports.init=function(pkg,sad, cb){
 
 				 // if there is no user with that email
 				 // create the user
-				 console.log("Begin signup  process... create user");
+				 console.log("Begin signup  process... create user HASPASS = ["+hashpass+"]");
 				 
 				 var new_user = create_object("user");
 
 				 var access=create_object("local_access")
-				     .set('hashpass',hashpass)
-				     .set('username',email);
-
+				     .set('email',email)
+				     .set_password(hashpass);
+				 
 				 new_user.get("credentials").add('local',access);
 				 
 				 // save the user
@@ -131,18 +158,22 @@ exports.init=function(pkg,sad, cb){
 	    // if no user is found, return the message
 	    if (user===undefined)
 		return done(null, false, { message  :  "User not found !" });
-
-	    user=create_object_from_data(user);
-	    console.log("---> User is " + JSON.stringify(user));
 	    
-	    user.get('local').check_password(hashpass, function(error, match){
+	    var uuser=create_object_from_data(user);
+	    //console.log("---> User is " + JSON.stringify(user));
+	    
+	    uuser.get('local').check_password(hashpass, function(error, match){
 		if(error)
 		    return done(null, false, { message : "checkpass error : "+error } );
 		
-		console.log("checkpass match = " + match);
-		if(match)
-		    return done(null, user,  { message : "Yeah!Login!!" });
 		
+
+		if(match){
+		    console.log("checkpass match = " + match + " YEAHHH !!!!");    
+		    return done(null, uuser,  { message : "Yeah!Login!!" });
+		}
+
+		console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
 		return done(null, false, { message : "Oops! Wrong password" });
 		
 	    });
@@ -239,48 +270,44 @@ exports.init=function(pkg,sad, cb){
     // failureFlash : true // allow flash messages
     
     // process the login form
+
+    /*
     app.post('/login', function(req, res, next) {
-	passport.authenticate('local-login', function(err, user, info) {
-	    if (err) { return next(err); }
+	passport.authenticate('local-login', {session : true}, function(err,user,info) {
+	    if (err) {
+		return res.json({error : "Login failed !" + err});
+		//return next(err);
+	    }
+	    req.user=user;
+
+	    
 	    if (!user) {
 		return res.json({error : "Login failed !" + JSON.stringify(info)});
 	    }
 
-	    //console.log("Got user " + JSON.stringify(user) + " login ... type is " + typeof(req.logIn) );
+
+	    console.log("Got user " + JSON.stringify(req.user) + " login ... type is " + typeof(req.logIn) );
 	    
 	    req.logIn(user, function(err) {
-		if (err) { return next(err); }
-		//var ejsd={}; sad.set_user_data(req,ejsd);
-		return res.json(user);
+		console.log("User login!!");
+	     	if (err) {
+		    return res.json({error : "Login failed !" + err});
+		    //return next(err);
+		}
+		// 	//var ejsd={}; sad.set_user_data(req,ejsd);
+	     	return res.json({ status : "ok"});
 	    });
+	    
 	})(req, res, next);
     });
+*/
 
-
-    // 	app.post('/login', function(req, res, next){
-    // 	passport.authenticate('local-login',function(err, user, info){
-    // 	    if(err) {
-    // 		console.log("auth error " + err);
-    // 		return next(err);
-    // 	    }
-    // 	    if(user==null) {
-    // 		console.log(info);
-    // 		return res.json({ error : info});
-    // 	    }
-    // 	    console.log("user found !! : " + JSON.stringify(user));
-	    
-    // 	    req.logIn(user, function(err){
-    // 		if(err) {
-    // 		    console.log("login error " + err);
-    // 		    return next(err);
-    // 		}
-    // 		res.json({ error : null, user : user} );
-    // 	    });
-    // 	})(req,res,next)
-    // });
-    // successRedirect : '/profile', // redirect to the secure profile section
-    // failureRedirect : '/login', // redirect back to the signup page if there is an error
-    // failureFlash : true // allow flash messages
+    app.post('/login', passport.authenticate('local-login'), function(req, res, next){
+ 
+	console.log("user found !!??? : " + JSON.stringify(req.user));
+	res.redirect("/");
+	
+    });
     
     app.get('/user', isLoggedIn, function(req, res) {
 	var ejsd={user : req.user}; sad.set_user_data(req,ejsd);
@@ -454,28 +481,22 @@ exports.init=function(pkg,sad, cb){
 		failureRedirect : '/'
 	    }));
 
+    //passport.authenticate('local-login'),
 
+
+
+    
+    //app.use(express.session({ secret: 'keyboard cat' }));
+    
+//    app.use(cookieParser()); // read cookies
+//    app.use(bodyParser()); // get information from html forms
+
+    
+
+
+
+    
     cb(null);
 
 }
 
-function login( req, res, next){
-
-    var query = get_bson_parameters(req);
-    var login_com=query.com;
-    switch(login_com){
-    case "init":
-	break;
-    default:
-	break;
-    };
-
-    console.log("--> Login : " + JSON.stringify(query));
-    
-    reply_json(res, { login : "OK"}, function(error){
-	if(error!=null){ return console.log("Error sending login reply " + error);}
-	console.log("Sent reply OK");
-    });
-    
-    next();
-}

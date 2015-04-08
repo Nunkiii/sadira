@@ -116,6 +116,8 @@ exports.init=function(pkg,app){
 	process.exit(1);
     }
 
+    /*
+    
     function upsert_docs(collection, key, docs, cb){
 	var d=0;
 
@@ -186,24 +188,26 @@ exports.init=function(pkg,app){
 	});
 	
     }
+*/
 
-
-    function check_admin_group(cb){
-	app.mongo.find1({type : 'user_group', path : 'name', value : 'admin'}, function(err, admin_group){
+    //{ name : 'admin', description : "God-like users" }
+    
+    function check_group(gname, cb){
+	app.mongo.find1({type : 'user_group', path : 'name', value : gname}, function(err, admin_group){
 	    if(err){
 		return cb("error looking for admin group " + err);
 	    }
 
 	    if(admin_group){
 		admin_group=create_object_from_data(admin_group);
-		console.log("We found the admin group " + JSON.stringify(admin_group) );
+		console.log("We found the "+gname+": " + JSON.stringify(admin_group) );
 		return cb(null, admin_group);
 	    }
 	    else{
 		
       		var admin_group=app.tmaster.create_object("user_group")
-		    .set("name","admin")
-		    .set("description","God-like users")
+		    .set("name",gname)
+		    //.set("description",gdesc)
 		    .save(function(err){
 			if(err)
 			    return cb("error saving admin group " + err);
@@ -217,7 +221,7 @@ exports.init=function(pkg,app){
     }
 
     function check_admin_user(admin_name, pw, admin_group, cb){
-
+	
 	app.mongo.find_user(admin_name, function(err, admin_user){
 	    
 	    if(err){
@@ -239,18 +243,23 @@ exports.init=function(pkg,app){
 	    }
 
 	    
+	    
 	    admin_local_access.set('username',admin_name)
 		.set_password(pw);
 	    
-	    console.log("saving admin user.....");
+	    app.log("adding admin user to admin group...");
+	    admin_user.get('groups').add_link(admin_group);
+	    app.log("saving admin user.....");
 	    
 	    admin_user.save(function(err){
 		if(err) throw "error saving admin user " + err;
-		console.log("Ok, admin user saved!");
+
 		app.mongo.find_user(admin_name,function(err, user) {
 		    if(err){
 			return cb("Error saving admin user : " + err);
 		    }
+
+
 		    return cb(null,user);
 		});
 		
@@ -272,10 +281,6 @@ exports.init=function(pkg,app){
 	//get_strong_console_password(admin_name,function(error, pw){
 	    
 	    //if(error) return on_error(error);
-	    
-
-	
-
 	var pw="123";
 
 	var h=crypto.createHash('sha256');
@@ -287,20 +292,25 @@ exports.init=function(pkg,app){
 	//app.mongo.db.collection("user").drop();
 	//app.mongo.db.collection("user_group").drop();
 
-	check_admin_group(function(err, admin_group){
+	
+	check_group('admin',function(err, admin_group){
 	    if(err) throw("Bootstrap error : " + err);
-	    
+	    admin_group.set('description',"Wizards and magicians only.");
 	    check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
 		if(err) throw("Bootstrap error : " + err);
-		
-		console.log("Bootsrap done : " + JSON.stringify(admin_user));
 
-
+		console.log("Admin group : " + JSON.stringify(admin_group));
+		console.log("Admin user : " + JSON.stringify(admin_user));
 		//admin_user.handle_request("toto", function(){});
 	    });
 
 	});
-	    
+
+	check_group('users',function(err, users){
+	    if(err) throw("Bootstrap error : " + err);
+	    users.set('description',"Gnomes, goblins and farfadets.");
+	    console.log("Users group : " + JSON.stringify(users));
+	});
 	//}
 	    
 	    // },{

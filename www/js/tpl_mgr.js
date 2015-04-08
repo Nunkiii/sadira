@@ -7,9 +7,9 @@
 //console.log("Adding get to " + tpl_root.name);
 function get(tpl, name){
   for(var e in tpl.elements){
-      console.log(tpl.type + "["+tpl.name+ "] : looking child  [" + e + "] for name ["+name+"]");
+      //console.log(tpl.type + "["+tpl.name+ "] : looking child  [" + e + "] for name ["+name+"]");
 	if(e===name)
-		return tpl.elements[e];
+	    return tpl.elements[e];
     }
     for(var e in tpl.elements){
 	try{
@@ -17,7 +17,7 @@ function get(tpl, name){
 	    if(n) return n;
 	}
 	catch(err){
-	    console.log("Error looking for [" + e + "] in [" + tpl.name + "] : " + err);
+	    //console.log("Error looking for [" + e + "] in [" + tpl.name + "] : " + err);
 	}
     }
     //console.log(tpl.name+ " : looking child  [" + e + "] for name ["+name+"] : NOT FOUND!");
@@ -171,22 +171,27 @@ local_templates.prototype.substitute_templates=function(tpl){
 local_templates.prototype.common_builder=function(obj){
     var lt=this;
 
-    obj.get=function(n){ return get(obj,n); }
-    obj.add=function(key,child){return add(this,key,child);}
+    obj.get=function(n){ return get(obj,n); };
+    obj.add=function(key,child){return add(this,key,child);};
     obj.set=function(child,value){
 	var c=get(this,child);
 	if(c!==undefined)c.value=value;
 	else throw obj.name +" : cannot set value: child [" + child + "] not found!"
 	return this;
-    }
+    };
+    obj.val=function(child){
+	var c=get(this,child);
+	if(c!==undefined)return c.value;
+	throw obj.name +" : cannot get value: child [" + child + "] not found!"
+    };
     
     obj.add_link=function(linko){
+	
 	if(linko.db!==undefined && linko.type!==undefined){
 	    var id=linko.db.id;
 	    if(id!==undefined){
-		var o=obj.elements[id]=lt.create_object(linko.type);
-		o.db=clone_obj(linko.db);
-		o.db.link=true;
+		var o=this.add(id,lt.create_object(linko.type));
+		o.db={ id : id, link : true};
 		return o;
 	    }
 	}

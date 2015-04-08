@@ -4,6 +4,8 @@
 
 var crypto = require('crypto');
 
+
+
 module.exports={
 
     test : {
@@ -38,9 +40,14 @@ module.exports={
 	    }
 	},
 	object_builder : function(la){
+
+	    la.create_password=function(clear_password, cb) {
+	    }
+
+	    
 	    la.check_password=function(clear_password, cb) {
-		var hash=la.elements.hashpass.value;
-		var salt=la.elements.salt.value; 
+		var hash=la.val('hashpass');
+		var salt=la.val('salt');
 		
 		console.log("check passwd ["+clear_password+"]["+salt+"]");
 		var h=crypto.createHash('sha256');
@@ -74,45 +81,6 @@ module.exports={
 	}
     },
     
-    user : {
-	type : "user",
-	name : "User information",
-	elements : {
-	    credentials : {
-		name : "Account credentials",
-		elements : {}
-	    },
-	    groups : {
-	    }
-	},
-	object_builder : function(user){
-
-	}
-    },
-    user_group : {
-	name : "A User group",
-	elements : {
-	    name : {
-		name : "Group name",
-		subtitle : "String identifier for the group",
-		type : "string"
-	    },
-	    description : {
-		type : "html",
-		name : "Description", subtitle : ""
-	    }
-	},
-	object_builder : function(group){
-	    group.listen('server_data',function(data){
-	    });
-
-	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
-		var gp=g.db.perm();
-		var gu=u.db.perm();
-		
-	    });
-	}
-    },
     group_data : {
 	name : "User groups",
 	name : "Groups",

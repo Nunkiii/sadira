@@ -686,9 +686,7 @@ template_ui_builders.signup=function(ui_opts, signup){
     
     var shib_signup=shib.elements.signup;
 
-
     shib_signup.listen("click", function(){
-
 	
 	console.log("Trying login shib");
 	
@@ -848,8 +846,11 @@ template_ui_builders.signup=function(ui_opts, signup){
     }
 
     signup_act.listen("click", function(){
-	var post_data="email="+encodeURIComponent(email.ui.value)+"&hashpass="+encodeURIComponent(pw.pui.value);
-	console.log("post data = "+ post_data);
+	var hp=sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(pw.pui.value));
+	console.log("HASH PW is = ["+ hp + "]");
+	
+	var post_data="email="+encodeURIComponent(email.ui.value)+"&hashpass="+encodeURIComponent(hp);
+	
 	var rqinit=new request({ cmd : "/signup", data_mode : "json", method : "POST", post_data : post_data});
 	
 	rqinit.execute(function(error, res){
@@ -972,12 +973,12 @@ template_ui_builders.login=function(ui_opts, login){
 	check();
     });
 
-    var hh=new sjcl.hash.sha256();
-    hh.update("123");
-    var hhh=hh.finalize();
+    //var hh=new sjcl.hash.sha256();
+    //hh.update("123");
+    //var hhh=hh.finalize();
     //var hp=ab2b64(hh);
-    var hp = sjcl.codec.base64.fromBits(hhh);  
-    console.log("HH ["+hh+"] HP["+hp+"]");
+    //var hp = sjcl.codec.base64.fromBits(hhh);  
+    //console.log("HH ["+hh+"] HP["+hp+"]");
     
     login_tpl.listen("click",function(){
 	switch(mode){

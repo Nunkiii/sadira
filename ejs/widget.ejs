@@ -29,10 +29,7 @@
   
   <script>
     window.addEventListener("load", function(){
-    var tpl_name = "<%= tpl_name %>";
-    var tpl=tmaster.build_template(tpl_name);
-    create_ui({},tpl);
-    attach_ui(tpl, document.getElementById("content"));
+     attach_ui(create_widget("<%= tpl_name %>"), document.getElementById("content"));
     });
   </script>
   

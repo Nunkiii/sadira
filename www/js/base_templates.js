@@ -25,6 +25,38 @@ var base_templates={
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
+
+    user : {
+	type : "user",
+	name : "User information",
+	elements : {
+	    credentials : {
+		name : "Account credentials",
+		db : { perm : { r : 'admin'} }
+	    },
+	    groups : {
+		db : { perm : { w : 'admin'} }
+	    }
+	},
+	object_builder : function(user){
+	    
+	}
+    },
+    user_group : {
+	name : "A User group",
+	elements : {
+	    name : {
+		name : "Group name",
+		subtitle : "String identifier for the group",
+		type : "string"
+	    },
+	    description : {
+		type : "html",
+		name : "Description", subtitle : ""
+	    }
+	},
+    },
+
     sadira : {
 	type : "sadira",
 	//name : "Websocket",
@@ -94,10 +126,12 @@ var base_templates={
     login : {
 	name : "Login",
 	ui_opts : {
-	    sliding: true, slided : false, label : true, label_node : "label",
+	    sliding: true, slided : false, label : true, label_node : "a",
 	    
 	    root_node : "li",
-	    child_classes : ["navbar-form", "navbar-right"],
+	    root_classes : ["inline"],
+	    child_classes : ["navbar-form navbar-right"],
+	    name_classes : ["navbar-link"],
 	    item_classes : []},
 	elements : {
 	    user: {
@@ -142,10 +176,9 @@ var base_templates={
 	type : "html"
     },
     signup : {
-	name : "Sign Up",
-	subtitle : "Choose a method for login",
+	name : "Create a new account",
+	subtitle : "Choose a login method",
 	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p><p>Additional features might be available if your account is linked to a social-network account. You'll can configure your account settings on your user page once logged in. </p> ",
-	intro_visible : true,
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts :{
 	    child_view_type : "pills",
@@ -158,7 +191,7 @@ var base_templates={
 
 	    local : {
 		name : "Local account",
-		subtitle : "Create a new local account.",
+		subtitle : "Create a new account locally.",
 		intro : "Fill up the email and password fields to create your new user account.</p><p> Enter a valid email adress, it will be used to identify you. You'll can configure a username later in your user page if you wish.</p><p> The password will be checked for basic strength.",
 
 		ui_opts : {
@@ -360,6 +393,11 @@ var base_templates={
 	}
     },
 
+    root_widget : {
+	
+
+    },
+    
     sadira_home : {
 	    
 	name : "INAF/IASF-Bologna ☄",
