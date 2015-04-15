@@ -192,6 +192,86 @@ exports.init=function(pkg,app){
 
     //{ name : 'admin', description : "God-like users" }
     
+    var base_collections = [
+	{
+	    type : "db_collection",
+	    db : {
+		grants : [['g','users','r'],['g','admin','w']],
+		collection : "collections"
+	    },
+	    elements : {
+		name : { value : "collections"},
+		template : { value : "db_collection"},
+	    }
+	},
+
+	{
+	    type : "db_collection",
+	    db : {
+		//grants : [['g','users','r'],['g','admin','w']],
+		collection : "collections"
+	    },
+	    elements : {
+		name : { value : "Users"},
+		template : { value : "user"},
+	    }
+	},
+	{
+	    type : "db_collection",
+	    db : {
+		//grants : [['g','users','r'],['g','admin','w']],
+		collection : "collections"
+	    },
+	    elements : {
+		name : { value : "Groups"},
+		template : { value : "user_group"},
+	    }
+	    
+	},
+	{
+	    type : "db_collection",
+	    db : {
+		//grants : [['g','users','r'],['g','admin','w']],
+		collection : "collections"
+	    },
+	    elements : {
+		name : { value : "Apis"},
+		template : { value : "api_provider"},
+	    }
+	}
+    ];
+    
+    
+    function check_collections(cb){
+	
+	app.mongo.db.collection("collections").drop();
+	//return;
+	base_collections.forEach(function(c){
+	    var col=create_object(c, function (e){
+		app.mongo.write_doc(c, function(err, doc){
+		    if(err) app.log("Error " + err);
+		});
+		
+	    });
+	});
+    };
+
+    function check_com(cb){
+
+	app.mongo.db.collection("api").drop();
+	
+	var c=create_object("db");
+	c.collection("api");
+	c.grant([['g','users','x'],['g','admin','r']], function(e){
+	    if(e)return cb(e);
+	    app.mongo.write_doc(c, function(err, doc){
+		if(err)return cb(err);
+		console.log("Ok, db api recorded : " + JSON.stringify(doc));
+	    });
+	});
+	
+    }
+    
     function check_group(gname, cb){
 	app.mongo.find1({type : 'user_group', path : 'name', value : gname}, function(err, admin_group){
 	    if(err){
@@ -200,7 +280,7 @@ exports.init=function(pkg,app){
 
 	    if(admin_group){
 		admin_group=create_object_from_data(admin_group);
-		console.log("We found the "+gname+": " + JSON.stringify(admin_group) );
+		//console.log("We found the "+gname+": " + JSON.stringify(admin_group) );
 		return cb(null, admin_group);
 	    }
 	    else{
@@ -211,7 +291,7 @@ exports.init=function(pkg,app){
 		    .save(function(err){
 			if(err)
 			    return cb("error saving admin group " + err);
-			console.log("Ok, admin group saved!");
+			//console.log("Ok, admin group saved!");
 			return cb(null,admin_group);
 		    });
 		
@@ -247,24 +327,8 @@ exports.init=function(pkg,app){
 	    admin_local_access.set('username',admin_name)
 		.set_password(pw);
 	    
-	    app.log("adding admin user to admin group...");
-	    admin_user.get('groups').add_link(admin_group);
 	    app.log("saving admin user.....");
-	    
-	    admin_user.save(function(err){
-		if(err) throw "error saving admin user " + err;
-
-		app.mongo.find_user(admin_name,function(err, user) {
-		    if(err){
-			return cb("Error saving admin user : " + err);
-		    }
-
-
-		    return cb(null,user);
-		});
-		
-	    });
-	
+	    return cb(null,admin_user);
 	});
     }
 			   
@@ -292,25 +356,57 @@ exports.init=function(pkg,app){
 	//app.mongo.db.collection("user").drop();
 	//app.mongo.db.collection("user_group").drop();
 
+
+
+	
+	check_collections(function(e){
+
+	    //console.log("Bootstrap done");
+
+	});
+
+	check_com(function(e){
+	});
 	
 	check_group('admin',function(err, admin_group){
 	    if(err) throw("Bootstrap error : " + err);
 	    admin_group.set('description',"Wizards and magicians only.");
-	    check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
+	    admin_group.save();
+
+	    check_group('users',function(err, users){
 		if(err) throw("Bootstrap error : " + err);
+		users.set('description',"Registered gnomes, goblins and farfadets.");
+		users.save();
+		console.log("Users group : " + JSON.stringify(users));
+		
+		check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
+		    if(err) throw("Bootstrap error : " + err);
+		    
+		    app.log("adding admin user to admin group...");
+		    admin_user.get('groups').add_link(admin_group);
+		    admin_user.get('groups').add_link(users);
+		    admin_user.save();
+		    
+		    //console.log("Admin group : " + JSON.stringify(admin_group));
+		    //console.log("Admin user : " + JSON.stringify(admin_user));
+		    //admin_user.handle_request("toto", function(){});
+		});
 
-		console.log("Admin group : " + JSON.stringify(admin_group));
-		console.log("Admin user : " + JSON.stringify(admin_user));
-		//admin_user.handle_request("toto", function(){});
 	    });
+	    
+
 
 	});
 
-	check_group('users',function(err, users){
+
+	check_group('everybody',function(err, users){
 	    if(err) throw("Bootstrap error : " + err);
-	    users.set('description',"Gnomes, goblins and farfadets.");
-	    console.log("Users group : " + JSON.stringify(users));
+	    users.set('description',"All the remaining trolls.");
+	    users.save();
+	    //console.log("Everybody group : " + JSON.stringify(users));
 	});
+	
+	
 	//}
 	    
 	    // },{
@@ -319,7 +415,7 @@ exports.init=function(pkg,app){
 	    // });
 	
 	
-    }, 500);
+    }, 0);
     
     return;
 }

@@ -89,7 +89,7 @@ exports.init=function(pkg,sad, cb){
 			 
 			 // find a user whose email is the same as the forms email
 			 // we are checking to see if the user trying to login already exists
-			 console.log("Begin signup  process for " + email);
+			 //console.log("Begin signup  process for " + email);
 			 
 			 mongo.find_user( email, function(err, user) {
 			     //users.findOne({ 'local.email' :  email }, 
@@ -107,7 +107,7 @@ exports.init=function(pkg,sad, cb){
 
 				 // if there is no user with that email
 				 // create the user
-				 console.log("Begin signup  process... create user HASPASS = ["+hashpass+"]");
+				 //console.log("Begin signup  process... create user HASPASS = ["+hashpass+"]");
 				 
 				 var new_user = create_object("user");
 
@@ -144,7 +144,7 @@ exports.init=function(pkg,sad, cb){
 	passReqToCallback : true // allows us to pass back the entire request to the callback
     }, function(req, email, hashpass, done) { // callback with email and password from our form
 	
-	console.log("Login init for " + email + " pass " + hashpass);
+	//console.log("Login init for " + email + " pass " + hashpass);
 	// find a user whose email is the same as the forms email
 	// we are checking to see if the user trying to login already exists
 	mongo.find_user(email,function(err, user) {
@@ -165,15 +165,13 @@ exports.init=function(pkg,sad, cb){
 	    uuser.get('local').check_password(hashpass, function(error, match){
 		if(error)
 		    return done(null, false, { message : "checkpass error : "+error } );
-		
-		
 
 		if(match){
-		    console.log("checkpass match = " + match + " YEAHHH !!!!");    
+		    //console.log("checkpass match = " + match + " YEAHHH !!!!");    
 		    return done(null, uuser,  { message : "Yeah!Login!!" });
 		}
 
-		console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
+		//console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
 		return done(null, false, { message : "Oops! Wrong password" });
 		
 	    });
@@ -303,8 +301,8 @@ exports.init=function(pkg,sad, cb){
 */
 
     app.post('/login', passport.authenticate('local-login'), function(req, res, next){
- 
-	console.log("user found !!??? : " + JSON.stringify(req.user));
+	
+	//console.log("user found !!??? : " + JSON.stringify(req.user));
 	res.redirect("/");
 	
     });

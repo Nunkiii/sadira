@@ -2,32 +2,84 @@ var base_templates={
     main_window:{},
     progress:{},
     status:{},
-    double:{ db_type: "Number"},
-    labelled_vector:{ db_type: "[Number]"},
+    double:{},
+    labelled_vector:{},
     local_file:{},
-    bytesize:{db_type: "Number"},
-    bool:{db_type: "Boolean"},
-    string:{db_type: "String"},
-    text:{db_type: "String"},
-    password:{db_type: "String"},
-    date:{db_type: "Date"},
-    url:{db_type: "String"},
+    bytesize:{},
+    bool:{},
+    string:{},
+    text:{},
+    password:{},
+    date:{},
+    url:{},
     image_url:{},
-    html:{db_type: "String"},
-    code:{db_type: "String"},
-    combo:{db_type: "String"},
+    html:{},
+    code:{},
+    combo:{},
     template_list:{},
     action:{},
-    color:{db_type: "String"},
-    angle:{db_type: "Number"},
+    color:{},
+    angle:{},
     expo_setup:{},
-    colormap:{db_type: "[[Number]]"},
+    colormap:{},
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
 
+
+    db_collection : {
+
+	name : "Object data table",
+
+	elements : {
+
+	    name : {
+		name : "Collection name",
+		type : "string",
+		holder_value : "Enter name here"
+	    },
+
+	    template : {
+		name : "Collection template",
+		type : "string"
+	    },
+	    
+	    dbname : {
+		name : "Database name",
+		type : "string"
+	    }
+	}
+	
+    },
+
+    db_browser : {
+
+	name : "Database browser",
+	ui_opts : { root_classes : ["container-fluid"], child_classes : ["row"]},
+	elements : {
+	    browser : {
+		//name : "Object browser",
+		ui_opts : { root_classes : ["col-sm-6"]},
+		elements : {
+		    colsel : {
+			name : "Select collection",
+			ui_opts : {  type : "edit", label : true},
+			type : "combo"
+		    },
+		    list : {
+			name : "Object list"
+		    }
+		}
+	    },
+	    object : {
+		name : "Object view",
+		ui_opts : { root_classes : ["col-sm-6"]}
+	    }
+	}
+    },
+    
     user : {
-	type : "user",
+	//type : "user",
 	name : "User information",
 	elements : {
 	    credentials : {
@@ -58,7 +110,6 @@ var base_templates={
     },
 
     sadira : {
-	type : "sadira",
 	//name : "Websocket",
 	ui_opts : {
 	    root_classes : ["container-fluid"],

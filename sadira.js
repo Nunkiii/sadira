@@ -12,6 +12,10 @@ var DGM = require("./www/js/datagram");
 var utils = require("./www/js/utils");
 var BSON=bson().BSON;
 
+var mongodb=require("mongodb");
+var mongo_pack=require("./js/mongo");
+
+var ObjectID = mongodb.ObjectID;
 
 var express=require("express");
 var exsession = require('express-session');
@@ -183,66 +187,93 @@ function dispatcher(name) {
  * @class perm
  */
 
-GLOBAL.perm=function(gr){
+GLOBAL.perm=function(pi){
 
-    this.r = { g : [], u : [] };
-    this.w = { g : [], u : [] };
-    this.x = { g : [], u : [] };
-
-    if(gr!==undefined) this.grant(gr);
+//    this.r = { g : [], u : [] };
+//    this.w = { g : [], u : [] };
+//    this.x = { g : [], u : [] };
+    var p=this;
+    if(pi!==undefined){
+	['r','w','x'].forEach(function(m){
+	    if(pi[m]!==undefined) p[m]=pi[m];
+	});
+    }
 }
 
 perm.prototype.toString=function(){
-    var s='';
-    for(var m in ['r','w','x']){
-	s+= "[Mode " + m + " : ";
-	var ks=this[m];
-	for(var t in ks){
-	    var kt=ks[t];
-	    s+=" for " + t + "[";
-	    for(var tid=0;tid<kt.length;tid++){
-		s+="id:"+ kt[tid]+",";
+    var s=''; var p=this;
+    ['r','w','x'].forEach(function(m){
+	var ks=p[m];
+	if(ks!==undefined){
+	    s+= "[Mode " + m + " : ";
+	    for(var t in ks){
+		var kt=ks[t];
+		s+=" for " + t + "[";
+		for(var tid=0;tid<kt.length;tid++){
+		    s+="id:"+ kt[tid]+",";
+		}
+		s+="], ";
 	    }
 	    s+="], ";
 	}
-	s+="], ";
-    }
+    });
     return s;
 }
 
+perm.prototype.check=function(user, mode){
+
+    var ks=this[mode];
+    if(ks===undefined){
+	return false;
+    }
+    
+    if(ks.u!==undefined){
+	var uid=user.id();
+	for(var i=0;i<ks.u.length;i++){
+	    console.log("Check obj user " + ks.u[i] + " with user " + uid);
+	    if(ks.u[i]==uid) return true;
+	}
+    }
+    if(ks.g!==undefined){
+	var ugrp=user.els.groups.els;
+	if(ugrp!==undefined) 
+	    for(var g in ugrp){
+		for(var i=0;i<ks.g.length;i++){
+		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
+		    if(ks.g[i]==g){
+			console.log("YYYYYYYYEEEESS");
+			return true;
+		    }else{
+			console.log("NOOOOOOOOO");
+		    }
+		}
+	    }
+    }
+    return false;
+}
+
 perm.prototype.grant=function(gr){
-    for(var m in ['r','w','x']){
+    var p=this;
+    ['r','w','x'].forEach(function(m){
+	//console.log("checking ["+m+"] grant " + JSON.stringify(gr));
 	if(gr[m]!==undefined){
-	    var ks=this[m];
-	    for(var t in ks){
+	    var ks=p[m];
+	    if(ks===undefined)
+		ks=p[m]={}; // g : [], u : [] };
+	    ['g','u'].forEach(function(t){
 		var a=gr[m][t];
 		if(a!==undefined){
-		    if(typeof a==='string'){
-			
+		    if(ks[t]===undefined) ks[t]=[];
+		    for(var tid=0;tid<a.length;tid++){
+			//console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
 			ks[t].push(a[tid]);
-		    }else{
-			for(var tid=0;tid<a.length;tid++){
-			    console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
-			    ks[t].push(a[tid]);
-			}
 		    }
 		}
 		
-	    }
+	    });
 	}
-    }
+    });
 }
-
-perm.prototype.check_user=function(user){
-    user.get('groups');
-}
-
-/**
- * API class. 
- * @class api
- */
-
-
 
 
 
@@ -333,12 +364,12 @@ var _sadira = function(){
 	    });
 	}
 	
-
-	
-	tpl_mgr.local_templates.prototype.object_builder=function(obj){
+	tpl_mgr.local_templates.prototype.object_builder=function(obj, cb){
 	    //console.log("Object builder !");
 
-	    
+	    if( obj.db===undefined) obj.db={};
+
+
 	    obj.save=function(a,b){return sad.mongo.write_doc(this,a,b);};
 	    //obj.dbcreate=function(a,b){return sad.mongo.write_doc(this,a,b);};
 	    //obj.db={
@@ -346,12 +377,73 @@ var _sadira = function(){
 	    //};
 
 	    obj.id=function(){
-		return obj.db===undefined ? undefined : obj.db.id;
+		return obj.db.id;
 	    };
 	    obj.perm=function(){
-		return obj.db===undefined ? undefined : obj.db.p;
+		return obj.db.p;
+	    };
+
+	    obj.grant=function(rules, cb){
+		var nr=rules.length;
+		function res_cb(e){
+		    if(e) return cb(e);
+		    nr--;
+		    if(nr===0) cb(null);
+		}
+		
+		rules.forEach(function(r){
+		    r[0]==='u' ?
+			obj.grant_user(r[1],r[2],res_cb) :
+			obj.grant_group(r[1],r[2],res_cb);
+		});
 	    }
+	    obj.grant_user=function(uname, gr, cb){
+		if(gr===undefined) gr='r';
+		sad.mongo.find_user(uname, function(err, user){
+		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
+		    if(obj.db.p===undefined) obj.db.p=new perm();
+		    var g={}; g[gr]={u : [user._id] };
+		    obj.db.p.grant(g);
+		    if(cb!==undefined)cb(null);
+		});
+	    };
+
+	    obj.grant_group=function(gname, gr, cb){
+		if(gr===undefined) gr='r';
+		sad.mongo.find_group(gname, function(err, group){
+		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
+		    if(obj.db.p===undefined) obj.db.p=new perm();
+		    var g={}; g[gr]={g : [group._id] };
+		    obj.db.p.grant(g);
+		    if(cb!==undefined)cb(null);
+		});
+
+	    };
 	    
+	    obj.collection=function(cname){
+		if(cname!==undefined){
+		    obj.db.collection=cname;
+		}
+		return obj.db.collection===undefined? obj.type : obj.db.collection; 
+	    };
+
+	    
+	    if(obj.db.grants!==undefined){
+		console.log("Applying grants "+JSON.stringify(obj.db.grants)+" to ["+obj.name+"] !! ");
+		obj.grant(obj.db.grants, function(e){
+		    if(e){
+			sad.log("!!grant error " + e);
+			return cb(e);
+		    }
+		    console.log("Apllyed grants ok to " + obj.name);
+		    delete obj.db.grants;
+		    cb(null);
+		});
+	    }else
+		cb(null);
+	    
+	    
+
 	    // obj.handle_request=function(req_name, req_cb){
 	    // 	if(obj.apis===undefined) obj.apis={};
 	    // 	obj.apis[req_name]=req_cb;
@@ -367,7 +459,7 @@ var _sadira = function(){
 	
 	tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
 	    if(this.apis===undefined) this.apis={};
-	    this.apis[opts.name]={ opts : opts, cb: cb };
+	    this.apis[opts.name]={ opts : opts, f: cb };
 	};
 	
 	
@@ -392,8 +484,6 @@ var _sadira = function(){
 
 	//Loading handlers.
 	
-
-
 	function started(start_error){
 
 	    if(start_error) throw "Error starting : " + start_error;
@@ -406,21 +496,28 @@ var _sadira = function(){
 		}
 		
 		if(sad.cluster.isMaster) return;
-		
-		//create_group_cache();
-		
-		if(!sad.cluster.isMaster && è(argv['bootstrap'])) {
+
+		if(è(argv['bootstrap'])) {
+		    sad.bootstrap=true;
 		    if(sad.cluster.worker.id==1){
 			var bs=require("./js/bootstrap.js");
 			bs.init({},sad);
 		    }else{
 			sad.log("Not worker 1 not bootstrap !!");
 		    }
+		    
 		}
+		
+		sad.load_apis();
+		sad.load_routes();
+    
+
+		//create_group_cache();
+		
 		
 	    });
 	}
-
+	
 
 	sad.cluster.isMaster ? this.start_master(started) : this.start_worker(started);
 	
@@ -433,6 +530,8 @@ var _sadira = function(){
     }
     
 } 
+
+
 
 _sadira.prototype.log = function (m){
     var sad=this;
@@ -697,42 +796,24 @@ _sadira.prototype.start_master = function (cb){
     });
 }
 
-/* Start worker process */
 
-_sadira.prototype.start_worker = function (cb){
-    
+_sadira.prototype.load_routes = function (){
     var sad=this;
-
-    var app=sad.app=express();
-    
-    //app.use(logger());
-    app.sadira=sad;
-    //app.set('view engine', 'ejs'); // set up ejs for templating
-    // required for passport
-
-    app.set('view engine', 'ejs');
-    app.set("views", "ejs/");
-
-    
-    app.use(cookieParser());
-    app.use(bodyParser.urlencoded({ extended : true}));
-    app.use(bodyParser.json());
-    
-    app.use(methodov());
-
-    
-    sad.start_session_handling();
-
-    var passport = require('passport');
-
-    app.use(passport.initialize());
-    app.use(passport.session()); // persistent login sessions
-
-    sad.passport=passport;
-
-    
     //app.use(exsession({ secret: 'keyboard cat' }));
+    sad.app.all('/dlg/:tpl/:req', function(req, res) {
+	var t=sad.tmaster.templates[req.params.tpl];
+	if(t===undefined)
+	    return res.json({ error : "Unknown template " + req.params.tpl });
+	if(t.apis === undefined)
+	    return res.json({ error : "Template " + req.params.tpl + " has no api defined."});
+	
+	var api=t.apis[req.params.req];
+	if(api === undefined)
+	    return res.json({ error : "Template " + req.params.tpl + " has no api named " + req.params.req});
 
+	return api(req,res);
+    });
+    
     sad.app.get('/widget/:tpl_name', function(req, res) {
 	var p=get_parameters(req);
 	var header=(p.header!==undefined)? p.header:true;
@@ -741,8 +822,8 @@ _sadira.prototype.start_worker = function (cb){
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
     });
     
-    sad.app.get('/whoami', function(req, res) {
-	console.log("Whooo ?? " + JSON.stringify(req.user));
+    sad.app.get('/testperm', function(req, res) {
+	
 	res.json(req.user);
     });
     /*
@@ -757,21 +838,6 @@ _sadira.prototype.start_worker = function (cb){
 	console.log("TT user is " + req.user);
     });
     
-    sad.app.use(function(req, res, next) {
-	console.log("Cookies : " + JSON.stringify(req.cookies));
-	console.log("Session : " + JSON.stringify(req.session));
-	console.log("PPort : " + JSON.stringify(req._passport));
-
-	console.log("User auth ?? : " + req.isAuthenticated());
-	
-	if(req.user!==undefined){
-	    console.log("We have a user !!");
-	    
-	}else{
-	    console.log("noooooo nobody");
-	}
-	next();
-    });	
 
     console.log("Handling main route....");
     
@@ -787,8 +853,8 @@ _sadira.prototype.start_worker = function (cb){
     
 	    
 
-    
-    sad.app.get('*', function(request, res){
+
+    sad.app.all('*', function(request, res){
 	
 	//The request was not handled by custom url handlers.
 	//If enabled, proxying the query to another web service
@@ -817,97 +883,165 @@ _sadira.prototype.start_worker = function (cb){
 	}
     });
     
-    
-    
-    
-    //    sad.log("Worker " + this.cluster.worker.id + " starting ...");
-    //    app.use(morgan('dev')); // log every request to the console
-    
-    
-    
-    
-    
+}
 
 
-    /*
-    sad.set_user_data=function(req, data){
-	for(var p in sad.common_header_data)
-	    data[p]=sad.common_header_data[p];
-	
-	data.user_id="";
-	
-	if (req.user) {
-	    if(req.user.local.email){
-		data.user_id=req.user.local.email;
-	    }
-	    else{
-		if(req.user.facebook.name){
-		    data.user_id=req.user.facebook.name;
-		}
-		else{
-		    if(req.user.google.name)
-			data.user_id=req.user.google.name;
-		}
-	    }
-	    
-	    //return next("No user");//res.redirect('/signin')
-	}
-	
-	//console.log("Set user data to " + JSON.stringify(data));
-    };
-    */
-
+_sadira.prototype.load_mongodb = function (cb){
+    var sad=this;
+    console.log("Initializing mongodb...");
     
-    process.on('message', function(m){ //Handling incoming messages from master process.
-
-	var cmd = m.cmd;
-	if(ù(cmd)) { sad.log("No message command!"); return; }
-	var id = m.id;
-	if(ù(id)) { sad.log("No message id!"); return; }
-	
-	//var service = m.service;
-	//if(ù(service)) { sad.log("No service name given!"); return; }
-	var ips=sad.ipss[id];
-	if(ù(ips)) { sad.log("No such client socket id ["+id+"]!"); return; }
-
-
-	var data=m.data;
-	
-	switch(cmd){
-	case "register":
-	    //if(ù(data)) { sad.log("No message data!"); return; }
-	    console.log("Client attached to IPS service ["+ips.service+"]");
-	    ips.trigger("connected", data);
-	    break;
-	case "deregister":
-	    ips.trigger("disconnected", data);
-	    delete sad.ipss[id];
-	    break;
-	case "route":
-	    ips.trigger("message", data);
-	    break;
-	default:
-	    sad.log("Unknown message command ["+cmd+"]"); return; 
-	    break;
-	};
-	
-	// sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
-    });
-    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
+    sad.mongo=new mongo_pack.server(sad.options.mongo,sad);
     
-    sad.create_http_server(function(error, ok){
-	if(error!=null){
-	    sad.log("Fatal : HTTP create " + error  );
-	    process.exit(1);
-	}
-	//if(error!=null) 
-	//   throw error; 
-	
-	sad.create_websocket_server();
-	sad.create_webrtc_server();		
-
+    sad.mongo.connect(function(error){
+	if(error)
+	    return cb(error);
+	sad.log("MongoDB connected !");
 	cb(null);
+    });
+}
 
+
+_sadira.prototype.load_apis = function (cb){
+    var sad=this;
+    sad.apis={};
+
+    sad.mongo.find({ user : sad.mongo.admin, collection : "api"}, function(err, api_data){
+
+	if(err) return cb(err);
+	sad.log("Loading " + api_data.length + " APIS ");
+	for(var i=0;i<api_data.length;i++){
+	    var aprov=create_object_from_data(api_data[i]);
+	    console.log("Loading api provider : " + JSON.stringify(aprov));
+	    if(sad.apis[aprov.name]!==undefined){
+		
+	    }
+	    sad.apis[aprov.name]=aprov;
+	    //aprov.register_route(sad);
+	}
+
+
+	
+    });
+
+    sad.app.all('/api/:provider/:api', function(req, res, next) {
+	var provider=sad.apis[req.params.provider];
+	if(provider===undefined) return res.json({error : "unknown api provider " + req.params.provider});
+	var api=provider.get(req.params.api);
+	if(api===undefined) return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
+	return api.api_handler(req,res,next);
+    });
+    
+    
+}
+
+
+/* Start worker process */
+
+_sadira.prototype.start_worker = function (cb){
+    
+    var sad=this;
+
+    var app=sad.app=express();
+
+    sad.load_mongodb(function(error){
+	if(error) return cb(error);
+	
+	console.log("Mongodb STARTED !");
+	sad.apis={};
+	//app.use(logger());
+	app.sadira=sad;
+	//app.set('view engine', 'ejs'); // set up ejs for templating
+	// required for passport
+	
+	app.set('view engine', 'ejs');
+	app.set("views", "ejs/");
+	
+	app.use(cookieParser());
+	app.use(bodyParser.urlencoded({ extended : true}));
+	app.use(bodyParser.json());
+	
+	app.use(methodov());
+	
+	sad.start_session_handling();
+	
+	var passport = require('passport');
+	
+	app.use(passport.initialize());
+	app.use(passport.session()); // persistent login sessions
+	
+	sad.passport=passport;
+	
+        sad.app.use(function(req, res, next) {
+	    req.sad=sad;
+	    //console.log("Cookies : " + JSON.stringify(req.cookies));
+	    //console.log("Session : " + JSON.stringify(req.session));
+	    //console.log("PPort : " + JSON.stringify(req._passport));
+	    
+	    //console.log("User auth ?? : " + req.isAuthenticated());
+	    
+	    //if(req.user!==undefined){
+	    //	console.log("We have a user " + JSON.stringify(req.user));
+		
+	    //}else{
+	    //	console.log("noooooo nobody");
+	    //  }
+	    next();
+	});	
+	
+	
+	process.on('message', function(m){ //Handling incoming messages from master process.
+	    
+	    var cmd = m.cmd;
+	    if(ù(cmd)) { sad.log("No message command!"); return; }
+	    var id = m.id;
+	    if(ù(id)) { sad.log("No message id!"); return; }
+	    
+	    //var service = m.service;
+	    //if(ù(service)) { sad.log("No service name given!"); return; }
+	    var ips=sad.ipss[id];
+	    if(ù(ips)) { sad.log("No such client socket id ["+id+"]!"); return; }
+	    
+	    
+	    var data=m.data;
+	
+	    switch(cmd){
+	    case "register":
+		//if(ù(data)) { sad.log("No message data!"); return; }
+		console.log("Client attached to IPS service ["+ips.service+"]");
+		ips.trigger("connected", data);
+		break;
+	    case "deregister":
+		ips.trigger("disconnected", data);
+		delete sad.ipss[id];
+		break;
+	    case "route":
+		ips.trigger("message", data);
+		break;
+	    default:
+		sad.log("Unknown message command ["+cmd+"]"); return; 
+		break;
+	    };
+	    
+	    // sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
+	});
+	//sad.log("Worker "+ sad.cluster.worker.id + " created" );
+	
+	sad.create_http_server(function(error, ok){
+	    if(error!=null){
+		sad.log("Fatal : HTTP create " + error  );
+		process.exit(1);
+	    }
+	    //if(error!=null) 
+	    //   throw error; 
+	    
+	    sad.create_websocket_server();
+	    sad.create_webrtc_server();		
+	    
+	    cb(null);
+	    
+	});
+	
+	
     });
     
 }

@@ -57,7 +57,7 @@ function server(pkg,app) {
     		config.replica_set[rsi].port=def_port;
     	}
     }
-    
+
 }
 
 server.prototype.disconnect = function(cb) {
@@ -107,7 +107,29 @@ server.prototype.connect = function(cb, options_in) {
 		return cb(em);
 	    }
 	    mongo.db=db;
-	    cb(null,db);
+
+	    mongo.find_user("god", function (err, admin_u){
+		if(err){
+		    return cb(err);
+		}
+
+		mongo.admin=admin_u;
+		
+		mongo.find_group("everybody", function (err, every_group){
+		    if(err){
+			return cb(err);
+		    }
+		    mongo.everybody_group=every_group;
+		    var du=create_object("user");
+		    du.get('groups').add_link(every_group);
+		    mongo.default_user=get_template_data(du);
+		    console.log("Created default user : " + JSON.stringify(mongo.default_user));
+
+		    cb(null,db);
+		});
+		
+	    });
+
 	});
     }
     catch (e){
@@ -134,50 +156,63 @@ function create_query(opts){
 	q[op]=opts.value;
     }
     
-    console.log("Query is " + JSON.stringify(q) );
+    //console.log("Query is " + JSON.stringify(q) );
     
     return q;
 }
 
-server.prototype.write_doc=function(doc, a,b){
+server.prototype.write_doc=function(doc,a,b){
+
     var options_in, cb;
+
     if(is_function(a)){
 	cb=a;
     }else{
 	options_in=a;
 	cb=b;
     }
-    if(cb===undefined){
-	throw("write_doc : you need to provide a callback function !");
-    }
     
-    var options={w: 'majority', wtimeout: 10000, serializeFunctions: true, forceServerObjectId: true};
+    if(cb===undefined){
+	cb=function(ee){ if(ee) console.log("Unhandled write_doc error : " + ee);}
+	//throw("write_doc : you need to provide a callback function !");
+    }
+
+    var coll=doc.collection();
+    var options={w: 'majority', wtimeout: 10000, serializeFunctions: false, forceServerObjectId: true};
     
     if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
-
-
+    
     var data=get_template_data(doc);
     //console.log("read data " + JSON.stringify(data));
+    
     if(doc.id()!==undefined){
 	var q={ _id : doc.id() };
-	this.db.collection(doc.type).findOneAndUpdate(q,data, options, cb);
+	this.db.collection(coll).findOneAndUpdate(q,data, options, function(err, result){
+	    if(err) return cb(err);
+	    set_template_data(doc,result.value);
+	    cb(null,doc);
+	});
     }
     else
-	this.db.collection(doc.type).insertOne(data, options, cb);
-
+	this.db.collection(coll).insertOne(data, options, function(err, result){
+	    if(err) return cb(err);
+	    //??????????????if(result.insertedCount===1)
+	    return cb(null, doc);
+	});
+    
     
     return doc;
 }
 
 /*
-server.prototype.update_doc=function(doc,a,b){
-
-    var opts=null,cb=null;
-
-    if(is_function(a)){
-	cb=a;
-	if(b!==undefined) opts=b; 
-    }else{
+  server.prototype.update_doc=function(doc,a,b){
+  
+  var opts=null,cb=null;
+  
+  if(is_function(a)){
+  cb=a;
+  if(b!==undefined) opts=b; 
+  }else{
 	opts=a;
 	if(b!==undefined) cb=b; 
     }
@@ -211,18 +246,56 @@ server.prototype.update_doc=function(doc,a,b){
 
 server.prototype.find=function(opts, cb){
 
+    var mongo=this;
     var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
-    this.db.collection(opts.type).find(q, {}, cb);
-	// var objects=[];
-	// for(var i=0;i<data.length;i++){
-	//     objects[i]=create_object(opts.type);
-	//     //console.log("Find returned " + obj + " name " + obj.name);
-	//     set_template_data(objects[i], data[i]);
-	// }
-	
-	
+
+    var user=opts.user!==undefined ? opts.user : mongo.default_user;
+    var coll=opts.collection!==undefined ? opts.collection : opts.type;
+
     
+    function get_docs(){
+	console.log("Getting docs from collection " + coll + " query " + JSON.stringify(q));
+	mongo.db.collection(coll).find(q, {}).toArray(function(err, data){
+	    if(err) return cb(err);
+	    var objects=[];
+	    	console.log("Getting docs from collection " + coll + " N= " + data.length);
+	    for(var i=0;i<data.length;i++){
+		var d=data[i];
+		
+		if(d.db!==undefined){
+		    if(d.db.p!==undefined){
+			var p=new perm(d.db.p);
+			if(p.check(user,'r')){
+			    objects.push(d);
+			}
+			else
+			    console.log("Perm not granted for user "+JSON.stringify(user)+" ! " + p);
+		    }else
+			objects.push(d);
+		}else
+		    objects.push(d);
+	    }
+	    return cb(null,objects);
+	});
+    }
+
+    
+    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.p' : 1}, function(err, data){
+	if(err) return cb(err);
+	if(data){
+	    var p=new perm( data.db.p );
+	    if(p.check(user,'r'))
+		return get_docs();
+	    else
+		return cb("Not enough rights to list the collection ["+coll+"]!");
+	}else{
+	    console.log("Collection [" + coll + "] : No permission set (-> implicit allow!)");
+	    return get_docs();
+	}
+	
+	
+    });
 }
 
 
@@ -243,13 +316,15 @@ server.prototype.find1=function(opts, cb){
     
 }
 
+server.prototype.find_group = function (gname, cb){
+    this.find1({type : 'user_group', path : 'name', value : gname}, cb);
+}
 
 server.prototype.find_user=function(identifier, cb){
     var mongo=this;
     mongo.find1({type: "user", path:'credentials.local.email', value : identifier},function(err, user) {
 	if(err) return cb(err);
 	if(user===undefined){
-	    
 	    mongo.find1({type: "user", path:'credentials.local.username', value : identifier},function(err, user) {
 		if(err) return cb(err);
 		if(user===undefined){

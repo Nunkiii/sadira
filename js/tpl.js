@@ -94,12 +94,56 @@ module.exports={
 	
     },
 
+    api_provider : {
+	object_builder : function (aprov){
+	    /*
+	    aprov.register_route=function(sad){
+		console.log(aprov.name + " : registering route");
+		sad.app.all('/api/'+aprov.name+'/:api_name', function(req, res, next) {
+		    console.log("route called " + req.params.api_name);
+		    var api=aprov.get(req.params.api_name);
+		    if(api===undefined)
+			return res.json({ error : aprov.name + " : unknown api : " + req.params.api_name });
+		    
+		    return api.api_handler(req, res, next);
+		});
+	    }
+	    */
+	}
+    },
     
+    api : {
+	object_builder : function (api){
+	    
+	}
+    },
+    
+    db : {
+	name : "dbcom",
+	type : "api_provider",
+	elements : {
+	    collection_list : {
+		type : "api",
+		api_handler : function (req, res){
+		    req.sad.mongo.find({ collection : "collections", user : req.user}, function(err, colls){
+			if(err)
+			    return res.json({error : "Mongo error " + err});
+			colls.forEach(function(d){
+			    delete d.db;
+			});
+			
+			return res.json(colls);
+		    } );
+		}
+	    }
+	    
+	}
+	
+    },
 
     le_template_del_template : {
 
-	name : "Template [unknown]",
-	type : "template",
+	name : "Template",
 	subtitle : "Sadira/tk template",
 	elements : {
 	    name :{
