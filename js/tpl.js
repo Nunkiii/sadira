@@ -4,8 +4,6 @@
 
 var crypto = require('crypto');
 
-
-
 module.exports={
 
     test : {
@@ -21,30 +19,28 @@ module.exports={
     },
     
     local_access : {
-	tpl_desc : "All info for an internally administered user.",
-	name : "Local credentials",
-	elements : {
-	    email: {
-		type: "email",
-		holder_value : "Any valid email adress? ..."
-	    },
-	    hashpass: {
-		type: "password"
-	    },
-	    salt: {
-		type: "string",
-		name: "Password salt"
-	    },
-	    username: {
-		type: "string"
-	    }
-	},
+	// tpl_desc : "All info for an internally administered user.",
+	// name : "Local credentials",
+	// elements : {
+	//     email: {
+	// 	type: "email",
+	// 	holder_value : "Any valid email adress? ..."
+	//     },
+	//     hashpass: {
+	// 	type: "password"
+	//     },
+	//     salt: {
+	// 	type: "string",
+	// 	name: "Password salt"
+	//     },
+	//     username: {
+	// 	type: "string"
+	//     }
+	// },
 	object_builder : function(la){
 
-	    la.create_password=function(clear_password, cb) {
-	    }
+	    la.create_password=function(clear_password, cb) {}
 
-	    
 	    la.check_password=function(clear_password, cb) {
 		var hash=la.val('hashpass');
 		var salt=la.val('salt');
@@ -80,7 +76,6 @@ module.exports={
 	    };
 	}
     },
-    
     group_data : {
 	name : "User groups",
 	name : "Groups",
@@ -125,7 +120,11 @@ module.exports={
 	    collection_list : {
 		type : "api",
 		api_handler : function (req, res){
-		    req.sad.mongo.find({ collection : "collections", user : req.user}, function(err, colls){
+		    var inp=get_json_parameters(req);
+		    var coll=inp["collection"];
+		    if(coll===undefined) coll="collections";
+		    console.log("Looking for collection " + coll);
+		    req.sad.mongo.find({ collection : coll, user : req.user}, function(err, colls){
 			if(err)
 			    return res.json({error : "Mongo error " + err});
 			colls.forEach(function(d){
@@ -197,7 +196,58 @@ module.exports={
 		}
 	    }
 	}
+    },
+
+    colormap : {
+
+	object_builder : function (cmap, app){
+
+
+	    
+	    //console.log("Building colormap...");
+	    cmap.load_json=function(file){
+	// return;
+	// 	var cmo=create_object("db");
+	// 	cmo.name="X";
+	// 	cmo.collection("colormaps");
+	// 	cmo.save();
+		
+	// 	cmo=create_object("string");
+	// 	cmo.name="X";
+	// 	cmo.collection("colormaps");
+	// 	cmo.save();
+		
+	// 	return;
+
+		var fs=require('fs');
+		fs.readFile(file,'utf8', function (err, data) {
+		    if (err) throw err;
+		    var jdata=JSON.parse(data);
+		    var cmaps=jdata.doc.ColorMap;
+		    
+		    cmaps.forEach(function(cm){
+			var cmo=create_object("colormap");
+			//cmo.collection("colormaps");
+			cmo.name=cm['@name'];
+			cmo.value=[];
+			cm.Point.forEach(function(cmp){
+			    cmo.value.push([cmp['@r'],cmp['@g'],cmp['@b'],cmp['@o'],cmp['@x']]);
+			});
+			cmo.save();
+			
+			console.log(JSON.stringify(cmo));
+		    });
+		    
+		    
+		});
+		
+	    }
+	    
+	}
+	
     }
+    
+    
 }
 
 

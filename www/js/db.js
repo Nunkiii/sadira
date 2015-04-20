@@ -1,5 +1,5 @@
 
-// Global object base of all ui template constructors.
+// Global object base of all ui template constructors. (To remove..)
 
 template_ui_builders={};
 
@@ -299,6 +299,8 @@ function create_item_ui(ui_opts, tpl_node){
     
     var builders=[];
 
+    tmaster.common_builder(tpl_node);
+    
     if(tpl_node.btype!==undefined){
 	//console.log(tpl_node.name + " adding base builder " + tpl_node.btype);
 	var t=template_ui_builders[tpl_node.btype];
@@ -313,6 +315,11 @@ function create_item_ui(ui_opts, tpl_node){
 	    builders.push(t); 
     }
 
+    if(è(tpl_node.widget_builder))
+	builders.push(tpl_node.widget_builder);
+
+    
+    
     var ui;
 
     //if(builders.length===0)
@@ -1083,6 +1090,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //	ui_childs=tpl_root.ui_childs={};
 	    
 	    ui_childs.add_child=function(e,ui,prep){
+
+		if(ui===undefined) ui=e.ui_root;
+		if(prep===undefined) prep=false;
 		
 		if(!add_child_common(e,ui,prep)) return;
 		
@@ -1771,11 +1781,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     tpl_root.disable=function(dis,rec){
 	if(ù(dis)){ dis=true; rec=true;}
-	else if(ù(rec))rec=true;
+	if(ù(rec))rec=true;
+	
 	if(dis)
 	    ui_root.add_class("masked");
 	else
 	    ui_root.remove_class("masked");    
+
+	console.log(tpl_root.name + " : disabled ? " + dis);
+	tpl_root.trigger("disabled", dis);
 	tpl_root.disable_rec(dis,rec);
     };
     

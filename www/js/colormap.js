@@ -52,6 +52,38 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     cmap.domnode.className="colormap";
     
     new_event(cmap,"colormap_changed");
+
+    var select=cmap.get("select");
+
+    var r=new request({ cmd : '/api/dbcom/collection_list', args : { collection : "colormap"} });
+    r.execute(function(err, result){
+	if(err){
+	    return cmap.abort_error(err);
+	}
+	if(result.length>0){
+	    select.options=[];
+	    cmap.cmap_db=result;
+	    result.forEach(function(d,i){
+		select.options.push({value : i, label : d.name});
+		//var w=create_widget(d.type);
+		//set_template_data(w,d);
+		//console.log("D= " + JSON.stringify(d));
+			//object.ui_childs.add_child(w, w.ui_root);
+	    });
+	    select.set_options();
+
+	    select.listen('change', function(id){
+		cmap.set_value(cmap.cmap_db[id].value);
+	    })
+	}else{
+	    select.set_title("No collection available");
+	    select.disable();
+	}
+	
+    });
+
+    
+    
     
     cmap.set_hex_color = function(cid, color){
 	console.log("set color id " + cid + " col " + JSON.stringify(color));
@@ -64,6 +96,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 	}else
 	    console.log("Error : color " + cid + " NC = " + this.value.length);
     }
+
     cmap.write_gradient_css_string=function(){
 	//if(!this.value) return;
 	var cstr='linear-gradient(to right';
@@ -87,8 +120,10 @@ template_ui_builders.colormap=function(ui_opts, cmap){
     switch (ui_opts.type){
 	
     case "short":
+
 	cmap.ui=cmap.cmap_plot;//domnode;
 	break;
+	
     case "edit": 
 	
 	var etpl=cmap.edit_tpl= tmaster.build_template("colormap_edit"); 
@@ -155,6 +190,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	
 	b[0].listen("change",function(){
+	    return;
 	    var cid=cmap.selected_section;
 
 	    if(this.value){
@@ -175,6 +211,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
 	
 	b[1].listen("change",function(){
+	    return;
 	    var cid=cmap.selected_section;
 
 	    if(this.value){

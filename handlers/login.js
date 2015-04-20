@@ -1,30 +1,10 @@
-
-
-// var passport = require('passport');
-// var flash    = require('connect-flash');
-//var morgan       = require('morgan');
-
-
-
 var local_strategy = require('passport-local').Strategy;
 var facebook_strategy = require('passport-facebook').Strategy;
 var google_strategy = require('passport-google-oauth').OAuth2Strategy;
 
-
 //var SamlStrategy = require('passport-saml' ).Strategy;
-//var flash    = require('connect-flash');
 
 var crypto=require('crypto');
-
-//var morgan       = require('morgan');
-//var session      = require('express-session');
-
-
-//var schemas = require('../js/base_schemas');
-//var users=schemas.users;
-
-
-//exports.isAuthenticated = passport.authenticate('basic', { session : false });
 
 exports.init=function(pkg,sad, cb){
 
@@ -33,26 +13,14 @@ exports.init=function(pkg,sad, cb){
     var app=sad.app;
     var passport=sad.passport;
     
-    // Initialize Passport!  Also use passport.session() middleware, to support
-    // persistent login sessions (recommended).
-    //app.use(flash());
-    //app.use(app.router);
-    //app.use(express.static('public'));
-    
-    //app.use(flash()); // use connect-flash for flash messages stored in session
-    // used to serialize the user for the session
-
     passport.serializeUser(function(user, done) {
 	//console.log("Serialize USER ! " + user.db.id);
 	done(null, user.db.id);
     });
 
-    // used to deserialize the user
     passport.deserializeUser(function(id, done) {
 	//console.log("Deserialize USER ID " + id);
-	
 	mongo.find1({ type : "user", id : id},
-
 		    done
 
 		    /*
@@ -71,18 +39,17 @@ exports.init=function(pkg,sad, cb){
 		    */
 		   );
     });
-    
-    // we are using named strategies since we have one for login and one for signup
-    // by default, if there was no name, it would just be called 'local'
+
+    // =========================================================================
+    // LOCAL SIGNUP =============================================================
+    // =========================================================================
     
     passport.use('local-signup',
 		 new local_strategy({
-		     // by default, local strategy uses username and password, we will override with email
 		     usernameField : 'email',
 		     passwordField : 'hashpass',
 		     passReqToCallback : true // allows us to pass back the entire request to the callback
 		 },function(req, email, hashpass, done) {
-		     
 		     // asynchronous
 		     // User.findOne wont fire unless data is sent back
 		     process.nextTick(function() {
@@ -91,33 +58,24 @@ exports.init=function(pkg,sad, cb){
 			 // we are checking to see if the user trying to login already exists
 			 //console.log("Begin signup  process for " + email);
 			 
-			 mongo.find_user( email, function(err, user) {
-			     //users.findOne({ 'local.email' :  email }, 
-			     //users.findOne({}, function(err, user) {
-			     // if there are any errors, return the error
+			 mongo.find_user(email, function(err, user) {
 			     if (err){
 				 console.log("Error looking up user: " + err);
 				 return done(err);
 			     }
-			     // check to see if theres already a user with that email
 			     if (user) {
-				 console.log("Email already taken " + email);
+				 console.log("Identity already taken " + email);
 				 return done(null, false, 'That email address is already registered.');
 			     } else {
-
-				 // if there is no user with that email
-				 // create the user
 				 //console.log("Begin signup  process... create user HASPASS = ["+hashpass+"]");
-				 
 				 var new_user = create_object("user");
-
+				 
 				 var access=create_object("local_access")
 				     .set('email',email)
 				     .set_password(hashpass);
 				 
 				 new_user.get("credentials").add('local',access);
-				 
-				 // save the user
+
 				 new_user.save( function(err, r) {
 				     if (err) return done(err);
 				     return done(null, new_user);
@@ -134,45 +92,37 @@ exports.init=function(pkg,sad, cb){
     // =========================================================================
     // LOCAL LOGIN =============================================================
     // =========================================================================
-    // we are using named strategies since we have one for login and one for signup
-    // by default, if there was no name, it would just be called 'local'
 
     passport.use('local-login', new local_strategy({
-	// by default, local strategy uses username and password, we will override with email
 	usernameField : 'email',
 	passwordField : 'hashpass',
 	passReqToCallback : true // allows us to pass back the entire request to the callback
     }, function(req, email, hashpass, done) { // callback with email and password from our form
 	
 	//console.log("Login init for " + email + " pass " + hashpass);
-	// find a user whose email is the same as the forms email
-	// we are checking to see if the user trying to login already exists
+
 	mongo.find_user(email,function(err, user) {
-	    //users.findOne({}, function(err, user) {
-	    // if there are any errors, return the error before anything else
 	    if (err){
 		console.log("Error looking for user " + err);
 		return done(err);
 	    }
-
-	    // if no user is found, return the message
 	    if (user===undefined)
-		return done(null, false, { message  :  "User not found !" });
+		return done(null, false, "User not found !");
 	    
-	    var uuser=create_object_from_data(user);
+	    user=create_object_from_data(user);
 	    //console.log("---> User is " + JSON.stringify(user));
 	    
-	    uuser.get('local').check_password(hashpass, function(error, match){
+	    user.get('local').check_password(hashpass, function(error, match){
 		if(error)
-		    return done(null, false, { message : "checkpass error : "+error } );
+		    return done(null, false, "checkpass error : "+error );
 
 		if(match){
 		    //console.log("checkpass match = " + match + " YEAHHH !!!!");    
-		    return done(null, uuser,  { message : "Yeah!Login!!" });
+		    return done(null, user, "Yeah!Login!!");
 		}
 
 		//console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
-		return done(null, false, { message : "Oops! Wrong password" });
+		return done(null, false, "Oops! Wrong password");
 		
 	    });
 	});
@@ -269,14 +219,14 @@ exports.init=function(pkg,sad, cb){
     
     // process the login form
 
-    /*
+
     app.post('/login', function(req, res, next) {
 	passport.authenticate('local-login', {session : true}, function(err,user,info) {
 	    if (err) {
 		return res.json({error : "Login failed !" + err});
 		//return next(err);
 	    }
-	    req.user=user;
+	    //req.user=user;
 
 	    
 	    if (!user) {
@@ -293,19 +243,19 @@ exports.init=function(pkg,sad, cb){
 		    //return next(err);
 		}
 		// 	//var ejsd={}; sad.set_user_data(req,ejsd);
-	     	return res.json({ status : "ok"});
+	     	return res.json({ user : { id : user._id, login_name : user.get_login_name()} });
 	    });
 	    
 	})(req, res, next);
     });
-*/
 
-    app.post('/login', passport.authenticate('local-login'), function(req, res, next){
+    // app.post('/login', passport.authenticate('local-login'), function(req, res, next){
 	
-	//console.log("user found !!??? : " + JSON.stringify(req.user));
-	res.redirect("/");
+    // 	//console.log("user found !!??? : " + JSON.stringify(req.user));
+    // 	res.json( { user : req.user });
+    // 	//res.redirect("/");
 	
-    });
+    // });
     
     app.get('/user', isLoggedIn, function(req, res) {
 	var ejsd={user : req.user}; sad.set_user_data(req,ejsd);
@@ -412,7 +362,7 @@ exports.init=function(pkg,sad, cb){
 		failureRedirect : '/'
 	    }));
     
-    console.log("Passport initialized ");
+    //console.log("Passport initialized ");
     
 
     // =========================================================================

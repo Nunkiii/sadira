@@ -1,5 +1,12 @@
 function config_common_input(tpl_item){
 
+    tpl_item.listen("disabled", function(disabled){
+	if(disabled)
+	    tpl_item.ui.setAttribute("disabled", true);
+	else
+	    tpl_item.ui.removeAttribute("disabled");
+    });
+    
     new_event(tpl_item,"change");
     tpl_item.set_default_value=function(){
 	tpl_item.set_value(tpl_item.default_value);
@@ -983,10 +990,12 @@ template_ui_builders.login=function(ui_opts, login){
     login_tpl.listen("click",function(){
 	switch(mode){
 	case "login" :
-	    console.log("Login " + user_name + " pw " + user_password);
+	    
 	    register_mode();
 	    var hp=sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(user_password));
 	    user_password="*";
+
+	    console.log("Login " + user_name + " hpw " + hp + " ...");
 	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
 
 	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
@@ -998,13 +1007,14 @@ template_ui_builders.login=function(ui_opts, login){
 		    console.log("Error login " + error);
 		    return;
 		}
+		
 		console.log("Received this " + JSON.stringify(res));
 		
 		if(è(res.error))
 		    return error_mode(res.error);
-
 		
-		login.user_id=res.user_id;
+		login.user_id=res.user.login_name;
+		
 		success_mode();
 		// var server_key=res.key;
 		// var client_key = new Uint8Array(32);
@@ -1194,7 +1204,7 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
     switch (ui_opts.type){
     case "short":
 	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
+	//ui.className="value";
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
 	    ui.innerHTML=tpl_item.value? "On":"Off";
@@ -1213,17 +1223,21 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	
 	
 	tpl_item.set_value=function(nv){
-	    
-	    if(typeof nv !='undefined')
+
+	    if(nv !== undefined){
 		tpl_item.value=nv;
+		tpl_item.trigger("change", tpl_item.value);
+	    }
+	    else
+		if(tpl_item.value===undefined)
+		    if(tpl_item.default_value!==undefined)
+			tpl_item.value=tpl_item.default_value;
+	    if(tpl_item.value===undefined)tpl_item.value=false;
 	    ui.checked=tpl_item.value;
 	}
-	tpl_item.get_value=function(){
-	    return ui.checked;
-	}
+
 	ui.addEventListener("change",function(){
-	    tpl_item.value=this.checked; 
-	    tpl_item.trigger("change", tpl_item.value);
+	    tpl_item.set_value(this.checked); 
 	});
 	break;
     default: 
@@ -1702,10 +1716,11 @@ template_ui_builders.combo=function(ui_opts, combo){
 	}
 	
 	combo.set_options=function(options){
-	    combo.options=options;
+	    if(options!==undefined)combo.options=options;
 	    //console.log("Setting options " + JSON.stringify(options));
+	    if(combo.options===undefined) return;
 	    
-	    options.forEach(function(ov){
+	    combo.options.forEach(function(ov){
 		var o;
 		if(style==="menu"){
 		    var l=cc("li",ul); o=cc("a",l);
@@ -1726,9 +1741,7 @@ template_ui_builders.combo=function(ui_opts, combo){
 	    });
 	}
 	
-	if(typeof combo.options != 'undefined'){
-	    combo.set_options(combo.options);
-	}
+	combo.set_options();
 	
     }else{
 	ui=combo.ui=ce("span"); ui.className="";

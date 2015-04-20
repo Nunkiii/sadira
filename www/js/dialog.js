@@ -432,13 +432,14 @@ function new_event(tpl_item, event_name){
 
     if(typeof tpl_item.event_callbacks==='undefined'){
 	tpl_item.event_callbacks=[];
+
 	tpl_item.listen=function(event_name, cb, persist){
 	    if(ù(persist)) persist=false;
 	    var cbn=tpl_item.event_callbacks[event_name];
 	    
 	    if(typeof cbn=='undefined') 
-		throw "No such event " + event_name ;
-
+		cbn=tpl_item.event_callbacks[event_name]=[]; //throw "No such event " + event_name ;
+	    
 	    for(var c=0;c<cbn.length;c++){
 		if(cb===cbn[c]){
 		    console.log("That function is already listenning to !" + event_name);
@@ -465,7 +466,9 @@ function new_event(tpl_item, event_name){
 	
 	tpl_item.trigger=function(event_name, data){
 	    var cbs=tpl_item.event_callbacks[event_name];
-	    if(typeof cbs=='undefined') throw "No such event " + event_name ;
+	    if(typeof cbs=='undefined')
+		cbs=tpl_item.event_callbacks[event_name]=[]; //throw "No such event " + event_name ;
+		
 	    //if(event_name=="name_changed") return;
 	    //console.log(tpl_item.name + " : trigger event [" + event_name +"] to " + cbs.length +" listeners");
 	    

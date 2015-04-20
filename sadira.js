@@ -241,10 +241,10 @@ perm.prototype.check=function(user, mode){
 		for(var i=0;i<ks.g.length;i++){
 		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
 		    if(ks.g[i]==g){
-			console.log("YYYYYYYYEEEESS");
+			//console.log("YYYYYYYYEEEESS");
 			return true;
 		    }else{
-			console.log("NOOOOOOOOO");
+			//console.log("NOOOOOOOOO");
 		    }
 		}
 	    }
@@ -463,7 +463,7 @@ var _sadira = function(){
 	};
 	
 	
-	var tmaster=this.tmaster= new tpl_mgr.local_templates();
+	var tmaster=this.tmaster= new tpl_mgr.local_templates(this);
 	GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
 	GLOBAL.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
 	
@@ -671,6 +671,7 @@ _sadira.prototype.start_session_handling = function (){
     var redis_session_store = require("connect-redis")(session);
     
     this.app.use(session({
+	key : "sadira.sid",
 	secret: 'vivalabirravivalabirravivalabirra',
 	store : new redis_session_store(options),
 	saveUninitialized: true,
@@ -889,7 +890,9 @@ _sadira.prototype.load_routes = function (){
 _sadira.prototype.load_mongodb = function (cb){
     var sad=this;
     console.log("Initializing mongodb...");
-    
+    if(sad.options.mongo===undefined){
+	throw "Cannot start mongodb : You need to provide a mongo section in the sadira configuration file !"
+    }
     sad.mongo=new mongo_pack.server(sad.options.mongo,sad);
     
     sad.mongo.connect(function(error){
@@ -905,9 +908,28 @@ _sadira.prototype.load_apis = function (cb){
     var sad=this;
     sad.apis={};
 
+    console.log("Loading apis...");
+
+    /*
+    sad.mongo.db.collection('colormap').find({},{},function(err, cursor){
+	if(err)
+	    return console.log("colormap erro = " + err);
+	cursor.count(function(err, n){
+	    console.log("N colormaps = " + n);
+	    cursor.each(function(err, cm){
+		//console.log(JSON.stringify(cm));
+	    });
+	});
+    });
+    
+    sad.mongo.find({ user : sad.mongo.admin, collection : "colormap"}, function(err, api_data){
+	sad.log("Loading " + api_data.length + " CMS ");
+    });
+    */
     sad.mongo.find({ user : sad.mongo.admin, collection : "api"}, function(err, api_data){
 
 	if(err) return cb(err);
+
 	sad.log("Loading " + api_data.length + " APIS ");
 	for(var i=0;i<api_data.length;i++){
 	    var aprov=create_object_from_data(api_data[i]);
@@ -943,6 +965,8 @@ _sadira.prototype.start_worker = function (cb){
 
     var app=sad.app=express();
 
+    app.disable('x-powered-by');
+    
     sad.load_mongodb(function(error){
 	if(error) return cb(error);
 	
@@ -973,12 +997,12 @@ _sadira.prototype.start_worker = function (cb){
 	
         sad.app.use(function(req, res, next) {
 	    req.sad=sad;
+	    res.header("x-powered-by", "Sadira");
 	    //console.log("Cookies : " + JSON.stringify(req.cookies));
-	    //console.log("Session : " + JSON.stringify(req.session));
+	    //console.log("Session : " + JSON.stringify(req.session) + " ID : " + req.cookies['sadira.sid']);
+	    
 	    //console.log("PPort : " + JSON.stringify(req._passport));
-	    
 	    //console.log("User auth ?? : " + req.isAuthenticated());
-	    
 	    //if(req.user!==undefined){
 	    //	console.log("We have a user " + JSON.stringify(req.user));
 		
@@ -1382,9 +1406,6 @@ _sadira.prototype.initialize_plugins=function(cb){
     
     var pload_func=function(pn) {
 	return function(cb){
-	    //var pn=pn;
-	    sad.log("Loading plugin [" + pn + "]" );
-	    
 	    var p=plugs[pn];
 	    if( p.file === undefined) return cb("No javascript file defined in plugin " + pn);
 	    //sad.log("Init "+packname+" : ["+pkg_file+"]");
@@ -1392,11 +1413,11 @@ _sadira.prototype.initialize_plugins=function(cb){
 	    var pack=require(p.file);
 	    var initf = sad.cluster.isMaster ? pack.init_master : pack.init;
 	    
-	    sad.log("Loading plugin [" + pn + "]" + p.file);
+	    sad.log("Loading plugin [" + pn + "] : " + p.file);
 	    if(initf!==undefined)
 		initf(p,sad,cb);
 	    else{
-		console.log("No pkg init function for plugin ["+pn+"]!");
+		//console.log("No pkg init function for plugin ["+pn+"]!");
 		cb(null);
 	    }
 	}

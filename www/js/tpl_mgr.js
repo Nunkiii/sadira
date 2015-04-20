@@ -36,6 +36,7 @@ function set(tpl, name, value){
 function get_template_data(t){
     var data={};
     if(è(t.type)) data.type=t.type;
+    if(è(t.name)) data.name=t.name;
     if(è(t.db)){
 	if(Object.keys(t.db).length>0)
 	    data.db=t.db;
@@ -52,7 +53,18 @@ function get_template_data(t){
 function set_template_data(t, data){
     //console.log("Setting template data for " + t + " data" + JSON.stringify(data));
     //console.log("Setting template data for " + t.name);
-    if(è(data.value)) t.value=data.value;
+    if(è(data.value)){
+	//console.log("Setting value ["+data.value+"] to ["+t.name+"] ");
+	if(t.set_value)
+	    t.set_value(data.value);
+	else
+	    t.value=data.value;
+	
+    }
+    if(è(data.name)){
+	t.name=data.name;
+    }
+    
     if(t.db===undefined)t.db={};
     if(è(data.db)){
 	for(var te in data.db){
@@ -77,6 +89,10 @@ function set_template_data(t, data){
 	    set_template_data(t.elements[te],data.els[te]);
 	}
     }
+
+    new_event(t,"data_loaded");
+    t.trigger("data_loaded",data);
+
     return t;
 }
 
@@ -84,8 +100,9 @@ function encode_data_structure(t){
 }
 
 
-var local_templates=function(){
+var local_templates=function(app){
     this.templates={};
+    this.app=app;
 }
 
 
@@ -247,6 +264,7 @@ local_templates.prototype.create_object_from_data=function(data){
 
 local_templates.prototype.create_object=function(template, cb){
     var tmaster=this;
+    var app=this.app;
     //console.log("create tpl "+template+"pname = " + typeof this);
     //for(var k in Object.keys(this)) console.log("tmk " + k + " v=" + this[k]);
 
@@ -265,7 +283,7 @@ local_templates.prototype.create_object=function(template, cb){
 	
 	function build_childs(cb){
     	    if(t.object_builder!==undefined)
-		t.object_builder(t);
+		t.object_builder(t,app);
 	    if(t.elements!==undefined){
 		var ne=Object.keys(t.elements).length;
 		for(var e in t.elements){

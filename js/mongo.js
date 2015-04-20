@@ -21,6 +21,7 @@ var assert = require('assert');
 function server(pkg,app) {
     this.sad=app;
     var config_in=pkg.opts;
+    
     var def_port=27017;
     var config=this.config={
 	mongo_host : "localhost",
@@ -92,9 +93,10 @@ server.prototype.connect = function(cb, options_in) {
 	    url+=cfg.mongo_host+':'+cfg.mongo_port+'/'+cfg.mongo_db;
 	}
 	
-	var options={
+	var options={ //Default options to pas to the mongodb driver
 	    raw: true, native_parser : true
 	};
+
 	if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
 	
 	console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
@@ -151,9 +153,9 @@ function create_query(opts){
 	    for(var pe=0;pe<splitpath.length;pe++){
 		op+='els.'+splitpath[pe]+'.';
 	    }
+	    op+='value';
+	    q[op]=opts.value;
 	}
-	op+='value';
-	q[op]=opts.value;
     }
     
     //console.log("Query is " + JSON.stringify(q) );
@@ -176,7 +178,7 @@ server.prototype.write_doc=function(doc,a,b){
 	cb=function(ee){ if(ee) console.log("Unhandled write_doc error : " + ee);}
 	//throw("write_doc : you need to provide a callback function !");
     }
-
+    
     var coll=doc.collection();
     var options={w: 'majority', wtimeout: 10000, serializeFunctions: false, forceServerObjectId: true};
     
@@ -188,16 +190,27 @@ server.prototype.write_doc=function(doc,a,b){
     if(doc.id()!==undefined){
 	var q={ _id : doc.id() };
 	this.db.collection(coll).findOneAndUpdate(q,data, options, function(err, result){
-	    if(err) return cb(err);
-	    set_template_data(doc,result.value);
-	    cb(null,doc);
+	    if(err) cb(err);
+	    else{
+		set_template_data(doc,result.value);
+		cb(null,doc);
+	    }
 	});
     }
     else
 	this.db.collection(coll).insertOne(data, options, function(err, result){
-	    if(err) return cb(err);
-	    //??????????????if(result.insertedCount===1)
-	    return cb(null, doc);
+	    if(err) cb(err);
+	    else{
+		if(result.ops.length===1){
+		    //console.log("docs = " + JSON.stringify(result.ops[0]));
+		    set_template_data(doc, result.ops[0]);
+		    cb(null, doc);
+		}else
+		    cb("result.ops has a problem...?");
+		
+		//??????????????if(result.insertedCount===1)
+		
+	    }
 	});
     
     
@@ -252,35 +265,58 @@ server.prototype.find=function(opts, cb){
 
     var user=opts.user!==undefined ? opts.user : mongo.default_user;
     var coll=opts.collection!==undefined ? opts.collection : opts.type;
-
     
     function get_docs(){
-	console.log("Getting docs from collection " + coll + " query " + JSON.stringify(q));
-	mongo.db.collection(coll).find(q, {}).toArray(function(err, data){
-	    if(err) return cb(err);
-	    var objects=[];
-	    	console.log("Getting docs from collection " + coll + " N= " + data.length);
-	    for(var i=0;i<data.length;i++){
-		var d=data[i];
+	console.log("Mongo find collection ["+coll+"] : query = ["+JSON.stringify(q)+"]");
+	mongo.db.collection(coll).find(q, {}, function(err, cursor){
+
+	    if(err){
+		console.log("ERROR MONGO " + err);
+		return cb(err);
+	    }
+	    
+
+	    //cursor.limit(200);
+	    
+	    cursor.count(function(err, n){
+		if(err){
+		    console.log("ERROR MONGO COUNT " + err);
+		    return cb(err);
+		}
 		
-		if(d.db!==undefined){
-		    if(d.db.p!==undefined){
-			var p=new perm(d.db.p);
-			if(p.check(user,'r')){
-			    objects.push(d);
+		console.log("Getting docs from collection [" + coll + "] N= " + n);
+		var objects=[];
+		
+		cursor.each(function(err, d){
+		    
+		    if(err){
+			console.log("ERROR MONGO " + err);
+			return cb(err);
+		    }
+		    if(!d){
+			return cb(null,objects);
+		    }
+		    console.log(" D=" + JSON.stringify(d));
+		    if(d.db!==undefined){
+			if(d.db.p!==undefined){
+			    var p=new perm(d.db.p);
+			    if(p.check(user,'r')){
+				objects.push(d);
 			}
-			else
-			    console.log("Perm not granted for user "+JSON.stringify(user)+" ! " + p);
+			    else
+				console.log("Perm not granted for user "+JSON.stringify(user)+" ! " + p);
+			}else
+			    objects.push(d);
 		    }else
 			objects.push(d);
-		}else
-		    objects.push(d);
-	    }
-	    return cb(null,objects);
+		});
+		
+		
+	    });
 	});
+	
     }
 
-    
     mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.p' : 1}, function(err, data){
 	if(err) return cb(err);
 	if(data){

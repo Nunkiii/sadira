@@ -15,13 +15,12 @@ var base_templates={
     image_url:{},
     html:{},
     code:{},
-    combo:{},
+    combo:{ ui_opts : { type : "edit"} },
     template_list:{},
     action:{},
     color:{},
     angle:{},
     expo_setup:{},
-    colormap:{},
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
@@ -29,29 +28,38 @@ var base_templates={
 
     db_collection : {
 
-	name : "Object data table",
+	name : "Object collection",
 
 	elements : {
 
 	    name : {
 		name : "Collection name",
 		type : "string",
-		holder_value : "Enter name here"
+		holder_value : "Enter name here",
+		ui_opts : { label : true}
 	    },
 
 	    template : {
 		name : "Collection template",
-		type : "string"
+		type : "string",
+		ui_opts : { label : true}
 	    },
 	    
 	    dbname : {
 		name : "Database name",
-		type : "string"
+		type : "string",
+		ui_opts : { label : true}
 	    }
+	},
+
+	widget_builder : function(ui_opts, dbc){
+	    dbc.listen("data_loaded", function(){
+		dbc.set_title( dbc.val("name"));
+	    })
 	}
 	
     },
-
+    
     db_browser : {
 
 	name : "Database browser",
@@ -75,6 +83,36 @@ var base_templates={
 		name : "Object view",
 		ui_opts : { root_classes : ["col-sm-6"]}
 	    }
+	},
+
+	widget_builder : function(ui_opts, dbb){
+	    
+	    console.log("DBB start " + dbb.name);
+	    var object = dbb.get('object');
+	    var r=new request({ cmd : '/api/dbcom/collection_list'});
+	    r.execute(function(err, result){
+		if(err){
+		    object.ui_root.innerHTML=err;
+		    return;
+		}
+		var colsel=dbb.get("colsel");
+		if(result.length>0){
+		    colsel.options=[];
+		    result.forEach(function(d){
+			colsel.options.push({value : d._id, label : d.els.name.value});
+			//var w=create_widget(d.type);
+			//set_template_data(w,d);
+			//console.log("D= " + JSON.stringify(d));
+			//object.ui_childs.add_child(w, w.ui_root);
+		    });
+		    colsel.set_options();
+		}else{
+		    colsel.set_title("No collection available");
+		    colsel.disable();
+		}
+		
+	    });
+	    
 	}
     },
     
@@ -91,7 +129,18 @@ var base_templates={
 	    }
 	},
 	object_builder : function(user){
-	    
+	    user.get_login_name=function(){
+		var cred;
+		cred= user.get("local");
+		if(cred!==undefined){
+		    var un=cred.val('username');
+		    if(un!==undefined) return un;
+		    var un=cred.val('email');
+		    if(un!==undefined) return un;
+		}
+
+		return "Unknown";
+	    }
 	}
     },
     user_group : {
@@ -108,7 +157,56 @@ var base_templates={
 	    }
 	},
     },
+    local_access : {
+	tpl_desc : "All info for an internally administered user.",
+	name : "Local credentials",
+	elements : {
+	    email: {
+		type: "email",
+		holder_value : "Any valid email adress? ..."
+	    },
+	    hashpass: {
+		type: "password"
+	    },
+	    salt: {
+		type: "string",
+		name: "Password salt"
+	    },
+	    username: {
+		type: "string"
+	    }
+	}
+    },
+    facebook_access : {
+	name : "Facebook credentials",
+	elements : {
+	    id           : { name : "Id", type : "string"},
+	    token        : { name : "Token", type : "string"},
+	    email        : { name : "Email", type : "email"},
+	    name         : { name : "Name", type : "string"},
+	}
+    },
+    twitter_access : {
+	name : "Twitter credentials",
+	elements : {
+	    id           : { name : "Id", type : "string"},
+	    token        : { name : "Token", type : "string"},
+	    displayName  : { name : "Display name", type : "string"},
+	    userName     : { name : "User name", type : "string"},
+	}
+    },
+    google_access : {
+	name : "Google credentials",
+	elements : {
+	    id           : { name : "Id", type : "string"},
+	    token        : { name : "Token", type : "string"},
+	    email        : { name : "Email", type : "email"},
+	    name         : { name : "Name", type : "string"},
+	}
+    },
 
+
+    
     sadira : {
 	//name : "Websocket",
 	ui_opts : {
@@ -194,7 +292,7 @@ var base_templates={
 	    password :{
 		type: "password",
 		name : "Password",
-		default_value : "your password",
+		holder_value : "your password",
 		ui_opts : { type : "edit", label: true, root_classes : ["form-group"]}
 	    },
 	    status :{
@@ -654,8 +752,40 @@ var base_templates={
 	}
 
 
-    }
-    
+    },
+
+    colormap : { 
+	name : "Colormap",
+	subtitle : "Buggy!",
+	intro : "<br/><br/><p class='alert alert-warning'><strong>This is buggy, sorry !</strong>Need rewrite. New version will offer a list of «common» colormaps for straight use and user colormaps will be stored in webstorage.</p>",
+	ui_opts : {
+	    type : "edit",
+	    //editable : true,
+	    root_classes : ["container-fluid"],
+	    item_classes : [],
+	    
+	},
+	// value : [[0,0,0,1,0],
+	// 	      [0.8,0.2,0.8,1.0,0.2],
+	// 	      [0.9,0.9,0.2,1.0,0.2],
+	// 	      [0.9,0.9,0.2,1.0,0.5],
+			// 	      [0.9,0.2,0.2,1.0,0.5],
+	// 	      [1,1,1,1,1]] },
+	
+	
+	value : [[0,0,0,1,0],
+		 [0.7,0.2,0.1,1.0,0.2],
+		 [0.8,0.9,0.1,1.0,0.6],
+		 [1,1,1,1,1]],
+
+	elements : {
+	    select : {
+		name : "Select colormap",
+		type : "combo",
+		ui_opts : { label : true}
+	    }
+	}
+    },
 };
 
 var nodejs= typeof module !== 'undefined'; //Checking if we are in Node
