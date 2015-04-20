@@ -121,12 +121,14 @@ server.prototype.connect = function(cb, options_in) {
 		    if(err){
 			return cb(err);
 		    }
-		    mongo.everybody_group=every_group;
-		    var du=create_object("user");
-		    du.get('groups').add_link(every_group);
-		    mongo.default_user=get_template_data(du);
-		    console.log("Created default user : " + JSON.stringify(mongo.default_user));
-
+		    if(every_group!==undefined){
+			mongo.everybody_group=every_group;
+			var du=create_object("user");
+			du.get('groups').add_link(every_group);
+			mongo.default_user=get_template_data(du);
+			console.log("Created default user : " + JSON.stringify(mongo.default_user));
+		    }else
+			console.log("No every_group, no bootstraop ??");
 		    cb(null,db);
 		});
 		
