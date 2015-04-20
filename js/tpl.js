@@ -127,6 +127,7 @@ module.exports={
 		    req.sad.mongo.find({ collection : coll, user : req.user}, function(err, colls){
 			if(err)
 			    return res.json({error : "Mongo error " + err});
+
 			colls.forEach(function(d){
 			    delete d.db;
 			});
