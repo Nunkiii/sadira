@@ -933,7 +933,7 @@ _sadira.prototype.load_apis = function (cb){
 	sad.log("Loading " + api_data.length + " APIS ");
 	for(var i=0;i<api_data.length;i++){
 	    var aprov=create_object_from_data(api_data[i]);
-	    console.log("Loading api provider : " + JSON.stringify(aprov));
+	    console.log("Loading api provider : [" + aprov.name + "]");
 	    if(sad.apis[aprov.name]!==undefined){
 		
 	    }
