@@ -412,12 +412,15 @@ var _sadira = function(){
 		if(gr===undefined) gr='r';
 		sad.mongo.find_group(gname, function(err, group){
 		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
-		    if(obj.db.p===undefined) obj.db.p=new perm();
-		    var g={}; g[gr]={g : [group._id] };
-		    obj.db.p.grant(g);
-		    if(cb!==undefined)cb(null);
+		    if(group!==undefined){
+			if(obj.db.p===undefined) obj.db.p=new perm();
+			var g={}; g[gr]={g : [group._id] };
+			obj.db.p.grant(g);
+			if(cb!==undefined)cb(null);
+		    }else
+			cb("Group " + gname + " not found !");
 		});
-
+		
 	    };
 	    
 	    obj.collection=function(cname){
