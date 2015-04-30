@@ -671,7 +671,7 @@ _sadira.prototype.start_session_handling = function (){
     this.log("Redis session : connect : options " + JSON.stringify(options));
 
     var session=require('express-session');
-    var redis_session_store = require("connect-redis")(session);
+    var redis_session_store = require("connect-redis")(session, { host: "localhost"});
     
     this.app.use(session({
 	key : "sadira.sid",
@@ -820,7 +820,7 @@ _sadira.prototype.load_routes = function (){
     
     sad.app.get('/widget/:tpl_name', function(req, res) {
 	var p=get_parameters(req);
-	var header=(p.header!==undefined)? p.header:true;
+	var header=(p.header!==undefined)? p.header:false;
 	var ejs_data={ tpl_name : req.params.tpl_name, header : header};
 	//sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file

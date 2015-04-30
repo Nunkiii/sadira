@@ -1,4 +1,5 @@
 var base_templates={
+
     main_window:{},
     progress:{},
     status:{},
@@ -24,7 +25,6 @@ var base_templates={
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
-
 
     db_collection : {
 
@@ -59,7 +59,32 @@ var base_templates={
 	}
 	
     },
-    
+
+    user_home : {
+
+	name : "User homepage",
+	ui_opts : {child_view_type : "tabbed", root_classes : ["container-fluid"] },
+
+	elements : {
+	    user_activity : {
+		name : "Last activity"
+	    },
+	    
+	    account_settings : {
+
+		name : "Account settings",
+		elements : {
+		    user_data : {type : "user"}
+		    
+		}
+	    }
+	},
+
+	widget_builder : function(ui_opts, uhome){
+	    
+	    uhome.debug("Hello world debug");
+	}
+    },
     db_browser : {
 
 	name : "Database browser",
@@ -115,6 +140,51 @@ var base_templates={
 	    
 	}
     },
+
+    music_app : {
+	name : "StudyMusic",
+	subtitle : "Learn music in tempo. Yeah ! ",
+	
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    child_view_type : "tabbed",
+	    fa_icon : "leaf"
+	},
+
+	toolbar : {
+	    elements : {
+		file_menu : {
+		    name : "Lessons",
+		    elements : {
+			open : { name : "Lesson1"},
+			load : { name : "Lesson2"},
+			close : { name : "Lesson3"},
+		    }
+		}
+	    }
+	},
+	
+	elements : {
+	    lessons : {
+		name : "My lessons",
+		subtitle : "Manage your lessons here"
+		
+	    },
+
+	    time : {
+		name : "Time organization",
+		subtitle : "Manage your lessons here"
+	    },
+
+	    account : {
+		name : "User account",
+		subtitle : "Setup your user account",
+		type : "user"
+	    }
+	}
+
+    },
+    
     
     user : {
 	//type : "user",
@@ -249,9 +319,10 @@ var base_templates={
 		ui_opts : {
 		    root_classes : ["input-group-btn"],
 		    button_node : "span",
+		    fa_icon : "link",
+
 		    name_classes : [],
-		    item_classes : ["btn btn-info"],
-		    fa_icon : "link"
+		    item_classes : ["btn btn-info"]
 		    //item_root : true
 		},
 		type: "action",
@@ -272,44 +343,97 @@ var base_templates={
 	    }
 	} 
     },
+
+    sadira_panel : {
+	name : "<strong>sadira</strong>",
+	subtitle : "control panel",
+	ui_opts : {
+	    sliding: true, slided : false, sliding_dir : 'h',
+	    name_node : "h4",
+	    //root_classes : ["sadira_panel"]
+	},
+	elements : {
+	    login : { type : 'login' }
+	}
+
+    },
+    
     login : {
 	name : "Login",
+	subtitle : "Enter your username and password to log into sadira",
 	ui_opts : {
-	    sliding: true, slided : false, label : true, label_node : "a",
-	    
-	    root_node : "li",
-	    root_classes : ["inline"],
-	    child_classes : ["navbar-form navbar-right"],
-	    name_classes : ["navbar-link"],
-	    item_classes : []},
+	    //sliding: true, slided : true,
+	    //label : true, //label_node : "a",
+	    //sliding_animate : true,
+	    //sliding_dir : "h",
+	    //root_node : "li",
+	    name_node : "h4",
+	    root_classes : ["container-fluid panel panel-default"],
+	    child_node_type : "form",
+	    child_classes : ["well container-fluid form-inline"],
+	    name_classes : [],
+	    item_classes : []
+	},
+
 	elements : {
 	    user: {
 		type: "string",
 		name : "User",
 		holder_value : "e-mail or username",
-		ui_opts : { type : "edit", label : true, root_classes : ["form-group"], item_classes : ["input-sm"]}
+		ui_opts : {
+		    type : "edit", label : true,
+		    root_classes : ["input-group"],
+		    //wrap : true,
+		    //wrap_classes : ["col-sm-4 nopadding"],
+		    name_classes : ["input-group-addon"],
+		    name_node : "div"
+		}
 	    },
+
 	    password :{
 		type: "password",
 		name : "Password",
 		holder_value : "your password",
-		ui_opts : { type : "edit", label: true, root_classes : ["form-group"]}
+		ui_opts : {
+		    type : "edit", label: true,
+		    root_element : "user",
+		    //root_classes : ["input-group"],
+		    wrap : false,
+		    //root_classes : ["col-sm-4 nopadding"],
+		    //wrap_classes : ["input-group"],
+		    name_classes : ["input-group-addon"]
+		}
 	    },
+
 	    status :{
 		type  : "string",
 		value : "Logging in ...",
 		ui_opts : {
-		    item_classes : ["text-info"],
-		    root_classes : ["form-group"]}
+		    root_element : "user",
+		    item_classes : ["input-group-addon"],
+		    //root_classes : ["form-group input-group inline"]
+		}
 	    },
+
 	    login : {
 		name : "Log in",
 		type : "action",
 		ui_opts : {
-		    item_classes : ["btn btn-primary"],
-		    root_classes : ["form-group"]
+		    item_root : true,
+		    //root_element : "user",
+		    //button_node : "span",
+		    //name_node : "span",
+		    //fa_icon : "link",
+		    //wrap : true,
+		    //wrap_classes : ["input-group-btn"],
+		    
+		    //name_classes : ["input-group-addon"],
+		    //root_classes : ["inline"],
+
+		    item_classes : ["btn btn-info"]
 		}
 	    },
+
 	    // fb_login : {
 	    // 	name : "Facebook log in",
 	    // 	type : "action",
@@ -327,7 +451,7 @@ var base_templates={
     signup : {
 	name : "Create a new account",
 	subtitle : "Choose a login method",
-	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p><p>Additional features might be available if your account is linked to a social-network account. You'll can configure your account settings on your user page once logged in. </p> ",
+	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p>",
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts :{
 	    child_view_type : "pills",
@@ -369,7 +493,7 @@ var base_templates={
 					    label : true,
 					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],
 					    wrap : true,
-					    wrap_classes : ["col-sm-6"]
+					    wrap_classes : ["col-sm-6 nopadding"]
 					  }
 			    },
 			    password : {
@@ -548,23 +672,60 @@ var base_templates={
     },
     
     sadira_home : {
-	    
-	name : "INAF/IASF-Bologna ☄",
-	subtitle : "— Astro-web-software",
+	name : '<span style="color: springgreen;">♐</span> Qk/Sadira',
 	
 	ui_opts : {
 	    root_classes : ["container-fluid"],
-	    child_classes : ["container"],
+	    child_classes : ["container-fluid"],
 	    child_view_type : "pills",
-	    name_node : "h2",
-	    icon : "/sadira/icons/inaf_iasfbo.png",
-	    icon_size : "5em",
-	    intro_stick : true
+	    name_node : "h4",
+	    intro_stick : true,
+	    child_toolbar : false
 	},
+
+	toolbar : {
+	    elements : {
+		/*
+		file_menu : {
+		    name : "File",
+		    elements : {
+			open : { name : "Open"},
+			load : { name : "Load"},
+			close : { name : "Close"},
+		    }
+		},
+		*/
+		demos : {
+		    name : "Demos",
+		    elements : {
+			xd1 : {
+			    name : "XD-1",
+			    type : "xd1"
+			},
+			minispectro : {
+			    name : "Minispectro",
+			    type : "videocap"
+			}
+		    }
+		},
+		login : {
+		    type : "login", name : "Login"
+		},
+		register : {
+		    type : "signup", name : "Create account"
+		}
+	    }
+	},
+
+	
 	elements : {
 	    welcome : {
-		name : "Qk/Sadira",
+		name : "INAF/IASF-Bologna ☄",
+		subtitle : "— Astro-web-software",
 		type : "html",
+		icon : "/sadira/icons/inaf_iasfbo.png",
+		//icon_size : "5em",
+
 		intro : "<p>Qk/Sadira is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p>",
 		url : "/sadira/welcome.html",
 		ui_opts : { intro_stick : true}

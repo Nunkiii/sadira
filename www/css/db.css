@@ -80,29 +80,17 @@ On top of bootsrap 3
 
 body
 {
-  /*
-  font-size: 1.5vw;
+  font-size: 1.2vw;
+/*	      
+  background: black;
+color: white;
+
 */
 }
 
-/*
-bootstrap raw modifs.
-
-
-
-.input-group[class*="col-"] {
-  padding-left: 15px;
-  padding-right: 15px;
-}
-
-*/
 
 .db[data-type="double"]  .form-control,.db[data-type="angle"]  .form-control{
   display: inline-block;
-/*  
-  width: auto;
-
-*/
 }
 
 
@@ -120,6 +108,7 @@ span.fa{
   margin-right: .4em;
 }
 
+
 label {
   /*  font-family : "Ubuntu";
   font-weight: normal;
@@ -131,6 +120,14 @@ label {
 pre {
   background-color : transparent;
   font-family : monospace;
+}
+
+.nopadding {
+	   padding: 0px;	
+}
+
+.nomargin {
+	   margin: 0px;
 }
 
 .inline{
@@ -152,6 +149,17 @@ pre {
   font-size : 1.3em;
   color: white;
 }
+
+
+.sadira_panel{
+	z-index : 100;
+	position : fixed;
+	right: 0px;
+	top: 0px;
+	color: white;
+	border: 1px solid blue;
+}
+
 
 table.soft_table {
   background: grey;
@@ -663,7 +671,9 @@ label:hover{
 .close_button{
   padding:.1em;
   margin-left: .3em;
+  cursor: pointer;
 }
+
 .close_button:hover{
   color: red;
 }
@@ -795,10 +805,8 @@ sliding
 */
 
 .sliding{
-  /*display: block;*/
   opacity :1;
-  transition: opacity .2s ease-in-out, margin-left .2s ease-in-out, margin-right .2s ease-in-out, margin-top .2s ease-in-out, margin-bottom .2s ease-in-out;
-  border-radius: .2em;
+  transition: opacity .5s ease-in-out, margin .3s ease-in-out;
 }
 
 .db .sliding { 
@@ -835,6 +843,13 @@ label{
 
 }
 
+label.slided{
+	cursor: pointer;
+}
+label.unslided{
+	cursor: pointer;
+}
+
 .editable > label{
   cursor : pointer;
 }
@@ -849,6 +864,10 @@ label{
 .navbar-brand{
   font-family : "Aileron";
   font-weight: 300;
+}
+
+.navbar-brand h4{
+/*  color : lightblue; */
 }
 
 .navbar-brand small{
@@ -904,7 +923,6 @@ label{
   vertical-align: bottom;
   margin-right: 1em;
 }
-*/
 .db[data-type="login"] label{
   color: lightgrey;
   font-weight: normal;
@@ -914,45 +932,6 @@ label{
 .db[data-type="login"] >a{
   display : inline-block;
   }
-
-/*
-.db[data-type="login"] label.unslided{
-  cursor : pointer;
-  margin-top: 1em;
-  color: lightgrey;
-}
-
-.db[data-type="login"] label.slided{
-  cursor : pointer;
-  color: springgreen;
-  margin-top: 1em;
-}
-*/
-	     
-/*
-label.unslided{
-  margin-right: .2em;
-  opacity : 1.0;
-  color: lightgrey;
-  line-height: 3.5em;
-}
-
-
-label.slided{
-  color: springgreen;
-  opacity : 1.0;
-
-
-}
-*/
-/*
-  
-
-  label .form-control{
-  width: auto;
-  display: inline-block;
-
-}
 */
 
 

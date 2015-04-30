@@ -568,7 +568,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	else
 	    ui.type="number";
 
-	ui.add_class("form-control input-sm");
+	ui.add_class("form-control");
 	
 	
 	if(tpl_item.min) ui.min=tpl_item.min;
@@ -905,13 +905,13 @@ template_ui_builders.login=function(ui_opts, login){
     
     var user_tpl=login.elements.user;
     var pw_tpl=login.elements.password;
-    var login_tpl=login.elements.login;
+    var login_tpl=login.get('login');
     var status_tpl=login.elements.status;
 
     var fb_login=login.elements.fb_login;
     
     user_tpl.ui.focus();
-    pw_tpl.pui.add_class("input-sm");
+    //pw_tpl.pui.add_class("input-sm");
     var user_name="", user_password="";
     var mode;
 
@@ -1361,13 +1361,21 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	}
 	break;
 
-    case "edit": 
+    case "edit":
+	var ui;
 
-	var ui=tpl_item.ui=ce("div"); ui.className="input-group";
-	var pui=tpl_item.pui=cc("input",ui);pui.className="form-control";
+	if(ui_opts.wrap===false){
+	    ui=tpl_item.ui_root;
+	}else{
+	    ui=tpl_item.ui=ce("div");
+	    ui.className="input-group";
+	}
+	
+	var pui=tpl_item.pui=cc("input",ui);
 	var lab=cc("span",ui); lab.className="btn btn-info input-group-addon";
 	lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
 	//var show=cc("input",lab); show.type="checkbox";
+	pui.className="form-control";
 	pui.type="password";
 	//pui.className="form-control";
 	pui.show=false;
@@ -1537,8 +1545,6 @@ template_ui_builders.url=function(ui_opts, url){
 
 		};
 	    });
-	    
-	    
 	    
 	}else{
 	    ui=url.ui=ce("input");
@@ -1816,7 +1822,8 @@ template_ui_builders.action=function(ui_opts, action){
 	ui = ce(bnode);
 
 	new_event(action,"click");
-	ui.type="button";
+	if(bnode === 'input')
+	    ui.type="button";
 
 	ui.addEventListener("click",function(e){
 	    action.trigger("click", action);	    
@@ -1915,11 +1922,13 @@ template_ui_builders.action=function(ui_opts, action){
 	//ui=action.ui=ce("input"); ui.type="button";
 	
 	if(è(action.ui_title_name)){
-	    if(action.ui_name!='undefined')
+	    if(action.ui_name!==undefined)
 		;//action.ui_name.removeChild(action.ui_title_name);
 	}
-	if(è(action.ui_name))
+	
+	if(action.ui_name !== undefined){
 	    action.ui_root.removeChild(action.ui_name);
+	}
     }	
 
 

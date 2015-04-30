@@ -5,26 +5,32 @@
     <% include ./parts/head %>
     <title> <%= tpl_name %> </title>
     <% if(header===true){ %>
+    <% } %>	
     <style>
       body{
       padding-top: 70px;
       }
     </style>
-    <% } %>	
+
   </head>
   
-  <body>
+  <body id="content">
     <% if(header===true){ %>
     <header>
       <% include parts/header %>
     </header>
-    <% } %>	
-    <main id="content"> </main>
+    <% } %>
+
+    
+    <!-- <main id="content" class="container-fluid"></main> -->
+    
+    
+    <!-- <script> document.getElementById("content").appendChild(create_widget("login").ui_root);</script> -->
     
     <!-- <footer> -->
     <!--   <% include parts/footer %> -->
     <!-- </footer> -->
-
+    
   </body>
   
   <script>
