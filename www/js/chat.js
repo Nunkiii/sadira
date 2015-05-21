@@ -39,13 +39,11 @@ var chat_templates={
 	elements : {
 	    user_list : {
 		name : "Online users",
-		type : "template",
-		template_name : "users"
+		type : "users"
 	    },
 	    panel : {
 		name : "Chat panel",
-		type : "template",
-		template_name : "chat_panel"
+		type : "chat_panel"
 	    }
 	    
 	}
@@ -57,9 +55,7 @@ var chat_templates={
 	elements : {
       	    server : {
 		ui_opts : {label : true, sliding : true, slided : false, root_classes : ["inline"] },
-		type : "template",
-		template_name : "sadira",
-		//type : "sadira",
+		type : "sadira",
 		name : "Websocket"
 	    },
 	    

@@ -149,7 +149,6 @@ exports.init=function(pkg,sad, cb){
     }));
 
     */
-    
 
     // route middleware to make sure a user is logged in
     function isLoggedIn(req, res, next) {
@@ -219,21 +218,29 @@ exports.init=function(pkg,sad, cb){
     
     // process the login form
 
+    app.post('/logiiiiin', function(req, res, next) {
+	console.log("Hellloooo!");
+	return res.json({error : "Login failed ! TESTING"});
+    });
 
+    
     app.post('/login', function(req, res, next) {
+	
 	passport.authenticate('local-login', {session : true}, function(err,user,info) {
+	    
 	    if (err) {
+		console.log("Login failed err = " + err);
 		return res.json({error : "Login failed !" + err});
 		//return next(err);
 	    }
+	    
 	    //req.user=user;
-
 	    
 	    if (!user) {
+		console.log("Login failed NO USER err = " + JSON.stringify(info));
 		return res.json({error : "Login failed !" + JSON.stringify(info)});
 	    }
-
-
+	    
 	    console.log("Got user " + JSON.stringify(req.user) + " login ... type is " + typeof(req.logIn) );
 	    
 	    req.logIn(user, function(err) {
@@ -243,7 +250,8 @@ exports.init=function(pkg,sad, cb){
 		    //return next(err);
 		}
 		// 	//var ejsd={}; sad.set_user_data(req,ejsd);
-	     	return res.json({ user : { id : user._id, login_name : user.get_login_name()} });
+	     	res.json({ user : { id : user._id, login_name : user.get_login_name()} });
+		res.end();
 	    });
 	    
 	})(req, res, next);

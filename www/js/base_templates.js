@@ -368,9 +368,9 @@ var base_templates={
 	    //sliding_dir : "h",
 	    //root_node : "li",
 	    name_node : "h4",
-	    root_classes : ["container-fluid panel panel-default"],
+	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
-	    child_classes : ["well container-fluid form-inline"],
+	    child_classes : ["form-inline"],
 	    name_classes : [],
 	    item_classes : []
 	},

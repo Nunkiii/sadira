@@ -918,17 +918,17 @@ template_ui_builders.login=function(ui_opts, login){
     if(ù(login.user_id))login.user_id="";
     //console.log("LOGIN : " + login.user_id);
     
-    
     function check(){
 	login_tpl.disable(user_name==""||user_password=="");
     }
 
     function login_mode(){
 	mode="login";
+	user_tpl.ui_root.remove_class("has-error");
 	login.set_title("Login");
 	login_tpl.set_title("Log In");
 	login_tpl.disable(true);
-	status_tpl.ui_root.style.display="none";
+	status_tpl.ui.style.display="none";
 	user_tpl.ui_root.style.display="";
 	pw_tpl.ui_root.style.display="";
 	check();
@@ -937,15 +937,19 @@ template_ui_builders.login=function(ui_opts, login){
     function register_mode(){
 	mode="register";
 	login_tpl.ui_root.style.display="none";
-	status_tpl.ui_root.style.display="";
+	status_tpl.ui.style.display="";
 	user_tpl.ui_root.style.display="none";
 	pw_tpl.ui_root.style.display="none";
 
     }
     
     function error_mode(err){
+	//console.log("Error mode!!!");
 	mode="error";
-	status_tpl.ui.className="label label-danger";
+	status_tpl.ui_root.style.display="";
+	user_tpl.ui_root.remove_class("has-success");
+	user_tpl.ui_root.add_class("has-error");
+	//status_tpl.ui.add_class("label-danger");
 	status_tpl.set_value(err);
 	login_tpl.ui_root.style.display="";
 	login_tpl.set_title("Retry");
@@ -956,13 +960,13 @@ template_ui_builders.login=function(ui_opts, login){
 	mode="success";
 	//status_tpl.ui.className="text-success";
 	//status_tpl.set_value("Logged in as " + (è(info)?info:""));
+	user_tpl.ui_root.add_class("has-success");
 	status_tpl.ui_root.style.display="none";
 	user_tpl.ui_root.style.display="none";
 	pw_tpl.ui_root.style.display="none";
 
 	login.set_title("Logged in as " + login.user_id);
-
-	
+	login.set_subtitle("");
 	login_tpl.set_title("Logout");
 	login_tpl.ui.remove_class("btn-primary");
 	login_tpl.ui.add_class("btn-warning");
@@ -999,13 +1003,14 @@ template_ui_builders.login=function(ui_opts, login){
 	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
 
 	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
+
 	    var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
 	    
 	    rqinit.execute(function(error, res){
 
 		if(error){
 		    console.log("Error login " + error);
-		    return;
+		    return error_mode(error);
 		}
 		
 		console.log("Received this " + JSON.stringify(res));
@@ -1813,18 +1818,22 @@ template_ui_builders.template_list=function(ui_opts, combo){
 template_ui_builders.action=function(ui_opts, action){
     
     var ui;
-    var bnode=è(ui_opts.button_node)?ui_opts.button_node:"button";
+    var bnode=è(ui_opts.button_node) ? ui_opts.button_node : "button";
+    
     if(è(action.link)){
+	
 	ui = ce("a");
 	ui.href=action.link;
 
     }else{
+	
 	ui = ce(bnode);
 
 	new_event(action,"click");
-	if(bnode === 'input')
-	    ui.type="button";
 
+	if(bnode === 'input' || bnode === 'button')
+	    ui.type="button";
+	
 	ui.addEventListener("click",function(e){
 	    action.trigger("click", action);	    
 	},false);

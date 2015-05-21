@@ -179,8 +179,9 @@ local_templates.prototype.substitute_template=function(tpl_item){
     //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
 
 
-    if(tpl_item.type==="template")
-	throw "deprecated template type !";
+    if(tpl_item.type==="template"){
+	throw "deprecated [template] type ! (name=["+tpl_item.name+"])";
+    }
 
     
     var tpl=this.templates[tpl_item.btype];

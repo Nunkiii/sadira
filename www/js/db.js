@@ -420,15 +420,23 @@ function get_ico(tpl){
 
 
 function add_close_button(e, node){
-    //if(e.ui_opts.close){
-    var close_but = cc("span",node);
-    close_but.add_class("close_button");
-    close_but.innerHTML="❌";
-    close_but.addEventListener("click", function(event){
-	e.trigger("close");
-	event.stopPropagation();
-    });
-    //}
+
+    e.ui_opts.close=true;
+
+    if(node.has_button===undefined){
+	node.has_button=true; 
+	
+	var close_but = cc("span",node);
+
+	close_but.add_class("close_button");
+	close_but.innerHTML="❌";
+
+	close_but.addEventListener("click", function(event){
+	    e.trigger("close");
+	    event.stopPropagation();
+	});
+	
+    }
 }
 
 
@@ -721,8 +729,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 				var tti=this.ti;
 
 				if(tti.ui_root === undefined){
+				    tti.ui_opts={close:true};
 				    create_widget(tti);
-				    add_close_button(tti, tti.ui_title_name);
+				    //add_close_button(tti, tti.ui_title_name);
 				    tti.listen('close', function(){
 					tpl_root.ui_root.removeChild(tti.ui_root);
 					tti.on=false;
@@ -899,7 +908,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			ui_name.prependChild(ico);
 
 		    setup_intro(ui_name);
-		    if(ui_opts.close) add_close_button(tpl_root,ui_name);
+		    //if(ui_opts.close) add_close_button(tpl_root,ui_name);
 		}
 		
 		
@@ -925,7 +934,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    //ui_name.appendChild(slide_button);
 		}
 
-
+		if(tpl_root.ui_opts.close===true){
+		    add_close_button(tpl_root, ui_name);
+		}
+		
+		
 		
 	    }
 	    
@@ -940,6 +953,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//tpl_root.listen("name_changed", function(){rebuild_name();});
 
 	//console.log("Define set_title for " + tpl_root.name + "["+tpl_root.type+"]");
+
+	tpl_root.set_subtitle=function(subtitle){
+	    tpl_root.subtitle=subtitle;
+	    if(è(tpl_root.rebuild_name))
+		tpl_root.rebuild_name();
+	}
 	
 	tpl_root.set_title=function(title){
 	    tpl_root.name=title;
@@ -1070,11 +1089,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     if(è(ui_opts.close)){
 	new_event(tpl_root,"close");
-	tpl_root.listen("close", function(){
-	    console.log("Closing " + tpl_root.name);
-	    tpl_root.parent.ui_childs.remove_child(this);
-	    //cnt.remove_child(child);
-	});
+	if(tpl_root.parent!==undefined){
+	    tpl_root.listen("close", function(){
+		
+		console.log("Closing " + tpl_root.name);
+		tpl_root.parent.ui_childs.remove_child(this);
+		//cnt.remove_child(child);
+	    });
+	}
     }
     
     tpl_root.enable=function(state){
@@ -1846,7 +1868,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	else
 	    ui_root.remove_class("masked");    
 
-	console.log(tpl_root.name + " : disabled ? " + dis);
+	//console.log(tpl_root.name + " : disabled ? " + dis);
 	tpl_root.trigger("disabled", dis);
 	tpl_root.disable_rec(dis,rec);
     };
@@ -2016,20 +2038,24 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
 
     	
-	function update_sliding_arrows(){
+    function update_sliding_arrows(){
+	if(slide_button!==undefined){
+	    
 	    slide_button.className="text-info fa sliding_icon";
 	    //slide_button.className+=" "+sliding_dir;
 	    //slide_button.innerHTML= slided ? "❌" : "▶" ;
 	    //▲❌▼
 	    slide_button.innerHTML=slided? '\uf0a8' : '\uf0a9';
 	    //slide_button.className+=slided? " fa-chevron-sign-left" : " fa-chevron-sign-right";
-	}
+	}else
+	    console.log(tpl_root.name + " : Bug? sliding and no slide button ! ");
+    }
 
-	function update_sliding_ui(){
-
-	    var marg=[];
-	    
-	    if(animate){
+    function update_sliding_ui(){
+	
+	var marg=[];
+	
+	if(animate){
 		
 		switch(sliding_dir){
 		case "h":
@@ -2149,12 +2175,20 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    //console.log("adding slide button click event for  " + tpl_root.name);
 	    
-	    var click_elements = [slide_button];
+	    var click_elements = [];
 
+	    if(slide_button!==undefined)
+		click_elements.push(slide_button);
+	    
 	    if(tpl_root.ui_title_name !== undefined) click_elements.push(tpl_root.ui_title_name);
+	    
 	    if(ui_opts.label === true) click_elements.push(tpl_root.ui_name);   
+
+	    
 	    
 	    click_elements.forEach(function(ce){
+		console.log(tpl_root.type + "  add  SLIDE click ! ----> " + click_elements.length );
+		console.log(tpl_root.name + "  add  SLIDE click !  " + ce.nodeName);
 		ce.addEventListener("click",function(e){
 		//slide_button.addEventListener("click",function(e){
 		    //console.log(tpl_root.name + "  SLIDE click !  " + slided);

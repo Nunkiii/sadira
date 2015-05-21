@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-// Sadira astro-web framework - Written by Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013-2014) @ INAF/IASF/CNR/... Bologna, Italy.
+// This is Qk/Sadira.
+// Written by Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013-2015) @ INAF/CNR, Bologna, Italy.
 
 var fs = require("fs");
 var path = require("path");
@@ -27,7 +28,7 @@ var logger = require('connect-logger');
 var tpl=require('./js/tpl');
 
 /*
-  Headers to add when allowing cross-origin requests.
+  Headers to add to allow cross-origin requests.
 */
 
 var cors_headers = {
@@ -38,7 +39,7 @@ var cors_headers = {
 };
 
 /*
-  Write data sliced in chunks of 1kb. 
+  Async write data sliced in chunks of 1kb. 
   data can be a buffer or a string.
 */
 
@@ -274,7 +275,6 @@ perm.prototype.grant=function(gr){
 	}
     });
 }
-
 
 
 /**
