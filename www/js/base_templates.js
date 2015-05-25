@@ -29,7 +29,9 @@ var base_templates={
     db_collection : {
 
 	name : "Object collection",
-
+	ui_opts : {
+	    fa_icon : "reorder"
+	},
 	elements : {
 
 	    name : {
@@ -85,14 +87,19 @@ var base_templates={
 	    uhome.debug("Hello world debug");
 	}
     },
+    
     db_browser : {
 
 	name : "Database browser",
-	ui_opts : { root_classes : ["container-fluid"], child_classes : ["row"]},
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    child_classes : ["row"],
+	    fa_icon : "archive"
+	},
 	elements : {
 	    browser : {
 		//name : "Object browser",
-		ui_opts : { root_classes : ["col-sm-6"]},
+		ui_opts : { root_classes : ["col-sm-12"]},
 		elements : {
 		    colsel : {
 			name : "Select collection",
@@ -103,37 +110,120 @@ var base_templates={
 			name : "Object list"
 		    }
 		}
-	    },
+	    }
+/*	    ,
 	    object : {
 		name : "Object view",
-		ui_opts : { root_classes : ["col-sm-6"]}
+		ui_opts : { root_classes : ["col-sm-6"], child_classes : ["container-fluid"]}
 	    }
+*/
 	},
 
 	widget_builder : function(ui_opts, dbb){
 	    
 	    console.log("DBB start " + dbb.name);
-	    var object = dbb.get('object');
-	    var r=new request({ cmd : '/api/dbcom/collection_list'});
-	    r.execute(function(err, result){
-		if(err){
-		    object.ui_root.innerHTML=err;
-		    return;
-		}
-		var colsel=dbb.get("colsel");
-		if(result.length>0){
-		    colsel.options=[];
-		    result.forEach(function(d){
-			colsel.options.push({value : d._id, label : d.els.name.value});
-			//var w=create_widget(d.type);
-			//set_template_data(w,d);
-			//console.log("D= " + JSON.stringify(d));
-			//object.ui_childs.add_child(w, w.ui_root);
+	    var browser = dbb.get('browser');
+	    var list = dbb.get('list');
+	    var colsel=dbb.get("colsel");
+
+
+	    function get_collection_list(cb){
+		var r=new request({ cmd : '/api/dbcom/get'});
+		
+		r.execute(function(err, result){
+		    if(err){
+			object.ui_root.innerHTML=err;
+			return;
+		    }
+		    if(result.length>0){
+			colsel.options=[];
+			
+			result.forEach(function(d){
+			    colsel.options.push({value : d.els.name.value, label : d.els.name.value /*d._id*/});
+			    //var w=create_widget(d.type);
+			    //set_template_data(w,d);
+			    //console.log("D= " + JSON.stringify(d));
+			    //object.ui_childs.add_child(w, w.ui_root);
+			});
+			colsel.set_options();
+			cb(true);
+		    }else{
+			colsel.set_title("No collection available");
+			colsel.disable();
+			cb(true);
+		    }
+
+		    colsel.listen("change", function (value) {
+			console.log("changed to " + value);
+			get_collection_objects();
 		    });
-		    colsel.set_options();
-		}else{
-		    colsel.set_title("No collection available");
-		    colsel.disable();
+		
+		});
+	    }
+
+	    function get_collection_objects(){
+
+		var collection_name = colsel.value;
+		
+		console.log("Col name : " + collection_name);
+
+		
+		var r=new request({ cmd : '/api/dbcom/get', args : { collection : collection_name} });
+		
+
+		r.execute(function(err, result){
+
+		    if(err){
+			dbb.debug(err);
+			return;
+		    }
+		    
+		    //dbb.debug(JSON.stringify(result,null,5));
+		    
+		    if(result!==undefined){
+			if(result.error !== undefined)
+			    return dbb.debug(result.error);
+
+			dbb.debug_clean();
+			
+			list=create_widget({ name : "Collection <i>" + collection_name + "</i>",
+					     ui_opts : { root_classes : ["col-sm-12"], child_classes : ["container-fluid"]}
+					     });
+			browser.update_child(list,"list");
+
+			
+			result.forEach(function(d, i){
+			    
+			    dbb.debug( i + " : " + JSON.stringify(d));
+			    
+			//colsel.options.push({value : d._id, label : d.els.name.value});
+
+			    
+			    
+
+			    var w=tmaster.build_template(d.type);
+			    if(w.ui_opts === undefined) w.ui_opts={};
+			    w.ui_opts.name_node="h3";
+			    
+			    create_ui({},w);
+			    
+			    w.set_title(d.name + " : " + d._id);
+			    set_template_data(w,d);
+			    //console.log("D= " + JSON.stringify(d));
+			    
+			    list.ui_childs.add_child(w, w.ui_root);
+			});
+		    }
+		});
+	    }
+	    
+	    get_collection_list(function(ok){
+		
+		if(ok === true){
+
+		    console.log("Got collections");
+		    
+		    get_collection_objects();
 		}
 		
 	    });
@@ -189,12 +279,20 @@ var base_templates={
     user : {
 	//type : "user",
 	name : "User information",
+	ui_opts : {
+	    child_view_type : "tabbed",
+	    root_classes : ["container-fluid"],
+	    fa_icon : "user"
+	},
 	elements : {
+
 	    credentials : {
 		name : "Account credentials",
 		db : { perm : { r : 'admin'} }
 	    },
 	    groups : {
+		ui_opts : { child_view_type : "pills"},
+		name : "Groups",
 		db : { perm : { w : 'admin'} }
 	    }
 	},
@@ -214,35 +312,57 @@ var base_templates={
 	}
     },
     user_group : {
-	name : "A User group",
+	name : "User Group",
+	ui_opts : {
+	    fa_icon : "group"
+	},
 	elements : {
 	    name : {
 		name : "Group name",
 		subtitle : "String identifier for the group",
-		type : "string"
+		type : "string",
+		ui_opts : { label : true }
 	    },
 	    description : {
 		type : "html",
-		name : "Description", subtitle : ""
+		name : "Description", subtitle : "",
+		ui_opts : { label : true }
 	    }
 	},
     },
     local_access : {
 	tpl_desc : "All info for an internally administered user.",
 	name : "Local credentials",
+	ui_opts : {
+	    fa_icon : "leaf"
+	},
 	elements : {
 	    email: {
-		type: "email",
+		ui_opts : {
+		    label : true,
+		    fa_icon : "envelope"
+		},
+		name : "E-mail",
+		type: "string",
 		holder_value : "Any valid email adress? ..."
 	    },
 	    hashpass: {
+		ui_opts : {
+		    label : true,
+		    fa_icon : "eye-close"
+		},
+		name : "Hashed password",
 		type: "password"
 	    },
 	    salt: {
+		ui_opts : { label : true },
+		name : "Hashed password salt",
 		type: "string",
 		name: "Password salt"
 	    },
 	    username: {
+		ui_opts : { label : true },
+		name : "User name",
 		type: "string"
 	    }
 	}
@@ -367,7 +487,8 @@ var base_templates={
 	    //sliding_animate : true,
 	    //sliding_dir : "h",
 	    //root_node : "li",
-	    name_node : "h4",
+	    //name_node : "h4",
+	    fa_icon : "paw",
 	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
 	    child_classes : ["form-inline"],
@@ -453,10 +574,10 @@ var base_templates={
 	subtitle : "Choose a login method",
 	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p>",
 	//ui_opts : { sliding  : true, slided : false },
-	ui_opts :{
+	ui_opts : {
 	    child_view_type : "pills",
 	    root_classes : ["container-fluid"],
-	    child_classes : ["container"],
+	    child_classes : ["container-fluid"],
 	    intro_stick: true
 	},
 
@@ -705,6 +826,34 @@ var base_templates={
 			minispectro : {
 			    name : "Minispectro",
 			    type : "videocap"
+			}
+		    }
+		},
+		toolkit : {
+		    name : "STk Web Toolkit",
+		    elements : {
+			demo : {
+			    name : "Toolkit sandbox",
+			    type : "ui_demo"
+			},
+			
+			tuto : {
+			    name : "Sadira Toolkit tutorial",
+			    type : "stk_tutorial"
+			},
+
+			tlist : {
+			    name : "Templates",
+			    type : "dbtemplates"
+			}
+		    }
+		},
+		database : {
+		    name : "DB",
+		    elements : {
+			browser : {
+			    name : "Database browser",
+			    type : "db_browser"
 			}
 		    }
 		},

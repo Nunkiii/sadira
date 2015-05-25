@@ -6,7 +6,7 @@ var google_strategy = require('passport-google-oauth').OAuth2Strategy;
 
 var crypto=require('crypto');
 
-exports.init=function(pkg,sad, cb){
+exports.init=function(pkg, sad, cb){
 
 
     var mongo=sad.mongo;
@@ -19,8 +19,8 @@ exports.init=function(pkg,sad, cb){
     });
 
     passport.deserializeUser(function(id, done) {
-	//console.log("Deserialize USER ID " + id);
-	mongo.find1({ type : "user", id : id},
+	console.log("Deserialize USER ID " + id);
+	mongo.find1({ type : "Users", id : id},
 		    done
 
 		    /*
@@ -73,7 +73,8 @@ exports.init=function(pkg,sad, cb){
 				 var access=create_object("local_access")
 				     .set('email',email)
 				     .set_password(hashpass);
-				 
+
+				 new_user.db.collection="Users";
 				 new_user.get("credentials").add('local',access);
 
 				 new_user.save( function(err, r) {
@@ -106,7 +107,7 @@ exports.init=function(pkg,sad, cb){
 		console.log("Error looking for user " + err);
 		return done(err);
 	    }
-	    if (user===undefined)
+	    if (user===undefined || user===null)
 		return done(null, false, "User not found !");
 	    
 	    user=create_object_from_data(user);

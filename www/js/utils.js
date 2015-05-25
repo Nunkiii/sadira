@@ -340,6 +340,7 @@ function bson_query(query, result_cb, opts){
 
 
 var request = function (opts){
+
     if(è(opts.cmd)) opts.url=opts.cmd;
     
     if(ù(opts.url)) throw "No API command given";

@@ -121,14 +121,14 @@ server.prototype.connect = function(cb, options_in) {
 		    if(err){
 			return cb(err);
 		    }
-		    if(every_group!==undefined){
+		    if(every_group!==undefined && every_group!==null){
 			mongo.everybody_group=every_group;
 			var du=create_object("user");
 			du.get('groups').add_link(every_group);
 			mongo.default_user=get_template_data(du);
 			console.log("Created default user : " + JSON.stringify(mongo.default_user));
 		    }else
-			console.log("No every_group, no bootstraop ??");
+			console.log("No every_group, no bootstraop ?????????????????????");
 		    cb(null,db);
 		});
 		
@@ -262,13 +262,21 @@ server.prototype.write_doc=function(doc,a,b){
 server.prototype.find=function(opts, cb){
 
     var mongo=this;
+    if(opts.user===null) opts.user=mongo.default_user;
+    
+    console.log("FIND opts=" + JSON.stringify(opts));
     var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
 
     var user=opts.user!==undefined ? opts.user : mongo.default_user;
+    
+    
     var coll=opts.collection!==undefined ? opts.collection : opts.type;
     
+    //console.log("FIND user = " + JSON.stringify(user));
+    
     function get_docs(){
+	//var q={};
 	console.log("Mongo find collection ["+coll+"] : query = ["+JSON.stringify(q)+"]");
 	mongo.db.collection(coll).find(q, {}, function(err, cursor){
 
@@ -322,9 +330,14 @@ server.prototype.find=function(opts, cb){
     mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.p' : 1}, function(err, data){
 	if(err) return cb(err);
 	if(data){
+	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
 	    var p=new perm( data.db.p );
-	    if(p.check(user,'r'))
+
+	    if(p.check(user,'r')){
+		//var db_coll=data.els.name.value;
+		console.log("Granted for collection " + coll);// + " db collection " + db_coll);
 		return get_docs();
+	    }
 	    else
 		return cb("Not enough rights to list the collection ["+coll+"]!");
 	}else{
@@ -344,8 +357,9 @@ server.prototype.find1=function(opts, cb){
     this.db.collection(opts.type).findOne(q, {}, function (err, data){
 
 	if(err) return cb(err);
-	if(!data) return cb(null);
 
+	if(!data) return cb(null,undefined);
+	
 	cb(null,data);
 	
     });
@@ -355,15 +369,15 @@ server.prototype.find1=function(opts, cb){
 }
 
 server.prototype.find_group = function (gname, cb){
-    this.find1({type : 'user_group', path : 'name', value : gname}, cb);
+    this.find1({type : 'Groups', path : 'name', value : gname}, cb);
 }
 
 server.prototype.find_user=function(identifier, cb){
     var mongo=this;
-    mongo.find1({type: "user", path:'credentials.local.email', value : identifier},function(err, user) {
+    mongo.find1({type: "Users", path:'credentials.local.email', value : identifier},function(err, user) {
 	if(err) return cb(err);
-	if(user===undefined){
-	    mongo.find1({type: "user", path:'credentials.local.username', value : identifier},function(err, user) {
+	if(user===undefined || user===null){
+	    mongo.find1({type: "Users", path:'credentials.local.username', value : identifier},function(err, user) {
 		if(err) return cb(err);
 		if(user===undefined){
 		    return cb(null);

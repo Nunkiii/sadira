@@ -6,15 +6,17 @@
     <title> <%= tpl_name %> </title>
     <% if(header===true){ %>
     <% } %>	
+
     <style>
       body{
-      padding-top: 70px;
+      padding-bottom: 50px;
       }
     </style>
 
   </head>
-  
-  <body id="content">
+
+  <body>
+  <div id="content">
     <% if(header===true){ %>
     <header>
       <% include parts/header %>
@@ -27,12 +29,14 @@
     
     <!-- <script> document.getElementById("content").appendChild(create_widget("login").ui_root);</script> -->
     
-    <!-- <footer> -->
-    <!--   <% include parts/footer %> -->
-    <!-- </footer> -->
-    
+  </div>
+  <footer>
+      <% include parts/footer %>
+    </footer>
+
   </body>
-  
+
+
   <script>
     window.addEventListener("load", function(){
      attach_ui(create_widget("<%= tpl_name %>"), document.getElementById("content"));

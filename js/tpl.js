@@ -112,35 +112,68 @@ module.exports={
 	    
 	}
     },
+
+    session : {
+
+	name : "session",
+	type : "api_provider",
+
+	elements : {
+	    info : {
+		type : "api",
+
+		api_handler : function (req, res){
+
+		    if(req.user===undefined){
+			return res.json({user : "none"});
+		    }
+		    
+		    //console.log("Session info request " + JSON.stringify(req.user));
+		    
+		    return res.json( { user : req.user.els.credentials.els.local.els.username.value, id : req.user.db.id });
+		}
+
+	    }
+	}
+	
+    },
     
     db : {
+
 	name : "dbcom",
 	type : "api_provider",
+
 	elements : {
-	    collection_list : {
+	    
+	    get : {
 		type : "api",
 		api_handler : function (req, res){
+		    
 		    var inp=get_json_parameters(req);
 		    var coll=inp["collection"];
-		    if(coll===undefined) coll="collections";
-		    console.log("Looking for collection " + coll);
-		    req.sad.mongo.find({ collection : coll, user : req.user}, function(err, colls){
-			if(err)
-			    return res.json({error : "Mongo error " + err});
 
+		    if(coll===undefined) coll="collections";
+		    
+		    console.log("Looking for collection " + coll);
+		    
+		    req.sad.mongo.find({ collection : coll, user : req.user}, function(err, colls){
+			
+			if(err)
+			    return res.json({error : err});
+			
 			colls.forEach(function(d){
 			    delete d.db;
 			});
 			
 			return res.json(colls);
-		    } );
+		    });
 		}
 	    }
 	    
 	}
 	
     },
-
+    
     le_template_del_template : {
 
 	name : "Template",

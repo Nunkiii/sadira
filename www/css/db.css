@@ -105,6 +105,13 @@ body
 */
 }
 
+h1 > small {
+
+  margin-left : 1em;
+  
+}
+
+
 span.fa{
   margin-right: .4em;
 }
@@ -646,6 +653,23 @@ pre {
   max-width: 100%;
 }
 
+
+footer {
+
+ background: black;
+ color: white;
+  padding-top : 1em;
+  margin-top : 1em;
+ padding : 5px;
+  text-align: right;
+ position: fixed;
+ display: block;
+ bottom: 0px;
+ left: 0px;
+ right: 0px;
+  z-index: 20;
+}
+
 /*
 label:hover{
 
@@ -670,8 +694,10 @@ label:hover{
 }
 
 .close_button{
-  padding:.1em;
-  margin-left: .3em;
+  /*
+  padding-right:.1em;
+margin-left: .3em;
+  */
   cursor: pointer;
 }
 

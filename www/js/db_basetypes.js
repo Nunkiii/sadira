@@ -993,18 +993,18 @@ template_ui_builders.login=function(ui_opts, login){
     
     login_tpl.listen("click",function(){
 	switch(mode){
+	    
 	case "login" :
 	    
 	    register_mode();
 	    var hp=sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(user_password));
+	    
 	    user_password="*";
-
 	    console.log("Login " + user_name + " hpw " + hp + " ...");
-	    var post_data="email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
-
+	    
+	    var post_data = "email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
 	    //var post_data=encodeURIComponent("email="+user_name+"&hashpass="+user_password);
-
-	    var rqinit=new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
+	    var rqinit    = new request({ cmd : "/login", query_mode : "bson", method : "POST", post_data : post_data});
 	    
 	    rqinit.execute(function(error, res){
 
@@ -1055,12 +1055,31 @@ template_ui_builders.login=function(ui_opts, login){
 	};
     });
 
-    if(login.user_id===""){
-	login_mode();
-    }
-    else{
-	success_mode(login.user_id);
-    }
+    var check_session=new request({ cmd : "/api/session/info" });
+    
+    check_session.execute(function(error, res){
+	if(error) login.debug(error); 
+	if(res!==undefined){
+	    if(res.error) login.debug(res.error) ;
+	    else{
+		
+		if(res.user!=="none"){
+		
+		    login.user_id=res.user;
+		    success_mode();
+		}else
+		    login_mode();
+	    }
+	    console.log("Session check : " + JSON.stringify(res));
+	}
+    });
+    
+    
+    // if(login.user_id===""){
+    // 	login_mode();
+    // }else{
+    // 	success_mode(login.user_id);
+    // }
     /*
     window.FB.getLoginStatus(function(response) {
 	if (response.status === 'connected') {
@@ -1702,7 +1721,8 @@ template_ui_builders.combo=function(ui_opts, combo){
 
     var ui;
     var style=ui_opts.style||"select",ul;
-    
+
+
     if(ui_opts.type==="edit"){
 	console.log("Style " + style);
 	
@@ -1741,7 +1761,8 @@ template_ui_builders.combo=function(ui_opts, combo){
 			o.id=ov.value; o.innerHTML=ov.label;
 		    }
 		}else{
-		    o=cc("option",ui);
+		    var o=ov.option_ui=cc("option",ui);
+		    
 		    if(typeof ov === "string"){
 			o.value=ov; o.innerHTML=ov;
 		    }else{
@@ -1750,9 +1771,18 @@ template_ui_builders.combo=function(ui_opts, combo){
 		    
 		}
 	    });
+
+	    if(combo.options.length>0){
+		combo.set_value(combo.options[0].label);
+		combo.options[0].option_ui.setAttribute("selected",true);
+	    }
+	    
 	}
+
 	
-	combo.set_options();
+
+
+
 	
     }else{
 	ui=combo.ui=ce("span"); ui.className="";
@@ -1760,7 +1790,7 @@ template_ui_builders.combo=function(ui_opts, combo){
 
     combo.set_holder_value=function(v){
 	combo.set_value(v);
-
+	
     }
     
     combo.set_value=function(v){
@@ -1770,14 +1800,16 @@ template_ui_builders.combo=function(ui_opts, combo){
 	    if(è(combo.options))
 		if(combo.options.length>0)
 		    combo.value=combo.options[0];
-	}*/
+		    }*/
+	
 	ui.innerHTML=combo.value;
     }
     
     
-
-    if(style!=='menu')
+    if(ui_opts.type==="edit"){
 	config_common_input(combo);
+	combo.set_options();
+    }
 
     
     combo.set_default_value=function(){

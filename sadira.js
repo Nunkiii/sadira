@@ -222,25 +222,35 @@ perm.prototype.toString=function(){
 }
 
 perm.prototype.check=function(user, mode){
-
+    
+    
     var ks=this[mode];
+    
     if(ks===undefined){
+	return true;
+    }
+    console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
+    if(user===undefined || user===null){
 	return false;
     }
+    
+    //console.log( this + " checking user " + JSON.stringify(user));
+
     
     if(ks.u!==undefined){
 	var uid=user.id();
 	for(var i=0;i<ks.u.length;i++){
-	    console.log("Check obj user " + ks.u[i] + " with user " + uid);
+	    //console.log("Check obj user " + ks.u[i] + " with user " + uid);
 	    if(ks.u[i]==uid) return true;
 	}
     }
+
     if(ks.g!==undefined){
 	var ugrp=user.els.groups.els;
 	if(ugrp!==undefined) 
 	    for(var g in ugrp){
 		for(var i=0;i<ks.g.length;i++){
-		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
+		    //console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
 		    if(ks.g[i]==g){
 			//console.log("YYYYYYYYEEEESS");
 			return true;
@@ -397,6 +407,7 @@ var _sadira = function(){
 			obj.grant_group(r[1],r[2],res_cb);
 		});
 	    }
+	    
 	    obj.grant_user=function(uname, gr, cb){
 		if(gr===undefined) gr='r';
 		sad.mongo.find_user(uname, function(err, user){
@@ -412,7 +423,7 @@ var _sadira = function(){
 		if(gr===undefined) gr='r';
 		sad.mongo.find_group(gname, function(err, group){
 		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
-		    if(group!==undefined){
+		    if(group!==undefined && group!==null){
 			if(obj.db.p===undefined) obj.db.p=new perm();
 			var g={}; g[gr]={g : [group._id] };
 			obj.db.p.grant(g);
@@ -929,9 +940,13 @@ _sadira.prototype.load_apis = function (cb){
 	sad.log("Loading " + api_data.length + " CMS ");
     });
     */
-    sad.mongo.find({ user : sad.mongo.admin, collection : "api"}, function(err, api_data){
+    sad.mongo.find({ user : sad.mongo.admin, collection : "Apis"}, function(err, api_data){
 
-	if(err) return cb(err);
+	if(err){
+	    if (cb === undefined) return console.log("Unhandled error " + err);
+	    else
+		return cb(err);
+	}
 
 	sad.log("Loading " + api_data.length + " APIS ");
 	for(var i=0;i<api_data.length;i++){

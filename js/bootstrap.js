@@ -208,7 +208,7 @@ exports.init=function(pkg,app){
 	{
 	    type : "db_collection",
 	    db : {
-		//grants : [['g','users','r'],['g','admin','w']],
+		grants : [['g','admin','w'],['g','admin','r']],
 		collection : "collections"
 	    },
 	    elements : {
@@ -219,7 +219,7 @@ exports.init=function(pkg,app){
 	{
 	    type : "db_collection",
 	    db : {
-		//grants : [['g','users','r'],['g','admin','w']],
+		grants : [['g','admin','w'],['g','admin','r']],
 		collection : "collections"
 	    },
 	    elements : {
@@ -231,7 +231,7 @@ exports.init=function(pkg,app){
 	{
 	    type : "db_collection",
 	    db : {
-		//grants : [['g','users','r'],['g','admin','w']],
+		grants : [['g','everybody','r'],['g','admin','w']],
 		collection : "collections"
 	    },
 	    elements : {
@@ -258,22 +258,26 @@ exports.init=function(pkg,app){
 
     function check_com(cb){
 
-	app.mongo.db.collection("api").drop();
+	var apis=["db", "session"];
 	
-	var c=create_object("db");
-	c.collection("api");
-	c.grant([['g','users','x'],['g','admin','r']], function(e){
-	    if(e)return cb(e);
-	    app.mongo.write_doc(c, function(err, doc){
-		if(err)return cb(err);
-		console.log("Ok, db api recorded : " + JSON.stringify(doc));
+	app.mongo.db.collection("Apis").drop();
+
+	apis.forEach(function(apiname){
+	    var c=create_object(apiname);
+	    c.collection("Apis");
+	    c.grant([['g','users','x'],['g','everybody','r']], function(e){
+		if(e)return cb(e);
+		app.mongo.write_doc(c, function(err, doc){
+		    if(err)return cb(err);
+		    console.log("Ok, db api recorded : " + JSON.stringify(doc));
+		});
 	    });
 	});
 	
     }
     
     function check_group(gname, cb){
-	app.mongo.find1({type : 'user_group', path : 'name', value : gname}, function(err, admin_group){
+	app.mongo.find1({type : 'Groups', path : 'name', value : gname}, function(err, admin_group){
 	    if(err){
 		return cb("error looking for admin group " + err);
 	    }
@@ -285,9 +289,10 @@ exports.init=function(pkg,app){
 	    }
 	    else{
 		
-      		var admin_group=app.tmaster.create_object("user_group")
-		    .set("name",gname)
-		    //.set("description",gdesc)
+      		var admin_group=app.tmaster.create_object("user_group");
+		admin_group.db.collection="Groups";
+		admin_group.set("name",gname)
+		//.set("description",gdesc)
 		    .save(function(err){
 			if(err)
 			    return cb("error saving admin group " + err);
@@ -326,6 +331,8 @@ exports.init=function(pkg,app){
 	    
 	    admin_local_access.set('username',admin_name)
 		.set_password(pw);
+
+	    admin_user.db.collection="Users";
 	    
 	    app.log("saving admin user.....");
 	    return cb(null,admin_user);
@@ -373,38 +380,46 @@ exports.init=function(pkg,app){
 	    admin_group.set('description',"Wizards and magicians only.");
 	    admin_group.save();
 
-	    check_group('users',function(err, users){
+	    check_group('everybody',function(err, every_group){
 		if(err) throw("Bootstrap error : " + err);
-		users.set('description',"Registered gnomes, goblins and farfadets.");
-		users.save();
-		console.log("Users group : " + JSON.stringify(users));
+		every_group.set('description',"All the remaining trolls.");
+		every_group.save();
+		//console.log("Everybody group : " + JSON.stringify(users));
+
 		
-		check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
+		check_group('users',function(err, users){
+		    
 		    if(err) throw("Bootstrap error : " + err);
 		    
-		    app.log("adding admin user to admin group...");
-		    admin_user.get('groups').add_link(admin_group);
-		    admin_user.get('groups').add_link(users);
-		    admin_user.save();
 		    
-		    //console.log("Admin group : " + JSON.stringify(admin_group));
-		    //console.log("Admin user : " + JSON.stringify(admin_user));
+		    
+		    users.set('description',"Registered gnomes, goblins and farfadets.");
+		    users.save();
+		    console.log("Users group : " + JSON.stringify(users));
+		    
+		    check_admin_user(admin_name, pw, admin_group, function(err, admin_user){
+			if(err) throw("Bootstrap error : " + err);
+		    
+			app.log("adding admin user to admin group...");
+			admin_user.get('groups').add_link(admin_group);
+			admin_user.get('groups').add_link(users);
+			admin_user.get('groups').add_link(every_group);
+			admin_user.save();
+			
+			//console.log("Admin group : " + JSON.stringify(admin_group));
+			//console.log("Admin user : " + JSON.stringify(admin_user));
 		    //admin_user.handle_request("toto", function(){});
+		    });
+
 		});
-
+		
+		
+		
 	    });
-	    
-
 
 	});
-
-
-	check_group('everybody',function(err, users){
-	    if(err) throw("Bootstrap error : " + err);
-	    users.set('description',"All the remaining trolls.");
-	    users.save();
-	    //console.log("Everybody group : " + JSON.stringify(users));
-	});
+	
+	
 	
 	
 	//}

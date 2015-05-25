@@ -419,17 +419,22 @@ function get_ico(tpl){
 }
 
 
-function add_close_button(e, node){
+function add_close_button(e, node, prep){
 
+    prep = prep || false;
     e.ui_opts.close=true;
 
     if(node.has_button===undefined){
 	node.has_button=true; 
 	
-	var close_but = cc("span",node);
+	//var close_but = cc("span",node);
+	
+	//close_but.add_class("close_button");
 
-	close_but.add_class("close_button");
-	close_but.innerHTML="❌";
+	var close_but = cc("span",node, prep);
+	close_but.className="fa fa-times close_button";
+	
+	//close_but.innerHTML="❌";
 
 	close_but.addEventListener("click", function(event){
 	    e.trigger("close");
@@ -615,6 +620,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    return undefined;
 	}
 	*/
+
+	tpl_root.debug_clean=function(msg){
+	    if(è(tpl_root.debug_widget)){
+		tpl_root.debug_widget.set_value("");
+	    }
+	};
 	
 	tpl_root.debug=function(msg){
 	    if(ù(tpl_root.debug_widget)){
@@ -640,6 +651,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    //var head=tpl_root.ui_head=cc("header", ui_root, true);
 	    //head.add_class("db");
+
+	    document.body.style.paddingTop="70px";
+	    
 	    var tb=tpl_root.toolbar;
 	    var toolbar=tpl_root.ui_toolbar=cc("nav",ui_root,true);
 	    toolbar.className="navbar navbar-fixed-top" ;
@@ -721,28 +735,56 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			tita.innerHTML=ti.name;
 			ti.li=tb.add(tita,ul);
 			ti.li.ti=ti;
+			
 			if(ti.type !== undefined){
 			    //var uopts=ti.ui_opts===undefined?{}:ti.ui_opts;
 			    
 			    //ti.li=tb.add(ti.ui_name,ul);
 			    ti.li.addEventListener("click", function(){
-				var tti=this.ti;
 
+				var tti=this.ti;
+				
 				if(tti.ui_root === undefined){
-				    tti.ui_opts={close:true};
+				    
+				    tti.ui_opts={ close: true };
+				    
 				    create_widget(tti);
 				    //add_close_button(tti, tti.ui_title_name);
+				    //tti.on=false;
+				    
 				    tti.listen('close', function(){
-					tpl_root.ui_root.removeChild(tti.ui_root);
-					tti.on=false;
-				    })
-				   tti.on=false; 
+					if(tpl_root.tb_ui!==undefined){
+					    tpl_root.ui_root.removeChild(tpl_root.tb_ui.ui_root);
+					    tpl_root.tb_ui=undefined;
+					}
+					//tti.on=false;
+					tpl_root.ui_childs.div.style.display="";
+					
+				    });
+				   
 				}
 
-				if(tti.on===false){
-				    tpl_root.ui_root.insertBefore(tti.ui_root, toolbar.nextSibling);
-				    tti.on=true;
-				}else tti.trigger('close');
+				//if(tti.on===false){
+				    
+				    
+				//tti.on=true;
+
+				if(tpl_root.tb_ui!==undefined){
+				    if(tpl_root.tb_ui!==tti)
+					tpl_root.tb_ui.trigger('close');	
+				}
+				
+				// else{
+				//     //tpl_root.ui_root.removeChild(tpl_root.tb_ui);
+				// }
+				
+				tpl_root.tb_ui=tti;
+				tpl_root.ui_childs.div.style.display="none";
+				tpl_root.ui_root.insertBefore(tti.ui_root, toolbar.nextSibling);
+				
+				// }else{
+				
+				// }
 								
 			    });
 			} else{
@@ -892,7 +934,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			ui_name_text.prependChild(ico);
 		    
 		    setup_intro(ui_name_text);
-		    if(ui_opts.close) add_close_button(tpl_root,ui_name_text);
+		    
+		    if(ui_opts.close)
+			add_close_button(tpl_root,ui_name_text, true);
+
 		    //ui_name_text.add_class("title");
 		    //if(tpl_root.depth==1)
 		    //	ui_name.add_class("page-header");
@@ -907,6 +952,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    if(typeof ico!='undefined')
 			ui_name.prependChild(ico);
 
+		    if(tpl_root.ui_opts.close===true){
+			add_close_button(tpl_root, ui_name);
+		    }
+		    
+		
+		
+
+		    
 		    setup_intro(ui_name);
 		    //if(ui_opts.close) add_close_button(tpl_root,ui_name);
 		}
@@ -934,12 +987,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    //ui_name.appendChild(slide_button);
 		}
 
-		if(tpl_root.ui_opts.close===true){
-		    add_close_button(tpl_root, ui_name);
-		}
-		
-		
-		
 	    }
 	    
 	    
@@ -980,7 +1027,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(è(tpl_root.intro)){// && ui_opts.type!=="short"){
 
 	    if(ui_opts.intro_name===true){
-		tpl_root.intro_div=cc("div",tpl_root.ui_name);
+		//if(tpl_root.ui_title_name === undefined)
+		    tpl_root.intro_div=cc("div",tpl_root.ui_name);
+		// else
+		//     tpl_root.intro_div=cc("small",tpl_root.ui_title_name);
 		tpl_root.intro_div.className="text-muted";
 	    }
 	    else{
@@ -989,8 +1039,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		tpl_root.intro_div.className="text-muted col-sm-12";
 	    }
 
-	    tpl_root.intro_div.innerHTML= "<div class='alert alert-default'>"+tpl_root.intro+"</div>";
-
+	    tpl_root.intro_div.innerHTML=
+		"<div class='alert alert-default'>"//>" //
+		+ tpl_root.intro
+		+ "</div>";
+	    
 	    tpl_root.intro_div.style.display= (ui_opts.intro_visible || ui_opts.intro_stick) ? "":"none";
 	    sliding_stuff.push(tpl_root.intro_div);
 	}
@@ -1907,7 +1960,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(!ui_opts.item_root){
 		    ui_content.appendChild(item_ui);
 		    if(sliding){
-			console.log(tpl_root.name + " : Adding item_ui in sliding stuff " + sliding_stuff.length);
+			//console.log(tpl_root.name + " : Adding item_ui in sliding stuff " + sliding_stuff.length);
 			sliding_stuff.push(item_ui);
 		    }
 		}
@@ -2070,8 +2123,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		};
 	    }
 	    
-	    
-	    console.log(tpl_root.name + " Hello animate !!  " + animate + " ssl " + sliding_stuff.length + " M " + marg[0] + ", " + marg[1]);
+	
+	//console.log(tpl_root.name + " Hello animate !!  " + animate + " ssl " + sliding_stuff.length + " M " + marg[0] + ", " + marg[1]);
 	    
 	    if(slided){
 		
@@ -2146,7 +2199,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    default: throw("Bug!!here "); return;
 	    };
 
-	    console.log("transitionning " + sliding_stuff.length);
+	    //console.log("transitionning " + sliding_stuff.length);
 	    sliding_stuff.forEach(function(s){
 		//s=sliding_stuff[si];
 		//	sliding_stuff.forEach(function (s){
@@ -2187,8 +2240,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    
 	    click_elements.forEach(function(ce){
-		console.log(tpl_root.type + "  add  SLIDE click ! ----> " + click_elements.length );
-		console.log(tpl_root.name + "  add  SLIDE click !  " + ce.nodeName);
+		//console.log(tpl_root.type + "  add  SLIDE click ! ----> " + click_elements.length );
+		//console.log(tpl_root.name + "  add  SLIDE click !  " + ce.nodeName);
 		ce.addEventListener("click",function(e){
 		//slide_button.addEventListener("click",function(e){
 		    //console.log(tpl_root.name + "  SLIDE click !  " + slided);

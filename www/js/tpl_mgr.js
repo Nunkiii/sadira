@@ -80,7 +80,12 @@ function set_template_data(t, data){
 
 	    if(t.elements[te]===undefined){
 		if(data.els[te].type!==undefined){
-		    t.elements[te]=create_object(data.els[te].type);
+		    if(window.create_object!==undefined)
+			t.elements[te]=create_object(data.els[te].type);
+		    else{
+			var w=create_widget(data.els[te].type);
+			t.add_child(w, te);
+		    }
 		    
 		}else
 		    t.elements[te]={};
@@ -177,10 +182,12 @@ local_templates.prototype.update_template=function(tpl_item, tpl){
 
 local_templates.prototype.substitute_template=function(tpl_item){
     //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
+    if(tpl_item===undefined) return true;
 
-
-    if(tpl_item.type==="template"){
-	throw "deprecated [template] type ! (name=["+tpl_item.name+"])";
+    if(tpl_item.type!==undefined){
+	if(tpl_item.type==="template"){
+	    throw "deprecated [template] type ! (name=["+tpl_item.name+"])";
+	}
     }
 
     
@@ -202,6 +209,7 @@ local_templates.prototype.substitute_template=function(tpl_item){
 }
 
 local_templates.prototype.substitute_templates=function(tpl){
+    if(tpl===undefined) return undefined;
     this.substitute_template(tpl);
     for (var e in tpl.elements){
 	this.substitute_templates(tpl.elements[e]);
@@ -221,10 +229,12 @@ local_templates.prototype.common_builder=function(obj){
     obj.add=function(key,child){return add(this,key,child);};
     obj.set=function(child,value){
 	var c=get(this,child);
-	if(c!==undefined)c.value=value;
+
+    if(c!==undefined)c.value=value;
 	else throw obj.name +" : cannot set value: child [" + child + "] not found!"
 	return this;
     };
+
     obj.val=function(child){
 	var c=get(this,child);
 	if(c!==undefined)return c.value;
@@ -255,11 +265,15 @@ function template_object(){}
 
 local_templates.prototype.create_object_from_data=function(data){
 
-  var obj=create_object(data.type);
-  console.log("Create from data " + obj.type + " name " + obj.name);
+    // if(data===null){
+    // 	console.log("NULL DATA !!!????");
+    // 	return null;
+    // }
+    var obj=create_object(data.type);
+    console.log("Create from data " + obj.type + " name " + obj.name);
 
-  set_template_data(obj, data);
-  return obj;
+    set_template_data(obj, data);
+    return obj;
 }
 
 
