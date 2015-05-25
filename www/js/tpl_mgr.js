@@ -80,11 +80,13 @@ function set_template_data(t, data){
 
 	    if(t.elements[te]===undefined){
 		if(data.els[te].type!==undefined){
-		    if(window===undefined)
-			t.elements[te]=create_object(data.els[te].type);
-		    else{
+		    if(window){
 			var w=create_widget(data.els[te].type);
 			t.add_child(w, te);
+		    }
+		    else{
+			t.elements[te]=create_object(data.els[te].type);
+			
 		    }
 		    
 		}else
