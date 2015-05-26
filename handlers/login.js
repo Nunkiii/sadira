@@ -321,6 +321,7 @@ exports.init=function(pkg, sad, cb){
 	// asynchronous
 	process.nextTick(function() {
 	    
+	    return null("Facebook login not available now!");
 	    // find the user in the database based on their facebook id
 	    users.findOne({ 'facebook.id' : profile.id }, function(err, user) {
 		
