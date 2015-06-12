@@ -236,7 +236,27 @@ module.exports={
 
 	object_builder : function (cmap, app){
 
+	    cmap.register_collection=function(){
+		var c={
+		    type : "db_collection",
+		    db : {
+			grants : [['g','everybody','r'],['g','admin','w']],
+		collection : "collections"
+		    },
+		    elements : {
+			name : { value : "colormap"},
+			template : { value : "api_provider"},
+		    }
+		};
+		
+		var col=create_object(c, function (e){
+		    app.mongo.write_doc(c, function(err, doc){
+			if(err) app.log("Error " + err);
+		    });
+		    
+		});
 
+	    }
 	    
 	    //console.log("Building colormap...");
 	    cmap.load_json=function(file){

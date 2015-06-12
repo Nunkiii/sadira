@@ -1,92 +1,90 @@
 /*
-Main Sadira toolkit CSS template
-On top of bootsrap 3
+  Main Sadira toolkit CSS template
+  On top of bootsrap 3
 */
 
 @font-face{
-  font-family:'Ubuntu'; 
-  font-style:normal; 
-  font-weight:200; 
-  src:url('img/ubuntu-L-webfont.eot'); 
-  src:local('Ubuntu Light'),local('Ubuntu-Light'),
-  url('../fonts/ubuntu/ubuntu-L-webfont.eot?#iefix') format('embedded-opentype'),
-  url('../fonts/ubuntu/ubuntu-L-webfont.woff') format('woff'),
-  url('../fonts/ubuntu/ubuntu-L-webfont.ttf') format('truetype'),
-  url('../fonts/ubuntu/ubuntu-L-webfont.svg#UbuntuLight') format('svg');
+    font-family:'Ubuntu'; 
+    font-style:normal; 
+    font-weight:200; 
+    src:url('img/ubuntu-L-webfont.eot'); 
+    src:local('Ubuntu Light'),local('Ubuntu-Light'),
+    url('../fonts/ubuntu/ubuntu-L-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/ubuntu/ubuntu-L-webfont.woff') format('woff'),
+    url('../fonts/ubuntu/ubuntu-L-webfont.ttf') format('truetype'),
+    url('../fonts/ubuntu/ubuntu-L-webfont.svg#UbuntuLight') format('svg');
 }
 
 @font-face {
-  font-family: Aileron;
-  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+    font-family: Aileron;
+    src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 100;
-  src: url("../fonts/aileron/Aileron-UltraLight.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 100;
+    src: url("../fonts/aileron/Aileron-UltraLight.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 200;
-  src: url("../fonts/aileron/Aileron-Thin.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 200;
+    src: url("../fonts/aileron/Aileron-Thin.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 300;
-  src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 300;
+    src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 400;
-  src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 400;
+    src: url("../fonts/aileron/Aileron-Light.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 500;
-  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 500;
+    src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 600;
-  src: url("../fonts/aileron/Aileron-Bold.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 600;
+    src: url("../fonts/aileron/Aileron-Bold.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 700;
-  src: url("../fonts/aileron/Aileron-SemiBold.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 700;
+    src: url("../fonts/aileron/Aileron-SemiBold.otf") format("opentype");
 }
 
 @font-face {
-  font-family: Aileron;
-  font-weight: 900;
-  src: url("../fonts/aileron/Aileron-Black.otf") format("opentype");
+    font-family: Aileron;
+    font-weight: 900;
+    src: url("../fonts/aileron/Aileron-Black.otf") format("opentype");
 }
 
-.db  {
-  max-width: 100%;
-  font-family: Aileron;
 
-/*
-  max-height:100%;
-*/
+    .db  {
+	max-width: 100%;
+	font-family: Aileron;
+	/*
+	
+	*/
+	
+    } 
 
-} 
-
-body
-{
-
-/*	      
-  font-size: 1.2vw;
-  background: black;
-  color: white;
-
-*/
+body{
+    /*	      
+	      font-size: 1.2vw;
+	      background: black;
+	      color: white;
+	      
+    */
 }
 
 
@@ -96,17 +94,21 @@ body
 
 
 .left{
-  max-height: 70vh;
+  max-height: 75vh;
+  overflow-y : auto;
+}
+.left .left{
+ max-height: 80%;
 }
 
 *::-webkit-scrollbar {  
-/*
+  /*
   display: none; 
-*/
+  */
 }
 
 h1 > small {
-
+  
   margin-left : 1em;
   
 }
@@ -125,13 +127,23 @@ label {
   font-size: 1.0em;
 }
 
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+  vertical-align : middle;
+  cursor : pointer;
+}
+
+.table > thead > tr > td {
+  vertical-align : middle;
+  color : red;
+}
+
 pre {
   background-color : transparent;
   font-family : monospace;
 }
 
 .nopadding {
-	   padding: 0px;	
+  padding: 0px;	
 }
 
 .nomargin {

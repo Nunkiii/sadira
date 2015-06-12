@@ -189,10 +189,6 @@ function dispatcher(name) {
  */
 
 GLOBAL.perm=function(pi){
-
-//    this.r = { g : [], u : [] };
-//    this.w = { g : [], u : [] };
-//    this.x = { g : [], u : [] };
     var p=this;
     if(pi!==undefined){
 	['r','w','x'].forEach(function(m){
@@ -829,7 +825,7 @@ _sadira.prototype.load_routes = function (){
 	return api(req,res);
     });
     
-    sad.app.get('/widget/:tpl_name', function(req, res) {
+    sad.app.get('/widget/:tpl_name*', function(req, res) {
 	var p=get_parameters(req);
 	var header=(p.header!==undefined)? p.header:false;
 	var ejs_data={ tpl_name : req.params.tpl_name, header : header};
@@ -913,6 +909,12 @@ _sadira.prototype.load_mongodb = function (cb){
 	if(error)
 	    return cb(error);
 	sad.log("MongoDB connected !");
+
+ 	// if(sad.cluster.worker.id===1){
+	//     var cm=create_object("colormap");
+	//     cm.register_collection();
+	// }
+
 	cb(null);
     });
 }

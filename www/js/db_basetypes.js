@@ -8,35 +8,21 @@ function config_common_input(tpl_item){
     });
     
     new_event(tpl_item,"change");
-    tpl_item.set_default_value=function(){
-	tpl_item.set_value(tpl_item.default_value);
-    }
+
+
+
     switch (tpl_item.ui_opts.type){
     case "short":
 	tpl_item.ui.add_class("control-label");
 	break;
-	
     case "edit": 
-	tpl_item.get_value=function(){return tpl_item.value;}
-	tpl_item.set_value=function(nv){
-	    if(è(nv)){
-		var ch=(nv!=tpl_item.value);
-		tpl_item.value=nv;
-		if(ch)
-		    tpl_item.trigger("change", tpl_item.value);
-	    }
-	    if(è(tpl_item.value)){
-		tpl_item.ui.value=tpl_item.value;
-	    }
-	    else 
-		tpl_item.set_placeholder_value();
-	}
 	tpl_item.set_placeholder_value=function(){
 	    if(è(tpl_item.holder_value)){
 		//console.log("Setting placeholder value");
 		tpl_item.ui.setAttribute("placeholder",tpl_item.holder_value);
 	    }
 	}
+
 	
 	tpl_item.ui.addEventListener("change",function(){
 	    tpl_item.set_value(this.value); 
@@ -49,6 +35,36 @@ function config_common_input(tpl_item){
     default: break;
     };
 
+
+    if(tpl_item.ui_opts.type === 'edit'){
+	
+//    if(tpl_item.get_value===undefined)
+	tpl_item.get_value=function(){return tpl_item.value;}
+
+//    if(tpl_item.set_value===undefined)
+	tpl_item.set_value=function(nv){
+	    if(è(nv)){
+		var ch=(nv!=tpl_item.value);
+		tpl_item.value=nv;
+		if(ch)
+		    tpl_item.trigger("change", tpl_item.value);
+	    }
+	    if(è(tpl_item.value)){
+		tpl_item.ui.value=tpl_item.value;
+	    }
+	    else
+		if(è(tpl_item.set_placeholder_value))
+		    tpl_item.set_placeholder_value();
+	}
+    
+    }
+    
+    //if(tpl_item.set_default_value===undefined)
+    tpl_item.set_default_value=function(){
+	if(tpl_item.set_value!==undefined)
+	    tpl_item.set_value(tpl_item.default_value);
+    }
+    
     //if(è(tpl_item.ui_name)) tpl_item.ui_name.add_class("control-label");
     
     if(è(tpl_item.value))
@@ -130,7 +146,7 @@ template_ui_builders.ui_demo=function(ui_opts, demo){
 	
 	
     });
-    
+     
     
 }
 
@@ -444,7 +460,7 @@ template_ui_builders.sadira=function(ui_opts, sad){
 	    sad.online=true;
 	};
 	wsock.onerror = function (error) {
-	    if(è(ecb)) ecb(JSON.stringify(error));
+	    if(è(ecb)) ecb("wsock error : " + JSON.stringify(error));
 	    sad.trigger("socket_error", error);
 	};
 	
@@ -586,33 +602,33 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     return tpl_item.ui;
 }
 
-template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
+template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
-    //var ui=tpl_item.ui=ce("div");
-
-    new_event(tpl_item,"change");
+    new_event(lvec,"change");
     
     //ui.className="labelled_vector";
-    tpl_item.inputs=[];
+    lvec.inputs=[];
     
-    //tpl_item.inputs[v].ui_root.remove_class("container-fluid");
+    //lvec.inputs[v].ui_root.remove_class("container-fluid");
     
-    var cdepth=tpl_item.depth? tpl_item.depth+1:1;
-    if(typeof tpl_item.value==='undefined') tpl_item.value=[];
-    if(typeof tpl_item.value_labels==='undefined') tpl_item.value_labels=[];
+    var cdepth=lvec.depth? lvec.depth+1:1;
+    if(typeof lvec.value==='undefined') lvec.value=[];
+    if(typeof lvec.value_labels==='undefined') lvec.value_labels=[];
+
+    lvec.elements={};
     
-    for(var v=0;v<tpl_item.value_labels.length;v++){
-	if(typeof tpl_item.value[v] === 'undefined') tpl_item.value[v]=0;
+    for(var v=0;v<lvec.value_labels.length;v++){
+	if(typeof lvec.value[v] === 'undefined') lvec.value[v]=0;
 	//var li=ce("li");
 	var label=ce("label"); 
-	tpl_item.inputs[v]={ 
+	lvec.inputs[v]={ 
 	    id : v,
-	    type : typeof tpl_item.vector_type == 'undefined' ? "double" : tpl_item.vector_type,
-	    name : tpl_item.value_labels[v],
-	    min : tpl_item.min, 
-	    max : tpl_item.max, 
-	    step : tpl_item.step, 
-	    value : tpl_item.value[v],
+	    type : typeof lvec.vector_type == 'undefined' ? "double" : lvec.vector_type,
+	    name : lvec.value_labels[v],
+	    min : lvec.min, 
+	    max : lvec.max, 
+	    step : lvec.step, 
+	    value : lvec.value[v],
 	    ui_opts : { label : true, root_classes : ["inline"] }
 	    /*
 	    parent : { 
@@ -626,51 +642,52 @@ template_ui_builders.labelled_vector=function(ui_opts, tpl_item){
 	    }
 */
 	}; 
-	//var vui=create_ui(ui_opts, tpl_item.inputs[v]);
-	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, tpl_item.inputs[v], cdepth);
-	//tpl_item.ui.appendChild(vui);
-	tpl_item.ui_childs.add_child(tpl_item.inputs[v], vui);
+	//var vui=create_ui(ui_opts, lvec.inputs[v]);
+	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, lvec.inputs[v], cdepth);
+	//lvec.ui.appendChild(vui);
 
-	// tpl_item.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
-	//     console.log("Huuum");//tpl_item.ui.replaceChild(tpl_root, );
+	lvec.add_child(lvec.inputs[v], lvec.value_labels[v]);
+
+	// lvec.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
+	//     console.log("Huuum");//lvec.ui.replaceChild(tpl_root, );
 	// }}};
 	
-	//tpl_item.inputs[v].ui_root.remove_class("container-fluid");
-	//tpl_item.inputs[v].ui_root.add_class("col-md-6");
+	//lvec.inputs[v].ui_root.remove_class("container-fluid");
+	//lvec.inputs[v].ui_root.add_class("col-md-6");
 
 	
-	tpl_item.inputs[v].listen("change",function(v){
-	    tpl_item.value[this.id]=this.value;
+	lvec.inputs[v].listen("change",function(v){
+	    lvec.value[this.id]=this.value;
 	    //console.log("change triggered!");
-	    tpl_item.trigger("change",this.id);
+	    lvec.trigger("change",this.id);
 	});
 
 	
 	
     }
 
-    //tpl_item.ui_childs.div.add_class("inline");
+    //lvec.ui_childs.div.add_class("inline");
 
-    tpl_item.set_value=function(nv){
+    lvec.set_value=function(nv){
 	//console.log("TPLI set value " + JSON.stringify(nv));
 	if(typeof nv !='undefined'){
 	    this.value=nv;
-	    tpl_item.trigger("change");
+	    lvec.trigger("change");
 	}
 	for(var v=0;v<this.inputs.length;v++){
-	    //console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + tpl_item.inputs[v].name );
-	    tpl_item.inputs[v].set_value(this.value[v]);
+	    //console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + lvec.inputs[v].name );
+	    lvec.inputs[v].set_value(this.value[v]);
 	}
 	
 	
-	//if(tpl_item.onchange) tpl_item.onchange();
+	//if(lvec.onchange) lvec.onchange();
 	
-	//ui.innerHTML=tpl_item.value? "yes":"no";
+	//ui.innerHTML=lvec.value? "yes":"no";
     }
 
-    //console.log("Done building LABVEC : " + tpl_item.name);
+    //console.log("Done building LABVEC : " + lvec.name);
 
-    //return tpl_item.ui;
+    //return lvec.ui;
 }
 
 
@@ -1140,8 +1157,8 @@ template_ui_builders.sky_coords=function(ui_opts, skyc){
 template_ui_builders.local_file=function(ui_opts, tpl_item){
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     
+
     var div=tpl_item.ui=ce("div");
-    
 
     switch (ui_opts.type){
     case "short":
@@ -1155,20 +1172,34 @@ template_ui_builders.local_file=function(ui_opts, tpl_item){
 
 	break;
     case "edit":
+	new_event(tpl_item, 'changed');
+
+
 	var sp=cc("span", div); sp.className="btn btn-default btn-file";sp.innerHTML="Browse...";
 	var ui=tpl_item.ui_input=cc("input",sp); 
 	//ui.className="local_file";
 	ui.type="file";
 
-	sp.addEventListener("change",function(evt){
-	    tpl_item.value=this.value;
-	    if(tpl_item.onchange){
-		tpl_item.onchange(evt);
-	    }
-	}, false);
+	tpl_item.ui.addEventListener("change",function(evt){
+	    tpl_item.set_value(evt.target.files[0]);
+	    tpl_item.size=evt.target.files[0].size;
+	    sp.innerHTML=tpl_item.value.name;
+	    tpl_item.trigger('change', evt);
+	});
+
+	// sp.addEventListener("change",function(evt){
+	//     tpl_item.value=this.value;
+	    
+	// },false);
+
+	    // if(tpl_item.onchange){
+	    // 	tpl_item.onchange(evt);
+	    // }
+				    //}, false);
 
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
+	    if(typeof nv !='undefined')
+		tpl_item.value=nv;
 	    //ui.value=tpl_item.value;
 	}
 	
@@ -1277,22 +1308,40 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 template_ui_builders.string=function(ui_opts, tpl_item){
 
     if(ù(ui_opts.type)) ui_opts.type="short";
+    var ui;
 
     switch (ui_opts.type){
-	
+
     case "short":
 	
-	var ui=tpl_item.ui=ce(è(ui_opts.text_node)?ui_opts.text_node :"span");
+	ui=tpl_item.ui=ce(è(ui_opts.text_node)?ui_opts.text_node :"span");
 	//ui.className="value";
+	//ui=document.createElement("div");
+	//tpl_item.ui.innerHTML="CATSO!!!!!";
+	//break;
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    if(è(tpl_item.value))
+
+	    if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui;
+	    
+	    if(nv !==undefined)
+		tpl_item.value=nv;
+
+	    console.log(tpl_item.name + " : STRING Set name to " +tpl_item.value);
+	    //ui.innerHTML="MERDE!!!!!";
+	    
+	    if(tpl_item.value !== undefined){
 		ui.innerHTML=tpl_item.value;
-	    else
-		ui.innerHTML="?";
+		//console.log("INH = " + tpl_item.ui.innerHTML);
+		//tpl_item.set_title(tpl_item.value);
+		//tpl_item.item_ui.innerHTML=tpl_item.value;
+	    }
+	    //else
+	//	ui.innerHTML="Not defined !";
 	}
 	
 	tpl_item.set_alert=function(m){
+	    if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui;
+	    
 	    var t=m.type==="error"?"danger":m.type;
 	    ui.className="";
 	    
@@ -1301,16 +1350,15 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    ui.add_class("alert-"+t);
 	    
 	    tpl_item.set_value(//tpl_item.value +
-			       "<strong>"+m.type+" :</strong>"+m.content+"<br/>");
+		"<strong>"+m.type+" :</strong>"+m.content+"<br/>");
 	    //tpl_item.set_value(m.type+" :"+m.content);
 	}
 
 	break;
 
     case "edit": 
-
-	//var uui=tpl_item.ui=ce("div");
-	var ui=tpl_item.ui=ce("input");
+	//var uui=ui=ce("div");
+	ui=ce("input");
 	ui.type="text";
 	ui.className="form-control";
 	
@@ -1318,7 +1366,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
-
+    
+    tpl_item.ui=ui;
     config_common_input(tpl_item);
     
     return tpl_item.ui;
@@ -1432,42 +1481,28 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 }
 
 
-template_ui_builders.date=function(ui_opts, tpl_item){
+template_ui_builders.date=function(ui_opts, date){
 
-    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-
-    switch (ui_opts.type){
-
-    case "short":
-	var ui=tpl_item.ui=ce("span");
-	ui.className="value";
-	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.innerHTML=tpl_item.value;
-	}
-	break;
-    case "edit": 
-	var ui=tpl_item.ui=ce("input");
-	ui.type="date";
-	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    ui.value=tpl_item.value;
-	}
-	tpl_item.get_value=function(){
-	    return ui.value;
-	}
-
-	ui.onchange=function(){
-	    tpl_item.value=this.value; 
-	    if(tpl_item.onchange)
-		tpl_item.onchange();
-	}
-	break;
-    default: 
-	throw "Unknown UI type ";
-    }
+    date.ui= ui_opts.type==='edit' ? ce("input") : ce("span");
     
-    return tpl_item.ui;
+    config_common_input(date);
+    
+    if(ui_opts.type!=='edit'){
+	date.set_value=function(nv){
+	    if(nv !==undefined)
+		date.value=nv;
+	    
+	    //console.log("SETTING DATE " + date.value);
+	    //date.ui.innerHTML="Hello World!!!";
+
+	    if(date.value!==undefined)
+		date.ui.innerHTML=date.value.toLocaleString();
+	}
+    }else{
+	date.ui.type="date";
+    }
+
+    return date.ui;
 }
 
 
@@ -1650,7 +1685,12 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     //ui.className="html_content";
     
     tpl_item.set_value=function(nv){
-	if(typeof nv !='undefined')tpl_item.value=nv;
+	if(typeof nv !='undefined')
+	    tpl_item.value=nv;
+
+	
+	if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui; else return;
+
 	ui.innerHTML=tpl_item.value;
 	if(è(ui_opts.highlight_source))
 	    if(ui_opts.highlight_source) hljs.highlightBlock(ui);
@@ -1774,7 +1814,8 @@ template_ui_builders.combo=function(ui_opts, combo){
 
 	    if(combo.options.length>0){
 		combo.set_value(combo.options[0].label);
-		combo.options[0].option_ui.setAttribute("selected",true);
+		if(combo.options[0].option_ui!==undefined)
+		    combo.options[0].option_ui.setAttribute("selected",true);
 	    }
 	    
 	}
@@ -1968,7 +2009,8 @@ template_ui_builders.action=function(ui_opts, action){
 	}
 	
 	if(action.ui_name !== undefined){
-	    action.ui_root.removeChild(action.ui_name);
+	    if(action.ui_name.parentNode===action.ui_root)
+		action.ui_root.removeChild(action.ui_name);
 	}
     }	
 
@@ -1977,35 +2019,46 @@ template_ui_builders.action=function(ui_opts, action){
 
 }
 
-template_ui_builders.vector=function(ui_opts, tpl_item){
+template_ui_builders.vector=function(ui_opts, vec){
     
-    var selection=tpl_item.elements.selection;
-    var range=tpl_item.elements.range;
-    var lines=tpl_item.elements.lines;
+    var selection=vec.get("selection");
+    var range=vec.get("range");
+    var lines=vec.get("lines");
     
-    new_event(tpl_item,"range_change");
-    new_event(tpl_item,"selection_change");
+    if(ui_opts.enable_range !== undefined){
+	if(ui_opts.enable_range===false) range.hide(true);
+    }
 
-    var ui=tpl_item.ui=ce("div");
-    var plots = tpl_item.plots=[];
+    if(ui_opts.enable_selection !== undefined){
+	if(ui_opts.enable_range===false) selection.hide(true);
+    }
+
+    
+    console.log("Lines is " + lines);
+    
+    new_event(vec,"range_change");
+    new_event(vec,"selection_change");
+
+    var ui=vec.ui=ce("div");
+    
 
     var brush, select_brush;
+    vec.value=[];    
     
-    
-    var bn=d3.select(ui);//tpl_item.ui_childs.div);
+    var bn=d3.select(ui);//vec.ui_childs.div);
     var vw=400, vh=200;
     var pr;
     
-    var svg = tpl_item.svg=bn.append('svg')
+    var svg = vec.svg=bn.append('svg')
 	.attr("viewBox", "0 0 "+vw+" "+vh)
     //.attr("preserveAspectRatio", "none");
 	.attr("preserveAspectRatio", "xMinYMin meet");
     //base_node.appendChild(svg.ownerSVGElement);
 
-    tpl_item.svg_node=svg.node(); //[0][0].ownerSVGElement;
+    vec.svg_node=svg.node(); //[0][0].ownerSVGElement;
     
-    var margin = tpl_item.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 50}; //ui_opts.margin;
-    //var width = tpl_item.parent.ui_root.clientWidth //ui_opts.width 
+    var margin = vec.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 50}; //ui_opts.margin;
+    //var width = vec.parent.ui_root.clientWidth //ui_opts.width 
     var width=vw - margin.left - margin.right;
     var height = vh- margin.top - margin.bottom;
     var height2=height/2.0;
@@ -2013,7 +2066,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     var xr=[1e30,-1e30];
     var yr=[1e30,-1e30];
 
-    console.log("Drawing vector w,h=" + width + ", " + height );
+    //console.log("Drawing vector w,h=" + width + ", " + height );
     
     var xscale = d3.scale.linear().range([0, width]);
     var yscale = d3.scale.linear().range([height, 0]);
@@ -2024,25 +2077,36 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     brush = d3.svg.brush().x(xscale).on("brushend", range_changed);
     select_brush = d3.svg.brush().x(xscale).on("brush", selection_changed);
 
-    tpl_item.set_value=function(v){
-	if(typeof v!='undefined'){
-	    tpl_item.value=v;
-	    
-	    if(plots.length==0){
-		var start =tpl_item.start || 0;
-		var step=tpl_item.step || 1;
-		tpl_item.add_plot_linear(tpl_item.value, start, step);
+    vec.set_value=function(v){
+	if(v!==undefined){
+	    //vec.value=v;
+	    var plots = vec.value;
+	    //console.log("Vector set value to " + JSON.stringify(value));
+	    if(v.length===undefined){
+		console.log("Data is not a vector!");
+		return;
+	    }
+
+	    if(v.length===0){
+		console.log("Data is null size vector!");
 		return;
 	    }
 	    
-	    plots[0].data=tpl_item.value;
+	    if(plots.length==0){
+		var start =vec.start || 0;
+		var step=vec.step || 1;
+		vec.add_plot_linear(v, start, step);
+		return;
+	    }
+	    
+	    plots[0].data=v.splice();
 	    this.redraw();
 	    // if(ù(pr))
 	    // 	pr=context.append("path");
 	    
 	    // pr.datum(v)
 	    // 	.attr("class", "line_black")
-	    // 	.attr("d", tpl_item.line);
+	    // 	.attr("d", vec.line);
 	    
 	    //range.set_value([0,v.length-1]);
 	    
@@ -2055,8 +2119,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	
     }
     
-    var zoom=tpl_item.elements.btns.elements.zoom;
-    var unzoom=tpl_item.elements.btns.elements.unzoom;
+    var zoom=vec.get('zoom');
+    var unzoom=vec.get('unzoom');
     
     
     zoom.listen("click",function(){
@@ -2068,11 +2132,11 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	if(s[0]< r[0]){ s[0]=r[0];sc=true;}
 	if(s[1]> r[1]){s[1]=r[1];sc=true;}
 
-	tpl_item.set_range(brush.extent());
+	vec.set_range(brush.extent());
 
 
 	if(sc){
-	    tpl_item.trigger("selection_change", s);
+	    vec.trigger("selection_change", s);
 	}
 
     });
@@ -2083,24 +2147,24 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//select_brush.extent(selection.value);
 	
 
-	//tpl_item.set_range(xr);
+	//vec.set_range(xr);
 
-	// if(è(tpl_item.min))
-	//     range.set_value([tpl_item.min, tpl_item.max]);
+	// if(è(vec.min))
+	//     range.set_value([vec.min, vec.max]);
 	// else
-	//     range.set_value([tpl_item.start, 
-	// 		     tpl_item.start + tpl_item.value.length*tpl_item.step ]);
+	//     range.set_value([vec.start, 
+	// 		     vec.start + vec.value.length*vec.step ]);
 	
-	// console.log("unzoom to " + JSON.stringify(range.value) + " start = " + tpl_item.start);
-	//tpl_item.trigger("range_change", range.value);
+	// console.log("unzoom to " + JSON.stringify(range.value) + " start = " + vec.start);
+	//vec.trigger("range_change", range.value);
     });
     
-    //tpl_item.listen("slided", function(){
-	//tpl_item.elements.unzoom.trigger("click");
+    //vec.listen("slided", function(){
+	//vec.elements.unzoom.trigger("click");
     //});
     
     
-    tpl_item.set_selection=function(new_sel){
+    vec.set_selection=function(new_sel){
 	selection.set_value(new_sel);
 	if(è(select_brush))
 	    select_brush.extent(new_sel);
@@ -2109,7 +2173,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	var selw=sv[1]-sv[0];
 	
 	var r=[sv[0]-selw, sv[1]+selw];	
-
+	var plots=vec.value;
+	
 	if(plots.length>0){
 	    function get_x(x){return plots[0].x(x);};
 	    var d=plots[0].data.length;
@@ -2119,16 +2184,16 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 		r[0]=get_x(d-1)
 	}
 
-	tpl_item.trigger("selection_change", selection.value);
+	vec.trigger("selection_change", selection.value);
     }
     
-    tpl_item.set_range=function(new_range){
+    vec.set_range=function(new_range){
 
 	if(è(new_range))
 	    range.set_value(new_range);
 	
 	if(è(brush))brush.extent(range.value);
-	//tpl_item.trigger("range_change", range.value);
+	//vec.trigger("range_change", range.value);
     };
 
     
@@ -2146,7 +2211,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	//svg.select(".select_brush").call(select_brush);
 	
 	selection.set_value(select_brush.extent());
-	tpl_item.trigger("selection_change", selection.value);
+	vec.trigger("selection_change", selection.value);
 	//	    fv.cmap.display();
     }
 
@@ -2157,17 +2222,17 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     });
 
 
-    var config_range=tpl_item.config_range=function(){
-
+    vec.config_range=function(){
+	var plots = vec.value;
+	
 	xr=[1e30,-1e30];
 	yr=[1e30,-1e30];
-
-	//console.log("NPL " +plots.length);
 	
 	for (var p=0;p<plots.length;p++){
 	    var pl=plots[p];
-
-
+	    
+	    //console.log("Config Range : plot "+p+" ND " +plots[p].data.length);
+	    
 	    if(pl.le.value){
 		//for(var x in pl) console.log("PL " + x);
 		var pll= pl.data.length;
@@ -2185,30 +2250,32 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    }
 	}
 	
-	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
+	
 
 	//xr=[0,24];
-	if(xr[0]===1e30){
-	    tpl_item.set_range([0,1]);
-	    xscale.domain([0,1]);
-	}else{
-	    tpl_item.set_range(xr);
-	    xscale.domain(xr);
+	if((xr[1]-xr[0]) == 0 || xr[0]==1e30 || xr[1]==-1e30){
+	    xr[0]=0;xr[1]=1.0;
 	}
-	if(yr[0]===1e30)
-	    yscale.domain([0,1]);
-	else
-	    yscale.domain(yr);
+	vec.set_range(xr);
+	xscale.domain(xr);
 
-	tpl_item.redraw();
+	if((yr[1]-yr[0])==0 || yr[0]==1e30 || yr[1]==-1e30){
+	    yr[0]=0;yr[1]=1.0;
+	}
 
+	yscale.domain(yr);
+
+	vec.redraw();
+
+	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
+	
 	if(è(brush))brush.extent(range.value);
 	if(è(select_brush))select_brush.extent(selection.value);
 	
 	return;
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
-	//if(è(tpl_item.y_range)){
-	//     y.domain(tpl_item.y_range);
+	//if(è(vec.y_range)){
+	//     y.domain(vec.y_range);
 	// }else
 	//     y.domain(yr); //d3.extent(data, function(d) { return d; }));
     }
@@ -2224,20 +2291,23 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
     
-    tpl_item.redraw=function(){
-
+    vec.redraw=function(){
+	
 	if(range.value[0]==null || range.value[1]==null){
 	    //this.set_range([0,this.value.length-1]);
 	    console.log("Vector : No range set !");
 	    return;
 	}
 
-	var context;
-	var brg=tpl_item.brg=null,select_brg=tpl_item.select_brg=null;
 
-	svg.select("g").remove();
-	context=tpl_item.context = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+	var brg=vec.brg=null,select_brg=vec.select_brg=null;
 
+	vec.svg.select("g").remove();
+	
+	
+	var context=vec.context = vec.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+	
+	//console.log("VECTOR REDRAW ! Nplots=" + plots.length);
 		
 	var xsvg = context.append("g")
 	    .attr("class", "axis")
@@ -2260,7 +2330,8 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	xsvg.call(xAxis);
 	ysvg.call(yAxis);
 
-	
+	//var plots = vec.value;
+	//console.log("VECTOR REDRAW DONE ! Nplots=" + plots.length);
 	
 	// ysvg.each(function(){
 	// 		 console.log("YAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
@@ -2275,20 +2346,22 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	// //	    .attr("d", area);
 	
 	
-    
-	brg=context.append("g").attr("class", "brush").call(brush);
-	brg.selectAll("rect").attr("y", height2).attr("height", height2 + 7);	
-	brg.selectAll(".resize").append("path").attr("d", resizePath).attr("transform", "translate(0," + height2 + ")");
+	if(ui_opts.enable_range!==false){
+	    
+	    brg=context.append("g").attr("class", "brush").call(brush);
+	    brg.selectAll("rect").attr("y", height2).attr("height", height2 + 7);	
+	    brg.selectAll(".resize").append("path").attr("d", resizePath).attr("transform", "translate(0," + height2 + ")");
+	    svg.select(".brush").call(brush);
+	}
+
+	if(ui_opts.enable_selection!==false){
 	
-	select_brg=tpl_item.select_brg=context.append("g").attr("class", "select_brush").call(select_brush);
-	select_brg.selectAll("rect").attr("y", -6).attr("height", height2);	
-	select_brg.selectAll(".resize").append("path").attr("d", resizePath);
-	
-	svg.select(".brush").call(brush);
-	svg.select(".select_brush").call(select_brush);
-	
-	for(var i=0;i<plots.length;i++) plots[i].redraw(context);
-	
+	    select_brg=vec.select_brg=context.append("g").attr("class", "select_brush").call(select_brush);
+	    select_brg.selectAll("rect").attr("y", -6).attr("height", height2);	
+	    select_brg.selectAll(".resize").append("path").attr("d", resizePath);
+	    svg.select(".select_brush").call(select_brush);
+	}
+	for(var i=0;i<vec.value.length;i++) vec.value[i].redraw(context);
     }
     
     function xfunc_linear(id, start, step){
@@ -2299,7 +2372,7 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 
 	var p=this;
 
-	p.data= data;
+	p.data= data;//.slice();
 	p.xfunc=xfunc;
 	//p.args=args;
 	//args.unshift(0);
@@ -2310,28 +2383,30 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 	    return p.xfunc.apply(p, p.args);
 	}
 	
-	p.line=tpl_item.line=d3.svg.line()
+	p.line=vec.line=d3.svg.line()
 	    .x(function(d,i) { return xscale(p.x(i)); })
 	    .y(function(d) { return yscale(d); });
 	//.interpolate("linear");
-
+	var plots = vec.value;
 	p.set_opts=function(opts){
 	    p.stroke=opts.stroke || "black";
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
+	    var defname="line"+ (plots.length+1);
 	    p.label=opts.label || ("Line " + (plots.length+1));
 
 	    if(ù(p.le)){
 		p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
 		create_ui({},p.le);
-		lines.ui_childs.add_child(p.le,p.le.ui_root);
+		lines.add_child(p.le,defname);
+		p.le.listen("change", function () { vec.config_range();} );
 	    }
 	}
 	
 	p.set_opts({});
 	
 	p.redraw=function(context){
-	    //console.log("plot draw..." + p.label);
+	    
 	    p.le.set_title(p.label);
 	    
 	    if(p.le.value && p.data.length!==0){
@@ -2344,50 +2419,54 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
 		//.attr("class", "line_black")
 		    .attr("d", p.line);
 
+		//console.log("plot redraw..." + p.label + "DL = " +p.data.length  + " D0 = " + p.data[0]);
+		
 		context.append("text")
-		    .attr("transform", "translate(" + (3) + "," + yscale(p.data[0]) + ")")
+		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0])-10) + ")")
 		    .attr("dy", ".35em")
 		    .attr("text-anchor", "start")
+		    .attr("font-size", "10px")
 		    .style("fill", p.stroke)
 		    .text(p.label);
 	    }
 	}
     };
     
-    tpl_item.add_plot=function(data, xfunc){
-	var args=[];
+    vec.add_plot=function(data, xfunc){
 
+
+	//console.log("Adding plot DL=" + data.length + " ... ");
+	var args=[];
+	
 	if(arguments.length>2){
 	    for(var a=0;a<arguments.length;a++)
 		args.push(arguments[a+2]);
 	}
 
+	var plots = vec.value;
 	var p=new plot(data, xfunc, args);
-
-	console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
-
 	plots.push(p);
-	config_range();
+	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
+	vec.config_range();
 	return p;
     }
     
     
-    tpl_item.add_plot_linear=function(data, start, step){
+    vec.add_plot_linear=function(data, start, step){
 	return this.add_plot(data, xfunc_linear, start, step);
-	
     }
 
 
     
-    // if(typeof tpl_item.value=='undefined'){
-    // 	tpl_item.value = [];
+    // if(typeof vec.value=='undefined'){
+    // 	vec.value = [];
     // }
     
     
     
     
     // var area = d3.svg.area().interpolate("step-before")
-    //     .x(function(d,i) { return x(tpl_item.start + i*tpl_item.step); })
+    //     .x(function(d,i) { return x(vec.start + i*vec.step); })
     //     .y0(height)
     //     .y1(function(d) { return y(d); });
     
@@ -2412,22 +2491,21 @@ template_ui_builders.vector=function(ui_opts, tpl_item){
     }
 
     
-    // if( ù(tpl_item.y_range) && è(tpl_item.value))
-    // 	tpl_item.set_range([tpl_item.value[0],tpl_item.value[tpl_item.value.length-1]]);
+    // if( ù(vec.y_range) && è(vec.value))
+    // 	vec.set_range([vec.value[0],vec.value[vec.value.length-1]]);
     
 
-    if(è(tpl_item.value)){
-	console.log("Add plot.....");
+    // if(è(vec.value)){
 
- 	var start =tpl_item.start || 0;
-	var step=tpl_item.step || 1;
-	tpl_item.add_plot_linear(tpl_item.value, start, step);
-    }
+    // 	var start =vec.start || 0;
+    // 	var step=vec.step || 1;
+    // 	vec.add_plot_linear(vec.value, start, step);
+    // }
 
 
     
     
-    return tpl_item.ui;
+    return vec.ui;
 }
 
 

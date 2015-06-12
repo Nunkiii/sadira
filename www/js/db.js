@@ -289,6 +289,7 @@ template_ui_builders.default_after=function(ui_opts, tpl_item){
 */
 
 function create_widget(t){
+    console.log("create widget " + t);
     var widget_template=tmaster.build_template(t);
     create_ui({},widget_template);
     return widget_template;
@@ -643,16 +644,29 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    tpl_root.debug_widget.append(msg+"<br/>");
 	    
 	}
+	
+	var base_uri=window.location.href;
 
-
+	
 	if(è(tpl_root.toolbar)){
 	    
+	    var base_uri=window.location.href.split()[0];
+	    var to = base_uri.lastIndexOf('/');
+	    if(to+1===base_uri.length)
+		base_uri =  base_uri.substring(0,to);
+
+
 	    //ui_root.removeChild(ui_name);
 	    
 	    //var head=tpl_root.ui_head=cc("header", ui_root, true);
 	    //head.add_class("db");
-
+	    
 	    document.body.style.paddingTop="70px";
+
+	    
+	    //console.log("count " + base_uri.length + " last/ " + to + " uri " + base_uri);
+	    
+	    
 	    
 	    var tb=tpl_root.toolbar;
 	    var toolbar=tpl_root.ui_toolbar=cc("nav",ui_root,true);
@@ -710,10 +724,57 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		li.appendChild(node);
 		return li;
 	    };
+
 	    
-	    function fill_elements(ul, elements){
+	    tb.activate_toolbar_widget=function(tti){
+
+		
+		
+		if(tti.ui_root === undefined){
+		    
+		    tti.ui_opts={ close: true };
+		    for(var p in tti){
+			console.log("CWTYPE " + p + " nn " + tti[p].nodeName);
+		    }
+		    create_widget(tti);
+		    //add_close_button(tti, tti.ui_title_name);
+		    //tti.on=false;
+		    
+		    tti.listen('close', function(){
+			if(tpl_root.tb_ui!==undefined){
+			    tpl_root.ui_root.removeChild(tpl_root.tb_ui.ui_root);
+			    tpl_root.tb_ui=undefined;
+			}
+			//tti.on=false;
+			tpl_root.ui_childs.div.style.display="";
+			
+		    });
+		}
+		
+		if(tpl_root.tb_ui!==undefined){
+		    if(tpl_root.tb_ui!==tti)
+			tpl_root.tb_ui.trigger('close');	
+		}
+		
+		// else{
+		//     //tpl_root.ui_root.removeChild(tpl_root.tb_ui);
+		// }
+		
+		tpl_root.tb_ui=tti;
+		tpl_root.ui_childs.div.style.display="none";
+		tpl_root.ui_root.insertBefore(tti.ui_root, toolbar.nextSibling);
+
+		
+		
+		
+	    }
+	    
+	    
+	    function fill_elements(ul, elements, prefix){
+		if(prefix===undefined) prefix='';
 		for(var tbi in elements){
 		    var ti=elements[tbi];
+		    ti.key=tbi;
 		    //ttpl.parent=tpl_root;
 		    //console.log(tpl_root.name +  " adding toolbar child " + e + " name " + el.name + " elements " + JSON.stringify(ttpl.elements)) ;
 		    //var ui=create_ui(global_ui_opts,ttpl, depth+1);
@@ -728,59 +789,37 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			tita.innerHTML=ti.name+' <span class="caret"></span>';
 			var sub_ul=ti.subul=cc("ul",li); sub_ul.className="dropdown-menu";
 			sub_ul.setAttribute("role","menu");
-			fill_elements(sub_ul,ti.elements);
+			//prefix.push(ti.key);
+			
+			fill_elements(sub_ul,ti.elements, prefix+'/'+ti.key);
 		    }else{
 			
 			var tita=ti.a=ce("a");
 			tita.innerHTML=ti.name;
 			ti.li=tb.add(tita,ul);
 			ti.li.ti=ti;
+
 			
 			if(ti.type !== undefined){
 			    //var uopts=ti.ui_opts===undefined?{}:ti.ui_opts;
 			    
 			    //ti.li=tb.add(ti.ui_name,ul);
 			    ti.li.addEventListener("click", function(){
-
+		
 				var tti=this.ti;
-				
-				if(tti.ui_root === undefined){
-				    
-				    tti.ui_opts={ close: true };
-				    
-				    create_widget(tti);
-				    //add_close_button(tti, tti.ui_title_name);
-				    //tti.on=false;
-				    
-				    tti.listen('close', function(){
-					if(tpl_root.tb_ui!==undefined){
-					    tpl_root.ui_root.removeChild(tpl_root.tb_ui.ui_root);
-					    tpl_root.tb_ui=undefined;
-					}
-					//tti.on=false;
-					tpl_root.ui_childs.div.style.display="";
-					
-				    });
-				   
-				}
 
+				tb.activate_toolbar_widget(tti);
+				var uri=base_uri; 
+				//prefix.forEach(function(p){ uri+="/"+p; });
+				uri+=prefix+"/"+tti.key;
+				window.history.pushState("object or string", "Title", uri);
+
+				
 				//if(tti.on===false){
 				    
 				    
 				//tti.on=true;
 
-				if(tpl_root.tb_ui!==undefined){
-				    if(tpl_root.tb_ui!==tti)
-					tpl_root.tb_ui.trigger('close');	
-				}
-				
-				// else{
-				//     //tpl_root.ui_root.removeChild(tpl_root.tb_ui);
-				// }
-				
-				tpl_root.tb_ui=tti;
-				tpl_root.ui_childs.div.style.display="none";
-				tpl_root.ui_root.insertBefore(tti.ui_root, toolbar.nextSibling);
 				
 				// }else{
 				
@@ -793,10 +832,60 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 	    }
 	    
-	    fill_elements(unav,tb.elements);
+	    fill_elements(unav,tb.elements );
 	    
 	    if(è(tpl_root.ui_intro))
 		head.appendChild(tpl_root.ui_intro);
+	}
+
+
+	tpl_root.interpret_url=function(){
+	    var to = base_uri.lastIndexOf('/');
+	    if(to+1===base_uri.length)
+		base_uri =  base_uri.substring(0,to);
+	    
+	    to =base_uri.lastIndexOf('/widget');
+	    
+	    widget_uri =  base_uri.substring(to);
+	    base_uri=base_uri.substring(0,to);
+
+	    var wcomps=widget_uri.split('/');
+	    var widget_name=wcomps[2];
+
+	    base_uri=base_uri+'/widget/'+widget_name;
+	    wcomps=wcomps.splice(3);
+
+	    console.log("Base URI is " + base_uri);
+	    
+
+	    
+	    if(è(tpl_root.toolbar)){
+		if(wcomps.length>0){
+		    console.log("wcomps l = " + wcomps.length);
+		    var e=tpl_root.toolbar.elements[wcomps[0]];
+		    
+		    for(var i=1;i<wcomps.length;i++){
+			if(e===undefined) {
+			    console.log("BUG ! toolbar widget not found !");
+			}else{
+			    if(e.elements===undefined)
+				console.log("BUG ! toolbar elements widget not found !");
+			    else
+				e=e.elements[wcomps[i]];
+			}
+			
+			console.log("Widget uri is [" + wcomps[i] + "]");
+			
+		    }
+		    
+		    if(e===undefined) 
+			console.log("BUG ! toolbar widget not found !!!!!");
+		    else{
+			tpl_root.toolbar.activate_toolbar_widget(e);
+		    }
+		    
+		}
+	    }
 	}
 	
 	
@@ -891,6 +980,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    tpl_root.get_title_node=function(){ return this.ui_name; }
 
+	    function get_name_text(){
+		if(ui_opts.name_elm!==undefined){
+		    var ne=tpl_root.get(ui_opts.name_elm);
+		    if(ne !== undefined){
+			return ne.value;
+		    }else
+			return "Invalid name element !";
+		}else
+		    return tpl_root.name;
+	    }
+	    
+	    
 	    tpl_root.rebuild_name=function(){
 		
 		//console.log("rebuild name " + tpl_root.name);
@@ -921,8 +1022,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			//var fas=cc("span",ui_name,true);
 			//fas.className="fa fa-"
 		    }
+
 		    
-		    ui_name_text.innerHTML+=tpl_root.name+" ";
+		    ui_name_text.innerHTML+=get_name_text()+" ";
 		    
 		    if(è(tpl_root.subtitle)){
 			var subtitle=cc("small",ui_name_text);
@@ -948,7 +1050,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    if(è(ui_opts.fa_icon)){
 			ui_name.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
 		    }
-		    ui_name.innerHTML+=tpl_root.name;
+		    ui_name.innerHTML+=get_name_text();
 		    if(typeof ico!='undefined')
 			ui_name.prependChild(ico);
 
@@ -1072,7 +1174,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 		
 		//console.log("switching edit mode to " + ui_opts.type);
-		rebuild();
+		tpl_root.rebuild();
 		
 	    }
 	    
@@ -1129,22 +1231,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
     }
 
-
-    
-    
-    //   }
-    
-    
-    
     //console.log("Created selected event on " + e.name);
-
-
 
     if(è(ui_opts.close)){
 	new_event(tpl_root,"close");
 	if(tpl_root.parent!==undefined){
 	    tpl_root.listen("close", function(){
-		
 		console.log("Closing " + tpl_root.name);
 		tpl_root.parent.ui_childs.remove_child(this);
 		//cnt.remove_child(child);
@@ -1159,7 +1251,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    this.ui_root.remove_class("disabled");
     }
 
-    function rebuild(){
+    tpl_root.rebuild=function (){
 	//if (typeof tpl_root.sliding != 'undefined') 
 
 	tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
@@ -1234,8 +1326,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
 			add_classes(ui_opts.child_classes, ui_childs.div);
 		    }
-		    
-		    ui_content.appendChild(ui_childs.div);
+
+		    if(ui_opts.childs_pos==="below")
+			ui_content.prependChild(ui_childs.div);
+		    else
+			ui_content.appendChild(ui_childs.div);
 
 		    if(sliding){
 			console.log( tpl_root.name + " : Adding child div to sliding stuff");
@@ -1261,15 +1356,48 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    break;
 
 	case "table":
-	    var tb;
+	    var tbl,tb;
+
+	    function attach_mini_ui(tr,e, eold){
+		var td=cc("td",tr);
+		if(e.ui_opts.mini_elm!==undefined){
+		    if(e.ui_opts.mini_elm!==""){
+			var me=e.get(e.ui_opts.mini_elm);
+			if(me!==undefined)
+			    td.appendChild(me.ui);
+			else{
+			    var ere=ce("span");
+			    ere.innerHTML="Invalid mini_elm !";
+			    td.appendChild(ere);
+			}
+		    }
+		}
+		else
+		    td.appendChild(e.ui_root);
+	    }
+	    
+	    function attach_name_ui(tr,e, eold){
+		var td=cc("td",tr);
+		if(è(e.ui_name)){
+		    delete e.intro;
+			delete e.subtitle;
+		    e.ui_opts.type="short";
+		    e.rebuild();
+		    //e.rebuild_name();
+		    td.appendChild(e.ui_name);
+		}
+	    }
+	    
 	    ui_childs.add_child=function(e,ui,prep){
 		if(!add_child_common(e,ui,prep)) return;
 
 		this.add_child_com(e);
 
 		if(typeof ui_childs.div=='undefined'){
-		    tb=ui_childs.div=ce("table"); 
-		    ui_childs.div.className="childs";
+
+		    tbl=ui_childs.div=ce("table");
+		    tb=cc("tbody",tbl);
+		    ui_childs.div.className="table table-hover";
 		    
 		    if(typeof ui_opts.child_classes != 'undefined'){
 			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
@@ -1280,26 +1408,32 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    sliding_stuff.push(ui_childs.div);
 		    
 		}
+
 		// if(è(e.ui_name))
 		//     if(e.ui_opts.close) add_close_button(e,e.ui_name);
-
+		
 		var tr=e.tr= prep ? cc("tr",tb,true) : cc("tr",tb);
 
-		var td=cc("td",tr); if(è(e.ui_name))td.appendChild(e.ui_name);
 		
-		td=cc("td",tr); td.appendChild(e.ui_root); 
+		attach_name_ui(tr,e);
 		
+		attach_mini_ui(tr,e);
 		//prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
-		
-		
 	    }
-
+	    
 	    ui_childs.replace_child=function(nctpl){
-		//var ui=e.ui_opts.label ? e.ui_name :  e.ui_root;
-		//console.log("DIV Replaced UI "+ ui.nodeName + " with node " + new_ui.nodeName);
-		ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
-	    }
+		console.log(tpl_root.name + " : childs Replaced UI "+ nctpl.ui_root_old.nodeName + " with node " + nctpl.ui_root.nodeName);
 
+		if(è(nctpl.tr))
+		    nctpl.tr.innerHTML="";
+		else
+		    nctpl.tr=cc("tr", tb);
+		attach_name_ui(nctpl.tr,nctpl);
+		attach_mini_ui(nctpl.tr,nctpl);
+		
+		//ui_childs.div.replaceChild(nctpl.ui_root, nctpl.ui_root_old);
+	    }
+	    
 	    ui_childs.remove_child=function(e){
 		ui_childs.div.removeChild(e.ui_root);
 	    }
@@ -1317,7 +1451,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 		if(typeof ui_childs.div=='undefined'){
 		    tb=ui_childs.div=ce("table"); 
-		    ui_childs.div.className="childs";
+		    //ui_childs.div.className="childs";
 		    
 		    if(typeof ui_opts.child_classes != 'undefined'){
 			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
@@ -1652,19 +1786,36 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 		
 		else{
-		    var div=ui_childs.div=cc("div", ui_content); 
+		    var div=ui_childs.div=cc("div", ui_content);
 		    nav=this.nav=cc("ul",div);
-		    uic=div;
+		    
+		    if(typeof ui_opts.tabs_mode != 'undefined'){
+			if(ui_opts.tabs_mode==='left')
+			    div.add_class("col-xs-3");
+		    }else
+			uic=div;
 		}
 		
 		
 		nav.className="nav";
+
+		if(cvtype==="tabbed")
+		    nav.add_class("nav-tabs");
+
+		if(cvtype==="pills")
+		    nav.add_class("nav-pills");
+
+		
+		if(typeof ui_opts.tabs_mode != 'undefined'){
+		    if(ui_opts.tabs_mode==='left')
+			nav.add_class("tabs-left");
+		}
+		
 		
 		if(typeof ui_opts.tab_classes != 'undefined')
 		    add_classes(ui_opts.tab_classes, nav);
-		else{
-		    nav.add_class(cvtype==="tabbed" ? "nav-tabs" : "nav-pills");
-		}
+
+
 	    }
 	    
 	    var cnt=this.cnt=cc("div", uic);
@@ -1672,6 +1823,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    navcnt.add_class(cvtype);
 	    //cnt.add_class("child_container");
 	    cnt.add_class("tab-content");
+
+	    if(typeof ui_opts.tabs_mode != 'undefined'){
+		if(ui_opts.tabs_mode==='left')
+		    cnt.add_class("col-xs-9");
+	    }
+	    
 	    if(è(ui_opts.tab_scroll_height)){
 		cnt.style.maxHeight=ui_opts.tab_scroll_height;
 		cnt.style.overflowY="auto";
@@ -1792,7 +1949,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		set_frame_name(e);
 		
 		if(!e.ui_opts.label){
-		    e.ui_root.add_class("tab-pane container-fluid");
+		    if(ui_opts.tabs_mode !== undefined){
+			//if(ui_opts.tabs_mode==='left')
+			//   cnt.add_class("col-xs-9");
+		    }else
+			e.ui_root.add_class("tab-pane");
+		    
+		    e.ui_root.add_class("container-fluid");
+		    
 		    //e.ui_root.add_class("fade");
 		    //if(nframes==0) e.ui_root.add_class("in");
 		    e.ui_root.setAttribute("role","tabpanel");
@@ -1871,32 +2035,39 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
 	    }else{
 		ui_childs.add_child(el,ui);
+		var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
 	    }
 	    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 	}
 
-	tpl_root.add_child=function(tpl, key){
-	    if(è(key)){
-		if(ù(tpl_root.elements)) tpl_root.elements={};
-		tpl_root.elements[key]=tpl;
-	    }
-	    if(è(tpl_root.ui_childs))
-		tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
-	}
-
-	tpl_root.update_child=function(tpl, child_key){
-	    var child=tpl_root.get(child_key);
-	    if(ù(child)){
-		return tpl_root.add_child(tpl,child_key);
-		//return tpl_root.debug("update_child error: "+tpl_root.name+" : No such child " + child_key);
-	    }
-
-	    tpl_root.elements[child_key]=tpl;
-	    child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
-
-	}
 
     }
+
+
+    tpl_root.add_child=function(tpl, key){
+	if(tpl_root.ui_childs===undefined)
+	    setup_childs();
+	if(è(key)){
+	    if(ù(tpl_root.elements))
+		tpl_root.elements={};
+	    tpl_root.elements[key]=tpl;
+	}
+	//console.log("Adding child " + tpl.name + " root is  " + tpl.ui_root);
+	tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
+    }
+    
+    tpl_root.update_child=function(tpl, child_key){
+	var child=tpl_root.get(child_key);
+	if(ù(child)){
+	    return tpl_root.add_child(tpl,child_key);
+	    //return tpl_root.debug("update_child error: "+tpl_root.name+" : No such child " + child_key);
+	}
+	
+	tpl_root.elements[child_key]=tpl;
+	child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
+	
+    }
+    
     
     tpl_root.hide=function(hide){
 	ui_root.style.display=hide? "none":"";
@@ -1939,8 +2110,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     function setup_item(){
 	
 	try{
-	    
-	    item_ui=tpl_root.item_ui=create_item_ui(ui_opts, tpl_root);
+
+	    var xui=create_item_ui(ui_opts, tpl_root);
+	    if(tpl_root.ui===undefined)
+		item_ui=tpl_root.item_ui=xui;
+	    else
+		item_ui=tpl_root.item_ui=tpl_root.ui;
 	    
 	    if(ui_opts.label && è(item_ui)){
 		if(sliding){
@@ -1958,7 +2133,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(item_ui){
 
 		if(!ui_opts.item_root){
+
+		    console.log(tpl_root.name + " : adding item ui " + item_ui);
 		    ui_content.appendChild(item_ui);
+
 		    if(sliding){
 			//console.log(tpl_root.name + " : Adding item_ui in sliding stuff " + sliding_stuff.length);
 			sliding_stuff.push(item_ui);
@@ -2289,8 +2467,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	setup_root();
 	setup_title();
 	setup_item();
-	item_ui.setAttribute("data-type", tpl_root.type);
-	ui_root=item_ui; 
+	
+	if(item_ui!==undefined){
+	    item_ui.setAttribute("data-type", tpl_root.type);
+	    ui_root=item_ui;
+	}
+	else
+	    console.log("Strange item_ui undefined !! for " + tpl_root.name + " type " + tpl_root.type);
+
 	tpl_root.ui_root=tpl_root.ui_content=ui_content=ui_root;
     }else{
 	setup_root();

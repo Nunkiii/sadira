@@ -8,6 +8,7 @@ function clone_obj(obj) {
         return obj;
 
     var temp = obj.constructor(); // changed
+    //var temp = {}; 
 
     for(var key in obj)
         if (obj.hasOwnProperty(key))  temp[key] = clone_obj(obj[key]);

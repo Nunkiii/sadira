@@ -1,9 +1,68 @@
 var tutorial_objects = {
 
-    ui_option : {
+    vector_test : {
 
-	name : "UI option",
+	type : "vector",
+	name : "vector update test",
+	elements : {
+	    target : {
+		type : "string",
+		name : "Target",
+		holder_value : "Spectrum light source",
+		ui_opts : {
+		    label : true
+		    //type : "edit"
+			}
+	    },
+
+	    keys : {
+		name : "Meta-data",
+		ui_opts : {
+		    child_view_type : "div",
+		    name_node : "h3"
+		},
+		elements : {
+		    date_obs : {
+			name : "Observation time",
+			type : "date",
+			ui_opts : {
+			    label : true
+			}
+		    }
+		}
+	    }
+	},
 	
+	widget_builder : function (ui_opts, vt){
+	    
+	    //template_ui_builders.spectrum(ui_opts, vt);
+	    
+	    var d1=[1,2,3,4,5,6,5,2,1,-4];
+	    vt.add_plot_linear(d1, 0, 1);
+	    //vt.redraw();
+	    vt.elements.target.set_value("Totototoototo");
+	    //vt.set('target','Another strange light source');
+	}
+
+    },
+    
+  
+    ui_option : {
+	name : "UI option",
+	ui_opts : {
+
+	},
+
+	elements : {
+	    name  : {
+		name : "Option name",
+		type : "string"
+	    },
+	    desc : {
+		name : "Description",
+		type : "html"
+	    }
+	}
 
     },
     

@@ -30,10 +30,18 @@ var base_templates={
 
 	name : "Object collection",
 	ui_opts : {
-	    fa_icon : "reorder"
+	    fa_icon : "reorder",
+	    name_elm : "name",
+	    mini_elm : "description"
 	},
 	elements : {
 
+	    description  : {
+		type : "string",
+		name : "Description",
+		default_value : "Description of this collection..."
+	    },
+	    
 	    name : {
 		name : "Collection name",
 		type : "string",
@@ -52,13 +60,13 @@ var base_templates={
 		type : "string",
 		ui_opts : { label : true}
 	    }
-	},
-
-	widget_builder : function(ui_opts, dbc){
-	    dbc.listen("data_loaded", function(){
-		dbc.set_title( dbc.val("name"));
-	    })
 	}
+
+	// widget_builder : function(ui_opts, dbc){
+	//     dbc.listen("data_loaded", function(){
+	// 	dbc.set_title( dbc.val("name"));
+	//     })
+	// }
 	
     },
 
@@ -90,33 +98,53 @@ var base_templates={
     
     db_browser : {
 
-	name : "Database browser",
+	name : "Database browser !!!!",
+	
 	ui_opts : {
 	    root_classes : ["container-fluid"],
-	    child_classes : ["row"],
+	    child_classes : ["container-fluid"],
 	    fa_icon : "archive"
 	},
+
 	elements : {
-	    browser : {
-		//name : "Object browser",
-		ui_opts : { root_classes : ["col-sm-12"]},
+	    colsel : {
+		name : "Select collection",
+		
+		ui_opts : {
+		    type  : "edit",
+		    label :  true,
+		    root_classes : ["col-sm-12"],
+		},
+		type : "combo"
+	    },
+	    cnt : {
+		ui_opts : {
+		    root_classes : ["container-fluid"],
+		    child_classes : ["row"]
+		},
 		elements : {
-		    colsel : {
-			name : "Select collection",
-			ui_opts : {  type : "edit", label : true},
-			type : "combo"
-		    },
-		    list : {
-			name : "Object list"
+		    browser : {
+			//name : "Object browser",
+			ui_opts : { root_classes : ["col-sm-6"]},
+			elements : {
+			    list : {
+				ui_opts : {
+				    child_view_type : "table"
+				},
+				name : "Object list"
+			    }
+			}
+		    }
+		    ,
+		    object : {
+			//name : "Object view",
+			ui_opts : {
+			    root_classes : ["col-sm-6"],
+			    child_classes : ["container-fluid"]
+			}
 		    }
 		}
 	    }
-/*	    ,
-	    object : {
-		name : "Object view",
-		ui_opts : { root_classes : ["col-sm-6"], child_classes : ["container-fluid"]}
-	    }
-*/
 	},
 
 	widget_builder : function(ui_opts, dbb){
@@ -125,17 +153,21 @@ var base_templates={
 	    var browser = dbb.get('browser');
 	    var list = dbb.get('list');
 	    var colsel=dbb.get("colsel");
-
-
+	    var object=dbb.get("object");
+	    
+	    
 	    function get_collection_list(cb){
 		var r=new request({ cmd : '/api/dbcom/get'});
 		
 		r.execute(function(err, result){
+
 		    if(err){
 			object.ui_root.innerHTML=err;
 			return;
 		    }
+		    
 		    if(result.length>0){
+			
 			colsel.options=[];
 			
 			result.forEach(function(d){
@@ -145,14 +177,16 @@ var base_templates={
 			    //console.log("D= " + JSON.stringify(d));
 			    //object.ui_childs.add_child(w, w.ui_root);
 			});
+			
 			colsel.set_options();
 			cb(true);
+			
 		    }else{
 			colsel.set_title("No collection available");
 			colsel.disable();
 			cb(true);
 		    }
-
+		    
 		    colsel.listen("change", function (value) {
 			console.log("changed to " + value);
 			get_collection_objects();
@@ -164,10 +198,7 @@ var base_templates={
 	    function get_collection_objects(){
 
 		var collection_name = colsel.value;
-		
 		console.log("Col name : " + collection_name);
-
-		
 		var r=new request({ cmd : '/api/dbcom/get', args : { collection : collection_name} });
 		
 
@@ -187,20 +218,21 @@ var base_templates={
 			dbb.debug_clean();
 			
 			list=create_widget({ name : "Collection <i>" + collection_name + "</i>",
-					     ui_opts : { root_classes : ["col-sm-12"], child_classes : ["container-fluid"]}
-					     });
+					     ui_opts : {
+						 root_classes : ["col-sm-12"],
+						 child_classes : ["container-fluid"],
+						 //child_view_type : "table"
+					     }
+					   });
+	    
 			browser.update_child(list,"list");
 
 			
 			result.forEach(function(d, i){
 			    
-			    dbb.debug( i + " : " + JSON.stringify(d));
+			    //dbb.debug( i + " : " + JSON.stringify(d));
 			    
 			//colsel.options.push({value : d._id, label : d.els.name.value});
-
-			    
-			    
-
 			    var w=tmaster.build_template(d.type);
 			    if(w.ui_opts === undefined) w.ui_opts={};
 			    w.ui_opts.name_node="h3";
@@ -209,9 +241,28 @@ var base_templates={
 			    
 			    w.set_title(d.name + " : " + d._id);
 			    set_template_data(w,d);
+			    w.rebuild_name();
 			    //console.log("D= " + JSON.stringify(d));
 			    
 			    list.ui_childs.add_child(w, w.ui_root);
+			    
+			    //w.tr.addEventListener("click", function(){
+			    w.ui_name.addEventListener("click", function(){
+				
+				var ww=create_widget(d.type);
+
+				set_template_data(ww,d);
+				ww.rebuild_name();
+
+				if(object.obj === undefined){
+				    object.ui_root.appendChild(ww.ui_root);
+				}else
+				    object.ui_root.replaceChild(ww.ui_root, object.obj.ui_root);
+				
+				object.obj=ww;
+			    });
+
+			    
 			});
 		    }
 		});
@@ -280,12 +331,16 @@ var base_templates={
 	//type : "user",
 	name : "User information",
 	ui_opts : {
-	    child_view_type : "tabbed",
+	    child_view_type : "div",
 	    root_classes : ["container-fluid"],
-	    fa_icon : "user"
+	    fa_icon : "user",
+	    name_elm : "username",
+	    mini_elm : ""
 	},
 	elements : {
-
+	    nick : {
+		name : "Nickname"
+	    },
 	    credentials : {
 		name : "Account credentials",
 		db : { perm : { r : 'admin'} }
@@ -314,19 +369,26 @@ var base_templates={
     user_group : {
 	name : "User Group",
 	ui_opts : {
-	    fa_icon : "group"
+	    fa_icon : "group",
+	    name_elm : "name",
+	    mini_elm : "description",
+	    //name_node : "h5"
 	},
 	elements : {
 	    name : {
 		name : "Group name",
 		subtitle : "String identifier for the group",
 		type : "string",
-		ui_opts : { label : true }
+		ui_opts : {
+		    label : true
+		}
 	    },
 	    description : {
 		type : "html",
 		name : "Description", subtitle : "",
-		ui_opts : { label : true }
+		ui_opts : {
+		    label : true
+		}
 	    }
 	},
     },
@@ -746,28 +808,51 @@ var base_templates={
     },
     vector : {
 	name : "Vector view",
-	ui_opts : { root_classes : ["container-fluid"], child_classes : ["container-fluid"] },
+	ui_opts : {
+	    root_classes : ["container-fluid"], child_classes : ["container-fluid"]
+	},
 	elements :{
-	    btns : {ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] }, elements : {
-		zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
-		unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
-	    }},
-	    range : {
-		type : "labelled_vector",
-		name : "Range",
-		value_labels : ["start","end"],
-		value : [0, 0],
-		ui_opts: {
-		    root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false},
+	    btns : {
+		ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] },
+		elements : {
+		    zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
+		    unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
+		}
 	    },
-	    selection : {
-		type : "labelled_vector",
-		name : "Selection",
-		value_labels : ["start","end"],
-		value : [0, 0],
-		ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
-	    },
-	    lines : {ui_opts : { root_classes : ["inline"]} }
+
+	    ctls: {
+		ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] },
+		elements : {
+	    	    range : {
+			type : "labelled_vector",
+			name : "Range",
+			value_labels : ["start","end"],
+			value : [0, 0],
+			ui_opts: {
+			    root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false
+			},
+		    },
+		    selection : {
+			type : "labelled_vector",
+			name : "Selection",
+			value_labels : ["start","end"],
+			value : [0, 0],
+			ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
+		    },
+		    lines : {
+			ui_opts : {
+			    root_classes : ["inline"]
+			}
+		    }
+		}
+	    }
+	    /*
+	    controls : {
+	
+		elements : {
+		}
+	    }
+	    */
 	}
     },
     dbtypes : {
@@ -796,7 +881,7 @@ var base_templates={
 	name : '<span style="color: springgreen;">♐</span> Qk/Sadira',
 	
 	ui_opts : {
-	    root_classes : ["container-fluid"],
+	    root_classes : ["container-fluid left"],
 	    child_classes : ["container-fluid"],
 	    child_view_type : "pills",
 	    name_node : "h4",
@@ -1072,7 +1157,8 @@ var base_templates={
 	    type : "edit",
 	    //editable : true,
 	    root_classes : ["container-fluid"],
-	    item_classes : [],
+	    item_classes : []
+	    //mini_elm : "cmap"
 	    
 	},
 	// value : [[0,0,0,1,0],

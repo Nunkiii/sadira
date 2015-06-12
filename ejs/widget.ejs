@@ -39,7 +39,10 @@
 
   <script>
     window.addEventListener("load", function(){
-     attach_ui(create_widget("<%= tpl_name %>"), document.getElementById("content"));
+	var w=create_widget("<%= tpl_name %>");
+	w.interpret_url();
+	attach_ui(w, document.getElementById("content"));
+	
     });
   </script>
   

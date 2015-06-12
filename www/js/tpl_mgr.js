@@ -144,18 +144,25 @@ local_templates.prototype.add_templates=function(templates){
 
 local_templates.prototype.update_template=function(tpl_item, tpl){
     var toup=["elements","ui_opts"];
-    
+    var me=this;
     for(var ti=0;ti< toup.length;ti++){
 	var t=toup[ti];
-	//console.log("Check " + t + " typof " + typeof tpl_item[t] );
+	//console.log(tpl_item.name + " : Check " + t + " typof " + typeof tpl_item[t] );
 	
 	if(typeof tpl[t]!='undefined'){
 	    if(typeof tpl_item[t]=='undefined')
 		tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
 	    else
 		for(var o in tpl[t]){
-		    if(typeof tpl_item[t][o]=='undefined')tpl_item[t][o]=clone_obj(tpl[t][o]);//tpl[t][o]; //
+		    //console.log(tpl_item.name + " : Checking to add child " + o + " name " + tpl[t][o].name + " type " + tpl[t][o].type);
+		    if(tpl_item[t][o]===undefined){
+			tpl_item[t][o]=clone_obj(tpl[t][o]);
+			
+		    }else
+			this.update_template(tpl_item[t][o], tpl[t][o]);
 		}
+	    
+	    //for(var e in tpl_item[t]) console.log(tpl_item.name + " CHILD " + e );
 	}
     }
     
@@ -231,9 +238,17 @@ local_templates.prototype.common_builder=function(obj){
     obj.get=function(n){ return get(obj,n); };
     obj.add=function(key,child){return add(this,key,child);};
     obj.set=function(child,value){
-	var c=get(this,child);
 
-    if(c!==undefined)c.value=value;
+	var c=get(this,child);
+	
+	
+	if(c!==undefined){
+	    console.log("set value of " + c.name + " : " + value);
+	    
+	    if(c.set_value!==undefined)
+		c.set_value(value);
+	    else c.value=value;
+	}
 	else throw obj.name +" : cannot set value: child [" + child + "] not found!"
 	return this;
     };
