@@ -1880,7 +1880,8 @@ function setup_title(){
 	    var navcnt=nav;
 	    navcnt.add_class(cvtype);
 	    //cnt.add_class("child_container");
-	    cnt.add_class("tab-content");
+	    if(!child_toolbar)
+		cnt.add_class("tab-content");
 
 	    if(typeof ui_opts.tabs_mode != 'undefined'){
 		if(ui_opts.tabs_mode==='left')
@@ -2012,8 +2013,9 @@ function setup_title(){
 			//   cnt.add_class("col-xs-9");
 		    }else
 			e.ui_root.add_class("tab-pane");
-		    
-		    e.ui_root.add_class("container-fluid");
+
+		    if(!child_toolbar)
+			e.ui_root.add_class("container-fluid");
 		    
 		    //e.ui_root.add_class("fade");
 		    //if(nframes==0) e.ui_root.add_class("in");

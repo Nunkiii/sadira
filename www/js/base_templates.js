@@ -882,8 +882,8 @@ var base_templates={
 	name : '<span style="color: springgreen;">♐</span> Qk/Sadira',
 	
 	ui_opts : {
-	    root_classes : ["container-fluid left"],
-	    child_classes : ["container-fluid"],
+	    //root_classes : ["container-fluid left"],
+	    //child_classes : ["container-fluid"],
 	    child_view_type : "pills",
 	    name_node : "h4",
 	    intro_stick : true,

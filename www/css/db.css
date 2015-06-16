@@ -137,6 +137,11 @@ label {
   cursor : pointer;
 }
 
+.scrolling{
+	max-height: 75vh;
+	overflow-y : auto;
+}
+
 .table > thead > tr > td {
   vertical-align : middle;
   color : red;
