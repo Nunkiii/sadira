@@ -55,7 +55,7 @@ template_ui_builders.colormap=function(ui_opts, cmap){
 
     var select=cmap.get("select");
 
-    var r=new request({ cmd : '/api/dbcom/collection_list', args : { collection : "colormap"} });
+    var r=new request({ cmd : '/api/dbcom/get', args : { collection : "colormap"} });
     r.execute(function(err, result){
 	if(err){
 	    return cmap.abort_error(err);

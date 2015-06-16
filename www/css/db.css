@@ -1269,16 +1269,6 @@ progress[value]::-webkit-progress-value {
 }
 /* widget specific styling */
 
-/*
-.db input[type="number"]{
-  max-width: 6em;
-}
-
-.db[data-type="action"]{
-    display: inline-block;
-}
-*/
-
 .db input[type="radio"]{
                            margin-left: .1em;
   margin-right: .4em;
@@ -1286,11 +1276,12 @@ progress[value]::-webkit-progress-value {
   box-shadow: none;                       
 }
 
-.db .color_container{
-  border: 1px solid rgba(200,200,200,0.7);*/
+.color_container{
+  border: 1px solid rgba(200,200,200,0.7);
+  width: 2em;  
 }
 
-.db .color_container > input[type="color"]{
+input[type="color"]{
   border: 0px;
   box-shadow: none;                       
   opacity: 0;
