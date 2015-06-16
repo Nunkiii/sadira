@@ -809,7 +809,8 @@ var base_templates={
     vector : {
 	name : "Vector view",
 	ui_opts : {
-	    root_classes : ["container-fluid"], child_classes : ["container-fluid"]
+	    // root_classes : ["container-fluid"],
+	    //child_classes : ["container-fluid"]
 	},
 	elements :{
 	    btns : {

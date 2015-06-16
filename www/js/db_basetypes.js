@@ -49,6 +49,7 @@ function config_common_input(tpl_item){
 		if(ch)
 		    tpl_item.trigger("change", tpl_item.value);
 	    }
+	    
 	    if(è(tpl_item.value)){
 		tpl_item.ui.value=tpl_item.value;
 	    }
@@ -1326,7 +1327,7 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    if(nv !==undefined)
 		tpl_item.value=nv;
 
-	    console.log(tpl_item.name + " : STRING Set name to " +tpl_item.value);
+	    //console.log(tpl_item.name + " : STRING Set name to " +tpl_item.value);
 	    //ui.innerHTML="MERDE!!!!!";
 	    
 	    if(tpl_item.value !== undefined){
@@ -1761,10 +1762,13 @@ template_ui_builders.combo=function(ui_opts, combo){
 
     var ui;
     var style=ui_opts.style||"select",ul;
+    ui_opts.type='edit';
 
+    
+    //new_event(combo,"change");
 
-    if(ui_opts.type==="edit"){
-	console.log("Style " + style);
+//    if(ui_opts.type==="edit"){
+	//console.log("Style " + style);
 	
 	
 	if(style==="menu"){
@@ -1784,13 +1788,19 @@ template_ui_builders.combo=function(ui_opts, combo){
 	}
 	else{
 	    ui=combo.ui=ce("select"); ui.className="form-control";
+
+	    //ui.addEventListener('change', function(c){
+		//combo.set_value(this.value);
+		//combo.trigger('change', combo.value);
+	    //},false);
+
 	}
 	
 	combo.set_options=function(options){
 	    if(options!==undefined)combo.options=options;
 	    //console.log("Setting options " + JSON.stringify(options));
 	    if(combo.options===undefined) return;
-	    
+	    combo.ui.innerHTML="";
 	    combo.options.forEach(function(ov){
 		var o;
 		if(style==="menu"){
@@ -1820,38 +1830,33 @@ template_ui_builders.combo=function(ui_opts, combo){
 	    
 	}
 
-	
-
-
 
 	
-    }else{
-	ui=combo.ui=ce("span"); ui.className="";
-    }
+    // }else{
+    // 	ui=combo.ui=ce("span");
+    // 	ui.className="";
+    // }
 
-    combo.set_holder_value=function(v){
-	combo.set_value(v);
-	
-    }
     
-    combo.set_value=function(v){
-	if(è(v))combo.value=v;
-	/*
-	else{
-	    if(è(combo.options))
-		if(combo.options.length>0)
-		    combo.value=combo.options[0];
-		    }*/
+    // combo.set_holder_value=function(v){
+    // 	combo.set_value(v);
+    // }
+    
+    // combo.set_value=function(v){
+    // 	if(è(v))combo.value=v;
+    // 	combo.ui.value=v;
+    // 	/*
+    // 	else{
+    // 	    if(è(combo.options))
+    // 		if(combo.options.length>0)
+    // 		    combo.value=combo.options[0];
+    // 		    }*/
 	
-	ui.innerHTML=combo.value;
-    }
-    
-    
-    if(ui_opts.type==="edit"){
-	config_common_input(combo);
-	combo.set_options();
-    }
+    // 	ui.innerHTML=combo.value;
+    // }
 
+
+    config_common_input(combo);
     
     combo.set_default_value=function(){
 	if(è(combo.default_value)) return combo.set_value(combo.default_value);
@@ -1863,7 +1868,8 @@ template_ui_builders.combo=function(ui_opts, combo){
 	if(è(combo.holder_value)) combo.set_holder_value(combo.holder_value);
     }	
 
-    combo.set_default_value();
+    combo.set_options();
+    //combo.set_default_value();
     return ui;
 }
 
@@ -2020,6 +2026,9 @@ template_ui_builders.action=function(ui_opts, action){
 }
 
 template_ui_builders.vector=function(ui_opts, vec){
+
+
+    console.log("Building vec : " + vec.name + " parent " + vec.parent.name);
     
     var selection=vec.get("selection");
     var range=vec.get("range");
@@ -2034,8 +2043,6 @@ template_ui_builders.vector=function(ui_opts, vec){
     }
 
     
-    console.log("Lines is " + lines);
-    
     new_event(vec,"range_change");
     new_event(vec,"selection_change");
 
@@ -2043,15 +2050,18 @@ template_ui_builders.vector=function(ui_opts, vec){
     
 
     var brush, select_brush;
+
     vec.value=[];    
+    vec.plots=[];
+
     
     var bn=d3.select(ui);//vec.ui_childs.div);
-    var vw=400, vh=200;
+    var vw=vec.vw=400, vh=vec.vh=200;
     var pr;
     
     var svg = vec.svg=bn.append('svg')
 	.attr("viewBox", "0 0 "+vw+" "+vh)
-    //.attr("preserveAspectRatio", "none");
+//	.attr("preserveAspectRatio", "none");
 	.attr("preserveAspectRatio", "xMinYMin meet");
     //base_node.appendChild(svg.ownerSVGElement);
 
@@ -2059,12 +2069,12 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     var margin = vec.ui_opts.margin= {top: 12, right: 8, bottom: 25, left: 50}; //ui_opts.margin;
     //var width = vec.parent.ui_root.clientWidth //ui_opts.width 
-    var width=vw - margin.left - margin.right;
-    var height = vh- margin.top - margin.bottom;
+    var width=vec.width=vw - margin.left - margin.right;
+    var height =vec.height= vh- margin.top - margin.bottom;
     var height2=height/2.0;
 
-    var xr=[1e30,-1e30];
-    var yr=[1e30,-1e30];
+    var xr=vec.xr=[1e30,-1e30];
+    var yr=vec.yr=[1e30,-1e30];
 
     //console.log("Drawing vector w,h=" + width + ", " + height );
     
@@ -2077,6 +2087,41 @@ template_ui_builders.vector=function(ui_opts, vec){
     brush = d3.svg.brush().x(xscale).on("brushend", range_changed);
     select_brush = d3.svg.brush().x(xscale).on("brush", selection_changed);
 
+
+    new_event(vec,'redraw');
+
+    vec.xlabel="X";
+    vec.ylabel="Y";
+    
+    vec.serialize=function(){
+	var v=[];
+	vec.value.forEach(function(p){
+	    v.push({ data : p.data, args: p.args, opts: p.opts}  );
+	});
+	return v;
+    }
+
+    vec.deserialize=function(v){
+	vec.value=vec.plots=[];
+	lines.elements={};
+	if(lines.ui_childs!==undefined)
+	    lines.ui_childs.div.innerHTML="";
+	
+	v.forEach(function(p){
+	    //var args=p.args;
+	    //args.unshift(
+	    //console.log(vec.name + " : deserialize new plot .... nplots="+vec.value.length );
+	    var pp=vec.add_plot_linear(p.data,0,1);
+	    if(è(p.opts))
+		pp.set_opts(p.opts);
+
+	    //vec.ui_root.innerHTML+="<h2>SPEC</h2>"+JSON.stringify(pp.data, null, 3) + " <h4>opts</h4>" + JSON.stringify(p.opts, null, 3);
+	});
+
+	vec.redraw();
+	vec.config_range();
+    }
+    
     vec.set_value=function(v){
 	if(v!==undefined){
 	    //vec.value=v;
@@ -2225,8 +2270,8 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.config_range=function(){
 	var plots = vec.value;
 	
-	xr=[1e30,-1e30];
-	yr=[1e30,-1e30];
+	xr=vec.xr=[1e30,-1e30];
+	yr=vec.yr=[1e30,-1e30];
 	
 	for (var p=0;p<plots.length;p++){
 	    var pl=plots[p];
@@ -2239,8 +2284,15 @@ template_ui_builders.vector=function(ui_opts, vec){
 		//console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
 		
 		for(var j=0; j < pll ; j++){
-		    var iy=pl.data[j];
-		    var ix=pl.x(j);
+		    var iy,ix;
+		    if(pl.x!==undefined){
+			iy=pl.data[j];
+			ix=pl.x(j);
+		    }else{
+			ix=pl.data[j][0];
+			iy=pl.data[j][1];
+		    }
+
 		    if(iy<yr[0])yr[0]=iy;
 		    if(iy>yr[1])yr[1]=iy;
 		    
@@ -2290,6 +2342,31 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
+
+    if(ui_opts.show_cursor){
+	
+	var cursor=create_widget({ name : "Cursor ", type : "string", value : "none", ui_opts : {label : true}});
+	vec.add_child(cursor);
+	
+	new_event(vec, 'mousemove');
+	vec.svg.on('mousemove', function () {
+	    var mp = d3.mouse(this);
+	    mp[0]-=margin.left;
+	    mp[1]-=margin.top;
+	    
+	    var tw=vec.svg.node().clientWidth-margin.left-margin.right;
+	    //console.log("PIX " + mp[0]);
+	    //var ar= vec.svg.node().clientWidth/vec.vw;
+	    mp[0]=mp[0]/vec.width;
+	    //console.log("Frac " + mp[0]);
+	    mp[0]=vec.xr[0]+mp[0]*(vec.xr[1]-vec.xr[0]);
+	    //mp[1]=yscale(mp[1]);
+	    vec.trigger('mousemove', mp);
+	    cursor.set_value(mp[0]+","+mp[1]);
+	    //console.log("MouseMove " + JSON.stringify(mp));
+	});
+    }
+    
     
     vec.redraw=function(){
 	
@@ -2305,45 +2382,39 @@ template_ui_builders.vector=function(ui_opts, vec){
 	vec.svg.select("g").remove();
 	
 	
-	var context=vec.context = vec.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+	var context= vec.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 	
 	//console.log("VECTOR REDRAW ! Nplots=" + plots.length);
 		
 	var xsvg = context.append("g")
 	    .attr("class", "axis")
 	    .attr("transform", "translate(0," + height + ")")
-	    .call(xAxis);
+	    .call(xAxis)
+	    .append("text")
+	    .attr("transform", "translate(" + (width / 2) + " ," + (margin.bottom) + ")")
+	//.attr("transform", "rotate(-90)")
+	//.attr("y", 6)
+	//.attr("dy", ".71em")
+	    .style("text-anchor", "middle")
+	    .text(vec.xlabel);
+	
 	
 	var ysvg=context.append("g")
 	    .attr("class", "axis")
 	    .call(yAxis)
 	    .append("text")
 	    .attr("transform", "rotate(-90)")
-	    .attr("y", 6)
+	    .attr("y", -margin.left)
 	    .attr("dy", ".71em")
 	    .style("text-anchor", "end")
-	    .text("N");
-
+	    .text(vec.ylabel);
+	
 	xAxis.scale(xscale);
 	yAxis.scale(yscale);
 
 	xsvg.call(xAxis);
 	ysvg.call(yAxis);
 
-	//var plots = vec.value;
-	//console.log("VECTOR REDRAW DONE ! Nplots=" + plots.length);
-	
-	// ysvg.each(function(){
-	// 		 console.log("YAXIS: x=" + this.getBBox().x + " y=" + this.getBBox().y+ " w=" + this.getBBox().width+ " h=" + this.getBBox().height);
-	// 	     });	       
-    
-	
-	
-	// var pathsvg=context.append("path")
-	//     .datum(data)
-	//     .attr("class", "line_red")
-	//     .attr("d", line);
-	// //	    .attr("d", area);
 	
 	
 	if(ui_opts.enable_range!==false){
@@ -2362,6 +2433,9 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    svg.select(".select_brush").call(select_brush);
 	}
 	for(var i=0;i<vec.value.length;i++) vec.value[i].redraw(context);
+
+	//console.log("redraw trigger  " + context);
+	vec.trigger("redraw", context);
     }
     
     function xfunc_linear(id, start, step){
@@ -2372,7 +2446,10 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	var p=this;
 
-	p.data= data;//.slice();
+	p.data= data.slice();
+	if(xfunc===undefined)
+	    xfunc=xfunc_linear;
+
 	p.xfunc=xfunc;
 	//p.args=args;
 	//args.unshift(0);
@@ -2388,14 +2465,16 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    .y(function(d) { return yscale(d); });
 	//.interpolate("linear");
 	var plots = vec.value;
+
 	p.set_opts=function(opts){
+	    p.opts=opts;
 	    p.stroke=opts.stroke || "black";
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
 	    var defname="line"+ (plots.length+1);
 	    p.label=opts.label || ("Line " + (plots.length+1));
 
-	    if(ù(p.le)){
+	    if(p.le===undefined){
 		p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
 		create_ui({},p.le);
 		lines.add_child(p.le,defname);
@@ -2431,10 +2510,190 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    }
 	}
     };
+
+
+    var points_plot=function(data, label, opts){
+
+	var p=this;
+
+	p.data= data;
+	
+	p.line=vec.line=d3.svg.line()
+	    .x(function(d,i) { return xscale(d[0]); })
+	    .y(function(d,i) { return yscale(d[1]); });
+	//.interpolate("linear");
+	var plots = vec.value;
+
+	var defname="line"+ (plots.length+1);
+	
+	
+	p.stroke=opts.stroke || "black";
+	p.stroke_width=opts.stroke_width || "1px";
+	p.fill=opts.fill || "none";
+	
+	p.label=opts.label || ("Line " + (plots.length+1));
+	
+
+	p.le={ type : "bool", value : true, name : label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
+	create_ui({},p.le);
+	lines.add_child(p.le,defname);
+	p.le.listen("change", function () { vec.config_range();} );
+	
+	
+	//p.set_opts({});
+	p.redraw=function(context){
+	    
+	    p.le.set_title(p.label);
+	    
+	    if(p.le.value && p.data.length!==0){
+
+		//var g=context.append('g');
+
+		// draw dots
+		context.selectAll(".dot")
+		    .data(data)
+		    .enter().append("circle")
+		    .attr("class", "dot")
+		    .attr("r", 2)
+		    .attr("cx", function(d){return xscale(d[0])})
+		    .attr("cy", function(d){return yscale(d[1])})
+		    .style("fill", function(d) { return 'purple';});
+		    // .on("mouseover", function(d) {
+		    // 	tooltip.transition()
+		    // 	    .duration(200)
+		    // 	    .style("opacity", .9);
+		    // 	tooltip.html(d["Cereal Name"] + "<br/> (" + xValue(d)
+		    // 		     + ", " + yValue(d) + ")")
+		    // 	    .style("left", (d3.event.pageX + 5) + "px")
+		    // 	    .style("top", (d3.event.pageY - 28) + "px");
+		    // })
+		    // .on("mouseout", function(d) {
+		    // 	tooltip.transition()
+		    // 	    .duration(500)
+		    // 	    .style("opacity", 0);
+		    // });
+		
+		// context.selectAll('circles')
+		//     .data(p.data)
+		//     .enter()
+		//     .append('circle')
+		//     .attr("cx", function(d) {
+		// 	return d[0];
+		//     })
+		//     .attr("cy", function(d) {
+		// 	return d[1];
+		//     })
+		//     .attr("r", 5)
+		//     .attr('fill','red');
+
+		// context.selectAll("texts")
+		//     .data(p.data)
+		//     .enter()
+		//     .append("text")
+		//     .text(function(d) {
+		// 	return d[0] + "," + d[1];
+		//     })
+		//     .attr("font-family", "sans-serif")
+		//     .attr("font-size", "11px")
+		//     .attr("fill", "red");
+		
+		// p.path=context.append("path");
+		// p.path.attr("stroke", p.stroke);
+		// p.path.attr("stroke-width", p.stroke_width);
+		// p.path.attr("fill", p.fill);
+		
+		// p.path.datum(p.data)
+		// //.attr("class", "line_black")
+		//     .attr("d", p.line);
+
+		console.log("plot redraw..." + label + "DL = " +p.data.length  + " D0 = " + p.data[0][0]);
+		
+		context.append("text")
+		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0][1])-10) + ")")
+		    .attr("dy", ".35em")
+		    .attr("text-anchor", "start")
+		    .attr("font-size", "10px")
+		    .style("fill", p.stroke)
+		    .text(label);
+	    }
+	}
+    };
+
+
+    var function_plot=function(func, opts){
+
+	var p=this;
+
+	p.range=(opts.range===undefined) ? vec.xr : opts.range;
+	p.sampling=(opts.sampling!==undefined) ? opts.sampling : 1.0;
+	
+	p.line=vec.line=d3.svg.line()
+	    .x(function(d,i) { return xscale(d[0]); })
+	    .y(function(d,i) { return yscale(d[1]); });
+	
+	p.label=(opts.label===undefined) ? "line"+ (vec.value.length+1) : opts.label;
+	
+	p.stroke=opts.stroke || "black";
+	p.stroke_width=opts.stroke_width || "1px";
+	p.fill=opts.fill || "none";
+	
+	p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
+	create_ui({},p.le);
+	lines.add_child(p.le,p.label);
+	p.le.listen("change", function () { vec.config_range();} );
+
+	function sample_data(){
+	    p.data=[];
+	    for(var x=p.range[0];x<=p.range[1];x+=p.sampling){
+		p.data.push([x,func(x)]);
+	    }
+	    //console.log("FUNC " + JSON.stringify(p.data));
+	}
+	
+	//p.set_opts({});
+	p.redraw=function(context_in){
+	    if(context_in!==undefined){
+		p.context=context_in.append("g");
+	    }
+
+	    var context=p.context;
+
+
+	    context.select("path").remove();
+	    context.select("text").remove();
+	    
+	    //p.le.set_title(p.label);
+	    sample_data();
+
+	    p.path=context.append("path");
+	    p.path.attr("stroke", p.stroke);
+	    p.path.attr("stroke-width", p.stroke_width);
+	    p.path.attr("fill", p.fill);
+	    
+	    p.path.datum(p.data)
+	    //.attr("class", "line_black")
+		.attr("d", p.line);
+	    
+	    if(p.le.value && p.data.length!==0){
+		
+		context.append("text")
+		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0][1])-10) + ")")
+		    .attr("dy", ".35em")
+		    .attr("text-anchor", "start")
+		    .attr("font-size", "10px")
+		    .style("fill", p.stroke)
+		    .text(p.label);
+	    }
+	}
+
+	sample_data();
+	
+    };
+
+    
+
     
     vec.add_plot=function(data, xfunc){
-
-
 	//console.log("Adding plot DL=" + data.length + " ... ");
 	var args=[];
 	
@@ -2443,13 +2702,32 @@ template_ui_builders.vector=function(ui_opts, vec){
 		args.push(arguments[a+2]);
 	}
 
-	var plots = vec.value;
+	
 	var p=new plot(data, xfunc, args);
-	plots.push(p);
+	this.value.push(p);
 	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
-	vec.config_range();
+	this.config_range();
 	return p;
     }
+
+    vec.add_plot_points=function(data, label, opts){
+
+	var p=new points_plot(data, label, opts);
+	this.value.push(p);
+	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
+	this.config_range();
+	return p;
+    }
+
+    vec.add_plot_func=function(func, opts){
+
+	var p=new function_plot(func, opts);
+	this.value.push(p);
+	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
+	this.config_range();
+	return p;
+    }
+
     
     
     vec.add_plot_linear=function(data, start, step){

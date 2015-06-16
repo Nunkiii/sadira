@@ -41,28 +41,53 @@ function get_template_data(t){
 	if(Object.keys(t.db).length>0)
 	    data.db=t.db;
     }
-    if(è(t.value)) data.value=t.value;
+    if(è(t.value)){
+	if(t.serialize!==undefined)
+	    data.value=t.serialize();
+	else
+	//console.log("store  value " + t.value);
+	    data.value=t.value;
+    }
     if(è(t.elements)){
 	data.els={};
-	for(var te in t.elements)
+	for(var te in t.elements){
+//	    if(t.elements[te].nodeName!==undefined){
+	    //console.log("store  " + te);
+//	    }else
 	    data.els[te]=get_template_data(t.elements[te]);
+	}
     }
+
+    //console.log(JSON.stringify(data,null,5));
     return data;
 }
 
 function set_template_data(t, data){
-    //console.log("Setting template data for " + t + " data" + JSON.stringify(data));
-    //console.log("Setting template data for " + t.name);
-    if(è(data.value)){
+    //console.log("Setting template data for " + data.name + " data" + JSON.stringify(data));
+
+    //console.log(t.name + "."+t.type+" : setting template data...");
+
+
 	//console.log("Setting value ["+data.value+"] to ["+t.name+"] ");
-	if(t.set_value)
-	    t.set_value(data.value);
-	else
-	    t.value=data.value;
+
+    if(t.deserialize!==undefined){
+	t.deserialize(data.value);
+    }else{
 	
+	if(è(data.value)){
+	    if(t.set_value)
+		t.set_value(data.value);
+	    else
+		t.value=data.value;
+	}
     }
+
     if(è(data.name)){
-	t.name=data.name;
+	
+	if(t.set_title!==undefined)
+	    t.set_title(data.name);
+	else
+	    t.name=data.name;
     }
     
     if(t.db===undefined)t.db={};
@@ -77,8 +102,9 @@ function set_template_data(t, data){
     if(è(data.els)){
 	if(t.elements===undefined)t.elements={};
 	for(var te in data.els){
-
+	    
 	    if(t.elements[te]===undefined){
+		//console.log(t.name + "." + t.type +" : read data for " + te + " : still undefined.." );
 		if(data.els[te].type!==undefined){
 		    
 		    if(typeof window !== 'undefined'){

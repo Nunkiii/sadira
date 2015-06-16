@@ -20,11 +20,14 @@
     src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
 }
 
+/*
 @font-face {
     font-family: Aileron;
-    font-weight: 100;
+    font-weight: 200;
     src: url("../fonts/aileron/Aileron-UltraLight.otf") format("opentype");
 }
+*/
+
 
 @font-face {
     font-family: Aileron;
@@ -79,9 +82,11 @@
     } 
 
 body{
-    /*	      
+
+/*	      
 	      font-size: 1.2vw;
-	      background: black;
+
+background: black;
 	      color: white;
 	      
     */

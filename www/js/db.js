@@ -289,7 +289,7 @@ template_ui_builders.default_after=function(ui_opts, tpl_item){
 */
 
 function create_widget(t){
-    console.log("create widget " + t);
+    //console.log("create widget " + t);
     var widget_template=tmaster.build_template(t);
     create_ui({},widget_template);
     return widget_template;
@@ -545,6 +545,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     new_event(tpl_root,"disable");
     new_event(tpl_root,"child_rebuild");
     new_event(tpl_root,"rebuild");
+    new_event(tpl_root,"load");
 
     tpl_root.view_update_childs=function(){
 	//tpl_root.trigger("view_update");
@@ -733,9 +734,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(tti.ui_root === undefined){
 		    
 		    tti.ui_opts={ close: true };
-		    for(var p in tti){
-			console.log("CWTYPE " + p + " nn " + tti[p].nodeName);
-		    }
+		    // for(var p in tti){
+		    // 	console.log("CWTYPE " + p + " nn " + tti[p].nodeName);
+		    // }
 		    create_widget(tti);
 		    //add_close_button(tti, tti.ui_title_name);
 		    //tti.on=false;
@@ -840,6 +841,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 
 	tpl_root.interpret_url=function(){
+
 	    var to = base_uri.lastIndexOf('/');
 	    if(to+1===base_uri.length)
 		base_uri =  base_uri.substring(0,to);
@@ -861,7 +863,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    if(è(tpl_root.toolbar)){
 		if(wcomps.length>0){
-		    console.log("wcomps l = " + wcomps.length);
+		    //console.log("wcomps l = " + wcomps.length);
 		    var e=tpl_root.toolbar.elements[wcomps[0]];
 		    
 		    for(var i=1;i<wcomps.length;i++){
@@ -874,7 +876,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 				e=e.elements[wcomps[i]];
 			}
 			
-			console.log("Widget uri is [" + wcomps[i] + "]");
+			//console.log("Widget uri is [" + wcomps[i] + "]");
 			
 		    }
 		    
@@ -887,16 +889,44 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 	    }
 	}
-	
+
+	if(ui_opts.save!==undefined){
+	    
+	    setup_save(ui_root);
+	}
 	
     }
-    
-    /*
-      widget name config
-    */
 
+
+    var save_location = ui_opts.save;
+
+    tpl_root.load_browser_data=function(){
+
+	if(save_location===undefined)
+	    return this.debug("No browser save location !");
+
+	try{
+	    var storage_string=localStorage.getItem(save_location);
+	    if(storage_string===null)
+		;//this.debug("storage string not found : " + save_location );
+	    else{
+		var b=base64DecToArr(storage_string);
+		set_template_data(tpl_root, BSON.deserialize(b));
+		tpl_root.trigger("load", tpl_root);
+	    }
+	}
+	catch (e){
+	    this.debug('While loading browser data : ' + dump_error(e));
+	}
+	
+
+    }
+    
     function setup_save(node){
-	//console.log(tpl_root.name +  " : setup save !");
+	console.log(tpl_root.name +  " : setup save ! node = " + node );
+	// is localStorage available?
+
+	if (typeof window.localStorage != "undefined") {}
 	
 	var bbox=create_widget({
 	    ui_opts : { child_classes : ["btn-group pull-right"]},
@@ -909,25 +939,52 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    name : "",type : "action",
 		    ui_opts : { item_classes : ["btn btn-xs btn-info"], fa_icon : "download"}
 		},
-		reset : {
+		// reset : {
+		//     name : "",type : "action",
+		//     ui_opts : { item_classes : ["btn btn-xs btn-default"], fa_icon : "reply"}
+		// },
+		del : {
 		    name : "",type : "action",
-		    ui_opts : { item_classes : ["btn btn-xs btn-info"], fa_icon : "reply"}
+		    ui_opts : { item_classes : ["btn btn-xs btn-danger"], fa_icon : "trash"}
 		}
 	    }
 	});
 	
-			      
 
+	bbox.get('save').listen('click', function(){
+	    var obj_data=get_template_data(tpl_root);
+	    //console.log("STORE " + JSON.stringify(obj_data,null,5));
+	    var bs=BSON.serialize(obj_data);
+	    var b64=ab2b64(bs);
+	    //var b64=atob(bs);
+	    localStorage.setItem(save_location, b64);
+	});
+	
+	bbox.get('load').listen('click', function(){
+	    tpl_root.load_browser_data();
+	});
+	/*
+	bbox.get('reset').listen('click', function(){
+	    var obj_data=localStorage.getItem(save_location);
+	    set_template_data(tpl_root, JSON.parse(obj_data));	    
+	});
+	*/
+	bbox.get('del').listen('click', function(){
+	    localStorage.removeItem(save_location);
+	});
+	
+	
 	//var save_but=cc("button",node);
 	//save_but.className="btn btn-xs btn-info pull-right";
 	//sbut.ui.innerHTML='<span class="fa fa-save"></span></button>';
+	
 	node.appendChild(bbox.ui_childs.div);
     }
-    
 
 
+
     
-    function setup_title(){
+function setup_title(){
 	
 	if(ù(ui_opts.render_name))ui_opts.render_name=true;
 	if(ù(ui_opts.label)) ui_opts.label=false;
@@ -948,9 +1005,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 
 	}
-
-	if(ui_opts.save)
-	    setup_save(ui_root);
 
 	
 	if(è(tpl_root.name) && ui_opts.render_name){
@@ -1333,7 +1387,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			ui_content.appendChild(ui_childs.div);
 
 		    if(sliding){
-			console.log( tpl_root.name + " : Adding child div to sliding stuff");
+			//console.log( tpl_root.name + " : Adding child div to sliding stuff");
 			sliding_stuff.push(ui_childs.div);
 		    }
 		    
@@ -1378,14 +1432,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    function attach_name_ui(tr,e, eold){
 		var td=cc("td",tr);
-		if(è(e.ui_name)){
-		    delete e.intro;
-			delete e.subtitle;
-		    e.ui_opts.type="short";
-		    e.rebuild();
-		    //e.rebuild_name();
+
+		if(e.ui_name !== undefined){
+		    // delete e.intro;
+		    // delete e.subtitle;
+		    // e.ui_opts.type="short";
+		    // e.rebuild();
 		    td.appendChild(e.ui_name);
-		}
+		}else
+		    td.innerHTML=e.name;
+		    //e.rebuild_name();
+		
 	    }
 	    
 	    ui_childs.add_child=function(e,ui,prep){
@@ -1393,7 +1450,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 		this.add_child_com(e);
 
-		if(typeof ui_childs.div=='undefined'){
+		if(ui_childs.div===undefined){
+
 
 		    tbl=ui_childs.div=ce("table");
 		    tb=cc("tbody",tbl);
@@ -1416,14 +1474,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 		
 		attach_name_ui(tr,e);
-		
 		attach_mini_ui(tr,e);
 		//prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	    }
 	    
 	    ui_childs.replace_child=function(nctpl){
-		console.log(tpl_root.name + " : childs Replaced UI "+ nctpl.ui_root_old.nodeName + " with node " + nctpl.ui_root.nodeName);
-
+		
+		console.log(tpl_root.name + " : !!!!!!!!!childs Replaced UI "+ nctpl.ui_root_old.nodeName + " with node " + nctpl.ui_root.nodeName);
+		//return;
 		if(è(nctpl.tr))
 		    nctpl.tr.innerHTML="";
 		else
@@ -1757,7 +1815,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    var nav;
 	    var uic=ui_content;
 	    var child_toolbar = (ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
-	    console.log(tpl_root.name + " : child toolbar : " + child_toolbar);
+	    //console.log(tpl_root.name + " : child toolbar : " + child_toolbar);
 	    if(child_toolbar){
 		nav=tpl_root.toolbar.unav;
 	    }else{
@@ -2035,7 +2093,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
 	    }else{
 		ui_childs.add_child(el,ui);
-		var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
+
+		//var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
 	    }
 	    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 	}
@@ -2047,11 +2106,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
     tpl_root.add_child=function(tpl, key){
 	if(tpl_root.ui_childs===undefined)
 	    setup_childs();
-	if(è(key)){
-	    if(ù(tpl_root.elements))
-		tpl_root.elements={};
-	    tpl_root.elements[key]=tpl;
+	if(key===undefined){
+	    key=Math.random().toString(36).substring(2); 
 	}
+
+	
+	if(ù(tpl_root.elements))
+	    tpl_root.elements={};
+	tpl_root.elements[key]=tpl;
 	//console.log("Adding child " + tpl.name + " root is  " + tpl.ui_root);
 	tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
     }
@@ -2134,7 +2196,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 		if(!ui_opts.item_root){
 
-		    console.log(tpl_root.name + " : adding item ui " + item_ui);
+		    //console.log(tpl_root.name + " : adding item ui " + item_ui);
 		    ui_content.appendChild(item_ui);
 
 		    if(sliding){
@@ -2473,7 +2535,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    ui_root=item_ui;
 	}
 	else
-	    console.log("Strange item_ui undefined !! for " + tpl_root.name + " type " + tpl_root.type);
+	    ;//console.log("Strange item_ui undefined !! for " + tpl_root.name + " type " + tpl_root.type);
 
 	tpl_root.ui_root=tpl_root.ui_content=ui_content=ui_root;
     }else{
@@ -2505,7 +2567,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
 
 
-
+    if(save_location!==undefined) tpl_root.load_browser_data();
     
     return ui_root;
 }
