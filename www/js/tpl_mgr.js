@@ -108,7 +108,7 @@ function set_template_data(t, data){
 		if(data.els[te].type!==undefined){
 		    
 		    if(typeof window !== 'undefined'){
-			var w=create_widget(data.els[te].type);
+			var w=create_widget(data.els[te].type, t);
 			t.add_child(w, te);
 		    }
 		    else{

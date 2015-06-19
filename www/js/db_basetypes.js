@@ -43,6 +43,7 @@ function config_common_input(tpl_item){
 
 //    if(tpl_item.set_value===undefined)
 	tpl_item.set_value=function(nv){
+	    console.log("input set value to " + nv);
 	    if(è(nv)){
 		var ch=(nv!=tpl_item.value);
 		tpl_item.value=nv;
@@ -616,7 +617,7 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
     if(typeof lvec.value==='undefined') lvec.value=[];
     if(typeof lvec.value_labels==='undefined') lvec.value_labels=[];
 
-    lvec.elements={};
+    lvec.clear_childs();
     
     for(var v=0;v<lvec.value_labels.length;v++){
 	if(typeof lvec.value[v] === 'undefined') lvec.value[v]=0;
@@ -649,6 +650,8 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
 	lvec.add_child(lvec.inputs[v], lvec.value_labels[v]);
 
+	
+	
 	// lvec.inputs[v].parent={ui_childs : { replace_child : function(tpl_root){
 	//     console.log("Huuum");//lvec.ui.replaceChild(tpl_root, );
 	// }}};
@@ -1485,23 +1488,24 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 template_ui_builders.date=function(ui_opts, date){
 
     date.ui= ui_opts.type==='edit' ? ce("input") : ce("span");
+    date.ui.type="date";
+
+    date.set_value=function(nv){
+	if(nv !==undefined)
+	    date.value=nv;
+	
+	console.log("SETTING DATE " + date.value);
+	//date.ui.innerHTML="Hello World!!!";
+	if(date.value!==undefined){
+	    if(ui_opts.type!=='edit')
+		date.ui.innerHTML=date.value.toLocaleString();
+	    else
+		date.ui.value=date.value;
+	}
+    }
     
     config_common_input(date);
     
-    if(ui_opts.type!=='edit'){
-	date.set_value=function(nv){
-	    if(nv !==undefined)
-		date.value=nv;
-	    
-	    //console.log("SETTING DATE " + date.value);
-	    //date.ui.innerHTML="Hello World!!!";
-
-	    if(date.value!==undefined)
-		date.ui.innerHTML=date.value.toLocaleString();
-	}
-    }else{
-	date.ui.type="date";
-    }
 
     return date.ui;
 }
@@ -2028,7 +2032,7 @@ template_ui_builders.action=function(ui_opts, action){
 template_ui_builders.vector=function(ui_opts, vec){
 
 
-    console.log("Building vec : " + vec.name + " parent " + vec.parent.name);
+    //console.log("Building vec : " + vec.name + " parent " + vec.parent.name);
     
     var selection=vec.get("selection");
     var range=vec.get("range");
@@ -2403,8 +2407,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    .attr("class", "axis")
 	    .call(yAxis)
 	    .append("text")
-	    .attr("transform", "rotate(-90)")
-	    .attr("y", -margin.left)
+	    .attr("transform", "translate(0,"+height/2+") rotate(-90)")
+	    .attr("y", -2*margin.left/3)
 	    .attr("dy", ".71em")
 	    .style("text-anchor", "end")
 	    .text(vec.ylabel);

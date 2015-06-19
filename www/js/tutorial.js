@@ -2,31 +2,69 @@ var tutorial_objects = {
 
     vector_test : {
 
-	type : "vector",
 	name : "vector update test",
+	intro : "Testing vector view",
+	subtitle : "Oufti quén afér à Lidje!",
+	toolbar : {
+	    elements : {
+		hello : {
+		    name : "Hello",
+		    elements : {
+			x : {name : "Toto"},
+			y : {name : "Toto2"},
+			z : {name : "Toto3"},
+		    }
+		},
+
+		world : {
+		    name : "World"
+		}
+		
+	    }
+	},
+	ui_opts : {
+	    fa_icon : 'leaf',
+	    root_classes : ["left"],
+	    //name_classes : ["jumbotron"],
+	    child_classes : ["container-fluid"],
+	    intro_stick : true,
+	    name_node : "h3"
+	},
+
 	elements : {
 	    target : {
 		type : "string",
 		name : "Target",
 		holder_value : "Spectrum light source",
 		ui_opts : {
-		    label : true
-		    //type : "edit"
-			}
+		    label : true,
+		    root_classes : ["form form-inline col-md-4"],
+		    item_classes : [],
+		    name_classes : [],
+		    //name_node : "strong",
+		    type : "edit"
+		}
 	    },
-
+	    
 	    keys : {
+		type : "vector",
 		name : "Meta-data",
 		ui_opts : {
 		    child_view_type : "div",
-		    name_node : "h3"
+		    name_node : "h3",
+		    root_classes : ["col-md-8"]
+
 		},
 		elements : {
 		    date_obs : {
 			name : "Observation time",
 			type : "date",
+			value : "2015-14-12",
 			ui_opts : {
-			    label : true
+			    item_classes : "form-control",
+			    label : true,
+			    editable : true,
+			    //type : "edit"
 			}
 		    }
 		}
@@ -38,9 +76,9 @@ var tutorial_objects = {
 	    //template_ui_builders.spectrum(ui_opts, vt);
 	    
 	    var d1=[1,2,3,4,5,6,5,2,1,-4];
-	    vt.add_plot_linear(d1, 0, 1);
+	    vt.get('keys').add_plot_linear(d1, 0, 1);
 	    //vt.redraw();
-	    vt.elements.target.set_value("Totototoototo");
+	    vt.set('target',"Totototoototo");
 	    //vt.set('target','Another strange light source');
 	}
 

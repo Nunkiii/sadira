@@ -288,9 +288,11 @@ template_ui_builders.default_after=function(ui_opts, tpl_item){
 }
 */
 
-function create_widget(t){
+function create_widget(t, parent){
     //console.log("create widget " + t);
     var widget_template=tmaster.build_template(t);
+    if(parent!==undefined)
+	widget_template.parent=parent;
     create_ui({},widget_template);
     return widget_template;
 }
@@ -425,6 +427,7 @@ function add_close_button(e, node, prep){
     prep = prep || false;
     e.ui_opts.close=true;
 
+    console.log(e.name + " : adding CLOSE X");
     if(node.has_button===undefined){
 	node.has_button=true; 
 	
@@ -486,8 +489,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//console.log("forcing global opt " + o + " to " + global_ui_opts[o] +" for " + tpl_root.name );
 	tpl_root.ui_opts[o]=global_ui_opts[o];
     }
-    
+
     var ui_opts=tpl_root.ui_opts;    
+
+    //console.log("CREATE UI FOR " + tpl_root.name);
     
     if(ù(ui_opts.item_root)){
 	var p=tpl_root.parent;
@@ -910,9 +915,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(storage_string===null)
 		;//this.debug("storage string not found : " + save_location );
 	    else{
+
+		var nm=tpl_root.name;
+		tpl_root.set_title("Loading webstorage...");
+		
 		var b=base64DecToArr(storage_string);
 		set_template_data(tpl_root, BSON.deserialize(b));
 		tpl_root.trigger("load", tpl_root);
+		tpl_root.set_title(nm);
 	    }
 	}
 	catch (e){
@@ -1018,9 +1028,9 @@ function setup_title(){
 		ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : name_node, ui_root) : cc("div", ui_root);
 	    }
 	    //if(!ui_opts.label) ui_name.className="row";
-
-	    if(typeof ui_opts.name_classes != 'undefined'){
-		//console.log(tpl_root.name + " add name classes " + JSON.stringify(ui_opts.name_classes));
+	    
+	    if(ui_opts.name_classes !== undefined){
+		console.log(tpl_root.name + " add name classes to "+ ui_name.nodeName+" :"  + JSON.stringify(ui_opts.name_classes));
 		add_classes(ui_opts.name_classes, ui_name);
 	    }
 	    
@@ -1092,7 +1102,7 @@ function setup_title(){
 		    setup_intro(ui_name_text);
 		    
 		    if(ui_opts.close)
-			add_close_button(tpl_root,ui_name_text, true);
+			add_close_button(tpl_root,ui_name_text);
 
 		    //ui_name_text.add_class("title");
 		    //if(tpl_root.depth==1)
@@ -1392,6 +1402,8 @@ function setup_title(){
 		    }
 		    
 		}
+
+		//if(e.ui_opts.close) add_close_button(e,e.ui_name, false);
 		//ui.add_class("row");
 		prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	    }
@@ -2086,9 +2098,13 @@ function setup_title(){
 	}
 
 
+
+	
 	for (var e in tpl_root.elements){
 	    var el=tpl_root.elements[e];
 	    el.parent=tpl_root;
+	    
+	       
 	    var ui=create_ui(global_ui_opts,el, depth+1);
 
 	    if(ù(ui)){
@@ -2131,6 +2147,13 @@ function setup_title(){
 	child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
 	
     }
+
+    tpl_root.clear_childs=function(){
+	if(tpl_root.ui_childs!==undefined)
+	    if(tpl_root.ui_childs.div!==undefined)
+		tpl_root.ui_childs.div.innerHTML="";
+	tpl_root.elements={};
+    }
     
     
     tpl_root.hide=function(hide){
@@ -2172,6 +2195,21 @@ function setup_title(){
 
 
     function setup_item(){
+
+	console.log("SETUP ITEM " + tpl_root.name);
+	
+	if(tpl_root.parent!==undefined){
+	    if(tpl_root.parent.ui_opts!==undefined){
+		var uio=tpl_root.parent.ui_opts;
+		if(uio.container!==undefined){
+		    if(uio.container.del){
+			console.log(tpl_root.name + " : Adding close feature ");
+			tpl_root.ui_opts.close=true;
+		    }
+		}
+	    }
+	}
+	
 	
 	try{
 

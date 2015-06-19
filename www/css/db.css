@@ -721,6 +721,7 @@ label:hover{
 margin-left: .3em;
   */
   cursor: pointer;
+  float: right;
 }
 
 .close_button:hover{
@@ -913,6 +914,11 @@ label.unslided{
 .navbar-brand{
   font-family : "Aileron";
   font-weight: 300;
+}
+
+a.navbar-brand > h3 > span{
+  color : springgreen;
+
 }
 
 .navbar-brand h4{

@@ -549,12 +549,12 @@ var base_templates={
 	    //sliding_animate : true,
 	    //sliding_dir : "h",
 	    //root_node : "li",
-	    //name_node : "h4",
+	    name_node : "h2",
 	    fa_icon : "paw",
-	    root_classes : ["container-fluid"],
+	    root_classes : ["panel panel-default"],
 	    child_node_type : "form",
-	    child_classes : ["form-inline"],
-	    name_classes : [],
+	    child_classes : ["form form-inline panel-body text-center"],
+	    name_classes : ["panel-heading"],
 	    item_classes : []
 	},
 
@@ -634,12 +634,13 @@ var base_templates={
     signup : {
 	name : "Create a new account",
 	subtitle : "Choose a login method",
-	intro : "<p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p>",
+	intro : "<p><font size='4em'>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</font></p>",
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
-	    root_classes : ["container-fluid"],
-	    child_classes : ["container-fluid"],
+	    root_classes : ["panel panel-default"],
+	    name_classes : ["panel-heading"],
+	    child_classes : ["panel-content container-fluid"],
 	    intro_stick: true
 	},
 
@@ -648,20 +649,21 @@ var base_templates={
 	    local : {
 		name : "Local account",
 		subtitle : "Create a new account locally.",
-		intro : "Fill up the email and password fields to create your new user account.</p><p> Enter a valid email adress, it will be used to identify you. You'll can configure a username later in your user page if you wish.</p><p> The password will be checked for basic strength.",
+		intro : "<strong><p>Fill up the email and password fields to create your new user account.</p></strong><p><ul><li> Enter a valid email adress, it will be used to identify you.</li><li> You'll can configure a username later in your user page if you wish.</li><li> The password will be checked for basic strength.</li></ul></p>",
 
 		ui_opts : {
 		    name_node : "h3",
 		    fa_icon : "leaf",
 		    root_classes : ["container-fluid"],
-		    child_classes : ["row"]
+		    child_classes : ["container-fluid"],
+		    intro_stick: true
 		},
 		elements : {
 		    
 		    data : {
 			ui_opts : {
 			    child_node_type : "form",
-			    child_classes : ["form-horizontal container"],
+			    child_classes : ["form-horizontal container-fluid"],
 			    root_classes : ["container-fluid"]
 			},
 			elements : {
@@ -696,7 +698,7 @@ var base_templates={
 		    },
 		    
 		    action_panel : {
-			ui_opts : { root_classes : ["col-md-12"], child_classes : [""]},
+			ui_opts : { root_classes : ["col-md-12"], child_classes : []},
 			elements : {
 
 			    signup : {
@@ -707,9 +709,9 @@ var base_templates={
 				    //name_classes :["control-label","col-sm-3"],
 				    //wrap : true,
 				    //wrap_classes : ["col-md-6"],
-				    root_classes : ["col-md-offset-5 col-md-3"],
+				    //root_classes : ["col-md-offset-5 col-md-3"],
 				    item_classes : ["btn btn-primary btn-lg"],
-				    //root_classes : ["form-group"],
+				    root_classes : ["text-center"],
 				    //label_cnt_classes : ["col-sm-3","col-sm-offset-5"]
 				}
 			    },
@@ -879,10 +881,10 @@ var base_templates={
     },
     
     sadira_home : {
-	name : '<span style="color: springgreen;">♐</span> Qk/Sadira',
+	name : '<span style="color: springgreen;">♐</span> <span style="color: white; font-size : 1.2em;">Qk/Sadira </span>',
 	
 	ui_opts : {
-	    //root_classes : ["container-fluid left"],
+	    root_classes : ["container-fluid left"],
 	    //child_classes : ["container-fluid"],
 	    child_view_type : "pills",
 	    name_node : "h4",
