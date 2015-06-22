@@ -1,66 +1,40 @@
-<div class="container-fluid">
-  
-  <h3> Sadira is ...</h3>
-  <p>
-    <ul>
-	<li>a cluster of Node.js servers synchronized with Redis,</li>
-	<li>an HTML5/CSS3/JavaScript/HTML toolkit based on JSON templates, skinned with Bootsrap CSS3 classes, fitting nicely in all screen sizes, and providing a fully browser-side construction of the HTML user interface,</li>
-	<li>a websocket/webRTC binary protocol for peer to peer data and processing exchange between servers and web-browsers,</li>
-	<li>serialization of user interface state in local websotorage or 'cloud-side', in mongo.DB documents,</li>
-	<li>a rich user management system, able to handle various login methods.</li>
-	<li>...</li>
-    </ul>
-    </p>
-
-  <h3> Example experiments :</h3> 		
-
-  <p>
-    <ul>
-      <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/xd1">XD-1 FITS viewer</a></li>
-      <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/videocap">Webcam/DVD/Cardboard spectrograph</a></li>
-    </ul>
-  </p>
-  
-  
-  <h3>Source code</h3>
-  
-  <p>The source code is available on github within several source packages</p>
-  
-  <table class="table">
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/sadira"> sadira </a> </td><td>Core component</td></tr>
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-fits"> node-fits </a></td><td>Node.JS FITS frontend</td></tr>
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-sbig"> node-sbig </a></td><td>SBIG cameras Node.JS frontend</td></tr>
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/XD-1"> XD-1 </a></td><td>JS/WebGL FITS viewer</td></tr>
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-gloria-dbms"> node-gloria-dbms </a></td><td>GLORIA image database services</td></tr>
-    <tr><td><a href="http://sadira.iasfbo.inaf.it/github/gloria-widget"> gloria-widget </a></td><td> GLORIA image database browser</td></tr>
-  </table>
-
+<h1>INAF/IASF-Bologna ☄ <small> — Astro-web-software </small></h1>
+<div class="well">
+<p><strong>Qk/Sadira</strong> is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p>
 </div>
 
+<h2> Sadira is :</h2>
+<p>
+  <ul >
+    <li>a cluster of Node.js servers synchronized with Redis,</li>
+    <li>an HTML5/CSS3/JavaScript/HTML toolkit based on JSON templates, skinned with Bootsrap CSS3 classes, fitting nicely in all screen sizes, and providing a fully browser-side construction of the HTML user interface,</li>
+    <li>a websocket/webRTC binary protocol for peer to peer data and processing exchange between servers and web-browsers,</li>
+    <li>serialization of user interface state in local websotorage or 'cloud-side', in mongo.DB documents,</li>
+    <li>a rich user management system, able to handle various login methods.</li>
+    <li>...</li>
+  </ul>
+</p>
 
-  
+<h3> Example experiments :</h3> 		
 
-<!-- <p>Sadira is a web 2.0 general purpose, astronomy oriented data management system, which uses both a relational (MySQL) and a non-relational (MongoDB) database. It will be used within GLORIA to collect and make accessible telescope and user data, in particular images.</p> -->
+<p>
+  <ul>
+    <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/xd1">XD-1 FITS viewer</a></li>
+    <li><a target="_blank" href="http://sadira.iasfbo.inaf.it/widget/videocap">Webcam/DVD/Cardboard spectrograph</a></li>
+    </ul>
+</p>
 
-<!-- <p>Sadira implements a HTTP server that can be contacted by client telescope owners, experiments, to send and receive various data. It can be extended to support other protocols.</p> -->
 
-<!-- <p>The user interface is a web application that permits user accounts management (permissions, groups), the definition of observatories, telescope and instruments. In particular for each instrument, it allows to define the specific data structure and its metadata. These are typically encoded into FITS files. It will also provide a visual interactive access to these information via web browser. </p> -->
+<h3>Source code</h3>
 
-
-<!-- <h3>Main components</h3> -->
-
-<!-- <p> -->
-<!--   <ol> -->
-<!--     <li>MongoDB replica-set, sharded. MySQL cluster</li> -->
-<!--     <li>Core classes for browser sessions</li> -->
-<!--     <li>HTTP file server, POST server for receiving data, REST GET server for retrieving data</li> -->
-<!--     <li>HTTP WebSocket server with a binary message protocol for complex and fast interaction with the client browsers</li> -->
-<!--     <li>Users and groups accounts management</li> -->
-<!--     <li>Core graphical user interface classes and widgets</li> -->
-<!--     <li>FITS file access, web visualization widget</li> -->
-<!--     <li>FITS based observations management</li> -->
-<!--     <li>Core software documentation</li> -->
-<!--     <li>User components documentation</li> -->
-<!--   </ol> -->
-<!-- </p> -->
-
+<p>The source code is available on github within several source packages :</p>
+<div class="container">
+<table class="table">
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/sadira"> sadira </a> </td><td>Core component</td></tr>
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-fits"> node-fits </a></td><td>Node.JS FITS frontend</td></tr>
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-sbig"> node-sbig </a></td><td>SBIG cameras Node.JS frontend</td></tr>
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/XD-1"> XD-1 </a></td><td>JS/WebGL FITS viewer</td></tr>
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/node-gloria-dbms"> node-gloria-dbms </a></td><td>GLORIA image database services</td></tr>
+  <tr><td><a href="http://sadira.iasfbo.inaf.it/github/gloria-widget"> gloria-widget </a></td><td> GLORIA image database browser</td></tr>
+</table>
+</div>

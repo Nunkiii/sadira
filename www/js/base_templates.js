@@ -551,10 +551,10 @@ var base_templates={
 	    //root_node : "li",
 	    name_node : "h2",
 	    fa_icon : "paw",
-	    root_classes : ["panel panel-default"],
+	    //root_classes : ["panel panel-default"],
 	    child_node_type : "form",
-	    child_classes : ["form form-inline panel-body text-center"],
-	    name_classes : ["panel-heading"],
+	    child_classes : ["form form-inline text-center"],
+	    //name_classes : ["panel-heading"],
 	    item_classes : []
 	},
 
@@ -638,9 +638,9 @@ var base_templates={
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
-	    root_classes : ["panel panel-default"],
-	    name_classes : ["panel-heading"],
-	    child_classes : ["panel-content container-fluid"],
+	    //root_classes : ["panel panel-default"],
+	    //name_classes : ["panel-heading"],
+	    child_classes : ["container-fluid"],
 	    intro_stick: true
 	},
 
@@ -656,7 +656,7 @@ var base_templates={
 		    fa_icon : "leaf",
 		    root_classes : ["container-fluid"],
 		    child_classes : ["container-fluid"],
-		    intro_stick: true
+		    //intro_stick: true
 		},
 		elements : {
 		    
@@ -881,12 +881,12 @@ var base_templates={
     },
     
     sadira_home : {
-	name : '<span style="color: springgreen;">♐</span> <span style="color: white; font-size : 1.2em;">Qk/Sadira </span>',
+	name : '<strong style="color: springgreen; font-size : 1.5em; text-shadow: 1px 1px 1px rgba(200,200,200,1.0);">♓</strong> <strong style="color : white; font-size: 1.2em;"> Qk/Sadira </strong>',
 	
 	ui_opts : {
 	    root_classes : ["container-fluid left"],
 	    //child_classes : ["container-fluid"],
-	    child_view_type : "pills",
+	    //child_view_type : "pills",
 	    name_node : "h4",
 	    intro_stick : true,
 	    child_toolbar : false
@@ -957,15 +957,18 @@ var base_templates={
 	
 	elements : {
 	    welcome : {
-		name : "INAF/IASF-Bologna ☄",
-		subtitle : "— Astro-web-software",
+		name : "QK/Sadira",
 		type : "html",
 		icon : "/sadira/icons/inaf_iasfbo.png",
 		//icon_size : "5em",
-
-		intro : "<p>Qk/Sadira is an experimental, scientific-oriented, computing application framework. At the time beeing, it is a mixed ECMAScript(JS)/C++ prototype running on Node.js servers and web browsers.</p><p>The goal of Sadira is to ease the setup of scientific data acquisition, processing and pipeline design tasks, from a practical scientific researcher point of view.</p><p>It will provide rich web browser application GUI based on an original HTML toolkit engine, server interfaces to databases, entry points for low-level, high performance data analysis/reduction algorithms written in Fortran/C/C++ or using the new possibilities offered by openCL.</p>",
+		
+		//intro : "",
 		url : "/sadira/welcome.html",
-		ui_opts : { intro_stick : true}
+		ui_opts : {
+		  //  intro_stick : true,
+		    render_name : false,
+		    item_classes : ["container-fluid"]
+		}
 			  
 	    },
 	    

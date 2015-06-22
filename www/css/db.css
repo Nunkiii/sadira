@@ -717,9 +717,11 @@ label:hover{
 
 .close_button{
   /*
-  padding-right:.1em;
+  padding-right:.5em;	
 margin-left: .3em;
   */
+    color: orange;	
+  padding-left:.5em;
   cursor: pointer;
   float: right;
 }
@@ -912,33 +914,26 @@ label.unslided{
 }
 
 .navbar-brand{
-  font-family : "Aileron";
   font-weight: 300;
 }
 
-a.navbar-brand > h3 > span{
-  color : springgreen;
 
+a.navbar-brand > h*{
+  color : white;
 }
 
-.navbar-brand h4{
-/*  color : lightblue; */
+.navbar-brand {
+  font-family : "Ubuntu";
 }
 
-.navbar-brand small{
-  font-family : "Aileron";
-  font-weight: 200;
+.navbar-brand > * > small {
+	      color: lightgrey;
 }
-
 
 .navbar-brand > *{
-
-		 margin: 0px;
-	       padding: 0px;
-	       font-family : "Aileron";
-	       font-weight: 500;
+	     margin: 0px;
+	     padding: 0px;
 }
-
 
 .noborder {
 	  border: 0px;
@@ -1540,7 +1535,7 @@ view manager
 
 .intro_btn{
   font-size: .7em;
-  color: grey;
+  color: rgba(90,100,250,.9);
   padding: .3em;
   padding-left : 1em;
   cursor: pointer;

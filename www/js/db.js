@@ -1349,6 +1349,8 @@ function setup_title(){
     function setup_childs(){
 
 	ui_childs=tpl_root.ui_childs= new child_container(tpl_root);
+	var child_toolbar = (ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
+
 	
 	function add_child_common(e, ui, prep){
 	    if(è(e.ui_opts)){
@@ -1826,7 +1828,7 @@ function setup_title(){
 
 	    var nav;
 	    var uic=ui_content;
-	    var child_toolbar = (ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
+
 	    //console.log(tpl_root.name + " : child toolbar : " + child_toolbar);
 	    if(child_toolbar){
 		nav=tpl_root.toolbar.unav;
@@ -2023,15 +2025,18 @@ function setup_title(){
 		    if(ui_opts.tabs_mode !== undefined){
 			//if(ui_opts.tabs_mode==='left')
 			//   cnt.add_class("col-xs-9");
-		    }else
-			e.ui_root.add_class("tab-pane");
+		    }else{
+			if(! child_toolbar)
+			    e.ui_root.add_class("tab-pane");
+		    }
 
-		    if(!child_toolbar)
+		    if(!child_toolbar){
 			e.ui_root.add_class("container-fluid");
-		    
-		    //e.ui_root.add_class("fade");
-		    //if(nframes==0) e.ui_root.add_class("in");
-		    e.ui_root.setAttribute("role","tabpanel");
+			
+			//e.ui_root.add_class("fade");
+			//if(nframes==0) e.ui_root.add_class("in");
+			e.ui_root.setAttribute("role","tabpanel");
+		    }
 		    e.ui_root.style.display='none';
 		    
 		    e.li.addEventListener("click",function(){
