@@ -1,23 +1,23 @@
 /*
-  Main Sadira toolkit CSS template
-  On top of bootsrap 3
+Main Sadira toolkit CSS template
+On top of bootsrap 3
 */
 
 @font-face{
-    font-family:'Ubuntu'; 
-    font-style:normal; 
-    font-weight:200; 
-    src:url('img/ubuntu-L-webfont.eot'); 
-    src:local('Ubuntu Light'),local('Ubuntu-Light'),
-    url('../fonts/ubuntu/ubuntu-L-webfont.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/ubuntu/ubuntu-L-webfont.woff') format('woff'),
-    url('../fonts/ubuntu/ubuntu-L-webfont.ttf') format('truetype'),
-    url('../fonts/ubuntu/ubuntu-L-webfont.svg#UbuntuLight') format('svg');
+  font-family:'Ubuntu'; 
+  font-style:normal; 
+  font-weight:200; 
+  src:url('img/ubuntu-L-webfont.eot'); 
+  src:local('Ubuntu Light'),local('Ubuntu-Light'),
+  url('../fonts/ubuntu/ubuntu-L-webfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/ubuntu/ubuntu-L-webfont.woff') format('woff'),
+  url('../fonts/ubuntu/ubuntu-L-webfont.ttf') format('truetype'),
+  url('../fonts/ubuntu/ubuntu-L-webfont.svg#UbuntuLight') format('svg');
 }
 
 @font-face {
-    font-family: Aileron;
-    src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
+  font-family: Aileron;
+  src: url("../fonts/aileron/Aileron-Regular.otf") format("opentype");
 }
 
 /*
@@ -72,18 +72,15 @@
 }
 
 
-    .db  {
-	max-width: 100%;
-	font-family: Aileron;
-	/*
-	
-	*/
-	
-    } 
+.db  {
+  font-family: Aileron;
+} 
 
 body{
 
 /*	      
+  max-width: 100%;
+
 	      font-size: 1.2vw;
 
 background: black;
@@ -622,47 +619,10 @@ text-shadow: none;
   color: white;
   background: rgba(40,40,255,.8);
 }
+
 .navcnt.radio > nav > li> input[type="radio"]{ 
   margin-left: 1em;
 }
-
-/*
-Widget title
-*/
-/*
-.dbname {
-
-  display: inline-block;
-  font-size: 2em;
-  color: yellow;
-
-}
-
-.childs .db .dbname{
-
-  font-size: 1em;
-  display: inline-block;
-  margin-right: 1em;
-  vertical-align: top;
- color: white;
-  position: relative;
-  margin-top: .5em;
-
-}
-*/
-.db header {
-  opacity : 1.0;
-/*
-  background:  linear-gradient(to bottom, rgba(10,18,20,.8),  rgba(220,220,220,0.8), rgba(10,20,15,.8) ); 
-  background: black;
-  border-bottom: 3px solid orange;
-  z-index : 0;
-  max-height: 50%;
-  overflow-y : auto;
-*/
-
-}
-
 
 ul.toolbar {
   float: right;

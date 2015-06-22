@@ -43,7 +43,7 @@ function config_common_input(tpl_item){
 
 //    if(tpl_item.set_value===undefined)
 	tpl_item.set_value=function(nv){
-	    console.log("input set value to " + nv);
+  //console.log("input set value to " + nv);
 	    if(è(nv)){
 		var ch=(nv!=tpl_item.value);
 		tpl_item.value=nv;

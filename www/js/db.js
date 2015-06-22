@@ -745,6 +745,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    create_widget(tti);
 		    //add_close_button(tti, tti.ui_title_name);
 		    //tti.on=false;
+
+		    if(tti.toolbar!==undefined)
+			tpl_root.ui_toolbar.style.display="none";
 		    
 		    tti.listen('close', function(){
 			if(tpl_root.tb_ui!==undefined){
@@ -753,6 +756,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			}
 			//tti.on=false;
 			tpl_root.ui_childs.div.style.display="";
+			tpl_root.ui_toolbar.style.display="";
 			
 		    });
 		}
@@ -895,10 +899,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	}
 
-	if(ui_opts.save!==undefined){
-	    
-	    setup_save(ui_root);
-	}
 	
     }
 
@@ -933,7 +933,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
     
     function setup_save(node){
-	console.log(tpl_root.name +  " : setup save ! node = " + node );
+	console.log(tpl_root.name +  " : setup save ! node = " + node.nodeName );
 	// is localStorage available?
 
 	if (typeof window.localStorage != "undefined") {}
@@ -994,11 +994,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 
     
-function setup_title(){
+    function setup_title(){
 	
 	if(ù(ui_opts.render_name))ui_opts.render_name=true;
 	if(ù(ui_opts.label)) ui_opts.label=false;
-
+	
 	function setup_intro(node){
     	    if(è(tpl_root.intro)){
 		//if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
@@ -1013,16 +1013,16 @@ function setup_title(){
 		    } );
 		}
 	    }
-
+	    
 	}
-
+	
 	
 	if(è(tpl_root.name) && ui_opts.render_name){
 	    
 	    //ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : "label", ui_root) : cc("div", ui_root);
 
 	    if(tpl_root.toolbar){
-		ui_name=tpl_root.toolbar.nava;//.appendChild(ui_name);
+		ui_name=tpl_root.ui_name=tpl_root.toolbar.nava;//.appendChild(ui_name);
 	    }else{
 		var name_node=è(ui_opts.name_node) ? ui_opts.name_node : "label";
 		ui_name=tpl_root.ui_name=ui_opts.label ? cc( è(ui_opts.label_node)? ui_opts.label_node : name_node, ui_root) : cc("div", ui_root);
@@ -1153,12 +1153,25 @@ function setup_title(){
 		    //ui_name.appendChild(slide_button);
 		}
 
+		if(ui_opts.save!==undefined){
+		    if(tpl_root.ui_title_name !== undefined)
+			setup_save(tpl_root.ui_title_name);
+		    else
+			if(ui_name !== undefined)
+			    setup_save(ui_name);
+		}
+		
 	    }
 	    
 	    
 	    tpl_root.rebuild_name();
 	}else{
 
+
+	    if(ui_opts.save!==undefined){
+		setup_save(ui_root);
+	    }
+	    
 	    
 	    setup_intro(ui_root);
 	}
@@ -1278,14 +1291,16 @@ function setup_title(){
 	    }, false);
 	}
 	*/
-
-
+	
+	
+	
+	
     }
-
+    
     
     /* Toolbar */
     
-
+    
     
     /*
       Widget window-management
@@ -2201,14 +2216,14 @@ function setup_title(){
 
     function setup_item(){
 
-	console.log("SETUP ITEM " + tpl_root.name);
+	//console.log("SETUP ITEM " + tpl_root.name);
 	
 	if(tpl_root.parent!==undefined){
 	    if(tpl_root.parent.ui_opts!==undefined){
 		var uio=tpl_root.parent.ui_opts;
 		if(uio.container!==undefined){
 		    if(uio.container.del){
-			console.log(tpl_root.name + " : Adding close feature ");
+			//console.log(tpl_root.name + " : Adding close feature ");
 			tpl_root.ui_opts.close=true;
 		    }
 		}
