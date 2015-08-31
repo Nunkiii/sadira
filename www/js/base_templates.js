@@ -1,6 +1,5 @@
 var base_templates={
 
-    main_window:{},
     progress:{},
     status:{},
     double:{},
@@ -25,6 +24,18 @@ var base_templates={
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
+
+    error_page : {
+
+	name : "Ooops...",
+	subtitle : "an error occured !",
+	type : "html",
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    item_classes : ["container alert alert-danger"]
+	},
+	value : "Error message"
+    },
 
     db_collection : {
 
@@ -73,12 +84,26 @@ var base_templates={
     user_home : {
 
 	name : "User homepage",
-	ui_opts : {child_view_type : "tabbed", root_classes : ["container-fluid"] },
+	ui_opts : {
+	    child_view_type : "tabbed",
+	    root_classes : ["container-fluid"],
+	    child_classes : ["container-fluid"],
+	    fa_icon : "home"
+	},
 
-	elements : {
-	    user_activity : {
-		name : "Last activity"
+	toolbar : {
+	    ui_opts : {
+		toolbar_classes : [""]
 	    },
+	    activ : {
+		
+	    }
+	},
+	
+	elements : {
+	    // user_activity : {
+	    // 	name : "Last activity"
+	    // },
 	    
 	    account_settings : {
 
@@ -89,10 +114,24 @@ var base_templates={
 		}
 	    }
 	},
-
+	
 	widget_builder : function(ui_opts, uhome){
 	    
-	    uhome.debug("Hello world debug");
+	    //uhome.debug("Hello world debug");
+	    var test = {
+		a : "skjadkjsa",
+		f : function(e){ return e*33.0; }
+	    };
+	    var bs=BSON.serialize(test,true,true,true);
+	    var result=BSON.deserialize(bs, {evalFunctions : true});
+	    for (var e in result){				  
+		console.log("Bson " + e + " type " + typeof(result[e]));
+		
+	    }
+	    console.log("66 =? " + result.f(2.0));
+
+	    
+	    
 	}
     },
     
@@ -328,8 +367,8 @@ var base_templates={
     
     
     user : {
-	//type : "user",
 	name : "User information",
+
 	ui_opts : {
 	    child_view_type : "div",
 	    root_classes : ["container-fluid"],
@@ -339,7 +378,19 @@ var base_templates={
 	},
 	elements : {
 	    nick : {
-		name : "Nickname"
+		name : "Nickname",
+		ui_opts : {
+		    editable : true,
+		    root_classes : ["form form-inline form-group-lg"],
+		    name_node : 'label'
+		},
+		type : 'string',
+		holder_value : 'Enter a nickname'
+		
+	    },
+	    default_email : {
+		name : "Default email account",
+		type : "email"
 	    },
 	    credentials : {
 		name : "Account credentials",
@@ -457,14 +508,21 @@ var base_templates={
 	}
     },
 
-
+    socket_manager : {
+	name : "Socket manager",
+	intro : "Active sockets :",
+	container : "socket",
+	ui_opts : { intro_stick : true, fa_icon : 'road', root_classes : ["container-fluid"], type : 'edit' },
+	elements : {},
+    },
     
-    sadira : {
-	//name : "Websocket",
+    socket : {
+	name : "Websocket",
 	ui_opts : {
 	    root_classes : ["container-fluid"],
 	    root_node : "form",
-	    child_classes : ["form-group input-group"]
+	    child_classes : ["form-group input-group"],
+	    fa_icon : 'tty'
 	},
 	elements : {
 	    url : {
@@ -472,13 +530,12 @@ var base_templates={
 		type : "url",
 		ui_opts : {
 		    //root_classes : ["input-group"],
-		    name_node : "a",
-		    name_classes : [],
-		    item_classes : ["input-group"],
+		    label_node : "div",
+		    root_classes : ["input-group"],
+		    name_classes : ["input-group-addon"],
 		    type : "edit",
-		    //editable : true,
 		    label : true,
-		    item_root : true
+		    //item_root : true
 		},
 		default_value : "ws://sadira.iasfbo.inaf.it"
 	        //value : "ws://localhost"
@@ -491,20 +548,26 @@ var base_templates={
 		    //root_classes : ["input-group-addon"],
 		    //name_classes : [],
 		    item_classes : ["input-group-addon"],
-		    item_root : true
+		    root_element : 'url'
 		},
 		type : "status",
 		value : "blue",
 		value_labels : { blue : "disconnected", green : "connected", red : "error"}
 	    },
-	    	    connect : {
+	    connect : {
 		ui_opts : {
-		    root_classes : ["input-group-btn"],
-		    button_node : "span",
+		    //root_classes : ["input-group-btn"],
+		    //button_node : "span",
 		    fa_icon : "link",
 
+		    wrap : true,
+		    wrap_classes : ["input-group-btn"],
+		    item_classes : ["btn btn-info"],
+
+		    
 		    name_classes : [],
-		    item_classes : ["btn btn-info"]
+		    
+		    root_element : 'url'
 		    //item_root : true
 		},
 		type: "action",
@@ -527,10 +590,11 @@ var base_templates={
     },
 
     sadira_panel : {
-	name : "<strong>sadira</strong>",
+	name : "<strong>Sadira</strong>",
 	subtitle : "control panel",
 	ui_opts : {
 	    sliding: true, slided : false, sliding_dir : 'h',
+	    sliding_animate: true,
 	    name_node : "h4",
 	    //root_classes : ["sadira_panel"]
 	},
@@ -539,26 +603,29 @@ var base_templates={
 	}
 
     },
-    
+
+  
     login : {
-	name : "Login",
-	subtitle : "Enter your username and password to log into sadira",
+	name : "Log into Sadira",
+	intro : "<p>Enter your username and password to log into Sadira</p>",
 	ui_opts : {
 	    //sliding: true, slided : true,
 	    //label : true, //label_node : "a",
 	    //sliding_animate : true,
 	    //sliding_dir : "h",
 	    //root_node : "li",
-	    name_node : "h2",
-	    fa_icon : "paw",
-	    //root_classes : ["panel panel-default"],
+	    name_node : "h1",
+	    fa_icon : "sign-in",
+	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
-	    child_classes : ["form form-inline text-center"],
-	    //name_classes : ["panel-heading"],
-	    item_classes : []
+	    child_classes : ["form form-inline text-center input-lg"],
+	    intro_stick : true,
+	    //name_classes : ["col-sm-6"],
+	    //item_classes : ["col-sm-6"]
 	},
 
 	elements : {
+
 	    user: {
 		type: "string",
 		name : "User",
@@ -587,7 +654,7 @@ var base_templates={
 		    name_classes : ["input-group-addon"]
 		}
 	    },
-
+/*
 	    status :{
 		type  : "string",
 		value : "Logging in ...",
@@ -597,22 +664,18 @@ var base_templates={
 		    //root_classes : ["form-group input-group inline"]
 		}
 	    },
-
+*/
 	    login : {
-		name : "Log in",
+		name : "Log in !",
 		type : "action",
 		ui_opts : {
-		    item_root : true,
-		    //root_element : "user",
+		    //item_root : true,
+		    root_element : "user",
 		    //button_node : "span",
 		    //name_node : "span",
 		    //fa_icon : "link",
-		    //wrap : true,
-		    //wrap_classes : ["input-group-btn"],
-		    
-		    //name_classes : ["input-group-addon"],
-		    //root_classes : ["inline"],
-
+		    wrap : true,
+		    wrap_classes : ["input-group-btn"],
 		    item_classes : ["btn btn-info"]
 		}
 	    },
@@ -627,21 +690,89 @@ var base_templates={
 	    // }
 	}
     },
+
+    logout : {
+	name : "Log out of Sadira...",
+	intro : "Unknown login status",
+	strings : {
+	    intro1 : "confirm you want to disconnect from the Sadira network.",
+	    intro2 : "You are not logged in.",
+	    intro3 : "You are curently logged in as "
+	},
+	
+	ui_opts : {
+	    fa_icon : "sign-out",
+	    intro_stick : true,
+	    root_classes : ["container-fluid"]
+	   
+	},
+	elements : {
+	    logout_but : {
+		name : "Log me out !",
+		type : "action",
+		ui_opts : { root_classes : ["text-center"], item_classes : ["btn btn-danger btn-lg"]}
+	    }
+	},
+
+	widget_builder : function(ui_opts, logout){
+
+	    var b=logout.get('logout_but');
+	    function enable_logout(){
+		logout.set_intro_text( '<p>'+ S(logout, 'intro3')+' <strong>'+window.sadira.user.id +'</strong>,' + S(logout,'intro1') + '</p>');
+		b.disable(false);
+	    }
+	    function disable_logout(){
+		b.disable(true);
+		logout.set_intro_text(
+		    S(logout,'intro2')
+		);
+	    }
+	    
+	    b.listen('click',function(){
+		var rq=new request({ cmd : "/logout"});
+		rq.execute(function(error, res){
+		    if(error){
+			logout.debug("Error logout : " + error);
+			return;
+		    }
+		    
+		    if(è(res.error))
+			logout.debug(res.error);
+		    else{
+			window.sadira.user={};
+			window.sadira.trigger('user_logout');
+		    }
+		});
+		
+	    });
+	    
+	    window.sadira.listen('user_login', function(user){enable_logout();});
+	    window.sadira.listen('user_logout', function(user){
+		console.log("Disable logout !");
+		disable_logout();
+	    } );
+	    
+	    window.sadira.user ? enable_logout() : disable_logout();
+
+	}
+    },
+    
     marked : {
 	name : "MD Text",
 	type : "html"
     },
     signup : {
 	name : "Create a new account",
-	subtitle : "Choose a login method",
-	intro : "<p><font size='4em'>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</font></p>",
+	//subtitle : 
+	intro : "<strong>Choose a login method </strong><p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p>",
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
-	    //root_classes : ["panel panel-default"],
+	    root_classes : ["container-fluid"],
 	    //name_classes : ["panel-heading"],
 	    child_classes : ["container-fluid"],
-	    intro_stick: true
+	    intro_stick: true,
+	    fa_icon : 'key'
 	},
 
 	elements : {
@@ -685,12 +816,13 @@ var base_templates={
 				name : "New password",
 				type : "password",
 				ui_opts : { type : "edit", root_classes : ["form-group"], label : true ,
+					    wrap : true,
 					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
 			    },
 			    password_repeat : {
 				name : "Enter password again",
 				type : "password",
-				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,
+				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,wrap : true,
 					    name_classes :["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
 			    }
 			    
@@ -865,8 +997,11 @@ var base_templates={
 	elements : {}
     },
     dbtemplates : {
-	name : "Sadira/tk templates",
-	ui_opts : {root_classes : ["container-fluid"]},
+	name : "Sadira widget templates",
+	ui_opts : {
+	    root_classes : ["container-fluid"],
+	    child_view_type : ""
+	},
 	elements : {
 	    build_progress : {
 		name : "Building templates ... ",
@@ -881,15 +1016,17 @@ var base_templates={
     },
     
     sadira_home : {
-	name : '<strong style="color: springgreen; font-size : 1.5em; text-shadow: 1px 1px 1px rgba(200,200,200,1.0);">♓</strong> <strong style="color : white; font-size: 1.2em;"> Qk/Sadira </strong>',
-	
+	name : '<span style="color: springgreen;">ॐ</span> <strong> Sadira </strong>',
 	ui_opts : {
 	    root_classes : ["container-fluid left"],
 	    //child_classes : ["container-fluid"],
 	    //child_view_type : "pills",
-	    name_node : "h4",
+	    //name_node : "h4",
+	    //name_classes : ["title_logo"],
+	    
 	    intro_stick : true,
-	    child_toolbar : false
+	    child_toolbar : false,
+	    toolbar_brand : true
 	},
 
 	toolbar : {
@@ -909,16 +1046,19 @@ var base_templates={
 		    elements : {
 			xd1 : {
 			    name : "XD-1",
-			    type : "xd1"
+			    type : "xd1",
+			    link : true
+			    
 			},
 			minispectro : {
 			    name : "Minispectro",
-			    type : "videocap"
+			    type : "videocap",
+			    link : true
 			}
 		    }
 		},
 		toolkit : {
-		    name : "STk Web Toolkit",
+		    name : "Web Toolkit",
 		    elements : {
 			demo : {
 			    name : "Toolkit sandbox",
@@ -937,26 +1077,39 @@ var base_templates={
 		    }
 		},
 		database : {
-		    name : "DB",
+		    name : "Dev",
 		    elements : {
 			browser : {
 			    name : "Database browser",
 			    type : "db_browser"
+			},
+			sock_mgr : {
+			    type : "socket_manager"
+			},
+			nunki : {
+			    type : "nunki",
+			    link : true
 			}
 		    }
-		},
+		}
+		/*,
 		login : {
 		    type : "login", name : "Login"
-		},
+		}
+
 		register : {
 		    type : "signup", name : "Create account"
 		}
+*/
+
+
 	    }
 	},
 
 	
 	elements : {
 	    welcome : {
+		subtitle : "INAF/IASF-Bologna — <i>Astro-web-software </i>",
 		name : "QK/Sadira",
 		type : "html",
 		icon : "/sadira/icons/inaf_iasfbo.png",
@@ -966,7 +1119,7 @@ var base_templates={
 		url : "/sadira/welcome.html",
 		ui_opts : {
 		  //  intro_stick : true,
-		    render_name : false,
+		    //render_name : false,
 		    item_classes : ["container-fluid"]
 		}
 			  

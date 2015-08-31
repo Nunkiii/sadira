@@ -372,6 +372,18 @@ server.prototype.find_group = function (gname, cb){
     this.find1({type : 'Groups', path : 'name', value : gname}, cb);
 }
 
+server.prototype.group_id = function (gname, cb){
+    this.find_group(gname, function(err, group){
+	return cb(err);
+	if(group!==undefined && group!==null){
+	    return cb(null,group._id);
+	}else
+	    cb("Group " + gname + " not found !");
+    });
+}
+		
+
+
 server.prototype.find_user=function(identifier, cb){
     var mongo=this;
     mongo.find1({type: "Users", path:'credentials.local.email', value : identifier},function(err, user) {

@@ -246,12 +246,12 @@ perm.prototype.check=function(user, mode){
 	if(ugrp!==undefined) 
 	    for(var g in ugrp){
 		for(var i=0;i<ks.g.length;i++){
-		    //console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
+		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
 		    if(ks.g[i]==g){
-			//console.log("YYYYYYYYEEEESS");
+			console.log("YYYYYYYYEEEESS");
 			return true;
 		    }else{
-			//console.log("NOOOOOOOOO");
+			console.log("NOOOOOOOOO");
 		    }
 		}
 	    }
@@ -417,15 +417,12 @@ var _sadira = function(){
 
 	    obj.grant_group=function(gname, gr, cb){
 		if(gr===undefined) gr='r';
-		sad.mongo.find_group(gname, function(err, group){
+		sad.mongo.group_id(gname, function(err, group_id){
 		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
-		    if(group!==undefined && group!==null){
-			if(obj.db.p===undefined) obj.db.p=new perm();
-			var g={}; g[gr]={g : [group._id] };
-			obj.db.p.grant(g);
-			if(cb!==undefined)cb(null);
-		    }else
-			cb("Group " + gname + " not found !");
+		    if(obj.db.p===undefined) obj.db.p=new perm();
+		    var g={}; g[gr]={g : [group_id] };
+		    obj.db.p.grant(g);
+		    if(cb!==undefined)cb(null);
 		});
 		
 	    };
@@ -829,26 +826,10 @@ _sadira.prototype.load_routes = function (){
 	var p=get_parameters(req);
 	var header=(p.header!==undefined)? p.header:false;
 	var ejs_data={ tpl_name : req.params.tpl_name, header : header};
+	console.log("render widget : " + req.params.tpl_name  );
 	//sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
     });
-    
-    sad.app.get('/testperm', function(req, res) {
-	
-	res.json(req.user);
-    });
-    /*
-      sad.app.all('*', function(request, res){
-      for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
-      });
-    */
-
-    sad.app.get('/tt',  function(req, res, next) {
-	sad.passport.authenticate('session', function(err,user,info) {
-	})(req,res,next);
-	console.log("TT user is " + req.user);
-    });
-    
 
     console.log("Handling main route....");
     
@@ -861,10 +842,26 @@ _sadira.prototype.load_routes = function (){
 	//sad.log("rendering index " + JSON.stringify(index_info));
 	//res.render('index.ejs', index_info); // load the index.ejs file
     });
+
+    /*
+    sad.app.get('/testperm', function(req, res) {
+	
+	res.json(req.user);
+    });
+  
+      sad.app.all('*', function(request, res){
+      for(var h in cors_headers) res.setHeader(h,cors_headers[h]);
+      });
+  
+
+    sad.app.get('/tt',  function(req, res, next) {
+	sad.passport.authenticate('session', function(err,user,info) {
+	})(req,res,next);
+	console.log("TT user is " + req.user);
+    });
+
+    */
     
-	    
-
-
     sad.app.all('*', function(request, res){
 	
 	//The request was not handled by custom url handlers.
@@ -872,28 +869,33 @@ _sadira.prototype.load_routes = function (){
 	
 	try{
 	    //sad.log("proxy request https? " + request.connection.encrypted );
-		    
 	    if(request.connection.encrypted){ //https connexion
 		if(sad.options.https_proxy){
 		    //console.log("Proxy https " + request.url);
 		    sad.https_proxy.web(request, res);
 		    return;
-		}else return res.status('Not found', 404);
+		}else {
+		    return res.render('error.ejs', " Local file service unhandled : " + request.url);
+		    //return res.status('Not found', 404);
+		}
 	    }else{
 		if(sad.options.http_proxy){
 		    //console.log("Proxy http " + request.url);
-			    sad.http_proxy.web(request, res);
+		    sad.http_proxy.web(request, res);
 		    return;
-		}else return res.status('Not found', 404);
+		    
+		}else return res.render('error.ejs', " Local file service unhandled : " + request.url);
 	    }
 	}
-	    
+	
 	catch (e){
 	    sad.log('Proxy error : ' + dump_error(e));
-	    return res.status('Sadira: Proxy error : ' + e, 500);
+	    return res.render('error.ejs', " 500 : Proxy error for URL : " + request.url + " e : " + dump_error(e));
+	    //return res.status('Sadira: Proxy error : ' + e, 500);
 	}
     });
-    
+
+
 }
 
 
@@ -972,9 +974,74 @@ _sadira.prototype.load_apis = function (cb){
 	if(api===undefined) return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
 	return api.api_handler(req,res,next);
     });
-    
+
+
+    sad.app.get('/api/reset', function(req, res, next) {
+	console.log("API reset : User is " + JSON.stringify(req.user, null, 4));
+	
+	sad.check_group_perm(req.user, 'x', 'admin', function(error, allowed){
+	    if(error)
+		return res.json({error : "Error checking perm : " + error});
+	    if(!allowed)
+		return res.json({error : "No admin priviledges"});
+	    
+	    sad.reset_apis(function(error){
+		if(error)
+		    return res.json({error : "Reset apis : " + error});
+		else
+		    return res.json({info : "OK"});
+	    });
+	});
+	
+    });
     
 }
+
+_sadira.prototype.check_group_perm=function(user, mode, name, cb){
+    this.mongo.group_id(name, function(err, gid){
+	if(err) return cb(err);
+
+	var p=new perm( { mode : { g : gid }} );
+
+	if(p.check(user,mode)){
+	    cb(null,true);
+	}else cb(null,false);
+    });
+}
+
+_sadira.prototype.reset_apis=function(cb){
+    var app=this;
+    var apis=[
+	{
+	    name : "db",
+	    perm : [['g','users','x'],['g','everybody','r']]
+	},
+	{
+	    name : "session",
+	    perm : [['g','users','x'],['g','everybody','r']]
+	}
+    ];
+
+    var napis=apis.length;
+    app.mongo.db.collection("Apis").drop();
+
+    apis.forEach(function(api){
+	var c=create_object(api.name);
+	c.collection("Apis");
+	c.grant(api.perm, function(e){
+	    if(e)return cb(e);
+	    app.mongo.write_doc(c, function(err, doc){
+		    if(err)return cb(err);
+		console.log("Ok, db api recorded : " + JSON.stringify(doc));
+		napis--;
+		if(napis==0)
+		    cb(null, 'Apis registered !');
+	    });
+	});
+    });
+	
+}
+
 
 
 /* Start worker process */
@@ -990,7 +1057,7 @@ _sadira.prototype.start_worker = function (cb){
     sad.load_mongodb(function(error){
 	if(error) return cb(error);
 	
-	console.log("Mongodb STARTED !");
+	//console.log("Mongodb STARTED !");
 	sad.apis={};
 	//app.use(logger());
 	app.sadira=sad;
@@ -999,6 +1066,12 @@ _sadira.prototype.start_worker = function (cb){
 	
 	app.set('view engine', 'ejs');
 	app.set("views", "ejs/");
+
+
+	sad.throw_client_error=function(m, res){
+	    res.render('error.ejs', m ); 
+	};
+
 	
 	app.use(cookieParser());
 	app.use(bodyParser.urlencoded({ extended : true}));

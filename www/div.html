@@ -8,7 +8,8 @@
   <script src="js/utils.js"></script>
   <script src="js/datagram.js"></script> 
   <script src="js/serializer.js"></script> 
-  <script src="js/dialog.js"></script> 
+  <script src="js/dialog.js"></script>
+  <script src="js/tpl_mgr.js"></script>
   <script src="js/db.js"></script>
   <script src="js/db_basetypes.js"></script>
   <script src="js/base_templates.js"></script> 
@@ -84,7 +85,9 @@ var test_tpl={
 	    name : "Left panel", subtitle : "The main left panel",
 	   
 	    ui_opts : { name_node : "h2",
-			child_view_type : "tabbed", root_classes : ["container-fluid"]},
+			child_view_type : "tabbed",
+			root_classes : ["container-fluid"]
+			},
 	    intro : '<p class="alert alert-info">Left panel with tabbed childs.</p>',
 	    //type : "html", 
 	    //url : "../about.html",
@@ -96,7 +99,7 @@ var test_tpl={
 		},
 		y : {
 		    name : "Vector display test",
-		    type : "template", template_name : "vector",
+		    type : "vector",
 		    value : [0,1,0,1,0,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0,10,100,200,500,700,1000,2000,3000,4000,5000,2000,1000,100]
 		},
 		z : {
@@ -167,12 +170,15 @@ var test_tpl={
 	    elements : {
 		test1 : {
 		    name: "First Sub Panel", subtitle : "Another divided child element...",
-		    ui_opts : { child_view_type : "divider", root_classes : ["container-fluid"] },
+	       ui_opts : {
+		   child_view_type : "divider",
+		   root_classes : ["container-fluid"]
+	       },
 		    elements : {
 			left : {
 			    ui_opts : { root_classes  : ["container-fluid"]},
 			    name : "Vector display test",
-			    type : "template", template_name : "vector",
+			    type : "vector",
 			    value : [0,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,6,5,4,3,2,1,0]
 			},
 			right : {

@@ -130,6 +130,7 @@ function set_template_data(t, data){
     return t;
 }
 
+
 function encode_data_structure(t){
 }
 
@@ -168,6 +169,11 @@ local_templates.prototype.add_templates=function(templates){
     }
 }
 
+local_templates.prototype.get_master_template=function(template_name){
+  return this.templates[template_name];
+}
+
+
 local_templates.prototype.update_template=function(tpl_item, tpl){
     var toup=["elements","ui_opts"];
     var me=this;
@@ -201,6 +207,8 @@ local_templates.prototype.update_template=function(tpl_item, tpl){
 	case "elements" : break; 
 	case "ui_opts" : break;
 	case "type":
+	    //tpl_item.type=tpl.type; break;
+	    
 	    if(tpl_item.type===undefined){
 		tpl_item.type=tpl.type;
 	    }else{
@@ -377,6 +385,7 @@ local_templates.prototype.build_template=function(template){
     if(typeof template === 'string'){ 
 	
 	var master_tpl=this.templates[template];
+	if(master_tpl===undefined) throw "Unknown template ["+template+"]";
 	//tpl=clone_obj(master_tpl);
 	//console.log("Building template " + template);
 	tpl=new template_object();

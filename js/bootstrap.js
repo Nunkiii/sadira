@@ -256,25 +256,6 @@ exports.init=function(pkg,app){
 	});
     };
 
-    function check_com(cb){
-
-	var apis=["db", "session"];
-	
-	app.mongo.db.collection("Apis").drop();
-
-	apis.forEach(function(apiname){
-	    var c=create_object(apiname);
-	    c.collection("Apis");
-	    c.grant([['g','users','x'],['g','everybody','r']], function(e){
-		if(e)return cb(e);
-		app.mongo.write_doc(c, function(err, doc){
-		    if(err)return cb(err);
-		    console.log("Ok, db api recorded : " + JSON.stringify(doc));
-		});
-	    });
-	});
-	
-    }
     
     function check_group(gname, cb){
 	app.mongo.find1({type : 'Groups', path : 'name', value : gname}, function(err, admin_group){
@@ -372,7 +353,7 @@ exports.init=function(pkg,app){
 
 	});
 
-	check_com(function(e){
+	module.exports.reset_apis(function(e){
 	});
 	
 	check_group('admin',function(err, admin_group){

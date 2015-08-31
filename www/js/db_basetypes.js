@@ -199,22 +199,28 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	    ti++;
 	    build_progress.set_value(ti*100.0/nt);
 	    var t=tmaster.templates[tn];
-	    var tstring="<pre><code>"+JSON.stringify(t,null,2)+"</code></pre>";
-	    
-	    
+
+	    var builder;
+	    if(è(t.widget_builder)){
+		//console.log("Scanning " + tn + " builder " + t.tpl_builder);
+		builder=t.widget_tpl_builder;
+	    }else
+		builder=template_ui_builders[tn];	
+
+
+	    var fsubt = t.name === undefined  ? "":t.name;
 	    var te=templ.elements[tn]={
-		
-		name : t.name+" <span class='label label-default label-xs'>"+tn+"</span>",
-		ui_opts : { root_classes : ["panel panel-default"], name_node : "h3"},
+		name :" <span class='label label-default '>"+tn+"</span>",  
+		subtitle : fsubt,
+		ui_opts : { root_classes : ["container-fluid"],
+			    child_view_type : 'tabbed',
+			    fa_icon : 'code-fork'
+			    //name_node : "h3",
+			    //label :true
+			  },
+		toolbar : { ui_opts : { toolbar_classes : ""} },
 		elements : {
-		    code : {
-			name :"JSON template",
-			type : "html",
-			value : tstring,
-			ui_opts : { editable : true,sliding:true,slided:false, label : true, root_classes : ["inline"],
-				    highlight_source: true
-				  }
-		    },
+
 		    tryi : {
 			name : "Build here",
 			type : "action",
@@ -229,35 +235,43 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 			ui_opts: {item_classes : ["btn btn-info btn-xs"], root_classes : ["inline"]}
 		    }
 		} };
+
 	    
-	    var builder;
-	    
-	    if(è(t.type)){
-		builder=template_ui_builders[t.type];
+	    //var tstring="Helllooo"
+	    if(t!={}){
+		var tstring="<pre><code>"
+		    + JSON.stringify(t,null,2)
+		//		t.prototype.toSource()
+		
+		    +"</code></pre>";
+		te.elements.code = {
+		    name :"Template",
+		    type : "text",
+		    value : tstring,
+		    ui_opts : {
+			editable : false,sliding:false,slided:true, label : false, root_classes : ["inline"],
+			highlight_source: true
+		    }
+		}
 	    }
-	    
-	    if(è(t.tpl_builder)){
-		//console.log("Scanning " + tn + " builder " + t.tpl_builder);
-		builder=template_ui_builders[t.tpl_builder];
-	    }
-	    
-	    if(ù(builder)){
-		te.elements.builder={
-		    name : "No builder",
-		    ui_opts : { label: true, name_classes : ["label label-warning"]}
-		};	
-	    }else{
-		var fstring="<pre><code>"+builder.toString()+"</pre></code>";
-		te.elements.builder_code={
-		    name : "Builder JS code",
-		    type : "html",
+		
+
+		
+	    if(è(builder)){
+		fstring="<pre><code>"+builder.toString()+"</pre></code>";
+		te.elements.bcode = {
+		    name :"Constructor",
+		    type : "text",
 		    value : fstring,
-		ui_opts : {sliding : true, slided : false, label : true, highlight_source: true}
-		};
+		    ui_opts : {
+			editable : false,sliding:false,slided:true, label : false, root_classes : ["inline"],
+			highlight_source: true
+		    }
+		}
 	    }
 	    
-	    if(t.subtitle) te.subtitle=t.subtitle;
-	    if(t.intro) te.intro=t.intro;
+	    
+	    
 	    ntpl++;
 	}
 	
@@ -290,7 +304,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
     }, 500);
 }
 
-template_ui_builders.sadira=function(ui_opts, sad){
+template_ui_builders.socket=function(ui_opts, sad){
   
     //console.log("sadira link constructor !");
     
@@ -491,13 +505,6 @@ template_ui_builders.sadira=function(ui_opts, sad){
 
 
 }
-
-template_ui_builders.main_window=function(ui_opts, prog){
-    
-    
-    
-}
-
 
 template_ui_builders.progress=function(ui_opts, prog){
 
@@ -924,18 +931,21 @@ template_ui_builders.login=function(ui_opts, login){
     ///////////////////////////////////////////////////////////////
     //User Login/Logout stuff
     
-    var user_tpl=login.elements.user;
-    var pw_tpl=login.elements.password;
+    var user_tpl=login.get('user');
+    var pw_tpl=login.get('password');
     var login_tpl=login.get('login');
-    var status_tpl=login.elements.status;
-
-    var fb_login=login.elements.fb_login;
+    //var status_tpl=login.elements.status;
+    
+    //var fb_login=login.elements.fb_login;
     
     user_tpl.ui.focus();
     //pw_tpl.pui.add_class("input-sm");
     var user_name="", user_password="";
     var mode;
 
+
+    login_tpl.parnode=login_tpl.item_ui.parentNode;
+    
     if(ù(login.user_id))login.user_id="";
     //console.log("LOGIN : " + login.user_id);
     
@@ -946,53 +956,91 @@ template_ui_builders.login=function(ui_opts, login){
     function login_mode(){
 	mode="login";
 	user_tpl.ui_root.remove_class("has-error");
-	login.set_title("Login");
-	login_tpl.set_title("Log In");
-	login_tpl.disable(true);
-	status_tpl.ui.style.display="none";
-	user_tpl.ui_root.style.display="";
-	pw_tpl.ui_root.style.display="";
+	login_tpl.set_title("Log in");
+	//login_tpl.set_title("Log In !");
+
+	//status_tpl.ui.style.display="none";
+	login.intro_div.className="text-muted";
+	login.intro_div.innerHTML = "<p>Enter your username and password to log into Sadira</p>";
+	show_input(true);
+	
+	login_tpl.parnode.appendChild(login_tpl.item_ui);
+	
 	check();
     }
     
     function register_mode(){
 	mode="register";
-	login_tpl.ui_root.style.display="none";
-	status_tpl.ui.style.display="";
-	user_tpl.ui_root.style.display="none";
-	pw_tpl.ui_root.style.display="none";
+	//login_tpl.ui_root.style.display="none";
+	//status_tpl.ui.style.display="";
+	//user_tpl.ui_root.style.display="none";
+	//pw_tpl.ui_root.style.display="none";
+
+    }
+
+    function show_input(show){
+	if(show){
+	    user_tpl.ui_name.style.display="";
+	    user_tpl.item_ui.style.display="";
+	    pw_tpl.ui_name.style.display="";
+	    pw_tpl.pui.style.display="";
+	    pw_tpl.lui.style.display="";
+	    
+	    return;
+	}
+	//user_tpl.ui_root.style.border="2px solid green";
+
+
+	user_tpl.ui_name.style.display="none";
+	user_tpl.item_ui.style.display="none";
+	pw_tpl.ui_name.style.display="none";
+	pw_tpl.pui.style.display="none";
+	pw_tpl.lui.style.display="none";
+
 
     }
     
     function error_mode(err){
 	//console.log("Error mode!!!");
 	mode="error";
-	status_tpl.ui_root.style.display="";
+	
+	show_input(false);
+	//status_tpl.ui_root.style.display="";
 	user_tpl.ui_root.remove_class("has-success");
 	user_tpl.ui_root.add_class("has-error");
 	//status_tpl.ui.add_class("label-danger");
-	status_tpl.set_value(err);
+	//status_tpl.set_value(err);
 	login_tpl.ui_root.style.display="";
-	login_tpl.set_title("Retry");
+	login.intro_div.className="alert alert-danger";
+	login.intro_div.innerHTML = "<p><strong>Login error :</strong> " + err + "</p>";
+
+	login.intro_div.appendChild(login_tpl.item_ui);
+	login_tpl.set_title( "Retry !");
 	login_tpl.disable(false);
     }
 
     function success_mode(info){
+	
 	mode="success";
 	//status_tpl.ui.className="text-success";
 	//status_tpl.set_value("Logged in as " + (è(info)?info:""));
-	user_tpl.ui_root.add_class("has-success");
-	status_tpl.ui_root.style.display="none";
-	user_tpl.ui_root.style.display="none";
-	pw_tpl.ui_root.style.display="none";
-
-	login.set_title("Logged in as " + login.user_id);
-	login.set_subtitle("");
+	//user_tpl.ui_root.add_class("has-success");
+	//status_tpl.ui_root.style.display="none";
+	show_input(false);
+	
+	//login.set_title("Logged in as " + login.user_id);
+	login.intro_div.innerHTML = "<p>You are logged in as <strong>" + window.sadira.user.id + " </strong></p>";
+	
+	login.intro_div.appendChild(login_tpl.item_ui);
 	login_tpl.set_title("Logout");
-	login_tpl.ui.remove_class("btn-primary");
-	login_tpl.ui.add_class("btn-warning");
-	login_tpl.ui_root.style.display="";
-	login_tpl.disable(false);
+
+	//login_tpl.hide(true);
+	
+	// login_tpl.ui.remove_class("btn-primary");
+	// login_tpl.ui.add_class("btn-warning");
+	// login_tpl.ui_root.style.display="";
+	// login_tpl.disable(false);
+
     }
     
     user_tpl.ui.addEventListener("input", function(v){
@@ -1041,7 +1089,11 @@ template_ui_builders.login=function(ui_opts, login){
 		
 		login.user_id=res.user.login_name;
 		
-		success_mode();
+		window.sadira.user = { id : login.user_id};
+		window.sadira.trigger('user_login', window.sadira.user);
+
+		
+		//success_mode();
 		// var server_key=res.key;
 		// var client_key = new Uint8Array(32);
 		// window.crypto.getRandomValues(buf);
@@ -1066,8 +1118,12 @@ template_ui_builders.login=function(ui_opts, login){
 		
 		if(è(res.error))
 		    return error_mode(res.error);
+		else{
+		    window.sadira.user={};
+		    window.sadira.trigger('user_logout');
+		}
 		
-		login_mode();
+		//login_mode();
 	    });
 	    break;
 	default:
@@ -1076,25 +1132,10 @@ template_ui_builders.login=function(ui_opts, login){
 	};
     });
 
-    var check_session=new request({ cmd : "/api/session/info" });
+    window.sadira.listen('user_login', function(user){success_mode();});
+    window.sadira.listen('user_logout', function(user){ login_mode();} );
     
-    check_session.execute(function(error, res){
-	if(error) login.debug(error); 
-	if(res!==undefined){
-	    if(res.error) login.debug(res.error) ;
-	    else{
-		
-		if(res.user!=="none"){
-		
-		    login.user_id=res.user;
-		    success_mode();
-		}else
-		    login_mode();
-	    }
-	    console.log("Session check : " + JSON.stringify(res));
-	}
-    });
-    
+    window.sadira.user ?  success_mode(): login_mode();
     
     // if(login.user_id===""){
     // 	login_mode();
@@ -1325,7 +1366,8 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	//break;
 	tpl_item.set_value=function(nv){
 
-	    if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui;
+	    if(tpl_item.item_ui !== undefined)
+		ui=tpl_item.item_ui;
 	    
 	    if(nv !==undefined)
 		tpl_item.value=nv;
@@ -1334,7 +1376,7 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	    //ui.innerHTML="MERDE!!!!!";
 	    
 	    if(tpl_item.value !== undefined){
-		ui.innerHTML=tpl_item.value;
+		tpl_item.ui.innerHTML=tpl_item.value;
 		//console.log("INH = " + tpl_item.ui.innerHTML);
 		//tpl_item.set_title(tpl_item.value);
 		//tpl_item.item_ui.innerHTML=tpl_item.value;
@@ -1360,11 +1402,36 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 
 	break;
 
-    case "edit": 
+    case "edit":
+	
 	//var uui=ui=ce("div");
+	
 	ui=ce("input");
 	ui.type="text";
 	ui.className="form-control";
+	
+	ui.addEventListener("input",function(){
+	    console.log("INPUT Event ont text");
+	    tpl_item.set_value(this.value); 
+	    
+	},false);
+
+	ui.addEventListener("keydown",function(e){
+	    
+	    if(e.keyCode == 13){
+		console.log("Helloooo !");
+		e.preventDefault();
+		tpl_item.set_value(this.value);
+		if(ui_opts.editable !== undefined){
+		    console.log("Helloooo EDIT !");
+		    tpl_item.ui_opts.type="short";
+		    tpl_item.rebuild();
+		}
+		return false;
+	    }
+	});
+
+	
 	
 	break;
     default: 
@@ -1425,10 +1492,14 @@ template_ui_builders.password=function(ui_opts, tpl_item){
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     new_event(tpl_item,"change");
-    switch (ui_opts.type){
 
+    console.log(tpl_item.name + " building ....");
+    var ui;
+    
+    switch (ui_opts.type){
+	
     case "short":
-	var ui=tpl_item.ui=ce("span");
+	ui=ce("span");
 	ui.className="value";
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')
@@ -1439,17 +1510,17 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	break;
 
     case "edit":
-	var ui;
-
-	if(ui_opts.wrap===false){
-	    ui=tpl_item.ui_root;
-	}else{
-	    ui=tpl_item.ui=ce("div");
+	var cnt;
+	if(ui_opts.wrap){
+	    ui=ce("div");
 	    ui.className="input-group";
-	}
+	    cnt=ui;
+	 }else{
+	     cnt=tpl_item.ui_root;
+	 }
 	
-	var pui=tpl_item.pui=cc("input",ui);
-	var lab=cc("span",ui); lab.className="btn btn-info input-group-addon";
+	var pui=tpl_item.pui=cc("input",cnt);
+	var lab=tpl_item.lui=cc("span",cnt); lab.className="btn btn-info input-group-addon";
 	lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
 	//var show=cc("input",lab); show.type="checkbox";
 	pui.className="form-control";
@@ -1481,7 +1552,7 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	throw "Unknown UI type ";
     }
     
-    return tpl_item.ui;
+    return ui;
 }
 
 
@@ -1494,7 +1565,7 @@ template_ui_builders.date=function(ui_opts, date){
 	if(nv !==undefined)
 	    date.value=nv;
 	
-	console.log("SETTING DATE " + date.value);
+//	console.log("SETTING DATE " + date.value);
 	//date.ui.innerHTML="Hello World!!!";
 	if(date.value!==undefined){
 	    if(ui_opts.type!=='edit')
@@ -2065,8 +2136,8 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     var svg = vec.svg=bn.append('svg')
 	.attr("viewBox", "0 0 "+vw+" "+vh)
-//	.attr("preserveAspectRatio", "none");
-	.attr("preserveAspectRatio", "xMinYMin meet");
+	.attr("preserveAspectRatio", "none");
+//	.attr("preserveAspectRatio", "xMinYMin meet");
     //base_node.appendChild(svg.ownerSVGElement);
 
     vec.svg_node=svg.node(); //[0][0].ownerSVGElement;

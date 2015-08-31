@@ -1,6 +1,6 @@
 <!doctype html>
-<html>	  
 
+<html>	  
   <head>	
     <% include ./parts/head %>
     <title> <%= tpl_name %> </title>
@@ -12,7 +12,6 @@
       padding-bottom: 50px;
       }
     </style>
-
   </head>
 
   <body>
@@ -25,8 +24,6 @@
 
     
     <!-- <main id="content" class="container-fluid"></main> -->
-    
-    
     <!-- <script> document.getElementById("content").appendChild(create_widget("login").ui_root);</script> -->
     
   </div>
@@ -38,11 +35,121 @@
 
 
   <script>
-    window.addEventListener("load", function(){
-	var w=create_widget("<%= tpl_name %>");
-	w.interpret_url();
-	attach_ui(w, document.getElementById("content"));
+    window.sadira.listen("ready", function(){
 	
+	var w;
+	try{
+	    var widget_template=tmaster.build_template("<%= tpl_name %>");
+	    if(widget_template.toolbar===undefined){
+		widget_template.toolbar={   };
+	    }
+	    
+	    var tb=widget_template.toolbar;
+	    if(tb.elements===undefined) tb.elements={} ;
+	    if(widget_template.ui_opts===undefined){
+		widget_template.ui_opts = { name_node : 'h3'} ;
+		
+	    }
+	    else
+		widget_template.ui_opts.name_node='h3';
+
+	    tb.ui_opts={ toolbar_classes : ["navbar-inverse navbar-fixed-top"] };
+	    
+	    
+	    
+	    //      var right_nav=tb.create_navbar('navbar-nav navbar-right');
+	    
+	    var lnav=tb.elements.login_nav = {
+		name : "User access",
+		fa_icon : 'globe',
+		pos : 'right',
+		elements : {
+		    login : {name : "Log in",type : 'login' },
+		    logout : {name : "Log out",type : 'logout' },
+		    newacc : { name : "Create new account", type : "signup" },
+		    home : { name : "User homepage", type : "user_home" }
+		}
+		
+	    };
+	    
+	    function user_login(){
+		//lnav.fa_icon='user';
+		tb.set_item_name(lnav, "<strong>" + window.sadira.user.id + "</strong>");
+		lnav.icon.style.color='springgreen';
+		
+		
+		lnav.elements.login.li.style.display='none';
+		lnav.elements.newacc.li.style.display='none';
+		lnav.elements.logout.li.style.display='';
+		lnav.elements.home.li.style.display='';
+		
+	    }
+	    function user_logout(){
+		//lnav.fa_icon='globe';
+		tb.set_item_name(lnav, "Sadira network");
+		lnav.icon.style.color='';
+		lnav.elements.login.li.style.display='';
+		lnav.elements.newacc.li.style.display='';
+		lnav.elements.logout.li.style.display='none';
+		lnav.elements.home.li.style.display='none';
+	    }
+	    
+	    window.sadira.listen('user_login', function(user){
+		user_login();
+	    });
+	    window.sadira.listen('user_logout', function(user){
+		user_logout();
+	    });
+	    
+
+	    
+	    
+	    //       var ul=tb.create_item(login_nav, right_nav);
+//       tb.fill_elements(login_nav.subul, login_nav.elements);
+	    
+       /*
+       var login_w=tmaster.build_template('login');
+       
+       login_w.ui_opts.name_node='a';
+       login_w.ui_opts.root_node='li';
+       login_w.ui_opts.sliding=true;
+       login_w.ui_opts.sliding_animate=true;
+       login_w.ui_opts.sliding_dir='h';
+       login_w.ui_opts.slided=false;
+       
+       create_ui({}, login_w);
+       var sp=ce('span'); sp.className='caret';
+       login_w.ui_root.appendChild(sp);
+       login_w.ui_name.style.display='inline-block';
+
+       //right_nav.appendChild(login_w.ui_root);
+       tb.unav.appendChild(login_w.ui_root);
+	*/
+	    
+	    console.log("Helooooo Before");
+	    create_ui({},widget_template);
+	    console.log("Helooooo hooooooooooooo");
+
+	    window.sadira.user!==undefined ? user_login() : user_logout();
+	    
+	    widget_template.interpret_url();
+       // console.log("Helooooo After");
+
+       // var dropul = tb.setup_dropdown(login_w.ui_root, login_w.ui_name);
+       
+       // var login_opts={
+
+       // };
+       // tb.fill_elements(dropul, login_opts);
+       
+       
+     }
+     catch(error){
+       console.log("Error build widget !  " + dump_error(error));
+       w=create_widget('error_page');
+       w.set_value("Unknown widget : [<%= tpl_name %>] Error : " + error );
+     }
+     attach_ui(widget_template, document.getElementById("content"));
     });
   </script>
   

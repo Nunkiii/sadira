@@ -40,7 +40,7 @@ module.exports={
 	object_builder : function(la){
 
 	    la.create_password=function(clear_password, cb) {}
-
+	    
 	    la.check_password=function(clear_password, cb) {
 		var hash=la.val('hashpass');
 		var salt=la.val('salt');
@@ -76,6 +76,7 @@ module.exports={
 	    };
 	}
     },
+
     group_data : {
 	name : "User groups",
 	name : "Groups",
@@ -113,6 +114,22 @@ module.exports={
 	}
     },
 
+    setup : {
+	name : "setup",
+	type : "api_provider",
+	elements : {
+	    
+	    config_toolbars : {
+		type : "api",
+		api_handler : function(req, res){
+		    sad.mongo.find_group(gname, function(err, group){
+		    });
+		}
+	    }
+	}
+    },
+					
+    
     session : {
 
 	name : "session",
@@ -146,6 +163,7 @@ module.exports={
 	elements : {
 	    
 	    get : {
+		
 		type : "api",
 		api_handler : function (req, res){
 		    
@@ -232,6 +250,17 @@ module.exports={
 	}
     },
 
+    user_home : {
+	apis : {
+	    get_toolbar : function(req, res){
+		return res.json({ hello : "world"});
+	    }
+	},
+	object_builder : function (uhome, app){
+	    
+	}
+    },
+    
     colormap : {
 
 	object_builder : function (cmap, app){
@@ -241,7 +270,7 @@ module.exports={
 		    type : "db_collection",
 		    db : {
 			grants : [['g','everybody','r'],['g','admin','w']],
-		collection : "collections"
+			collection : "collections"
 		    },
 		    elements : {
 			name : { value : "colormap"},

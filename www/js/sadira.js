@@ -3,17 +3,44 @@
 (function(){
     
     console.log("Create template master...");
+
     window.tmaster=new local_templates();
     window.tmaster.add_templates(base_templates);
     window.sadira = {};
     new_event(window.sadira,"ready");
+    new_event(window.sadira,"user_login");
+    new_event(window.sadira,"user_logout");
     
     window.addEventListener("load",function(){
-	console.log("sadira ready....");
-	window.sadira.trigger("ready");
-    });
+	var check_session=new request({ cmd : "/api/session/info" });
+	
+	check_session.execute(function(error, res){
+	    if(sadira.user!==undefined) delete sadira.user;
+	    if(error)
+		login.debug(error); 
+	    if(res!==undefined){
+		console.log("Session check : " + JSON.stringify(res));
+		if(res.error)
+		    login.debug(res.error) ;
+		else{
+		    
+		    if(res.user!=="none"){
+			sadira.user={
+			    id : res.user
+			}
+		    }
+		}
+		
+	    }
+	    window.sadira.trigger("ready");
+	});
 
+	console.log("sadira ready....");
+    });
 })();
+ 
+    
+
 
 
 

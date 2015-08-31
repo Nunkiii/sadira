@@ -95,10 +95,20 @@ background: black;
 }
 
 
+.full_height_scroll{
+ max-height: 100vh;
+ overflow-y : auto;	
+}
+
+span.fa{
+	
+}
+
 .left{
-  max-height: 75vh;
+  max-height: calc( 100vh - 140px);
   overflow-y : auto;
 }
+
 .left .left{
  max-height: 80%;
 }
@@ -108,6 +118,33 @@ background: black;
   display: none; 
   */
 }
+.navbar-brand>img {
+  width : 1.5em;
+  margin-right : .3em;	
+  display: inline-block;
+}
+
+.navbar-inverse>div>div>h3{
+ color : #EEE;
+}
+/*
+h1,h2,h3,h4 {
+   display: inline-block;
+}
+*/
+
+.ico{
+  width: 1.5em;
+  display: inline-block;
+  top: -.3em;
+  position: relative;
+  margin-right: .5em;
+}
+
+.clickable{
+	cursor: pointer;
+}
+
 
 h1 > small {
   
@@ -122,11 +159,13 @@ span.fa{
 
 
 label {
-  /*  font-family : "Ubuntu";
+  font-family : "Ubuntu";
+/*
   font-weight: normal;
-  */
+
   vertical-align: top;
   font-size: 1.0em;
+    */
 }
 
 .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
@@ -159,8 +198,10 @@ pre {
 
 .inline{
   display: inline-block;
-  padding-left: .5em;
+/*
+padding-left: .5em;
   padding-right: .5em;
+  */
 }
 
 .full{
@@ -193,50 +234,45 @@ table.soft_table {
   color: white;
 }
 
+.divider_container {
+	display: flex;
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.h.divider_container{
+  flex-direction:column;
+}
+
+.v.divider_container{
+  flex-direction:row;
+  height: 100%;
+
+}
 
 .divider_bar { 
   z-index: 3;
-  border-radius: .2em;
   position: relative;
-
-  /*
-  box-shadow : 0px 0px 2px rgba(50,50,50,1.0);  
-  border: 1px solid rgba(0,0,0,1.0);
-  position: absolute;      
-  margin-left: .25em;  
-  top: 0;
-  bottom: 0;
-  border: 1px outset rgba(250,10,250,.9);
-  border-top: 0;
-  border-bottom: 0;
-  vertical-align: middle;
-
-  */
-  box-shadow: 0px 0px 2px white;
-  border: 2px solid rgba(8,8,8,.5);
-  background: rgba(100,100,100,.8);
+  border: 3px solid rgba(8,8,8,.5);
 }
 
 .divider_bar:hover {
-  border: 2px dashed rgba(80,80,255,.9);
-
+  border: 3px dashed rgba(80,80,255,.9);
 }
 
 .h>.divider_bar{
-  display: block;
   cursor: row-resize;
   height: .3em;
-  margin-left: .25em;
-  width: calc(100% - 0.5em); 
+  margin-left: 0em;
+  margin-right: 1em;
 }
 
 .v>.divider_bar{
+  left: 0 !important;
   cursor: col-resize;
-  display: inline-block;
   width: .3em;
   margin-top: 0.5em;
   margin-bottom: 0em;
-  height: calc(100% - 0.5em); 
   margin-left: 3px;
   margin-right: 3px;
 }
@@ -264,8 +300,9 @@ table.soft_table {
   cursor: pointer;
   z-index: 4;
 }
+
 .divnode_rotate:hover{
-  font-size: 2em;
+/*  font-size: 2em; */
   font-wight: bold;
   border-radius: .2em;
   background: rgba(255,255,0,.4);
@@ -290,61 +327,29 @@ table.soft_table {
 
 }
 
-/*
-html.dragging * { 
-  cursor: col-resize !important;
-}
-*/
-
-
 .divided{
 
-  /*
-  top: 0px;
-  resize:none;
-  background: purple;  
-  display: inline-block;
   position: relative;
-  */
-  height: calc(100% - 1em);
-  width: calc(100% - 10px);
-  display: block;
   vertical-align: top;
   opacity: 1.0;
   overflow-y: auto;
   overflow-x :auto;
   margin: 0px;
+
 }
 
-.divided .divided{
+.h .divided{
 }
 
 .v .divided{
-  display: inline-block;
 }
 
 .divided.one{
-
   margin-right: 0em;
-
-  /*
-  display: inline-block;
-.db.divider .db.one{
-  height: 100%; 
-  margin-right: 1em;
-  background: red;
-float: left;
-*/
 }
 
 .divided.two{
   margin-left: 0em;
-/*
-  display: inline-block;
-  background: green;
-  height: 100%; 
-  float: left;
-*/
 }
 
 .label_cnt {
@@ -388,10 +393,6 @@ span.label_value {
   padding-left: .5em;
   padding-right: .5em;
 
-}
-
-.dbitem > .db{
-  display: inline-block;
 }
 
 
@@ -533,21 +534,24 @@ font-size: 1.2em;
 }
 
 
-h1,h2,h3,h4{font-family:"Ubuntu";}
 
+
+h1,h2,h3,h4{
+	font-family:"Ubuntu";
+	line-height: 1.0;
+}
+
+/*
 .ico{
-  width : 1.5em;
-  position: relative;
-  margin-right : .3em;
+  display: inline-block;
 }
 
-h1 .ico{
-  width: 2em;
-}
 
 a .ico{
-  top: -.3em; 
 }
+
+*/
+
 
 .navcnt.bar > nav{
   padding-bottom : .2em;
@@ -630,6 +634,10 @@ ul.toolbar {
   background: rgba(80,80,80,.6);
 }
 
+.vertical_margin {
+  margin-top : .5em;
+    margin-bottom : .5em;
+}
 
 pre {
   max-width: 100%;
@@ -679,8 +687,9 @@ label:hover{
   /*
   padding-right:.5em;	
 margin-left: .3em;
-  */
     color: orange;	
+*/
+
   padding-left:.5em;
   cursor: pointer;
   float: right;
@@ -745,7 +754,7 @@ Widget - w-m
 
 .widget .content {
   background : rgba(250,250,250,0.7);
-  height: calc(  100% - 2.5em);
+  height: calc(  100% - 0.5em);
 }
 
 
@@ -878,12 +887,17 @@ label.unslided{
 }
 
 
-a.navbar-brand > h*{
-  color : white;
+.title_logo > span{
+  color: springgreen;
+  font-family : "Ubuntu";
+  font-weight : "bold";
+  font-size : 1.2em;
+  text-shadow: 1px 1px 1px rgba(200,200,200,1.0);
 }
 
 .navbar-brand {
   font-family : "Ubuntu";
+  font-weight: "bold";
 }
 
 .navbar-brand > * > small {
@@ -947,16 +961,19 @@ a.navbar-brand > h*{
 
 .un_editable{
   cursor: pointer;
+  /*
   border-radius: .5em;
   border: 2px solid transparent;
+  */
 }
 
 .editable{
   cursor: pointer;
   color: blue;
-  
+/*  
   border-radius: .5em;
   border: 2px solid transparent;
+  */
 }
 
 .un_editable:hover{
@@ -1064,44 +1081,6 @@ Text input
 
 */
 
-.db input{
-  /*
-  padding: .3em;
-  height: 100%;
-  border: 1px solid red;
-  */
-  
-}
-/*
-.db input[type="checkbox"]{
-  padding: 0em;
-  height: auto;
-  border: 0px;
-  box-shadow: none;                       
-  margin-left: .5em;
-  -ms-transform: scale(1.5); 
-  -moz-transform: scale(1.5); 
-  -webkit-transform: scale(1.5);
-  -o-transform: scale(1.5); 
-}
-*/
-
-/*
-.db input[type="text"]{
-  padding : .5em;
-}
-.db input[type="password"]{
-  padding : .5em;
-}
-
-.db[data-type="password"] > span > label{
-  margin-left: .5em;
-}
-
-
-.db input[type="text"]:disabled{
-}
-*/
 .btn-file {
   position: relative;
   overflow: hidden;
@@ -1494,8 +1473,8 @@ view manager
 
 
 .intro_btn{
-  font-size: .7em;
-  color: rgba(90,100,250,.9);
+  font-size: .8em;
+  color: rgba(90,80,200,1.0);
   padding: .3em;
   padding-left : 1em;
   cursor: pointer;
