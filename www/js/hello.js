@@ -7,8 +7,12 @@ var hello_objects = {
 	elements : {
 	    numbers : {
 		name : "Addition of two numbers",
-		subtitle : "Enter two numbers :",
-		ui_opts : { root_classes : ["col-sm-4"]},
+		intro : "Enter two numbers :",
+		ui_opts : {
+		    root_classes : ["col-sm-4"],
+		    intro_stick: true,
+		    child_classes : ["text-center vertical_margin"]
+		},
 		elements : {
 		    a : {
 			ui_opts : { label : true, type : "edit"},
@@ -32,15 +36,21 @@ var hello_objects = {
 		    but : {
 			
 			type : "action",
-			name : "Click here !",
-			ui_opts : { item_classes : ["btn btn-danger"], root_classes : ["inline"]},
+			name : "Click to add numbers !",
+			ui_opts : {
+			    item_classes : ["btn btn-success"],
+			    root_classes : ["text-center vertical_margin"]
+			},
 		    },
 		    
 		    result : {
 			name : "Result",
 			type : "double",
 			
-			ui_opts : { label : true, root_classes : ["panel panel-default inline"]},
+			ui_opts : {
+			    label : true,
+			    root_classes : ["well"]
+			},
 		    }
 		}
 	    }
@@ -53,7 +63,7 @@ var hello_objects = {
 	    but.listen('click', function(){
 		var a=hcomp.val('a');
 		var b=hcomp.val('b');
-		result.set_value(a+b);
+		result.set_value(a*1.0+b*1.0);
 	    });
 	}
 
@@ -64,17 +74,22 @@ var hello_objects = {
 	
 	name : "Hello Application",	
 	subtitle  : "Minimal standalone Sadira/Tk application",
-	intro  : "This shows how to build JSON template based javascript application using the <i>Sadira web Toolkit</i>!",
-	
+	intro  : "<strong>Welcome!</strong><p>This shows how to build a JSON template based javascript application using the <i>Sadira web Toolkit</i>!</p>",
+
 	ui_opts : {
 	    intro_stick : true,
-	    intro_name : true,
+	    //intro_name : true,
 	    root_classes : ["container-fluid"],
+	    //child_classes : ["container-fluid"],
+	    child_view_type : 'tabbed'
 	},
-	
+
 	elements :  {
 	    st : {
-		ui_opts : { label : true},
+		ui_opts : {
+		    //label : true,
+		    editable : true
+		},
 		type : "string",
 		name : "Test string",
 		value : "This is a test string !"
