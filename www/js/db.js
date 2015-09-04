@@ -311,12 +311,22 @@ function set_page_title(w){
     }
 }
 
-function create_widget(t, parent){
+function create_widget(t, parent, depth_in){
     //console.log("create widget " + t);
     var widget_template=tmaster.build_template(t);
-    if(parent!==undefined)
+
+    
+    var depth=t.depth===undefined ? depth_in : t.depth;
+    
+    if(parent!==undefined){
+	if(t.depth===undefined && parent.depth!==undefined)
+	    depth=parent.depth+1;
 	widget_template.parent=parent;
-    create_ui({},widget_template);
+    }
+    if(depth===undefined)
+	depth=0;
+
+    create_ui({},widget_template, depth);
     return widget_template;
 }
 
@@ -522,9 +532,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	return;
     }
 
-
+    console.log("Input depth = " + depth);
+    if(depth!==undefined)
+	tpl_root.depth=depth;
+    else
+	depth=tpl_root.depth;
     
-    if(!depth)depth=0;
+    if(depth===undefined)depth=0;
 
     if(!tpl_root.depth)
 	tpl_root.depth=depth;
@@ -897,6 +911,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    // for(var p in tti){
 		    // 	console.log("CWTYPE " + p + " nn " + tti[p].nodeName);
 		    // }
+		    
+		    tti.depth=tpl_root.depth+1;
 		    create_widget(tti);
 		    //add_close_button(tti, tti.ui_title_name);
 		    //tti.on=false;
@@ -1239,6 +1255,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    
 		}
 		else{
+		    console.log("Depth= " + depth);
 		    var hnode=  depth===0 ? "h1" : (((depth<4)?("h"+(depth+1)):"h4"));
 		    //var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
 		    name_node=è(ui_opts.name_node) ? ui_opts.name_node : hnode;
@@ -1389,13 +1406,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			var undo=cc('button',uicont_grp); undo.className="btn btn-default fa fa-undo"; //undo.innerHTML="Undo";// ";
 			
 			undo.addEventListener("click",function(){
-			    ui_root.replaceChild(ui_name, uicont);
+			    uicont.parentNode.replaceChild(ui_name, uicont);
 			    ui_name_text.onedit=false;
 			});
 			
 			ui.value=tpl_root.name;
 
-			ui_root.replaceChild(uicont, ui_name);
+			ui_name.parentNode.replaceChild(uicont, ui_name);
 			//ui_name.replaceChild(uicont, un);
 			
 			ui.addEventListener("change",function(){
@@ -2581,7 +2598,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(!ui_opts.item_root){
 
 		    //console.log(tpl_root.name + " : adding item ui " + item_ui);
-		    ui_content.appendChild(item_ui);
+		    if(ui_opts.name_after===true)
+			ui_content.prependChild(item_ui);
+		    else
+			ui_content.appendChild(item_ui);
 
 		    if(sliding){
 			//console.log(tpl_root.name + " : Adding item_ui in sliding stuff " + sliding_stuff.length);

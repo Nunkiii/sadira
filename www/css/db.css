@@ -639,6 +639,10 @@ ul.toolbar {
     margin-bottom : .5em;
 }
 
+.title_margin {
+    margin-bottom : 1em;
+}
+
 pre {
   max-width: 100%;
 }
@@ -871,13 +875,6 @@ label.unslided{
 	cursor: pointer;
 }
 
-.editable > label{
-  cursor : pointer;
-}
-.un_editable > label{
-  cursor : pointer;
-}
-
 .navbar-default {
   background-color : transparent;
 }
@@ -968,13 +965,13 @@ label.unslided{
 }
 
 .editable{
-  cursor: pointer;
-  color: blue;
-/*  
-  border-radius: .5em;
-  border: 2px solid transparent;
-  */
+  cursor : pointer;
+  text-decoration : underline;
 }
+.un_editable > label{
+  cursor : pointer;
+}
+
 
 .un_editable:hover{
   text-shadow : 0px 0px 5px lightgrey;

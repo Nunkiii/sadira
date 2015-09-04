@@ -138,7 +138,6 @@ module.exports={
 	elements : {
 	    info : {
 		type : "api",
-
 		api_handler : function (req, res){
 
 		    if(req.user===undefined){
@@ -149,7 +148,29 @@ module.exports={
 		    
 		    return res.json( { user : req.user.els.credentials.els.local.els.username.value, id : req.user.db.id });
 		}
-
+		
+	    },
+	    get_toolbar_items : {
+		type : 'api',
+		api_handler : function (req, res){
+		    if(req.user===undefined)
+			return res.json([]);
+		    var ugroups=req.user.els.groups.els;
+		    var tb_tools=[];
+		    var ng=0;for (var gid in ugroups)ng++;
+		    for (var gid in ugroups){
+			req.sad.mongo.find1({ collection : 'Groups', id : gid}, function(err, group){
+			    if(err!==null)
+				return res.json({error : err});
+			    tb_tools.push({id : gid, name : group.name});
+			    ng--;
+			    if(ng==0)
+				return res.json(tb_tools);
+			});
+			
+		    }
+		    
+		}
 	    }
 	}
 	

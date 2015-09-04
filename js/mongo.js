@@ -354,7 +354,8 @@ server.prototype.find1=function(opts, cb){
 
     var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
-    this.db.collection(opts.type).findOne(q, {}, function (err, data){
+    var coll=opts.collection!==undefined ? opts.collection : opts.type;
+    this.db.collection(coll).findOne(q, {}, function (err, data){
 
 	if(err) return cb(err);
 
@@ -374,11 +375,16 @@ server.prototype.find_group = function (gname, cb){
 
 server.prototype.group_id = function (gname, cb){
     this.find_group(gname, function(err, group){
-	return cb(err);
+	if(err)
+	    return cb(err);
+	
 	if(group!==undefined && group!==null){
+	    console.log(gname + " : getting group id " + group._id);
 	    return cb(null,group._id);
-	}else
+	}else{
+	    console.log("Group " + gname + " not found !");
 	    cb("Group " + gname + " not found !");
+	}
     });
 }
 		

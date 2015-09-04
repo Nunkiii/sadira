@@ -218,12 +218,12 @@ perm.prototype.toString=function(){
 }
 
 perm.prototype.check=function(user, mode){
-    
-    
+
     var ks=this[mode];
     
     if(ks===undefined){
-	return true;
+	console.log("No such mode " + mode + " default policy is Forbid.");
+	return false;
     }
     console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
     if(user===undefined || user===null){
@@ -248,10 +248,10 @@ perm.prototype.check=function(user, mode){
 		for(var i=0;i<ks.g.length;i++){
 		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
 		    if(ks.g[i]==g){
-			console.log("YYYYYYYYEEEESS");
+			//console.log("YYYYYYYYEEEESS");
 			return true;
 		    }else{
-			console.log("NOOOOOOOOO");
+			//console.log("NOOOOOOOOO");
 		    }
 		}
 	    }
@@ -416,9 +416,12 @@ var _sadira = function(){
 	    };
 
 	    obj.grant_group=function(gname, gr, cb){
+		
 		if(gr===undefined) gr='r';
 		sad.mongo.group_id(gname, function(err, group_id){
-		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
+		    console.log("trying to grant group " + gname + " id " + group_id);
+		    if(err)
+			return cb!==undefined? cb(err): console.log("grant error " + err);
 		    if(obj.db.p===undefined) obj.db.p=new perm();
 		    var g={}; g[gr]={g : [group_id] };
 		    obj.db.p.grant(g);
@@ -977,35 +980,58 @@ _sadira.prototype.load_apis = function (cb){
 
 
     sad.app.get('/api/reset', function(req, res, next) {
-	console.log("API reset : User is " + JSON.stringify(req.user, null, 4));
+	if(req.user===undefined) return res.json({error : "No user connected"});
+	console.log("API reset : User is " + JSON.stringify(req.user._id, null, 4));
 	
-	sad.check_group_perm(req.user, 'x', 'admin', function(error, allowed){
+	sad.in_group(req.user, 'admin', function(error, allowed){
 	    if(error)
+	    {
+		console.log("Error checking perm : " + error);
 		return res.json({error : "Error checking perm : " + error});
-	    if(!allowed)
+	    }
+	    console.log("checking perm e=" + error + " allowed = " + allowed);
+	    if(allowed!==true)
 		return res.json({error : "No admin priviledges"});
-	    
-	    sad.reset_apis(function(error){
-		if(error)
-		    return res.json({error : "Reset apis : " + error});
-		else
-		    return res.json({info : "OK"});
-	    });
+	    else
+		sad.reset_apis(function(error){
+		    if(error)
+			return res.json({error : "Reset apis error : " + error});
+		    else
+			return res.json({info : "OK"});
+		});
 	});
-	
     });
-    
 }
 
 _sadira.prototype.check_group_perm=function(user, mode, name, cb){
     this.mongo.group_id(name, function(err, gid){
-	if(err) return cb(err);
-
+	
+	if(err!==null)
+	    return cb(err);
+	
 	var p=new perm( { mode : { g : gid }} );
 
 	if(p.check(user,mode)){
+	    console.log("Check OK for group "+gid +"  ");
 	    cb(null,true);
 	}else cb(null,false);
+	
+    });
+}
+
+_sadira.prototype.in_group=function(user, name, cb){
+    this.mongo.group_id(name, function(err, gid){
+	
+	if(err!==null)
+	    return cb(err);
+	
+	for (var g in user.els.groups.els){
+	    console.log("Check group id " + g + " id = " + gid);
+	    if(g==gid) return cb(null,true);
+	}
+
+	cb(null,false);
+	
     });
 }
 
@@ -1031,7 +1057,7 @@ _sadira.prototype.reset_apis=function(cb){
 	c.grant(api.perm, function(e){
 	    if(e)return cb(e);
 	    app.mongo.write_doc(c, function(err, doc){
-		    if(err)return cb(err);
+		if(err)return cb(err);
 		console.log("Ok, db api recorded : " + JSON.stringify(doc));
 		napis--;
 		if(napis==0)

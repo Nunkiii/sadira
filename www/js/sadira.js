@@ -7,6 +7,7 @@
     window.tmaster=new local_templates();
     window.tmaster.add_templates(base_templates);
     window.sadira = {};
+    
     new_event(window.sadira,"ready");
     new_event(window.sadira,"user_login");
     new_event(window.sadira,"user_logout");
@@ -16,12 +17,19 @@
 	
 	check_session.execute(function(error, res){
 	    if(sadira.user!==undefined) delete sadira.user;
-	    if(error)
-		login.debug(error); 
+	    if(error){
+		var ep=create_widget('error_page');
+		ep.set_value(error);
+		window.document=ep.ui_root;
+	    }
 	    if(res!==undefined){
 		console.log("Session check : " + JSON.stringify(res));
-		if(res.error)
-		    login.debug(res.error) ;
+		if(res.error){
+		    var ep=create_widget('error_page');
+		    ep.set_value(res.error);
+		    document.getElementById("content").appendChild(ep.ui_root);
+		    //login.debug(res.error) ;
+		}
 		else{
 		    
 		    if(res.user!=="none"){

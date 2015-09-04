@@ -373,7 +373,6 @@ exports.init=function(pkg,app){
 		    if(err) throw("Bootstrap error : " + err);
 		    
 		    
-		    
 		    users.set('description',"Registered gnomes, goblins and farfadets.");
 		    users.save();
 		    console.log("Users group : " + JSON.stringify(users));

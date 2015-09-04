@@ -30,6 +30,7 @@ function config_common_input(tpl_item){
 	    
 	},false);
 
+	tpl_item.ui_root.add_class('form-inline');
 	
 	break;
     default: break;
@@ -74,6 +75,35 @@ function config_common_input(tpl_item){
     else
 	tpl_item.set_default_value();
     
+}
+
+template_ui_builders.array=function(ui_opts, arr){
+    var ui;
+    arr.set_value=function(obj){
+	if(obj!==undefined){
+	    if(obj.constructor===Array){
+		arr.value=obj;
+	    }else
+		arr.value=JSON.parse(obj);
+	}
+	if(arr.value!==undefined){
+	    if(ui_opts.type=='edit')
+		ui.value=JSON.stringify(arr.value, null, 4);
+	    else
+		ui.innerHTML=JSON.stringify(arr.value, null, 4);
+	}
+    }
+
+    if(ui_opts.type=='edit'){
+	ui=ce('input'); ui.type='text'; ui.className="";
+	
+    }else{
+	ui=ce('pre');
+    }
+
+    arr.set_value();
+
+    return ui;
 }
 
 
@@ -1298,6 +1328,7 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
 template_ui_builders.bool=function(ui_opts, tpl_item){
 
     ui_opts.type=è(ui_opts.type) ? ui_opts.type : "short";
+    ui_opts.name_after=true;
     
     new_event(tpl_item,"change");
 
@@ -1492,13 +1523,13 @@ template_ui_builders.password=function(ui_opts, tpl_item){
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     new_event(tpl_item,"change");
+    //console.log(tpl_item.name + " building ....");
 
-    console.log(tpl_item.name + " building ....");
     var ui;
-    
     switch (ui_opts.type){
-	
+
     case "short":
+
 	ui=ce("span");
 	ui.className="value";
 	tpl_item.set_value=function(nv){
@@ -1527,6 +1558,7 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	pui.type="password";
 	//pui.className="form-control";
 	pui.show=false;
+
 	lab.onclick=function(){
 	    pui.show=!pui.show;
 	    pui.type= pui.show ? "text" : "password";
@@ -1536,8 +1568,17 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 
 	}
 	tpl_item.set_value=function(nv){
-	    if(typeof nv !='undefined')tpl_item.value=nv;
-	    pui.value=tpl_item.value;
+	    if(typeof nv !='undefined'){
+		tpl_item.value=nv;
+		pui.value=tpl_item.value;
+	    }
+	    else
+		if(è(tpl_item.holder_value)){
+		    //console.log("Setting placeholder value");
+		    pui.setAttribute("placeholder",tpl_item.holder_value);
+		}
+	    
+	    
 	}
 	tpl_item.get_value=function(){
 	    return pui.value;
@@ -1546,6 +1587,8 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	    tpl_item.value=this.value; 
 	    tpl_item.trigger("change");
 	});
+	
+	tpl_item.set_value();
 	
 	break;
     default: 
@@ -2102,24 +2145,12 @@ template_ui_builders.action=function(ui_opts, action){
 
 template_ui_builders.vector=function(ui_opts, vec){
 
-
     //console.log("Building vec : " + vec.name + " parent " + vec.parent.name);
     
-    var selection=vec.get("selection");
-    var range=vec.get("range");
+    
     var lines=vec.get("lines");
     
-    if(ui_opts.enable_range !== undefined){
-	if(ui_opts.enable_range===false) range.hide(true);
-    }
 
-    if(ui_opts.enable_selection !== undefined){
-	if(ui_opts.enable_range===false) selection.hide(true);
-    }
-
-    
-    new_event(vec,"range_change");
-    new_event(vec,"selection_change");
 
     var ui=vec.ui=ce("div");
     
@@ -2158,11 +2189,30 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     var xAxis = d3.svg.axis().scale(xscale).orient("bottom").ticks(5);    
     var yAxis = d3.svg.axis().scale(yscale).orient("left").ticks(5);
+
+
+    var range=vec.get("range");
+    if(ui_opts.enable_range===false)
+	range.hide(true);
+    else{
+	brush = d3.svg.brush().x(xscale).on("brushend", range_changed);
+	new_event(vec,"range_change");
+    }
     
-    brush = d3.svg.brush().x(xscale).on("brushend", range_changed);
-    select_brush = d3.svg.brush().x(xscale).on("brush", selection_changed);
+    var selection=vec.get("selection");
+    if(ui_opts.enable_selection===false)
+	selection.hide(true);
+    else{
+	new_event(vec,"selection_change");
+	select_brush = d3.svg.brush().x(xscale).on("brush", selection_changed);
+    }
 
 
+    var d3zoom = d3.behavior.zoom()
+        .on("zoom", vec.redraw);
+
+    d3zoom.x(xscale);
+    
     new_event(vec,'redraw');
 
     vec.xlabel="X";
@@ -2244,20 +2294,27 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     
     zoom.listen("click",function(){
-	return;
+	//return;
 	var s=selection.value, r=range.value; 
 
-	var sc=false;
+	// var sc=false;
 
-	if(s[0]< r[0]){ s[0]=r[0];sc=true;}
-	if(s[1]> r[1]){s[1]=r[1];sc=true;}
+	// if(s[0]< r[0]){ s[0]=r[0];sc=true;}
+	// if(s[1]> r[1]){s[1]=r[1];sc=true;}
 
-	vec.set_range(brush.extent());
+	//vec.set_range(brush.extent());
+	console.log("Set range to " + r[0] + ", " + r[1]);
 
+	xscale.domain(r);
+	vec.redraw();
+	if(è(brush))brush.extent(r);
 
-	if(sc){
-	    vec.trigger("selection_change", s);
-	}
+	//vec.set_range(r);
+	
+
+	// if(sc){
+	//     vec.trigger("selection_change", s);
+	// }
 
     });
 
@@ -2312,7 +2369,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	if(è(new_range))
 	    range.set_value(new_range);
 	
-	if(è(brush))brush.extent(range.value);
+	
 	//vec.trigger("range_change", range.value);
     };
 
@@ -2342,7 +2399,10 @@ template_ui_builders.vector=function(ui_opts, vec){
     });
 
 
-    vec.config_range=function(){
+    vec.config_range=function(xconf, yconf){
+	if(xconf===undefined) xconf=true;
+	if(yconf===undefined) yconf=true;
+	
 	var plots = vec.value;
 	
 	xr=vec.xr=[1e30,-1e30];
@@ -2383,21 +2443,26 @@ template_ui_builders.vector=function(ui_opts, vec){
 	if((xr[1]-xr[0]) == 0 || xr[0]==1e30 || xr[1]==-1e30){
 	    xr[0]=0;xr[1]=1.0;
 	}
-	vec.set_range(xr);
-	xscale.domain(xr);
-
-	if((yr[1]-yr[0])==0 || yr[0]==1e30 || yr[1]==-1e30){
-	    yr[0]=0;yr[1]=1.0;
+	
+	if(xconf){
+	    vec.set_range(xr);
+	    xscale.domain(xr);
+	    if(è(brush))brush.extent(range.value);
+	    if(è(select_brush))select_brush.extent(selection.value);
+	    
 	}
 
-	yscale.domain(yr);
-
+	if(yconf){
+	    if((yr[1]-yr[0])==0 || yr[0]==1e30 || yr[1]==-1e30){
+		yr[0]=0;yr[1]=1.0;
+	    }
+	    yscale.domain(yr);
+	}
+	
 	vec.redraw();
 
 	//console.log("Config ranges : ["+xr[0]+","+xr[1]+" ]Y ["+yr[0]+","+yr[1]+"]");
 	
-	if(è(brush))brush.extent(range.value);
-	if(è(select_brush))select_brush.extent(selection.value);
 	
 	return;
 	//x.domain([fv.viewer_cuts[0],fv.viewer_cuts[1]]);
@@ -2489,8 +2554,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	xsvg.call(xAxis);
 	ysvg.call(yAxis);
-
-	
 	
 	if(ui_opts.enable_range!==false){
 	    
@@ -2507,6 +2570,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    select_brg.selectAll(".resize").append("path").attr("d", resizePath);
 	    svg.select(".select_brush").call(select_brush);
 	}
+
 	for(var i=0;i<vec.value.length;i++) vec.value[i].redraw(context);
 
 	//console.log("redraw trigger  " + context);
@@ -2546,7 +2610,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    p.stroke=opts.stroke || "black";
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
-	    var defname="line"+ (plots.length+1);
+	    var defname="Line"+ (plots.length+1);
 	    p.label=opts.label || ("Line " + (plots.length+1));
 
 	    if(p.le===undefined){

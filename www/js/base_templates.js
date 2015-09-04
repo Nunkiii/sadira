@@ -81,6 +81,47 @@ var base_templates={
 	
     },
 
+    user_admin : {
+	name : "User administration",
+	ui_opts : {
+	    fa_icon : "user",
+	    root_classes : ["container-fluid"]
+
+	},
+	elements : {
+	    browse : {
+		name : "User list",
+		type : "db_browser",
+		ui_opts : {
+		    collection : 'Users',
+		    //fa_icon : "user"
+		}
+	    }
+	    
+	}
+    },
+
+    group_admin : {
+	name : "Group administration",
+	ui_opts : {
+	    fa_icon : "group",
+	    root_classes : ["container-fluid"]
+	},
+
+	elements : {
+	    browse : {
+		name : "Group list",
+		type : "db_browser",
+		ui_opts : {
+		    collection : 'Groups',
+		    
+		}
+		
+	    }
+	    
+	}
+    },
+    
     user_home : {
 
 	name : "User homepage",
@@ -95,16 +136,27 @@ var base_templates={
 	    ui_opts : {
 		toolbar_classes : [""]
 	    },
-	    activ : {
-		
+	    elements : {
+		admin : {
+		    name : "System admin",
+		    groups : ['Admin'],
+		    elements : {
+			user_adm : {
+			    type  : "user_admin",
+			},
+			group_adm : {
+			    type  : "group_admin",
+			}
+		    }
+		    
+		}
 	    }
 	},
 	
 	elements : {
 	    // user_activity : {
 	    // 	name : "Last activity"
-	    // },
-	    
+ 
 	    account_settings : {
 
 		name : "Account settings",
@@ -168,7 +220,7 @@ var base_templates={
 			elements : {
 			    list : {
 				ui_opts : {
-				    child_view_type : "table"
+				    root_classes : ["container_fluid"]
 				},
 				name : "Object list"
 			    }
@@ -188,12 +240,16 @@ var base_templates={
 
 	widget_builder : function(ui_opts, dbb){
 	    
-	    console.log("DBB start " + dbb.name);
+	    //console.log("DBB start " + dbb.name);
+
 	    var browser = dbb.get('browser');
 	    var list = dbb.get('list');
 	    var colsel=dbb.get("colsel");
 	    var object=dbb.get("object");
 	    
+	    var tb=cc('table',list.ui_root);
+	    
+	    tb.className='table table-hover';
 	    
 	    function get_collection_list(cb){
 		var r=new request({ cmd : '/api/dbcom/get'});
@@ -228,15 +284,14 @@ var base_templates={
 		    
 		    colsel.listen("change", function (value) {
 			console.log("changed to " + value);
-			get_collection_objects();
+			get_collection_objects(colsel.value);
 		    });
 		
 		});
 	    }
 
-	    function get_collection_objects(){
+	    function get_collection_objects(collection_name){
 
-		var collection_name = colsel.value;
 		console.log("Col name : " + collection_name);
 		var r=new request({ cmd : '/api/dbcom/get', args : { collection : collection_name} });
 		
@@ -256,16 +311,16 @@ var base_templates={
 
 			dbb.debug_clean();
 			
-			list=create_widget({ name : "Collection <i>" + collection_name + "</i>",
-					     ui_opts : {
-						 root_classes : ["col-sm-12"],
-						 child_classes : ["container-fluid"],
-						 //child_view_type : "table"
-					     }
-					   });
-	    
+			list=create_widget({
+			    //name : "Collection <i>" + collection_name + "</i>",
+			    ui_opts : {
+				root_classes : ["col-sm-12"],
+				child_classes : ["container-fluid"],
+				//child_view_type : "table"
+			    }
+			}, browser);
+			
 			browser.update_child(list,"list");
-
 			
 			result.forEach(function(d, i){
 			    
@@ -273,10 +328,21 @@ var base_templates={
 			    
 			//colsel.options.push({value : d._id, label : d.els.name.value});
 			    var w=tmaster.build_template(d.type);
-			    if(w.ui_opts === undefined) w.ui_opts={};
-			    w.ui_opts.name_node="h3";
+			    if(w.ui_opts === undefined) w.ui_opts={
+			    };
+			    //if(w.ui_opts.root_classes===undefined)
+				w.ui_opts.root_classes=[];
+			    //if(w.ui_opts.name_classes===undefined)
+			    w.ui_opts.name_classes=[];
+			    w.ui_opts.root_classes.push("panel panel-success");
+			    w.ui_opts.name_classes.push("panel-heading");
+			    w.ui_opts.child_classes=["panel-body"];
+			    w.ui_opts.name_node="div";
+			    //w.ui_opts.name_node="h3";
+			    w.parent=list;
+			    //list.debug("List depth = " + list.depth);
 			    
-			    create_ui({},w);
+			    create_ui({},w, list.depth+1);
 			    
 			    w.set_title(d.name + " : " + d._id);
 			    set_template_data(w,d);
@@ -288,7 +354,7 @@ var base_templates={
 			    //w.tr.addEventListener("click", function(){
 			    w.ui_name.addEventListener("click", function(){
 				
-				var ww=create_widget(d.type);
+				var ww=create_widget(d.type, object);
 
 				set_template_data(ww,d);
 				ww.rebuild_name();
@@ -306,17 +372,18 @@ var base_templates={
 		    }
 		});
 	    }
-	    
-	    get_collection_list(function(ok){
-		
-		if(ok === true){
 
-		    console.log("Got collections");
-		    
-		    get_collection_objects();
-		}
-		
-	    });
+	    if(ui_opts.collection===undefined){
+		get_collection_list(function(ok){
+		    if(ok === true){
+			console.log("Got collections");
+			get_collection_objects(colsel.value);
+		    }
+		});
+	    }else{
+		colsel.hide(true);
+		get_collection_objects(ui_opts.collection);
+	    }
 	    
 	}
     },
@@ -431,16 +498,17 @@ var base_templates={
 		subtitle : "String identifier for the group",
 		type : "string",
 		ui_opts : {
-		    label : true
+		    //label : true
 		}
 	    },
 	    description : {
 		type : "html",
-		name : "Description", subtitle : "",
+		name : "Description",
+		subtitle : "",
 		ui_opts : {
-		    label : true
+		    //label : true
 		}
-	    }
+	    },
 	},
     },
     local_access : {
@@ -618,7 +686,8 @@ var base_templates={
 	    fa_icon : "sign-in",
 	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
-	    child_classes : ["form form-inline text-center input-lg"],
+	    //child_classes : ["form form-inline text-center input-lg"],
+	    child_classes : ["col-md-4 col-md-offset-4 col-sm-8 col-sm-offset-2 form-horizontal"],
 	    intro_stick : true,
 	    //name_classes : ["col-sm-6"],
 	    //item_classes : ["col-sm-6"]
@@ -628,33 +697,41 @@ var base_templates={
 
 	    user: {
 		type: "string",
-		name : "User",
-		holder_value : "e-mail or username",
+		name : "",
+		holder_value : "username or e-mail",
 		ui_opts : {
-		    type : "edit", label : true,
-		    root_classes : ["input-group"],
-		    //wrap : true,
-		    //wrap_classes : ["col-sm-4 nopadding"],
+		    type : "edit",
+		    root_classes : ["input-group vertical_margin"],
+		    label : true,
+		    fa_icon : "user",
+		    //name_classes : ["control-label col-sm-offset-1 col-sm-3"],
+		    label_node : 'span',
 		    name_classes : ["input-group-addon"],
-		    name_node : "div"
+		    //wrap : true,
+		    //wrap_classes : ["col-sm-3 nopadding"]
 		}
+		
 	    },
-
+	    
 	    password :{
-		type: "password",
-		name : "Password",
-		holder_value : "your password",
+		name : "",
+		type : "password",
 		ui_opts : {
-		    type : "edit", label: true,
-		    root_element : "user",
-		    //root_classes : ["input-group"],
-		    wrap : false,
-		    //root_classes : ["col-sm-4 nopadding"],
-		    //wrap_classes : ["input-group"],
-		    name_classes : ["input-group-addon"]
-		}
+		    type : "edit",
+		    root_classes : ["input-group vertical_margin"],
+		    label : true ,
+		    fa_icon : "key",
+		    //wrap : true,
+		    label_node : 'span',
+		    name_classes : ["input-group-addon"],
+		    //name_classes : ["control-label col-sm-offset-1 col-sm-3"],
+		    //item_classes : ["col-sm-3"]
+		},
+		
+		holder_value : 'password'
+		
 	    },
-/*
+	    /*
 	    status :{
 		type  : "string",
 		value : "Logging in ...",
@@ -670,13 +747,14 @@ var base_templates={
 		type : "action",
 		ui_opts : {
 		    //item_root : true,
-		    root_element : "user",
+		    //root_element : "user",
 		    //button_node : "span",
 		    //name_node : "span",
 		    //fa_icon : "link",
+		    root_classes : ["vertical_margin"],
 		    wrap : true,
-		    wrap_classes : ["input-group-btn"],
-		    item_classes : ["btn btn-info"]
+		    wrap_classes : ["input-group-btn text-right"],
+		    item_classes : ["btn btn-success"]
 		}
 	    },
 
@@ -956,7 +1034,7 @@ var base_templates={
 	    },
 
 	    ctls: {
-		ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] },
+		ui_opts: { root_classes : ["inline"], child_classes : ["container-fluid"] },
 		elements : {
 	    	    range : {
 			type : "labelled_vector",
@@ -964,7 +1042,8 @@ var base_templates={
 			value_labels : ["start","end"],
 			value : [0, 0],
 			ui_opts: {
-			    root_classes : ["inline"], label : true, fa_icon : "arrows-h", sliding : true, slided: false
+			    root_classes : ["inline"], label : true, fa_icon : "arrows-h",//, sliding : true, slided: false
+			    child_classes : ["inline"]
 			},
 		    },
 		    selection : {
