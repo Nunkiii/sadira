@@ -634,6 +634,9 @@ ul.toolbar {
   background: rgba(80,80,80,.6);
 }
 
+.horizontal_margin {
+    margin-right : .5em;
+}
 .vertical_margin {
   margin-top : .5em;
     margin-bottom : .5em;
@@ -685,6 +688,10 @@ label:hover{
   margin-left: 4em;
   font-size: 1.5em;
   white-space: wrap;
+}
+
+.float_right{
+  float: right;
 }
 
 .close_button{
@@ -1648,7 +1655,12 @@ d3 vector shape
   stroke: black;
 }
 
-
+rect.pane {
+  cursor: move;
+    fill: none;
+      pointer-events: all;
+ }
+      
 .vscroll {
   overflow-y:scroll;
 }

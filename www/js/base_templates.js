@@ -1023,13 +1023,16 @@ var base_templates={
 	ui_opts : {
 	    // root_classes : ["container-fluid"],
 	    //child_classes : ["container-fluid"]
+
+	    enable_range : false,
+	    enable_selection : false
 	},
 	elements :{
 	    btns : {
 		ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] },
 		elements : {
-		    zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
-		    unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
+		    // zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
+		    // unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
 		}
 	    },
 
@@ -1055,7 +1058,7 @@ var base_templates={
 		    },
 		    lines : {
 			ui_opts : {
-			    root_classes : ["inline"]
+			    child_classes : [""]
 			}
 		    }
 		}

@@ -4,6 +4,7 @@
   <meta charset="utf-8"/> 
   <script src="js/community/bson.js"></script>
   <script src="js/community/d3.v3.min.js"></script>
+  <script src="js/community/d3-zoom-pan-extent.js"></script>
   
   <script src="js/utils.js"></script>
   <script src="js/datagram.js"></script> 
@@ -166,7 +167,7 @@ var test_tpl={
 	    name : "Right Panel",
 	    subtitle : "Main right divided panel",
 	    //name : "Right pane",
-	    ui_opts : { name_node : "h2", child_view_type : "divider", divdir : true, root_classes : ["container-fluid"] },
+	    ui_opts : { name_node : "h2", child_view_type : "pills", divdir : true, root_classes : ["container-fluid"] },
 	    elements : {
 		test1 : {
 		    name: "First Sub Panel", subtitle : "Another divided child element...",

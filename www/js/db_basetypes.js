@@ -2145,24 +2145,21 @@ template_ui_builders.action=function(ui_opts, action){
 
 template_ui_builders.vector=function(ui_opts, vec){
 
-    //console.log("Building vec : " + vec.name + " parent " + vec.parent.name);
+//    console.log("Building vec : " + vec.name + " parent " + vec.parent.name + " value length =  " + vec.value.length);
     
     
     var lines=vec.get("lines");
-    
-
-
     var ui=vec.ui=ce("div");
     
 
     var brush, select_brush;
 
-    vec.value=[];    
+//    vec.value=[];    
     vec.plots=[];
 
     
     var bn=d3.select(ui);//vec.ui_childs.div);
-    var vw=vec.vw=400, vh=vec.vh=200;
+    var vw=vec.vw=400, vh=vec.vh=180;
     var pr;
     
     var svg = vec.svg=bn.append('svg')
@@ -2184,8 +2181,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     //console.log("Drawing vector w,h=" + width + ", " + height );
     
-    var xscale = d3.scale.linear().range([0, width]);
-    var yscale = d3.scale.linear().range([height, 0]);
+    var xscale = vec.xscale=d3.scale.linear().range([0, width]);
+    var yscale = vec.yscale=d3.scale.linear().range([height, 0]);
     
     var xAxis = d3.svg.axis().scale(xscale).orient("bottom").ticks(5);    
     var yAxis = d3.svg.axis().scale(yscale).orient("left").ticks(5);
@@ -2209,9 +2206,29 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 
     var d3zoom = d3.behavior.zoom()
-        .on("zoom", vec.redraw);
+	.scaleExtent([1, 10])
+        .on("zoom", vec.redraw)
+	// .on("zoom", function(){
+	//     console.log("ZOOOOOOM !!!");
+	// })
+    ;
 
-    d3zoom.x(xscale);
+    	var zoom_rect=vec.svg.append("rect")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")	
+	//.attr("transform", "translate(0," + height + ")")
+	    .attr("class", "pane")
+	    .attr("width", width)
+	    .attr("height", height)
+	    .call(d3zoom);
+
+
+    // var zzoom = d3.behavior.zoom()
+    //     //.x(x)
+    //     .xExtent([-2000,2000])
+    //     //.y(y)
+    //     .yExtent([-1500,1500])
+    //     .scaleExtent([0.1, 10]);
+    
     
     new_event(vec,'redraw');
 
@@ -2229,7 +2246,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.deserialize=function(v){
 	vec.value=vec.plots=[];
 	lines.elements={};
-	if(lines.ui_childs!==undefined)
+	if(lines.ui_childs!==undefined && lines.ui_childs.div!==undefined)
 	    lines.ui_childs.div.innerHTML="";
 	
 	v.forEach(function(p){
@@ -2249,6 +2266,8 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     vec.set_value=function(v){
 	if(v!==undefined){
+
+	    console.log("Vector set val " + v.length + " ==? " + ( v===vec.value) + " TYPE  " + typeof(v[0]) + " cons  ");
 	    //vec.value=v;
 	    var plots = vec.value;
 	    //console.log("Vector set value to " + JSON.stringify(value));
@@ -2261,16 +2280,26 @@ template_ui_builders.vector=function(ui_opts, vec){
 		console.log("Data is null size vector!");
 		return;
 	    }
+
+	    if(typeof v[0] =='number'){
+		console.log("Setting raw data points from value..." + v.length);
+		var dta=v.slice();
+		console.log("Setting raw data points from value..." + v.length + " dta " + dta.length);
+		vec.value=[];
+		console.log("Setting raw data points from value..." + v.length + " dta " + dta.length);
+		v=dta;
+		console.log("Setting raw data points from value..." + v.length);
+		
+	    }
 	    
-	    if(plots.length==0){
+	    if(vec.value.length==0){
 		var start =vec.start || 0;
 		var step=vec.step || 1;
 		vec.add_plot_linear(v, start, step);
-		return;
+		//return;
 	    }
-	    
-	    plots[0].data=v.splice();
-	    this.redraw();
+
+	    this.config_range();
 	    // if(ù(pr))
 	    // 	pr=context.append("path");
 	    
@@ -2289,56 +2318,56 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
     }
     
-    var zoom=vec.get('zoom');
-    var unzoom=vec.get('unzoom');
+    // var zoom=vec.get('zoom');
+    // var unzoom=vec.get('unzoom');
     
     
-    zoom.listen("click",function(){
-	//return;
-	var s=selection.value, r=range.value; 
+    // zoom.listen("click",function(){
+    // 	//return;
+    // 	var s=selection.value, r=range.value; 
 
-	// var sc=false;
+    // 	// var sc=false;
 
-	// if(s[0]< r[0]){ s[0]=r[0];sc=true;}
-	// if(s[1]> r[1]){s[1]=r[1];sc=true;}
+    // 	// if(s[0]< r[0]){ s[0]=r[0];sc=true;}
+    // 	// if(s[1]> r[1]){s[1]=r[1];sc=true;}
 
-	//vec.set_range(brush.extent());
-	console.log("Set range to " + r[0] + ", " + r[1]);
+    // 	//vec.set_range(brush.extent());
+    // 	console.log("Set range to " + r[0] + ", " + r[1]);
 
-	xscale.domain(r);
-	vec.redraw();
-	if(è(brush))brush.extent(r);
+    // 	xscale.domain(r);
+    // 	vec.redraw();
+    // 	if(è(brush))brush.extent(r);
 
-	//vec.set_range(r);
+    // 	//vec.set_range(r);
 	
 
-	// if(sc){
-	//     vec.trigger("selection_change", s);
-	// }
+    // 	// if(sc){
+    // 	//     vec.trigger("selection_change", s);
+    // 	// }
 
-    });
+    // });
 
 
-    unzoom.listen("click",function(){
-	//brush.extent(range.value);
-	//select_brush.extent(selection.value);
+    // unzoom.listen("click",function(){
+    // 	//brush.extent(range.value);
+    // 	//select_brush.extent(selection.value);
 	
 
-	//vec.set_range(xr);
+    // 	//vec.set_range(xr);
 
-	// if(è(vec.min))
-	//     range.set_value([vec.min, vec.max]);
-	// else
-	//     range.set_value([vec.start, 
-	// 		     vec.start + vec.value.length*vec.step ]);
+    // 	// if(è(vec.min))
+    // 	//     range.set_value([vec.min, vec.max]);
+    // 	// else
+    // 	//     range.set_value([vec.start, 
+    // 	// 		     vec.start + vec.value.length*vec.step ]);
 	
-	// console.log("unzoom to " + JSON.stringify(range.value) + " start = " + vec.start);
-	//vec.trigger("range_change", range.value);
-    });
+    // 	// console.log("unzoom to " + JSON.stringify(range.value) + " start = " + vec.start);
+    // 	//vec.trigger("range_change", range.value);
+    // });
     
-    //vec.listen("slided", function(){
-	//vec.elements.unzoom.trigger("click");
-    //});
+    // //vec.listen("slided", function(){
+    // 	//vec.elements.unzoom.trigger("click");
+    // //});
     
     
     vec.set_selection=function(new_sel){
@@ -2352,7 +2381,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	var r=[sv[0]-selw, sv[1]+selw];	
 	var plots=vec.value;
 	
-	if(plots.length>0){
+	if(plots!==undefined && plots.length>0){
 	    function get_x(x){return plots[0].x(x);};
 	    var d=plots[0].data.length;
 	    if(r[0]< get_x(0))
@@ -2404,16 +2433,20 @@ template_ui_builders.vector=function(ui_opts, vec){
 	if(yconf===undefined) yconf=true;
 	
 	var plots = vec.value;
+
+	if(plots===undefined) return;
 	
 	xr=vec.xr=[1e30,-1e30];
 	yr=vec.yr=[1e30,-1e30];
+
+	
 	
 	for (var p=0;p<plots.length;p++){
 	    var pl=plots[p];
 	    
 	    //console.log("Config Range : plot "+p+" ND " +plots[p].data.length);
 	    
-	    if(pl.le.value){
+	    if(pl.le.val('enable')){
 		//for(var x in pl) console.log("PL " + x);
 		var pll= pl.data.length;
 		//console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
@@ -2440,13 +2473,22 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 
 	//xr=[0,24];
-	if((xr[1]-xr[0]) == 0 || xr[0]==1e30 || xr[1]==-1e30){
-	    xr[0]=0;xr[1]=1.0;
-	}
 	
 	if(xconf){
+
+	    if((xr[1]-xr[0]) == 0 || xr[0]==1e30 || xr[1]==-1e30){
+		xr[0]=0;xr[1]=1.0;
+	    }
+	    
 	    vec.set_range(xr);
 	    xscale.domain(xr);
+
+	    //console.log("Config zoom " + JSON.stringify(xscale.domain()));
+	    d3zoom.x(xscale);
+	    //for(var p in d3zoom) console.log(" P = " + p + " type " + typeof d3zoom[p]);
+	    d3zoom.xExtent(xr);
+
+	    
 	    if(è(brush))brush.extent(range.value);
 	    if(è(select_brush))select_brush.extent(selection.value);
 	    
@@ -2516,16 +2558,28 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    return;
 	}
 
+	// if(d3.event!==null){
+	//     var t = d3.event.translate,
+	// 	s = d3.event.scale;
 
+	//     console.log("Checking zoom ! " + t[0] + ", " + t[1] + " scale " + s);
+
+	//     t[0] = Math.min(width / 2 * (s - 1), Math.max(width / 2 * (1 - s), t[0]));
+	//     t[1] = Math.min(height / 2 * (s - 1) + 230 * s, Math.max(height / 2 * (1 - s) - 230 * s, t[1]));
+
+	//     console.log("Set T : " + t[0] + ", " + t[1] + " scale " + s);
+	//     d3zoom.translate(t);
+	// }
+	
 	var brg=vec.brg=null,select_brg=vec.select_brg=null;
 
 	vec.svg.select("g").remove();
 	
-	
 	var context= vec.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
 	
-	//console.log("VECTOR REDRAW ! Nplots=" + plots.length);
-		
+	//console.log("VECTOR REDRAW ! Nplots=" + vec.value.length + " zoom " + xscale.domain());
+	vec.xr= xscale.domain();
+	
 	var xsvg = context.append("g")
 	    .attr("class", "axis")
 	    .attr("transform", "translate(0," + height + ")")
@@ -2554,6 +2608,10 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	xsvg.call(xAxis);
 	ysvg.call(yAxis);
+
+	
+
+	d3zoom.on("zoom", vec.redraw);
 	
 	if(ui_opts.enable_range!==false){
 	    
@@ -2580,6 +2638,48 @@ template_ui_builders.vector=function(ui_opts, vec){
     function xfunc_linear(id, start, step){
 	return start + id*step;
     }
+
+    //var plot_tpl = ;
+    
+    function create_line_label(p, label, color){
+	var le={
+	    
+	    ui_opts : {
+		    //render_name : false,
+		label : true,
+		root_classes : ["inline"],
+		child_classes : ["btn btn-default horizontal_margin inline"]
+	    },
+	    elements : {
+		enable : {
+		    name :  label,
+		    type : "bool", value : true,
+		    ui_opts : {
+			type: "edit", label : true, root_classes : ["inline"],
+		    }
+		    
+		},
+		line_color : {
+		    type : "color",
+		    ui_opts : {
+			root_classes : ["inline"],
+			type : 'edit',
+			value : color
+		    }
+		},
+	    }
+	};
+	create_ui({},le);
+	
+	lines.add_child(le,label);
+	le.elements.enable.listen("change", function () { vec.config_range();} );
+	le.elements.line_color.listen("change", function (c) { p.stroke=this.value; vec.config_range(false,false);} );
+	
+	le.elements.enable.trigger("change");
+	p.le=le;
+	return le;
+    }
+    
     
     var plot=function(data, xfunc, args){
 
@@ -2601,44 +2701,94 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 	p.line=vec.line=d3.svg.line()
 	    .x(function(d,i) { return xscale(p.x(i)); })
-	    .y(function(d) { return yscale(d); });
+	    .y(function(d,i) {
+		var s=p.x(i);
+		// if(s<xscale.domain()[0])
+		//     return 10000.0;
+		//else
+		    return yscale(d);
+	    })
+	;
 	//.interpolate("linear");
 	var plots = vec.value;
-
 	p.set_opts=function(opts){
+	    
 	    p.opts=opts;
 	    p.stroke=opts.stroke || "black";
+	    
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
-	    var defname="Line"+ (plots.length+1);
-	    p.label=opts.label || ("Line " + (plots.length+1));
+	    
+	    var pl = plots===undefined ? 0 : plots.length;
+	    var defname="Line"+ (pl+1);
+
+	    p.label=opts.label || defname;
 
 	    if(p.le===undefined){
-		p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
-		create_ui({},p.le);
-		lines.add_child(p.le,defname);
-		p.le.listen("change", function () { vec.config_range();} );
+		p.le=create_line_label(p, p.label, p.stroke)
+	    }else{
+		//p.le.set('line_color',p.stroke);
+		//p.le.set_name(p.label);
 	    }
 	}
 	
 	p.set_opts({});
 	
 	p.redraw=function(context){
+
+	    var buf=[];
+	    p.le.elements.enable.set_title(p.label);
+	    p.le.elements.line_color.set_value(p.stroke);
 	    
-	    p.le.set_title(p.label);
-	    
-	    if(p.le.value && p.data.length!==0){
+	    if(p.le.elements.enable.value && p.data.length!==0){
 		p.path=context.append("path");
 		p.path.attr("stroke", p.stroke);
 		p.path.attr("stroke-width", p.stroke_width);
 		p.path.attr("fill", p.fill);
-		
-		p.path.datum(p.data)
-		//.attr("class", "line_black")
-		    .attr("d", p.line);
 
-		//console.log("plot redraw..." + p.label + "DL = " +p.data.length  + " D0 = " + p.data[0]);
+		//p//.attr("d", lineFunction(lineData))
+		//p.path
+		//.attr("class", "line_black")
+		p.path.attr("d",
+		       p.line(p.data)
+		      );
 		
+		// p.path.filter( function (x) {
+		    
+		    
+		//     buf=[];
+		//     p.data.forEach(function(d,i){
+		// 	//var s=vec.xscale(d);
+		// 	var s=i*1.0;//vec.xscale(i);
+			
+		// 	if(s>=xscale.domain()[0] && s<=xscale.domain()[1]){
+			    
+		// 	    buf.push(d);
+		// 	}else
+		// 	    console.log("Filter point " + i + " x="+ s+ " dom : " + JSON.stringify(xscale.domain()));
+			
+		//     });
+
+		//     p.path.attr("d",
+		// 		p.line(buf)
+		// 	       );
+		    
+		    
+		// });
+
+		
+
+
+
+		// vec.svg.selectAll("path").filter(function(d, i) {
+		//     console.log("path filter " + d);
+		//     return false;
+		// })
+		//     .remove(); 
+		
+		//console.log("plot redraw..." + p.label + "DL = " +p.data.length  + " D0 = " + p.data[0]);
+
+		/*
 		context.append("text")
 		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0])-10) + ")")
 		    .attr("dy", ".35em")
@@ -2646,11 +2796,13 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    .attr("font-size", "10px")
 		    .style("fill", p.stroke)
 		    .text(p.label);
+		*/
+		
 	    }
 	}
     };
-
-
+    
+    
     var points_plot=function(data, label, opts){
 
 	var p=this;
@@ -2663,31 +2815,34 @@ template_ui_builders.vector=function(ui_opts, vec){
 	//.interpolate("linear");
 	var plots = vec.value;
 
-	var defname="line"+ (plots.length+1);
+	//var defname="line"+ (plots.length+1);
 	
-	
-	p.stroke=opts.stroke || "black";
 	p.stroke_width=opts.stroke_width || "1px";
 	p.fill=opts.fill || "none";
 	
 	p.label=opts.label || ("Line " + (plots.length+1));
-	
 
-	p.le={ type : "bool", value : true, name : label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
-	create_ui({},p.le);
-	lines.add_child(p.le,defname);
-	p.le.listen("change", function () { vec.config_range();} );
+
+	var ple=create_line_label(p,p.label, '#000');
+	console.log("P.le="+ple.elements.enable.value);
+	p.stroke=p.le.elements.line_color.value; //opts.stroke || "black";
+
+
+
+	// create_ui({},p.le);
+	// lines.add_child(p.le,defname);
+	// p.le.listen("change", function () { vec.config_range();} );
 	
 	
 	//p.set_opts({});
 	p.redraw=function(context){
 	    
-	    p.le.set_title(p.label);
+	    ple.elements.enable.set_title(p.label);
 	    
-	    if(p.le.value && p.data.length!==0){
-
+	    if(ple.elements.enable.value && p.data.length!==0){
+		
 		//var g=context.append('g');
-
+		
 		// draw dots
 		context.selectAll(".dot")
 		    .data(data)
@@ -2696,8 +2851,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    .attr("r", 2)
 		    .attr("cx", function(d){return xscale(d[0])})
 		    .attr("cy", function(d){return yscale(d[1])})
-		    .style("fill", function(d) { return 'purple';});
-		    // .on("mouseover", function(d) {
+		    .style("fill", function(d) { return p.stroke;});
+		// .on("mouseover", function(d) {
 		    // 	tooltip.transition()
 		    // 	    .duration(200)
 		    // 	    .style("opacity", .9);
@@ -2744,7 +2899,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 		// p.path.datum(p.data)
 		// //.attr("class", "line_black")
 		//     .attr("d", p.line);
-
+		
 		console.log("plot redraw..." + label + "DL = " +p.data.length  + " D0 = " + p.data[0][0]);
 		
 		context.append("text")
@@ -2775,11 +2930,13 @@ template_ui_builders.vector=function(ui_opts, vec){
 	p.stroke=opts.stroke || "black";
 	p.stroke_width=opts.stroke_width || "1px";
 	p.fill=opts.fill || "none";
+
+	p.le=create_line_label(p,p.label, p.stroke);
 	
-	p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
-	create_ui({},p.le);
-	lines.add_child(p.le,p.label);
-	p.le.listen("change", function () { vec.config_range();} );
+	// p.le={ type : "bool", value : true, name : p.label, ui_opts : {type: "edit", label : true, root_classes : ["inline"]} };
+	// create_ui({},p.le);
+	// lines.add_child(p.le,p.label);
+	// p.le.listen("change", function () { vec.config_range();} );
 
 	function sample_data(){
 	    p.data=[];
@@ -2791,6 +2948,9 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 	//p.set_opts({});
 	p.redraw=function(context_in){
+
+	    if(!p.le.elements.enable.value) return;
+
 	    if(context_in!==undefined){
 		p.context=context_in.append("g");
 	    }
@@ -2843,6 +3003,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	
 	var p=new plot(data, xfunc, args);
+	if(this.value===undefined) this.value=[];
+	    
 	this.value.push(p);
 	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
 	this.config_range();
@@ -2852,6 +3014,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.add_plot_points=function(data, label, opts){
 
 	var p=new points_plot(data, label, opts);
+	if(this.value===undefined) this.value=[];
 	this.value.push(p);
 	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
 	this.config_range();
@@ -2912,7 +3075,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     // 	vec.set_range([vec.value[0],vec.value[vec.value.length-1]]);
     
 
-    // if(è(vec.value)){
+    vec.set_value(vec.value);
 
     // 	var start =vec.start || 0;
     // 	var step=vec.step || 1;
@@ -2982,7 +3145,8 @@ template_ui_builders.color=function(ui_opts, tpl_item){
     default: 
 	throw "Unknown UI type ";
     }
-    
+
+    tpl_item.set_value();
     return tpl_item.ui;
 }
 

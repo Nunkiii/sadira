@@ -115,7 +115,7 @@ function divider(cnt, frac, or, heightf){
 	//if(ù(ho)) throw("No direction !") ; //ho=false;
 	var htop=heightf();
 
-	console.log("HH is " + HH);
+	//console.log("HH is " + HH);
 	
 	if(isNaN(htop) ){
 	    console.log("Nan value for htop !");
@@ -216,7 +216,7 @@ function divider(cnt, frac, or, heightf){
 	    var wr=((1.0-frac/100.0)*wp);//-rightd.w; //-cntd.w;
 	}
 
-	console.log("Wcont = " + wreal + " padd " + cntpad + " divw " + divw + " -> " + wp + " WL=" + wl + " WR="+wr + " WSUM=" + (wl+wr) );
+	//console.log("Wcont = " + wreal + " padd " + cntpad + " divw " + divw + " -> " + wp + " WL=" + wl + " WR="+wr + " WSUM=" + (wl+wr) );
 	//console.log("HO [[" + ho +"]] wl=" + wl + " wr=" + wr + " wt=" + (wl+wr) + " wl+wr+marg="+ (wl+wr+mr+ml)+" wcnt= " + w);
 	l.style.flex = "0 1 "+wl + 'px';
 	r.style.flex = "0 1 "+wr + 'px';
@@ -532,7 +532,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	return;
     }
 
-    console.log("Input depth = " + depth);
+    //console.log("Input depth = " + depth);
     if(depth!==undefined)
 	tpl_root.depth=depth;
     else
@@ -1149,7 +1149,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	}
 	catch (e){
-	    this.debug('While loading browser data : ' + dump_error(e));
+	    this.debug("While loading browser data @ " + save_location + ": " + dump_error(e));
 	}
 	
 
@@ -1255,7 +1255,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    
 		}
 		else{
-		    console.log("Depth= " + depth);
+		    //console.log("Depth= " + depth);
 		    var hnode=  depth===0 ? "h1" : (((depth<4)?("h"+(depth+1)):"h4"));
 		    //var name_node=è(ui_opts.name_node) ? ui_opts.name_node : ((depth>0)?"h4":"h1");
 		    name_node=è(ui_opts.name_node) ? ui_opts.name_node : hnode;
@@ -1431,7 +1431,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 				e.preventDefault();
 			    
 				//alert(ui.value);
-				ui_root.replaceChild(ui_name, uicont);
+				uicont.parentNode.replaceChild(ui_name, uicont);
+				//ui_root.replaceChild(ui_name, uicont);
 				//ui_name.replaceChild(un, uicont);
 				ui_name_text.onedit=false;
 				tpl_root.set_title(ui.value);
@@ -1926,7 +1927,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    
 		    //ui_childs.divider=new divider(ui_childs.div, 50,ho );
 		    var split_frac=è(ui_opts.split_frac) ? ui_opts.split_frac : 50;
-		    console.log("split at " + split_frac);
+		    //console.log("split at " + split_frac);
 
 		    this.divider=new divider(d, split_frac,ho, function(){
 			var h=0;
