@@ -1029,7 +1029,7 @@ var base_templates={
 	},
 	elements :{
 	    btns : {
-		ui_opts: { root_classes : ["inline"], child_classes : ["btn-group"] },
+		ui_opts: { root_classes : ["col-sm-4"], child_classes : [] },
 		elements : {
 		    // zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
 		    // unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
@@ -1037,7 +1037,7 @@ var base_templates={
 	    },
 
 	    ctls: {
-		ui_opts: { root_classes : ["inline"], child_classes : ["container-fluid"] },
+		ui_opts: { root_classes : ["col-sm-8"], child_classes : ["container-fluid"] },
 		elements : {
 	    	    range : {
 			type : "labelled_vector",

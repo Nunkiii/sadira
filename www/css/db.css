@@ -89,11 +89,13 @@ background: black;
     */
 }
 
-
-.db[data-type="double"]  .form-control,.db[data-type="angle"]  .form-control{
+/*
+.db[data-type="double"]{
   display: inline-block;
+  width: 7em;
 }
 
+*/
 
 .full_height_scroll{
  max-height: 100vh;

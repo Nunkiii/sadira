@@ -2527,8 +2527,15 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     if(ui_opts.show_cursor){
 	
-	var cursor=create_widget({ name : "Cursor ", type : "string", value : "none", ui_opts : {label : true}});
-	vec.add_child(cursor);
+	var cursor=create_widget({ name : "Cursor ",
+				   type : "labelled_vector", value : [0,0],
+				   value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
+				   ui_opts : {
+				       label : true, root_classes : ["container-fluid"],
+				       child_classes : ["inline"]
+				   }
+				 });
+	vec.get('btns').add_child(cursor);
 	
 	new_event(vec, 'mousemove');
 	vec.svg.on('mousemove', function () {
@@ -2544,7 +2551,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    mp[0]=vec.xr[0]+mp[0]*(vec.xr[1]-vec.xr[0]);
 	    //mp[1]=yscale(mp[1]);
 	    vec.trigger('mousemove', mp);
-	    cursor.set_value(mp[0]+","+mp[1]);
+	    cursor.set_value(mp);
 	    //console.log("MouseMove " + JSON.stringify(mp));
 	});
     }
