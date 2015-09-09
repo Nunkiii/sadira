@@ -307,7 +307,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	
 	templ.subtitle = ntpl + " templates in use : "
 
-	create_ui({},templ);
+	create_widget(templ, dbt);
 	for(var t in templ.elements) {
 	    var tryi=templ.elements[t].elements.tryi;
 	    tryi.listen("click", function(){
@@ -592,21 +592,21 @@ template_ui_builders.status=function(ui_opts, tpl_item){
 }
 
 template_ui_builders.double=function(ui_opts, tpl_item){
-    //console.log("double builder :  " + JSON.stringify(ui_opts));
+    //console.log(tpl_item.name + " : double builder :  " + JSON.stringify(ui_opts));
 
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
-
-
-
+    var ui;
+    
     switch (ui_opts.type){
     case "short":
-	var ui=tpl_item.ui=ce("span");
+	ui=tpl_item.ui=ce("span");
         ui.className="text-muted";
 	tpl_item.set_value=function(nv){
+	    //console.log(tpl_item.name + " DOUBLE SHORT set value " + nv);
 	    if(è(nv))
 		tpl_item.value=nv; 
 	    if(è(tpl_item.value))
-		ui.innerHTML=Math.floor(tpl_item.value*1000)/1000;
+		tpl_item.ui.innerHTML=Math.floor(tpl_item.value*1000)/1000;
 	}
 	ui.addEventListener("change",function(){
 	    tpl_item.trigger("change", tpl_item.value);
@@ -616,7 +616,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
     case "edit": 
 
-	var ui=tpl_item.ui=ce("input");
+	ui=tpl_item.ui=ce("input");
 
 	if(ui_opts.input_type)
 	    ui.type=ui_opts.input_type;
@@ -625,24 +625,31 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 	ui.add_class("form-control");
 	
-	
-	if(tpl_item.min) ui.min=tpl_item.min;
-	if(tpl_item.max) ui.max=tpl_item.max;
-	if(tpl_item.step) ui.step=tpl_item.step;
+	if(tpl_item.min!==undefined) ui.min=tpl_item.min;
+	if(tpl_item.max!==undefined) ui.max=tpl_item.max;
+	if(tpl_item.step!==undefined) ui.step=tpl_item.step;
 
+	tpl_item.set_value=function(nv){
+
+	    if(è(nv))
+		tpl_item.value=nv; 
+	    if(è(tpl_item.value))
+		tpl_item.ui.value=tpl_item.value; //Math.floor(tpl_item.value*1000)/1000;
+	}
+
+	
 	break;
     default: 
 	throw "Unknown UI type " + ui_opts.type + " for " + tpl_item.name;
     }
 
     config_common_input(tpl_item);
-    
-    
-    return tpl_item.ui;
+    return ui;
 }
 
 template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
+    console.log(lvec.name + ' lvec builder ! val = ' + JSON.stringify(this.value));
     new_event(lvec,"change");
     
     //ui.className="labelled_vector";
@@ -651,24 +658,32 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
     //lvec.inputs[v].ui_root.remove_class("container-fluid");
     
     var cdepth=lvec.depth? lvec.depth+1:1;
-    if(typeof lvec.value==='undefined') lvec.value=[];
-    if(typeof lvec.value_labels==='undefined') lvec.value_labels=[];
+    if(lvec.value===undefined) lvec.value=[];
+    if(lvec.value_labels===undefined) lvec.value_labels=[];
 
     lvec.clear_childs();
-    
+    var sub_type=lvec.vector_type ===undefined ? "double" : lvec.vector_type;
+
     for(var v=0;v<lvec.value_labels.length;v++){
-	if(typeof lvec.value[v] === 'undefined') lvec.value[v]=0;
+	if(lvec.value[v] === undefined) lvec.value[v]=0;
 	//var li=ce("li");
-	var label=ce("label"); 
-	lvec.inputs[v]={ 
+	var label=ce("label");
+	//console.log("LV set " + v + " : "+ lvec.value[v] );
+
+	var item_tpl={ 
 	    id : v,
-	    type : typeof lvec.vector_type == 'undefined' ? "double" : lvec.vector_type,
+	    type : sub_type,
 	    name : lvec.value_labels[v],
 	    min : lvec.min, 
 	    max : lvec.max, 
 	    step : lvec.step, 
 	    value : lvec.value[v],
-	    ui_opts : { label : true, root_classes : ["inline"] }
+	    ui_opts : {
+		label : true,
+		root_classes : ["inline btn btn-xs btn-default vertical_margin horizontal_margin"],
+		editable : ui_opts.editable,
+		type: ui_opts.type
+	    }
 	    /*
 	    parent : { 
 		ui_childs : { 
@@ -677,14 +692,15 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 			ui.replaceChild(nui, oui);
 			console.log("LAB VECTOR container Replaced UI!");
 		    }
-		}
+		    }
 	    }
 */
 	}; 
 	//var vui=create_ui(ui_opts, lvec.inputs[v]);
-	var vui=create_ui({ editable : ui_opts.editable, type: ui_opts.type}, lvec.inputs[v], cdepth);
+	
+	lvec.inputs[v]=create_widget(item_tpl, lvec);
 	//lvec.ui.appendChild(vui);
-
+	//console.log("Adding input " + v + " : v="+lvec.inputs[v].value );
 	lvec.add_child(lvec.inputs[v], lvec.value_labels[v]);
 
 	
@@ -702,24 +718,37 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 	    //console.log("change triggered!");
 	    lvec.trigger("change",this.id);
 	});
-
-	
-	
     }
 
     //lvec.ui_childs.div.add_class("inline");
 
     lvec.set_value=function(nv){
-	//console.log("TPLI set value " + JSON.stringify(nv));
-	if(typeof nv !='undefined'){
-	    this.value=nv;
-	    lvec.trigger("change");
-	}
-	for(var v=0;v<this.inputs.length;v++){
-	    //console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + lvec.inputs[v].name );
-	    lvec.inputs[v].set_value(this.value[v]);
-	}
 	
+
+	if(typeof nv !='undefined'){
+
+	    //console.log(lvec.name + " : TPLI set value " + JSON.stringify(nv));
+	    this.value=nv;
+	    var l=this.value.length;
+	    var ll=this.value_labels.length;
+	    
+	    if(nv.length>ll){
+		var lprefix=lvec.label_prefix!==undefined ? lvec.label_prefix : lvec.name; 
+		for(var i=ll; i<nv.length;i++)
+		    this.value_labels[i]=lprefix+'<sub>'+i+'</sub>';
+		this.rebuild(); //lvec.trigger("change");
+	    }else if(nv.length<ll){
+		this.value_labels=this.value_labels.slice(0,nv.length);
+		this.rebuild(); //lvec.trigger("change");
+	    }else
+		for(var v=0;v<this.inputs.length;v++){
+		    //console.log("TPLI set value " + JSON.stringify(this.value[v]) + " on " + lvec.inputs[v].name );
+		    lvec.inputs[v].set_value(this.value[v]);
+		}	    
+	}
+	/*
+	  
+	*/
 	
 	//if(lvec.onchange) lvec.onchange();
 	
@@ -1306,6 +1335,7 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
     template_ui_builders.double(ui_opts, tpl_item);
     var ui=tpl_item.ui;
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+    
     switch (ui_opts.type){
     case "short":
 	tpl_item.set_value=function(nv){
@@ -1479,25 +1509,30 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 template_ui_builders.text=function(ui_opts, tpl_item){
 
     var div=tpl_item.ui=ce("div");
-    var ui=cc("pre",div);
+    var ui=tpl_item.preui=cc("pre",div);
+    //ui.innerHTML="Hello!!!!!!!!!!!!!!"
     ui.add_class("text");
 
     tpl_item.set_value=function(nv){
+	
 	if(typeof nv !='undefined')
-	    tpl_item.value=nv;
-	if(typeof tpl_item.value !== 'undefined')
-	    ui.innerHTML=tpl_item.value;
+	    this.value=nv;
+	
+	//console.log("HTML text to " + this.value + " ui is " + ui);
+	
+	if(typeof this.value !== 'undefined')
+	    tpl_item.preui.innerHTML=this.value;
     }
     
     tpl_item.append=function(txt){
-	if(typeof tpl_item.value === 'undefined')
-	    tpl_item.set_value(txt);
+	if(typeof this.value === 'undefined')
+	    this.set_value(txt);
 	else{
-	    //console.log("append text to " + tpl_item.value);
-	    tpl_item.value+=txt;
-	    tpl_item.set_value();
+	    
+	    this.value+=txt;
+	    this.set_value();
 	}
-	tpl_item.ui.scrollTop = tpl_item.ui.scrollHeight;
+	this.ui.scrollTop = this.ui.scrollHeight;
     }
     
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
@@ -1877,77 +1912,79 @@ template_ui_builders.code=function(ui_opts, tpl_item){
 }
 
 template_ui_builders.combo=function(ui_opts, combo){
-
+    
     var ui;
     var style=ui_opts.style||"select",ul;
     ui_opts.type='edit';
-
+    
     
     //new_event(combo,"change");
-
-//    if(ui_opts.type==="edit"){
-	//console.log("Style " + style);
+    
+    //    if(ui_opts.type==="edit"){
+    //console.log("Style " + style);
+    
+    
+    if(style==="menu"){
+	ui=combo.ui=ce("div"); ui.className="dropdown";
+	var a=cc("a",ui);
+	a.className="btn btn-default";
+	a.id="dLabel";
+	//a.setAttribute("type","button");
+	a.setAttribute("data-toggle","dropdown");
+	a.setAttribute("aria-haspopup",true);
+	a.setAttribute("expanded",false);
+	a.innerHTML="Dropdown trigger<span class='caret'></span>";
+	var ul=cc("ul",ui);
+	ul.className="dropdown-menu";
+	a.setAttribute("role","button");
+	a.setAttribute("aria-labelledby","dLabel");
+    }
+    else{
+	ui=combo.ui=ce("select"); ui.className="form-control";
 	
+	//ui.addEventListener('change', function(c){
+	//combo.set_value(this.value);
+	//combo.trigger('change', combo.value);
+	//},false);
 	
-	if(style==="menu"){
-	    ui=combo.ui=ce("div"); ui.className="dropdown";
-	    var a=cc("a",ui);
-	    a.className="btn btn-default";
-	    a.id="dLabel";
-	    //a.setAttribute("type","button");
-	    a.setAttribute("data-toggle","dropdown");
-	    a.setAttribute("aria-haspopup",true);
-	    a.setAttribute("expanded",false);
-	    a.innerHTML="Dropdown trigger<span class='caret'></span>";
-	    var ul=cc("ul",ui);
-	    ul.className="dropdown-menu";
-	    a.setAttribute("role","button");
-	    a.setAttribute("aria-labelledby","dLabel");
-	}
-	else{
-	    ui=combo.ui=ce("select"); ui.className="form-control";
-
-	    //ui.addEventListener('change', function(c){
-		//combo.set_value(this.value);
-		//combo.trigger('change', combo.value);
-	    //},false);
-
-	}
+    }
+    
+    combo.set_options=function(options){
 	
-	combo.set_options=function(options){
-	    if(options!==undefined)combo.options=options;
-	    //console.log("Setting options " + JSON.stringify(options));
-	    if(combo.options===undefined) return;
-	    combo.ui.innerHTML="";
-	    combo.options.forEach(function(ov){
-		var o;
-		if(style==="menu"){
-		    var l=cc("li",ul); o=cc("a",l);
-		    if(typeof ov === "string"){
-			o.innerHTML=ov; o.id=ov;
-		    }else{
-			o.id=ov.value; o.innerHTML=ov.label;
-		    }
+	if(options!==undefined)combo.options=options;
+	//console.log(this.name + " Setting options " + JSON.stringify(options));
+	if(combo.options===undefined) return;
+	//combo.parent.debug(combo.name + " style "+style+" : Setting options :" + JSON.stringify(combo.options));
+	//combo.ui.innerHTML="SETTING UP";
+	combo.options.forEach(function(ov){
+	    var o;
+	    if(style==="menu"){
+		var l=cc("li",ul); o=cc("a",l);
+		if(typeof ov === "string"){
+		    o.innerHTML=ov; o.id=ov;
 		}else{
-		    var o=ov.option_ui=cc("option",ui);
-		    
-		    if(typeof ov === "string"){
-			o.value=ov; o.innerHTML=ov;
-		    }else{
-			o.value=ov.value; o.innerHTML=ov.label;
-		    }
-		    
+		    o.id=ov.value; o.innerHTML=ov.label;
 		}
-	    });
-
-	    if(combo.options.length>0){
-		combo.set_value(combo.options[0].label);
-		if(combo.options[0].option_ui!==undefined)
-		    combo.options[0].option_ui.setAttribute("selected",true);
+	    }else{
+		var o=ov.option_ui=cc("option",ui);
+		
+		if(typeof ov === "string"){
+		    o.value=ov; o.innerHTML=ov;
+		}else{
+		    o.value=ov.value; o.innerHTML=ov.label;
+		}
+		
 	    }
-	    
+	});
+	
+	if(combo.options.length>0){
+	    combo.set_value(combo.options[0].label);
+	    if(combo.options[0].option_ui!==undefined)
+		combo.options[0].option_ui.setAttribute("selected",true);
 	}
-
+	
+    }
+    
 
 	
     // }else{
@@ -2189,6 +2226,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 
     var range=vec.get("range");
+
     if(ui_opts.enable_range===false)
 	range.hide(true);
     else{
@@ -2207,20 +2245,26 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     var d3zoom = d3.behavior.zoom()
 	.scaleExtent([1, 10])
-        .on("zoom", vec.redraw)
+        .on("zoom",function(){
+	    //console.log("Zooom " + JSON.stringify(d3.event));
+	    range.set_value([d3.event.translate[0], d3.event.translate[1], d3.event.scale]);
+	    vec.redraw();
+
+	})
 	// .on("zoom", function(){
 	//     console.log("ZOOOOOOM !!!");
 	// })
     ;
+    
+    var zoom_rect=vec.svg.append("rect")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")")	
+    //.attr("transform", "translate(0," + height + ")")
+	.attr("class", "pane")
+	.attr("width", width)
+	.attr("height", height)
+	.call(d3zoom);
 
-    	var zoom_rect=vec.svg.append("rect")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")	
-	//.attr("transform", "translate(0," + height + ")")
-	    .attr("class", "pane")
-	    .attr("width", width)
-	    .attr("height", height)
-	    .call(d3zoom);
-
+    
 
     // var zzoom = d3.behavior.zoom()
     //     //.x(x)
@@ -2393,24 +2437,24 @@ template_ui_builders.vector=function(ui_opts, vec){
 	vec.trigger("selection_change", selection.value);
     }
     
-    vec.set_range=function(new_range){
+    // vec.set_range=function(new_range){
 
-	if(è(new_range))
-	    range.set_value(new_range);
+    // 	if(è(new_range))
+    // 	    range.set_value(new_range);
 	
 	
-	//vec.trigger("range_change", range.value);
-    };
+    // 	//vec.trigger("range_change", range.value);
+    // };
 
     
-    function range_changed() {
-	range.set_value(brush.extent());
+//     function range_changed() {
+// 	range.set_value(brush.extent());
 
-	/*
-	range.value[0]=brush.extent()[0];
-	range.value[1]=brush.extent()[1];
-*/
-    }
+// 	/*
+// 	range.value[0]=brush.extent()[0];
+// 	range.value[1]=brush.extent()[1];
+// */
+//     }
 
     
     function selection_changed() {
@@ -2422,10 +2466,10 @@ template_ui_builders.vector=function(ui_opts, vec){
     }
 
     
-    range.listen("change",function(){
-	//console.log("Range changed!");
-	//x.domain(range.value);
-    });
+    // range.listen("change",function(){
+    // 	//console.log("Range changed!");
+    // 	//x.domain(range.value);
+    // });
 
 
     vec.config_range=function(xconf, yconf){
@@ -2480,17 +2524,23 @@ template_ui_builders.vector=function(ui_opts, vec){
 		xr[0]=0;xr[1]=1.0;
 	    }
 	    
-	    vec.set_range(xr);
+	    //vec.set_range(xr);
 	    xscale.domain(xr);
-
+	    
 	    //console.log("Config zoom " + JSON.stringify(xscale.domain()));
 	    d3zoom.x(xscale);
 	    //for(var p in d3zoom) console.log(" P = " + p + " type " + typeof d3zoom[p]);
 	    d3zoom.xExtent(xr);
-
+	    
+	    
+	    selection.set_value(xr);
 	    
 	    if(è(brush))brush.extent(range.value);
-	    if(è(select_brush))select_brush.extent(selection.value);
+	    if(è(select_brush)){
+		select_brush.x(d3zoom.x());
+		//select_brush.y(d3zoom.y());
+		select_brush.extent(selection.value);
+	    }
 	    
 	}
 
@@ -2526,6 +2576,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 
     if(ui_opts.show_cursor){
+	console.log("Create cursor UI....");
 	
 	var cursor=create_widget({ name : "Cursor ",
 				   type : "labelled_vector", value : [0,0],
@@ -2535,6 +2586,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 				       child_classes : ["inline"]
 				   }
 				 });
+
 	vec.get('btns').add_child(cursor);
 	
 	new_event(vec, 'mousemove');
@@ -2618,7 +2670,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	
 
-	d3zoom.on("zoom", vec.redraw);
+	//d3zoom.on("zoom", vec.redraw);
 	
 	if(ui_opts.enable_range!==false){
 	    
@@ -2629,15 +2681,22 @@ template_ui_builders.vector=function(ui_opts, vec){
 	}
 
 	if(ui_opts.enable_selection!==false){
-	
+
+	    //select_brush.x(d3zoom.x());
+	    //select_brush.y(d3zoom.y());
+	    select_brush.extent(selection.value);
+	    
 	    select_brg=vec.select_brg=context.append("g").attr("class", "select_brush").call(select_brush);
 	    select_brg.selectAll("rect").attr("y", -6).attr("height", height2);	
 	    select_brg.selectAll(".resize").append("path").attr("d", resizePath);
 	    svg.select(".select_brush").call(select_brush);
 	}
 
-	for(var i=0;i<vec.value.length;i++) vec.value[i].redraw(context);
-
+	
+	if(vec.value!==undefined)
+	    for(var i=0;i<vec.value.length;i++)
+		vec.value[i].redraw(context);
+	
 	//console.log("redraw trigger  " + context);
 	vec.trigger("redraw", context);
     }
@@ -2649,7 +2708,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     //var plot_tpl = ;
     
     function create_line_label(p, label, color){
-	var le={
+	var le_tpl={
 	    
 	    ui_opts : {
 		    //render_name : false,
@@ -2676,7 +2735,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 		},
 	    }
 	};
-	create_ui({},le);
+
+	var le=create_widget(le_tpl, lines);
 	
 	lines.add_child(le,label);
 	le.elements.enable.listen("change", function () { vec.config_range();} );
@@ -2742,7 +2802,10 @@ template_ui_builders.vector=function(ui_opts, vec){
 	p.set_opts({});
 	
 	p.redraw=function(context){
-
+	    if(p.data.length>0)
+		if(p.data[0]===NaN)
+		    return;
+	    
 	    var buf=[];
 	    p.le.elements.enable.set_title(p.label);
 	    p.le.elements.line_color.set_value(p.stroke);
@@ -3097,7 +3160,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 
 template_ui_builders.color=function(ui_opts, tpl_item){
-    
+    console.log(tpl_item.name + " color builder " + tpl_item.value);
     var ui=tpl_item.ui=ce("div"); ui.className="color_container";
     var cui=ce("input"); cui.type="color";
     ui.appendChild(cui);

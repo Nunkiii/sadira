@@ -3,7 +3,7 @@ var base_templates={
     progress:{},
     status:{},
     double:{},
-    labelled_vector:{},
+    labelled_vector:{ serialize_fields : ["value_labels"]},
     local_file:{},
     bytesize:{},
     bool:{},
@@ -846,8 +846,9 @@ var base_templates={
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
-	    root_classes : ["container-fluid"],
+	    //root_classes : ["panel panel-default"],
 	    //name_classes : ["panel-heading"],
+	    //name_node : 'div',
 	    child_classes : ["container-fluid"],
 	    intro_stick: true,
 	    fa_icon : 'key'
@@ -865,7 +866,7 @@ var base_templates={
 		    fa_icon : "leaf",
 		    root_classes : ["container-fluid"],
 		    child_classes : ["container-fluid"],
-		    //intro_stick: true
+		    intro_stick: true
 		},
 		elements : {
 		    
@@ -887,7 +888,7 @@ var base_templates={
 					    label : true,
 					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],
 					    wrap : true,
-					    wrap_classes : ["col-sm-6 nopadding"]
+					    wrap_classes : ["col-sm-4"]
 					  }
 			    },
 			    password : {
@@ -895,13 +896,17 @@ var base_templates={
 				type : "password",
 				ui_opts : { type : "edit", root_classes : ["form-group"], label : true ,
 					    wrap : true,
-					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
+					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],
+					    wrap_classes : ["col-sm-4"]
+					  }
 			    },
 			    password_repeat : {
 				name : "Enter password again",
 				type : "password",
-				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,wrap : true,
-					    name_classes :["control-label col-sm-offset-1 col-sm-3"],item_classes : ["col-sm-6"] }
+				ui_opts : { type : "edit", root_classes : ["form-group"], label : true,
+					    wrap : true,
+					    name_classes :["control-label col-sm-offset-1 col-sm-3"],
+					    wrap_classes : ["col-sm-4"] }
 			    }
 			    
 			}
@@ -1029,6 +1034,7 @@ var base_templates={
 	},
 	elements :{
 	    btns : {
+		store : false,
 		ui_opts: { root_classes : ["col-sm-4"], child_classes : [] },
 		elements : {
 		    // zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
@@ -1042,8 +1048,8 @@ var base_templates={
 	    	    range : {
 			type : "labelled_vector",
 			name : "Range",
-			value_labels : ["start","end"],
-			value : [0, 0],
+			value_labels : ["from","to","zoom"],
+			value : [0.0, 0.0, 0.0],
 			ui_opts: {
 			    root_classes : ["inline"], label : true, fa_icon : "arrows-h",//, sliding : true, slided: false
 			    child_classes : ["inline"]
@@ -1082,7 +1088,7 @@ var base_templates={
 	name : "Sadira widget templates",
 	ui_opts : {
 	    root_classes : ["container-fluid"],
-	    child_view_type : ""
+	    //child_view_type : ""
 	},
 	elements : {
 	    build_progress : {

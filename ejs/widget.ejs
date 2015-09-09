@@ -32,14 +32,14 @@
     </footer>
 
   </body>
+    
 
-
-  <script>
+    <script>
     window.sadira.listen("ready", function(){
 	
 	var w;
 	try{
-	    var widget_template=tmaster.build_template("<%= tpl_name %>");
+	    var widget_template=tmaster.build_object("<%= tpl_name %>");
 	    if(widget_template.toolbar===undefined){
 		widget_template.toolbar={   };
 	    }
@@ -52,7 +52,7 @@
 	    }
 	    else
 		widget_template.ui_opts.name_node='h3';
-
+	    
 	    tb.ui_opts={ toolbar_classes : ["navbar-inverse navbar-fixed-top"] };
 	    
 	    
@@ -97,58 +97,64 @@
 	    window.sadira.listen('user_login', function(user){
 		user_login();
 	    });
+	    
 	    window.sadira.listen('user_logout', function(user){
 		user_logout();
 	    });
 	    
-
+	    
 	    
 	    
 	    //       var ul=tb.create_item(login_nav, right_nav);
-//       tb.fill_elements(login_nav.subul, login_nav.elements);
+	    //       tb.fill_elements(login_nav.subul, login_nav.elements);
 	    
-       /*
-       var login_w=tmaster.build_template('login');
-       
-       login_w.ui_opts.name_node='a';
-       login_w.ui_opts.root_node='li';
-       login_w.ui_opts.sliding=true;
-       login_w.ui_opts.sliding_animate=true;
-       login_w.ui_opts.sliding_dir='h';
-       login_w.ui_opts.slided=false;
-       
-       create_ui({}, login_w);
-       var sp=ce('span'); sp.className='caret';
-       login_w.ui_root.appendChild(sp);
-       login_w.ui_name.style.display='inline-block';
-
+	    /*
+	      var login_w=tmaster.build_template('login');
+	      
+	      login_w.ui_opts.name_node='a';
+	      login_w.ui_opts.root_node='li';
+	      login_w.ui_opts.sliding=true;
+	      login_w.ui_opts.sliding_animate=true;
+	      login_w.ui_opts.sliding_dir='h';
+	      login_w.ui_opts.slided=false;
+	      
+	      create_ui({}, login_w);
+	      var sp=ce('span'); sp.className='caret';
+	      login_w.ui_root.appendChild(sp);
+	      login_w.ui_name.style.display='inline-block';
+	      
        //right_nav.appendChild(login_w.ui_root);
        tb.unav.appendChild(login_w.ui_root);
-	*/
+	    */
 	    
 	    create_ui({},widget_template);
 	    window.sadira.user!==undefined ? user_login() : user_logout();
 	    
 	    widget_template.interpret_url();
-       // console.log("Helooooo After");
-
-       // var dropul = tb.setup_dropdown(login_w.ui_root, login_w.ui_name);
-       
-       // var login_opts={
-
+	    
+	    attach_ui(widget_template, document.getElementById("content"));
+	    
+	    // console.log("Helooooo After");
+	    
+	    // var dropul = tb.setup_dropdown(login_w.ui_root, login_w.ui_name);
+	    
+	    // var login_opts={
+	    
        // };
-       // tb.fill_elements(dropul, login_opts);
-       
-       
-     }
-     catch(error){
-       console.log("Error build widget !  " + dump_error(error));
-       w=create_widget('error_page');
-       w.set_value("Unknown widget : [<%= tpl_name %>] Error : " + error );
-     }
-     attach_ui(widget_template, document.getElementById("content"));
+	    // tb.fill_elements(dropul, login_opts);
+	    
+	    
+	}
+	catch(error){
+	    console.log("Error build widget !  " + dump_error(error));
+	    w=create_widget('error_page');
+	    w.set_value("Unknown widget : [<%= tpl_name %>] Error : " + error );
+	    document.getElementById("content").appendChild(w.ui_root);
+	}
+	
+	
     });
-  </script>
-  
+</script>
+    
 
 </html>

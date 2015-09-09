@@ -640,8 +640,8 @@ ul.toolbar {
     margin-right : .5em;
 }
 .vertical_margin {
-  margin-top : .5em;
-    margin-bottom : .5em;
+  margin-top : 1em;
+  margin-bottom : 1em;
 }
 
 .title_margin {
@@ -927,8 +927,8 @@ label.unslided{
   margin-right: auto;
   display: block;
   z-index: 1;  
-  width: 100%;
-
+  max-width: 100%;
+  max-height: 40vh;
 }
 
 .tab_pane {
@@ -1405,41 +1405,9 @@ view manager
 }
 
 .vlimit{
-  max-height: 70vh;
+  max-height: 80vh;
   overflow-y : auto;
 }
-/*
-
-
-.db[data-type="view_manager"] > .child_container {
-  max-height: calc(100% - 3em); 
-}
-
-.db[data-type="view_manager"] > .child_container .tab_section{
-  height: auto;
-  max-height: calc(100% - .6em); 
-}
-
-.db[data-type="view_manager"]  .navcnt{
-  padding: 0px;
-  height: 2em;
-}
-
-.db[data-type="view_manager"]  .navcnt > nav {
-  padding: 0em;
-  margin-bottom: .5em;
-}
-
-.db[data-type="view_manager"]  .navcnt > nav > li {
-
-  border-radius: .1em;
-  font-size: 1em;
-  padding: .3em;
-  margin-top: .2em;
-  margin-bottom: .2em;
-}
-
-*/
 
 .g.cmap_axe{
   stroke-size: 1em;

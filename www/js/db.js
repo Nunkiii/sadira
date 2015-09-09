@@ -1,7 +1,4 @@
 
-// Global object base of all ui template constructors. (To remove..)
-
-template_ui_builders={};
 
 // This configures an HTML element to be editable and performs the DB action required.
 // All parameters are given as HTML tag property attributes.
@@ -312,8 +309,11 @@ function set_page_title(w){
 }
 
 function create_widget(t, parent, depth_in){
-    //console.log("create widget " + t);
-    var widget_template=tmaster.build_template(t);
+    
+    
+    //var widget_template=tmaster.build_template(t);
+    var widget_template=tmaster.build_object(t);
+    
 
     
     var depth=t.depth===undefined ? depth_in : t.depth;
@@ -333,38 +333,34 @@ function create_widget(t, parent, depth_in){
 
 function create_item_ui(ui_opts, tpl_node){
     
-    var builders=[];
-
-    if(tpl_node.btype!==undefined){
-	//console.log(tpl_node.name + " adding base builder " + tpl_node.btype);
-	var t=template_ui_builders[tpl_node.btype];
-	if(t!==undefined)
-	    builders.push(t); 
-    }
-
-    if(tpl_node.type!==undefined && (tpl_node.type!==tpl_node.btype)){
-	//console.log(tpl_node.name + " adding main builder " + tpl_node.type);
-	var t=template_ui_builders[tpl_node.type];
-	if(t!==undefined)
-	    builders.push(t); 
-    }
-
-    if(è(tpl_node.widget_builder))
-	builders.push(tpl_node.widget_builder);
-
-    
     
     var ui;
 
-    //if(builders.length===0)
-   // 	console.log("NO builder " + b + " for " + tpl_node.name + " T["+tpl_node.type+"]["+tpl_node.btype+"]");
     
-    for(var b=0;b<builders.length;b++){
-	//console.log("Calling builder " + b + " for " + tpl_node.name + " T["+tpl_node.type+"]");
-	var bui=builders[b](ui_opts, tpl_node);
-	if(typeof ui==='undefined') ui=bui;
+    if(tpl_node.builders!==undefined){
+	var nb=0;
+	var bl=tpl_node.builders.length;
+	// for(var bi=0;bi<tpl_node.builders.length;bi++){
+	//     var b=tpl_node.builders[bi];
+	//     var bui=b(ui_opts, tpl_node);
+	//     if(ui === undefined) ui=bui;
+	//     nb++;	    
+	// }
+	
+	tpl_node.builders.forEach(function(b){
+	    // if(tpl_node.type=='text'){
+	    // 	console.log("Calling builder " + (nb+1)+"/"+bl +" for " + tpl_node.name + " T["+tpl_node.type+"] CODE[" + b.toString()+"]");
+	    // }
+	    var bui=b(ui_opts, tpl_node);
+	    if(ui === undefined) ui=bui;
+	    nb++;
+	    
+	});
+	//if(tpl_node.type=='spectrum'){
+	
+	//console.log("Calling " + nb +" builders for " + tpl_node.name + " T["+tpl_node.type+"]");
+	//}
     }
-    
     return ui;
 }
 
@@ -393,6 +389,7 @@ child_container.prototype.is_child=function(child){
     for(var u in child.ui_views) if (child.ui_views[u]===this) return u;
     return undefined;
 }
+
 child_container.prototype.remove_child_com=function(child){
     var u=this.is_child(child);
     if(è(u)){
@@ -518,9 +515,6 @@ function add_close_button(e, node, prep){
 function create_ui(global_ui_opts, tpl_root, depth){
 
     if(ù(tmaster)) throw("NO TMASTER");
-
-    
-
     
     if(ù(global_ui_opts)){
 	console.log("Not even the ui_opts... :(");
@@ -724,6 +718,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		});
 		ui_content.appendChild(tpl_root.debug_widget.ui_root);
 	    }
+	    //console.log("Append debug " + msg);
+
+	    //tpl_root.debug_widget.ui_root.innerHTML+=msg;
+
 	    tpl_root.debug_widget.append(msg+"<br/>");
 	    
 	}
@@ -1449,7 +1447,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		if(ui_opts.save!==undefined){
 		    //if(tpl_root.ui_title_name !== undefined)
-		    console.log("Setup save button!! " + tpl_root.name);
+		    //console.log("Setup save button!! " + tpl_root.name);
 		    setup_save(ui_name_text);
 		    // else
 		    // if(ui_name !== undefined)
@@ -2576,10 +2574,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    var xui=create_item_ui(ui_opts, tpl_root);
 
-	    if(tpl_root.ui===undefined)
-		item_ui=tpl_root.item_ui=xui;
-	    else
-		item_ui=tpl_root.item_ui=tpl_root.ui;
+	    if(xui===undefined)
+		if(tpl_root.ui!==undefined) xui=tpl_root.ui;
+
+	    
+	    item_ui=tpl_root.item_ui=xui;
 	    
 	    if(ui_opts.label && è(item_ui)){
 		if(sliding){
@@ -2655,7 +2654,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 
 		
-		if(è(ui_opts.item_classes))	add_classes(ui_opts.item_classes, item_ui);
+		if(ui_opts.item_classes !== undefined) add_classes(ui_opts.item_classes, item_ui);
 		//if(è(tpl_root.on_attached))	tpl_root.on_attached();
 
 
@@ -2673,6 +2672,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	}
 	catch(e){
+	    tpl_root.debug("Error building "+tpl_root.name+" : " + dump_error(e));
 	    console.log("Error building "+tpl_root.name+" : " + dump_error(e));
 	}
     }
