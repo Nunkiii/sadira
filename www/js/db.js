@@ -900,6 +900,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		return li;
 	    };
 
+
+	    tb.close_tb_ui=function(w){
+		console.log("Close TB ui! " + tpl_root.tb_ui);
+		if(tpl_root.tb_ui!==undefined){
+		    if(tpl_root.tb_ui!==w)
+			tpl_root.tb_ui.trigger('close');
+		    tpl_root.tb_ui=undefined;
+		}
+		
+	    };
 	    
 	    tb.activate_toolbar_widget=function(tti){
 		var w;
@@ -944,17 +954,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		//if(tti.toolbar!==undefined)
 		//    tpl_root.ui_toolbar.style.display="none";
-		    
 
-		if(tpl_root.tb_ui!==undefined){
-		    if(tpl_root.tb_ui!==w)
-			tpl_root.tb_ui.trigger('close');	
-		}
-
+		tb.close_tb_ui(w);
 		set_page_title(w);
-		
 		tpl_root.tb_ui=w;
-		
+
+		//console.log(tpl_root.name + " -----------------> tbui is " + tpl_root.tb_ui);
+
 		if(tpl_root.ui_childs){
 		    
 		    if(tpl_root.ui_childs.div !== undefined){
@@ -1225,10 +1231,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
 		
 		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
-		    tpl_root.intro_btn=ce("div");
-		    tpl_root.intro_btn.className="fa fa-lightbulb-o intro_btn";
-		    node.appendChild(tpl_root.intro_btn);
-		    tpl_root.intro_btn.addEventListener("click", function() {
+		    var ibtn=tpl_root.intro_btn=ce("div");
+		    ibtn.className="fa fa-info-circle intro_btn";
+		    node.appendChild(ibtn);
+		    ibtn.setAttribute("title", "More information...");
+		    ibtn.addEventListener("click", function() {
+			if(ui_opts.intro_visible){
+			    this.className="fa fa-info-circle intro_btn";
+			}
+			else
+			    this.className="fa fa-close intro_btn";
+			
 			tpl_root.intro_div.style.display=ui_opts.intro_visible?"none":"";
 			ui_opts.intro_visible=!ui_opts.intro_visible;
 		    } );
@@ -1247,6 +1260,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    if(ui_opts.toolbar_brand && tpl_root.toolbar){
 		ui_name=tpl_root.ui_name=tpl_root.toolbar.nava;//.appendChild(ui_name);
+
 	    }else{
 		//var hnode='div';
 		//  depth===0 ? "h1" : (((depth<4)?("h"+(depth+1)):"h4"));
@@ -1276,6 +1290,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//}
 	    }
 	    //if(!ui_opts.label) ui_name.className="row";
+
+	    if(tpl_root.toolbar!==undefined){
+		ui_name.style.cursor='pointer';
+		ui_name.addEventListener('click',function(){
+		    tpl_root.toolbar.close_tb_ui();
+		    if(tpl_root.ui_childs.close_selected_frame!==undefined)
+			tpl_root.ui_childs.close_selected_frame()
+		});
+	    }
 	    
 	    ui_name.addEventListener('click',function(){
 		
@@ -2268,10 +2291,17 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    var nframes=0;
 	    //    var last_sel_frame;
 	    var selected_frame;
-
+	    
+	    tpl_root.ui_childs.close_selected_frame=function(){
+		if(selected_frame===undefined) return;
+		selected_frame.ui_root.style.display='none';
+		selected_frame.ui_root.remove_class("active");
+		selected_frame.li.remove_class("active");
+	    }
+	    
 	    var select_frame=function(f){
 		//console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
-
+		
 		if(typeof selected_frame!='undefined'){
 		    selected_frame.ui_root.style.display='none';
 		    selected_frame.ui_root.remove_class("active");

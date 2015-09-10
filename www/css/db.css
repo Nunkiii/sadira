@@ -1447,8 +1447,8 @@ view manager
 
 
 .intro_btn{
-  font-size: .8em;
-  color: rgba(90,80,200,1.0);
+  font-size: .9em;
+ /* color: rgba(90,80,200,1.0); */
   padding: .3em;
   padding-left : 1em;
   cursor: pointer;
