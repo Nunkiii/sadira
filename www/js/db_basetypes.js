@@ -239,7 +239,7 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 
 
 	    var fsubt = t.name === undefined  ? "":t.name;
-	    var te=templ.elements[tn]={
+	    var te={
 		name :" <span class='label label-default '>"+tn+"</span>",  
 		subtitle : fsubt,
 		ui_opts : { root_classes : ["container-fluid"],
@@ -301,15 +301,16 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 	    }
 	    
 	    
-	    
+	    templ.elements[tn]=te;
 	    ntpl++;
 	}
 	
 	templ.subtitle = ntpl + " templates in use : "
 
-	create_widget(templ, dbt);
-	for(var t in templ.elements) {
-	    var tryi=templ.elements[t].elements.tryi;
+	var tw=create_widget(templ, dbt);
+	
+	for(var t in tw.elements) {
+	    var tryi=tw.elements[t].elements.tryi;
 	    tryi.listen("click", function(){
 		var tt=tmaster.build_template(this.tn);
 		create_ui({},tt);
@@ -324,11 +325,11 @@ template_ui_builders.dbtemplates=function(ui_opts, dbt){
 		    }
 		}
 	    
-	    if(è(tico)) templ.elements[t].ui_title_name.prependChild(tico);
+	    if(è(tico)) tw.elements[t].ui_title_name.prependChild(tico);
 	    
 	}
 	
-	dbt.ui_childs.add_child(templ,templ.ui_root);
+	dbt.ui_childs.add_child(templ,tw.ui_root);
 	build_progress.hide();
 
     }, 500);

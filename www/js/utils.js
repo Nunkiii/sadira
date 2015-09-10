@@ -4,14 +4,18 @@ var nodejs= typeof module !== 'undefined' && typeof GLOBAL !== 'undefined'; //Ch
 //This is stupid?
 
 function clone_obj(obj) {
-     if(obj == null || typeof(obj) != 'object')
+    
+    if(obj == null || typeof(obj) != 'object' || obj.nodeName !== undefined)
         return obj;
-
+    //console.log("clone begin cons=" + obj.constructor + " type " + typeof(obj) + " name " + obj.nodeName);
     var temp = obj.constructor(); // changed
     //var temp = {}; 
-
+    
     for(var key in obj)
-        if (obj.hasOwnProperty(key))  temp[key] = clone_obj(obj[key]);
+	if (obj.hasOwnProperty(key)){
+	    //console.log("cloning key " + key);
+	    temp[key] = clone_obj(obj[key]);
+	}
     return temp;
     
 
