@@ -669,6 +669,14 @@ footer {
   z-index: 20;
 }
 
+.db[data-type='labelled_vector']{
+}
+
+.db[data-type='labelled_vector'] div div span{
+  width: 4em;
+  display: inline-block;
+}
+
 /*
 label:hover{
 

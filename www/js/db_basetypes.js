@@ -2197,7 +2197,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     
     var bn=d3.select(ui);//vec.ui_childs.div);
-    var vw=vec.vw=400, vh=vec.vh=180;
+    var vw=vec.vw=400, vh=vec.vh=200;
     var pr;
     
     var svg = vec.svg=bn.append('svg')
@@ -2583,8 +2583,11 @@ template_ui_builders.vector=function(ui_opts, vec){
 				   type : "labelled_vector", value : [0,0],
 				   value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
 				   ui_opts : {
-				       label : true, root_classes : ["container-fluid"],
-				       child_classes : ["inline"]
+				       label : true,
+				       root_classes : ["container-fluid"],
+				       child_classes : ["inline"],
+				       sliding: true,
+				       slided : true
 				   }
 				 });
 
@@ -2715,7 +2718,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    //render_name : false,
 		label : true,
 		root_classes : ["inline"],
-		child_classes : ["btn btn-default horizontal_margin inline"]
+		child_classes : ["btn btn-default btn-xs horizontal_margin inline"]
 	    },
 	    elements : {
 		enable : {

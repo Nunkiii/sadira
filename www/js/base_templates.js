@@ -1035,7 +1035,7 @@ var base_templates={
 	elements :{
 	    btns : {
 		store : false,
-		ui_opts: { root_classes : ["col-sm-4"], child_classes : [] },
+		ui_opts: { root_classes : ["inline"], child_classes : [] },
 		elements : {
 		    // zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
 		    // unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
@@ -1043,7 +1043,9 @@ var base_templates={
 	    },
 
 	    ctls: {
-		ui_opts: { root_classes : ["col-sm-8"], child_classes : ["container-fluid"] },
+		ui_opts: {
+		    root_classes : ["inline"],
+		    child_classes : ["container-fluid"] },
 		elements : {
 	    	    range : {
 			type : "labelled_vector",
@@ -1063,8 +1065,12 @@ var base_templates={
 			ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
 		    },
 		    lines : {
+			name : "Plots",
 			ui_opts : {
-			    child_classes : [""]
+			    label : true,
+			    child_classes : ["inline"],
+			    sliding: true,
+			    slided: false
 			}
 		    }
 		}
@@ -1206,9 +1212,10 @@ var base_templates={
 		//intro : "",
 		url : "/sadira/welcome.html",
 		ui_opts : {
+		    //root_classes : ["row"],
 		  //  intro_stick : true,
 		    //render_name : false,
-		    item_classes : ["container-fluid"]
+		    //item_classes : ["row"]
 		}
 			  
 	    },
