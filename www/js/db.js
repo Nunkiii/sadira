@@ -882,6 +882,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(item.elements!==undefined){
 		    item.subul=tb.setup_dropdown(li, tita);
 		    li.className="dropdown";
+		}else{
+		    tita.setAttribute('data-toggle',"collapse");
+		    tita.setAttribute("data-target",".navbar-collapse.in");		    
 		}
 
 		tb.setup_icon(item);
@@ -1728,10 +1731,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(è(e.ui_opts)){
 		if(e.ui_opts.in_root){
 		    if(e.ui_opts.in_root === "prepend"){
-			if(è(ui_name) && è(ui_name.nextSibling))
-			    ui_content.insertBefore(ui, ui_name.nextSibling);
-			else
-			    ui_content.prependChild(ui)
+			if(child_toolbar){
+			    ui_content.insertBefore(ui, tpl_root.ui_toolbar.nextSibling);
+			}else{
+			    if(è(ui_name) && è(ui_name.nextSibling)){
+				ui_content.insertBefore(ui, ui_name.nextSibling);
+			    }
+			    else
+				ui_content.prependChild(ui)
+			}
 		    }else
 			ui_content.appendChild(ui);
 		    //e.ui_opts.in_root === "prepend" ? ui_content.prependChild(ui) : ui_content.appendChild(ui);
@@ -2396,6 +2404,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//console.log("Add tab/radio frame " + e.name);
 		e.li=cc("li", nav); e.li.setAttribute("role","presentation");
 
+		if(child_toolbar){
+		    e.li.setAttribute('data-toggle',"collapse");
+		    e.li.setAttribute("data-target",".navbar-collapse.in");
+		}
+		
 		e.get_title_node=function(){
 		    //console.log("tab/rad get title node ! ");
 		    return e.li;
@@ -2430,9 +2443,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    nframes++;
 		    //if(this.frames.length==1) 
 		    
-		    if(ù(selected_frame))
-			select_frame(e);
-		    
+		    if(ù(selected_frame)){
+			if(ui_opts.default_child!==undefined){
+			    if(ui_opts.default_child===e.key)
+				select_frame(e);
+			}else
+			    select_frame(e);
+		    }
 		}//else console.log("LAAABELLL " + e.name);
 		
 		e.listen("name_changed", function(new_title){
@@ -2488,8 +2505,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	
 	for (var e in tpl_root.elements){
+
 	    var el=tpl_root.elements[e];
+	    
 	    el.parent=tpl_root;
+	    el.key=e;
+	    
 	    if(ui_opts.type=='edit'){
 		if(el.ui_opts===undefined) el.ui_opts={};
 		el.ui_opts.type='edit';

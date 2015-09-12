@@ -842,7 +842,7 @@ var base_templates={
     signup : {
 	name : "Create a new account",
 	//subtitle : 
-	intro : "<strong>Choose a login method </strong><p>You can create a local account on this server only or use one of the supported platforms providing your authentication for us.</p>",
+	intro : "<p>You can create a local sadira account or use one of the supported platforms providing your authentication for us.</p><p><strong>Choose a login method : </p></strong>",
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
@@ -871,6 +871,7 @@ var base_templates={
 		elements : {
 		    
 		    data : {
+			//name : "Fill up your data :",
 			ui_opts : {
 			    child_node_type : "form",
 			    child_classes : ["form-horizontal container-fluid"],
@@ -887,6 +888,7 @@ var base_templates={
 					    root_classes : ["form-group"],
 					    label : true,
 					    name_classes : ["control-label col-sm-offset-1 col-sm-3"],
+					    //item_classes :  ["col-sm-4"]
 					    wrap : true,
 					    wrap_classes : ["col-sm-4"]
 					  }
@@ -1070,7 +1072,7 @@ var base_templates={
 			    label : true,
 			    child_classes : ["inline"],
 			    sliding: true,
-			    slided: false
+			    slided: true
 			}
 		    }
 		}
