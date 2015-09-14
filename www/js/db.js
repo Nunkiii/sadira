@@ -1100,10 +1100,22 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    //console.log("Base URI is " + base_uri);
 	    
-	    if(tpl_root.toolbar !== undefined){
-		if(wcomps.length>0){
-		    //console.log("wcomps l = " + wcomps.length);
-		    var e;
+	    if(wcomps.length>0){
+		var e;
+		//console.log("wcomps l = " + wcomps.length);
+
+		if(tpl_root.elements !== undefined){
+		    e=tpl_root.elements[wcomps[0]];
+
+		    if(e!==undefined){
+			if(tpl_root.ui_childs.select_frame !== undefined)
+			    tpl_root.ui_childs.select_frame(e);
+			
+			return;
+		    }
+		}
+		
+		if(tpl_root.toolbar !== undefined){
 		    if(tpl_root.toolbar.elements!==undefined)
 			e=tpl_root.toolbar.elements[wcomps[0]];
 		    
@@ -1131,7 +1143,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }else {
 		
 	    }
-
+	    
 	    set_page_title(tpl_root);
 	}
 
