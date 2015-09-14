@@ -24,7 +24,32 @@ var base_templates={
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
+    
+    container : {
+	name : "Container of typed objects",
+	ui_opts : {
+	    max_objects : 20
+	},
+	elements : {
+	    browse : {
+		name : 'Browser',
+		ui_opts : {},
+		object_builder : function(ui_opts, browse){
+		}
+	    },
+	    view : { name : 'Object details : '}
+	}
 
+    },
+
+    browser : {
+	ui_opts : {
+	    
+	},
+	widget_builder : function(ui_opts, browser){
+	}
+    },
+    
     error_page : {
 
 	name : "Ooops...",
@@ -839,6 +864,7 @@ var base_templates={
 	name : "MD Text",
 	type : "html"
     },
+
     signup : {
 	name : "Create a new account",
 	//subtitle : 
@@ -846,7 +872,7 @@ var base_templates={
 	//ui_opts : { sliding  : true, slided : false },
 	ui_opts : {
 	    child_view_type : "pills",
-	    //root_classes : ["panel panel-default"],
+	    root_classes : ["container-fluid"],
 	    //name_classes : ["panel-heading"],
 	    //name_node : 'div',
 	    child_classes : ["container-fluid"],
@@ -862,7 +888,7 @@ var base_templates={
 		intro : "<strong><p>Fill up the email and password fields to create your new user account.</p></strong><p><ul><li> Enter a valid email adress, it will be used to identify you.</li><li> You'll can configure a username later in your user page if you wish.</li><li> The password will be checked for basic strength.</li></ul></p>",
 
 		ui_opts : {
-		    name_node : "h3",
+		    //name_node : "h3",
 		    fa_icon : "leaf",
 		    root_classes : ["container-fluid"],
 		    child_classes : ["container-fluid"],
@@ -949,7 +975,7 @@ var base_templates={
 		name : "IDEM signup",
 		subtitle : "Signup using your IDEM-GARR account",
 		ui_opts : {
-		    name_node : "h3",
+		    //name_node : "h3",
 		    fa_icon : "institution"
 		},
 		elements : {
@@ -966,7 +992,10 @@ var base_templates={
 	    fb : {
 		name : "Facebook",
 		subtitle : "Signup using your Facebook account",
-		ui_opts : { fa_icon : "facebook-official", name_node : "h3"},
+		ui_opts : {
+		    fa_icon : "facebook-official",
+		    //name_node : "h3"
+		},
 		elements : {
 		    signup : {
 			name : "Signup !",
@@ -1235,12 +1264,14 @@ var base_templates={
 	name : "SoftName",
 	type : "url",
 	ui_opts : {
-	    root_classes : ["panel panel-default row"],
-	    name_classes : [],
-	    item_classes : ["col-xs-offset-1 col-xs-5 col-sm-offset-1 col-sm-3"],
+	    root_classes : ["panel panel-default"],
+	    name_classes : ["panel-heading"],
+	    item_classes : ["panel-content"],
 	    icon : "/sadira/icons/brands/nodejs.svg",
+	    intro_stick : true,
 	    //icon_size : "4em",
-	    name_node : "h3"
+	    name_node : "div",
+	    
 	}
     },
     
@@ -1250,13 +1281,13 @@ var base_templates={
 	intro : "<p>This will contain description and links to all external libraries and software used within the Sadira project.</p>",
 	ui_opts : {
 	    root_classes : ["container-fluid"],
-	    child_classes : ["container-fluid"],
+	    child_classes : ["list-group"],
 	    intro_stick : true
 	    //child_view_type : "table"
 	},
 	elements : {
 	    node : {
-		 type : "soft_tpl",
+		type : "soft_tpl",
 		ui_opts : {
 		    icon : "/sadira/icons/brands/nodejs.svg",
 		},

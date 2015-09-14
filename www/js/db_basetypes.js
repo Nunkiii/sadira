@@ -1979,9 +1979,14 @@ template_ui_builders.combo=function(ui_opts, combo){
 	});
 	
 	if(combo.options.length>0){
-	    combo.set_value(combo.options[0].label);
-	    if(combo.options[0].option_ui!==undefined)
-		combo.options[0].option_ui.setAttribute("selected",true);
+	    var oo=combo.options[0];
+	    if(typeof oo === "string")
+		combo.set_value(oo);
+	    else
+		combo.set_value(oo.value);
+	    
+	    if(oo.option_ui!==undefined)
+		oo.option_ui.setAttribute("selected",true);
 	}
 	
     }

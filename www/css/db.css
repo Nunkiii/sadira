@@ -639,9 +639,15 @@ ul.toolbar {
 .horizontal_margin {
 margin-right : .5em;
 }
+
 .vertical_margin {
   margin-top : .5em;
   margin-bottom : .5em;
+}
+
+.vertical_padding {
+  padding-top : .5em;
+  padding-bottom : .5em;
 }
 
 .title_margin {

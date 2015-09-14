@@ -532,10 +532,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
     else
 	depth=tpl_root.depth;
     
-    if(depth===undefined)depth=0;
+    if(depth===undefined){
+	if(tpl_root.parent!==undefined)
+	    depth=tpl_root.depth=tpl_root.parent.depth+1;
+    }
 
-    if(!tpl_root.depth)
-	tpl_root.depth=depth;
+    if(depth===undefined) depth=0;
+
     
     if(ù(tpl_root.ui_opts)){
 
