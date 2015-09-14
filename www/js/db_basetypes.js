@@ -650,7 +650,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
-    console.log(lvec.name + ' lvec builder ! val = ' + JSON.stringify(this.value));
+    //console.log(lvec.name + ' lvec builder ! val = ' + JSON.stringify(this.value));
     new_event(lvec,"change");
     
     //ui.className="labelled_vector";
@@ -3172,7 +3172,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 
 template_ui_builders.color=function(ui_opts, tpl_item){
-    console.log(tpl_item.name + " color builder " + tpl_item.value);
+    //console.log(tpl_item.name + " color builder " + tpl_item.value);
+
     var ui=tpl_item.ui=ce("div"); ui.className="color_container";
     var cui=ce("input"); cui.type="color";
     ui.appendChild(cui);

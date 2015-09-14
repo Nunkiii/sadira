@@ -2311,6 +2311,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    
 	    tpl_root.ui_childs.close_selected_frame=function(){
+		var selected_frame=ui_childs.selected_frame;
 		if(selected_frame===undefined) return;
 		selected_frame.ui_root.style.display='none';
 		selected_frame.ui_root.remove_class("active");
@@ -2332,8 +2333,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    
 		    //selected_frame.li.remove_class("selected");
 		    selected_frame.li.remove_class("active");
-		    
-		    cnt.replaceChild(f.ui_root,selected_frame.ui_root);
+
+		    if(selected_frame.ui_root.parentNode===cnt)
+			cnt.replaceChild(f.ui_root,selected_frame.ui_root);
+		    else
+			cnt.appendChild(f.ui_root);
 		}else
 		    cnt.appendChild(f.ui_root);
 		

@@ -791,16 +791,16 @@ Widget - w-m
 }
 
 
-.db[data-type="videocap"] .widget .content {
+.camwindow .widget .content {
   height: 0%;
   display: none;
 }
 
-.db[data-type="videocap"] .widget:hover {
+.camwindow .widget:hover {
   background : rgba(180,100,250,.5);
 }
 
-.db[data-type="videocap"] .widget {
+.camwindow .widget {
   position: relative;
   display: block;
   box-shadow: none;
@@ -808,7 +808,7 @@ Widget - w-m
   z-index: 20;
 }
 
-.db[data-type="videocap"] .widget .topbar{
+.camwindow .widget .topbar{
   display : inline-block;
   background : rgba(10,10,10,0.0);
   width: 100%;
@@ -933,7 +933,7 @@ label.unslided{
 	  border: 0px;
 }
 
-.db[data-type="videocap"] canvas {
+.camwindow canvas {
 
   padding-left: 0;
   padding-right: 0;
