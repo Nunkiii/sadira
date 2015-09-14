@@ -1835,7 +1835,8 @@ template_ui_builders.marked=function(ui_opts, tpl_item){
 
 template_ui_builders.html=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("div");
+    var ui=ce("div");
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     
     //ui.className="html_content";
     
@@ -1844,14 +1845,14 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 	    tpl_item.value=nv;
 
 	
-	if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui; else return;
+	//if(tpl_item.item_ui !== undefined) ui=tpl_item.item_ui; else return;
 
 	ui.innerHTML=tpl_item.value;
 	if(è(ui_opts.highlight_source))
 	    if(ui_opts.highlight_source) hljs.highlightBlock(ui);
     }
     
-    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+    
     
     if(ui_opts.type==="edit"){
 	ui.setAttribute("contentEditable", true);
@@ -1860,13 +1861,15 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     
     if(tpl_item.url){
 	download_url(tpl_item.url,function(error, html_content){
-	    tpl_item.set_value(html_content);
+	    if(error){
+		tpl_item.debug("Error downloading html content : "  + error);
+	    }else
+		tpl_item.set_value(html_content);
 	});
-    }
-
-    tpl_item.set_value();
+    }else
+	tpl_item.set_value();
     
-    return tpl_item.ui;
+    return ui;
 }
 
 template_ui_builders.code=function(ui_opts, tpl_item){

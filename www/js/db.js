@@ -908,7 +908,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 
 	    tb.close_tb_ui=function(w){
-		console.log("Close TB ui! " + tpl_root.tb_ui);
+		//console.log("Close TB ui! " + tpl_root.tb_ui);
 		if(tpl_root.tb_ui!==undefined){
 		    if(tpl_root.tb_ui!==w)
 			tpl_root.tb_ui.trigger('close');
@@ -1098,7 +1098,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    base_uri=base_uri+'/widget/'+widget_name;
 	    wcomps=wcomps.splice(3);
 
-	    console.log("Base URI is " + base_uri);
+	    //console.log("Base URI is " + base_uri);
 	    
 	    if(tpl_root.toolbar !== undefined){
 		if(wcomps.length>0){
@@ -1300,15 +1300,22 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    if(tpl_root.toolbar!==undefined){
 		ui_name.style.cursor='pointer';
 		ui_name.addEventListener('click',function(){
-		    tpl_root.toolbar.close_tb_ui();
-		    if(tpl_root.ui_childs.close_selected_frame!==undefined)
-			tpl_root.ui_childs.close_selected_frame()
+		    if(ui_opts.child_item!==undefined){
+			console.log("Select child item " + tpl_root.elements[ui_opts.child_item].name );
+			tpl_root.ui_childs.select_frame(tpl_root.elements[ui_opts.child_item]);
+		    }else{
+			tpl_root.toolbar.close_tb_ui();
+			if(tpl_root.ui_childs.close_selected_frame!==undefined)
+			    tpl_root.ui_childs.close_selected_frame();
+			if(ui_opts.hide_item && tpl_root.item_ui!==undefined )
+			    tpl_root.item_ui.style.display='';
+		    }
 		});
 	    }
 	    
-	    ui_name.addEventListener('click',function(){
+	    // ui_name.addEventListener('click',function(){
 		
-	    });
+	    // });
 
 	    
 	    if(ui_opts.name_classes !== undefined){
@@ -2301,7 +2308,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //this.frames=[];
 	    var nframes=0;
 	    //    var last_sel_frame;
-	    var selected_frame;
+	    
 	    
 	    tpl_root.ui_childs.close_selected_frame=function(){
 		if(selected_frame===undefined) return;
@@ -2310,10 +2317,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		selected_frame.li.remove_class("active");
 	    }
 	    
-	    var select_frame=function(f){
-		//console.log("Selecting tab/radio child " + f.name + " selected = " + selected_frame);
+	    var select_frame=tpl_root.ui_childs.select_frame=function(f){
+		var selected_frame=tpl_root.ui_childs.selected_frame;
 		
 		if(typeof selected_frame!='undefined'){
+
+		    //console.log("Selecting tab/radio child " + f.name+ " selected = " + selected_frame.name);
+				
+		    
 		    selected_frame.ui_root.style.display='none';
 		    selected_frame.ui_root.remove_class("active");
 		    //selected_frame.ui_root.add_class("normal_tab");
@@ -2327,7 +2338,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    cnt.appendChild(f.ui_root);
 		
 		f.ui_root.style.display='block';
-		selected_frame=f;
+		selected_frame=tpl_root.ui_childs.selected_frame=f;
 		
 		selected_frame.li.add_class("active");
 		selected_frame.ui_root.add_class("active");
@@ -2338,6 +2349,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    f.parent.trigger("element_selected", f);
 		else
 		    console.log("No parent??");
+
+		if(ui_opts.hide_item && tpl_root.item_ui!==undefined){
+		    tpl_root.item_ui.style.display='none';
+		}
+
 		f.trigger("selected");
 
 
@@ -2446,7 +2462,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    nframes++;
 		    //if(this.frames.length==1) 
 		    
-		    if(ù(selected_frame)){
+		    if(ù(tpl_root.ui_childs.selected_frame)){
 			if(ui_opts.default_child!==undefined){
 			    if(ui_opts.default_child===e.key)
 				select_frame(e);

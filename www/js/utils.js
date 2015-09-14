@@ -452,21 +452,24 @@ var request = function (opts){
 };
 
 function download_url(url, callback) {
-    var request = new XMLHttpRequest;  
-    request.open('GET', url, true);
+
+    xhr_query(url,callback);
     
-    request.onreadystatechange = function() {
-	if (request.readyState == 4 && request.status==200) {
-	    callback(null,request.responseText);
-	}
-    };
+    // var request = new XMLHttpRequest;  
+    // request.open('GET', url, true);
     
-    try{
-	request.send(null);
-    }
-    catch (e){
-	callback("download_url error : " + e);
-    }
+    // request.onreadystatechange = function() {
+    // 	if (request.readyState == 4 && request.status==200) {
+    // 	    callback(null,request.responseText);
+    // 	}
+    // };
+    
+    // try{
+    // 	request.send(null);
+    // }
+    // catch (e){
+    // 	callback("download_url error : " + e);
+    // }
 }
 
 // function download_url_sync(url) {
