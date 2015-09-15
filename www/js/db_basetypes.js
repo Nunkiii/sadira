@@ -650,8 +650,10 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 
 template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
-    //console.log(lvec.name + ' lvec builder ! val = ' + JSON.stringify(this.value));
+    
+    console.log(lvec.name + ' lvec builder before ! events =  ' + JSON.stringify(lvec.event_callbacks));
     new_event(lvec,"change");
+    console.log(lvec.name + ' lvec builder after ! events =  ' + JSON.stringify(lvec.event_callbacks));
     
     //ui.className="labelled_vector";
     lvec.inputs=[];
@@ -716,7 +718,7 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 	
 	lvec.inputs[v].listen("change",function(v){
 	    lvec.value[this.id]=this.value;
-	    //console.log("change triggered!");
+	    console.log("LV change triggered ! " + this.id  + " : " + this.value);
 	    lvec.trigger("change",this.id);
 	});
     }
@@ -747,13 +749,6 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 		    lvec.inputs[v].set_value(this.value[v]);
 		}	    
 	}
-	/*
-	  
-	*/
-	
-	//if(lvec.onchange) lvec.onchange();
-	
-	//ui.innerHTML=lvec.value? "yes":"no";
     }
 
     //console.log("Done building LABVEC : " + lvec.name);

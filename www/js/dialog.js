@@ -437,8 +437,9 @@ function new_event(tpl_item, event_name){
 	    if(ù(persist)) persist=false;
 	    var cbn=tpl_item.event_callbacks[event_name];
 	    
-	    if(typeof cbn=='undefined') 
+	    if(cbn===undefined) {
 		cbn=tpl_item.event_callbacks[event_name]=[]; //throw "No such event " + event_name ;
+	    }
 	    
 	    for(var c=0;c<cbn.length;c++){
 		if(cb===cbn[c]){
@@ -448,7 +449,8 @@ function new_event(tpl_item, event_name){
 	    };
 	    cb.persist=persist;
 	    cbn.push(cb);
-	    //console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
+	    if(tpl_item.name=="Parameters")
+		console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
 	};
 
 	tpl_item.unlisten=function(event_name, cb){
@@ -481,9 +483,19 @@ function new_event(tpl_item, event_name){
 	    return è(tpl_item.event_callbacks[event_name]);
 	}
     }
-    //console.log("Creating callback on " + tpl_item.name);
-    if(typeof tpl_item.event_callbacks[event_name]==='undefined')
+    
+    
+    if(tpl_item.event_callbacks[event_name]===undefined){
 	tpl_item.event_callbacks[event_name]=[];
+	
+	if(tpl_item.name=="Parameters"){
+	    console.log("Creating callback for event ["+event_name+"] on " + tpl_item.name  );
+	    for (var e in tpl_item.event_callbacks) console.log("     -->Event " + e + " NL=" + tpl_item.event_callbacks[e].length );
+	}
+
+	
+    }
+    
 
 }
 

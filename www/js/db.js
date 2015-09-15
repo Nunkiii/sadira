@@ -1896,7 +1896,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    ui_childs.replace_child=function(nctpl){
 		
-		console.log(tpl_root.name + " : !!!!!!!!!childs Replaced UI "+ nctpl.ui_root_old.nodeName + " with node " + nctpl.ui_root.nodeName);
+		//console.log(tpl_root.name + " : !!!!!!!!!childs Replaced UI "+ nctpl.ui_root_old.nodeName + " with node " + nctpl.ui_root.nodeName);
 		//return;
 		if(è(nctpl.tr))
 		    nctpl.tr.innerHTML="";
