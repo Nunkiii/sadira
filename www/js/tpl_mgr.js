@@ -36,6 +36,12 @@ function set(tpl, name, value){
     
 }
 
+function copy_object(src, cb){
+    var dest=build_object(src);
+    cb(null, dest);
+    
+}
+
 function get_template_data(t){
     var data={};
     if(è(t.type)) data.type=t.type;

@@ -1,6 +1,10 @@
 var base_templates={
 
-    progress:{},
+    progress:{
+	ui_opts : {
+	    //root_classes : ["container-fluid "],
+	}
+    },
     status:{},
     double:{},
     labelled_vector:{ serialize_fields : ["value_labels"]},
@@ -56,8 +60,8 @@ var base_templates={
 	subtitle : "an error occured !",
 	type : "html",
 	ui_opts : {
-	    root_classes : ["container-fluid"],
-	    item_classes : ["container alert alert-danger"]
+	    root_classes : ["list-group-item vertical_margin"],
+	    item_classes : ["alert alert-danger"]
 	},
 	value : "Error message"
     },
@@ -707,7 +711,7 @@ var base_templates={
 	    //sliding_animate : true,
 	    //sliding_dir : "h",
 	    //root_node : "li",
-	    name_node : "h1",
+	    //name_node : "h1",
 	    fa_icon : "sign-in",
 	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
@@ -1237,12 +1241,11 @@ var base_templates={
 		subtitle : "INAF/IASF-Bologna — <i>Astro-web-software </i>",
 		name : "QK/Sadira",
 		type : "html",
-		icon : "/sadira/icons/inaf_iasfbo.png",
-		//icon_size : "5em",
-		
 		//intro : "",
 		url : "/sadira/welcome.html",
 		ui_opts : {
+		    icon : "/sadira/icons/inaf_iasfbo.png",
+		    icon_size : "4em",
 		    //root_classes : ["row"],
 		  //  intro_stick : true,
 		    //render_name : false,

@@ -8,7 +8,8 @@ function config_common_input(tpl_item){
     });
     
     new_event(tpl_item,"change");
-
+    new_event(tpl_item,"input");
+    
 
 
     switch (tpl_item.ui_opts.type){
@@ -26,11 +27,13 @@ function config_common_input(tpl_item){
 	
 	tpl_item.ui.addEventListener("change",function(){
 	    tpl_item.set_value(this.value); 
-	    
-	    
 	},false);
 
-	tpl_item.ui_root.add_class('form-inline');
+	tpl_item.ui.addEventListener("input",function(){
+	    tpl_item.trigger('input',this.value); 
+	},false);
+
+	//tpl_item.ui_root.add_class('form-inline');
 	
 	break;
     default: break;
@@ -541,19 +544,24 @@ template_ui_builders.progress=function(ui_opts, prog){
 
     //var ui=prog.ui=ce("div");
     //ui.className="progress";
+    var cui=ce("div");
+    var pui=prog.ui=cc("div",cui);
 
-    var pui=prog.ui=ce("div");
     pui.className="progress-bar";
-    var ui=pui;
-    if(typeof prog.value ==='undefined') prog.value=0.0;
-    if(typeof prog.min ==='undefined') prog.min=0.0;
-    if(typeof prog.max ==='undefined') prog.max=100.0;
-    if(typeof prog.max ==='undefined') prog.value=0.0;
+    cui.className="progress";
+
     
     prog.setup_ui=function(){
+	
 	pui.setAttribute("role","progressbar");
 	pui.setAttribute("aria-valuemin",prog.min);
 	pui.setAttribute("aria-valuemax",prog.max);
+	
+	if(typeof prog.value ==='undefined') prog.value=0.0;
+	if(typeof prog.min ==='undefined') prog.min=0.0;
+	if(typeof prog.max ==='undefined') prog.max=100.0;
+	if(typeof prog.max ==='undefined') prog.value=0.0;
+
     }
 
     prog.set_value=function(v){
@@ -568,7 +576,7 @@ template_ui_builders.progress=function(ui_opts, prog){
     prog.setup_ui();
     prog.set_value();
     
-    return ui;
+    return cui;
 }
 
 template_ui_builders.status=function(ui_opts, tpl_item){
@@ -618,26 +626,28 @@ template_ui_builders.double=function(ui_opts, tpl_item){
     case "edit": 
 
 	ui=tpl_item.ui=ce("input");
-
+	ui.className="form-control";
+	
 	if(ui_opts.input_type)
 	    ui.type=ui_opts.input_type;
 	else
 	    ui.type="number";
 
-	ui.add_class("form-control");
+	tpl_item.set_parameters=function(min, max, step){
+	    if(min!==undefined) ui.min=min;
+	    if(max!==undefined) ui.max=max;
+	    if(step!==undefined) ui.step=step;
+	};
 	
-	if(tpl_item.min!==undefined) ui.min=tpl_item.min;
-	if(tpl_item.max!==undefined) ui.max=tpl_item.max;
-	if(tpl_item.step!==undefined) ui.step=tpl_item.step;
-
 	tpl_item.set_value=function(nv){
 
 	    if(è(nv))
 		tpl_item.value=nv; 
 	    if(è(tpl_item.value))
 		tpl_item.ui.value=tpl_item.value; //Math.floor(tpl_item.value*1000)/1000;
-	}
+	};
 
+	tpl_item.set_parameters(tpl_item.min,tpl_item.max,tpl_item.step);
 	
 	break;
     default: 
@@ -1335,10 +1345,14 @@ template_ui_builders.bytesize=function(ui_opts, tpl_item){
     switch (ui_opts.type){
     case "short":
 	tpl_item.set_value=function(nv){
-	    if(typeof nv!='undefined')tpl_item.value=nv;
+	    if(typeof nv!='undefined')
+		tpl_item.value=nv;
 	    //ui.innerHTML=nv;
 	    //console.log("Bytesize setting val : " + tpl_item.value + " nv = " + nv);
-	    ui.innerHTML=format_byte_number(tpl_item.value);
+	    if(tpl_item.value!==undefined)
+		ui.innerHTML=format_byte_number(tpl_item.value);
+	    else
+		ui.innerHTML=0+'b';
 	}
 	break;
     case "edit": 

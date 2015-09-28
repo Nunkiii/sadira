@@ -441,7 +441,7 @@ function get_ico(tpl){
     if(è(tpl.ui_opts)){
 	if( tpl.ui_opts.fa_icon !==undefined){
 	    ico=ce('span');
-	    ico.className="fa fa-"+tpl.ui_opts.fa_icon;
+	    ico.className="text-primary fa fa-"+tpl.ui_opts.fa_icon;
 	    return ico;
 	    //ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
 	    //ui_name_text.innerHTML='<i class="icon-'+ui_opts.fa_icon+'"> </i>';
@@ -699,9 +699,19 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 	    }
 	    return undefined;
-	}
+	    }
 	*/
 
+	tpl_root.error=function(estring){
+	    var epage=create_widget('error_page');
+	    epage.set_value(estring);
+	    // if(tpl_root.ui_name!==undefined)
+	    // 	tpl_root.ui_name.appendChild(epage.ui_root);
+	    // else
+	    tpl_root.ui_root.appendChild(epage.ui_root);
+	}
+
+	
 	tpl_root.debug_clean=function(msg){
 	    if(è(tpl_root.debug_widget)){
 		tpl_root.debug_widget.set_value("");
@@ -2689,8 +2699,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    //console.log(tpl_root.name + " : adding item ui " + item_ui);
 		    if(ui_opts.name_after===true)
 			ui_content.prependChild(item_ui);
-		    else
-			ui_content.appendChild(item_ui);
+		    else{
+			// if(ui_childs && ui_childs.div !==undefined)
+			//     ui_childs.div.parentNode.insertBefore(item_ui, ui_childs.div);
+			// else
+			    ui_content.appendChild(item_ui);
+		    }
 
 		    if(sliding){
 			//console.log(tpl_root.name + " : Adding item_ui in sliding stuff " + sliding_stuff.length);

@@ -76,26 +76,6 @@ On top of bootsrap 3
   font-family: Aileron;
 } 
 
-body{
-
-/*	      
-  max-width: 100%;
-
-	      font-size: 1.2vw;
-
-background: black;
-	      color: white;
-	      
-    */
-}
-
-/*
-.db[data-type="double"]{
-  display: inline-block;
-  width: 7em;
-}
-
-*/
 
 .full_height_scroll{
  max-height: 100vh;
@@ -129,11 +109,6 @@ span.fa{
 .navbar-inverse>div>div>h3{
  color : #EEE;
 }
-/*
-h1,h2,h3,h4 {
-   display: inline-block;
-}
-*/
 
 .ico{
   width: 1.5em;
@@ -1206,7 +1181,13 @@ Text input
 }
 
 
-
+.progress-bar {	
+    -webkit-transition:	none;
+        -moz-transition: none;	
+	    -ms-transition: none;
+	        -o-transition: none;
+		    transition: none;
+}
 
 progress[value] {
   margin-left: 1em;

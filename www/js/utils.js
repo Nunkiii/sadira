@@ -259,7 +259,6 @@ function xhr_query(query, result_cb, opts){
 	    xhr.responseType = opts.type; //"arraybuffer"
 	
 	if(typeof opts.progress != 'undefined'){
-	    //console.log("XHR Add progresss ");
 	    xhr.addEventListener("progress", opts.progress, false);
 	}
 	
@@ -270,7 +269,7 @@ function xhr_query(query, result_cb, opts){
     }, false);
     
     xhr.addEventListener("error", function(ev){
-	result_cb("XHTTP Error ["+query+"] :" + xhr.statusText + "");
+	result_cb("XHTTP Error ["+query+"] : [" + xhr.statusText.toString() + "] ev: " + ev);
     }, false);
     
     xhr.addEventListener("load", function(ev){
@@ -308,7 +307,7 @@ function xhr_query(query, result_cb, opts){
 	    xhr.send();
     }
     catch (e){
-	result_cb("XHTTP Error :" + e.toString());
+	result_cb("XHTTP Exception :" + e.toString());
     }
 
     return xhr;
@@ -348,7 +347,7 @@ function json_query(query, result_cb, opts){
 
 function bson_query(query, result_cb, opts){
     opts.type="arraybuffer";
-
+  
     xhr_query(query,function(error, qdata){
 	if(error) 
 	    return result_cb(error);
@@ -373,9 +372,9 @@ function bson_query(query, result_cb, opts){
     }, opts);
 }
 
-    function ab2b64( buffer ) {
-	var binary = '';
-	var bytes = new Uint8Array( buffer );
+function ab2b64( buffer ) {
+  var binary = '';
+  var bytes = new Uint8Array( buffer );
 	var len = bytes.byteLength;
 	for (var i = 0; i < len; i++) {
             binary += String.fromCharCode( bytes[ i ] );

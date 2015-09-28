@@ -50,7 +50,7 @@
   </body>
   <!-- <div id="bg"></div> -->
   
-    <script>
+  <script>
     window.sadira.listen("ready", function(){
 	
 	var w;
@@ -149,17 +149,9 @@
 	    widget_template.interpret_url();
 	    
 	    attach_ui(widget_template, document.getElementById("content"));
-	    
-	    // console.log("Helooooo After");
-	    
-	    // var dropul = tb.setup_dropdown(login_w.ui_root, login_w.ui_name);
-	    
-	    // var login_opts={
-	    
-       // };
-	    // tb.fill_elements(dropul, login_opts);
-	    
-	    
+
+
+	    window.sadira.session_start();
 	}
 	catch(error){
 	    console.log("Error build widget !  " + dump_error(error));
