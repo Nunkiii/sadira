@@ -1463,13 +1463,6 @@ view manager
 WebGL + svg screen
 */
 
-.tabbed>.tab-pane{
-  border-bottom : 1px solid lightgrey;
-  border-left : 1px solid lightgrey;
-  border-right : 1px solid lightgrey; 
-  padding : .5em;
-}
-
 .drawing_node{
   height : 75vh;
   max-height : 75vh;
@@ -1477,22 +1470,6 @@ WebGL + svg screen
   border: 1px solid lightgrey;
   border-radius: .5em;
 
-/*
-
-  overflow: hidden;
-
-  height: calc(100% - 0px);
-  width: calc(100% - 0px);  
-
-
-
-  width: 400px;
-  height: 400px;
-  display: block;
-  position: relative;
-
-
-*/
 }
 
 .glscreen{
