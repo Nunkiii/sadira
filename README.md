@@ -97,28 +97,28 @@ Big binary buffers cannot be transfered in one piece, they need to be sliced in 
 
 Git clone or download the zip project's file.
 
-sudo apt-get install redis
-sudo apt-get install nodejs npm
-npm install mongodb express express-session method override cookie-parser body-parser connect-logger minimlist 
-npm install connect-redis passport http-proxy websocket
+    	     sudo apt-get install redis
+	     sudo apt-get install nodejs npm
+	     npm install mongodb express express-session method override cookie-parser body-parser connect-logger minimlist 
+	     npm install connect-redis passport http-proxy websocket
 
-openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+	     openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
 
-sed -i |/patt/to/key.pem|./key.pem|g ./sadira.conf
+	     sed -i |/patt/to/key.pem|./key.pem|g ./sadira.conf
 
 
 ##Examples
 
-sudo ./sadira.js --cf sadira.conf
+	     sudo ./sadira.js --cf sadira.conf
 
 
 ##Troubleshooting
 
 ###You can't see the page
 
-maybe you have an apache server running
+Maybe you have an apache server running
 
 ###Fatal : HTTP create Error: bind EACCES
 
-probably you did not start sadira as superuser
+Probably you did not start sadira as superuser
 
