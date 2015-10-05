@@ -661,9 +661,9 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 template_ui_builders.labelled_vector=function(ui_opts, lvec){
 
     
-    console.log(lvec.name + ' lvec builder before ! events =  ' + JSON.stringify(lvec.event_callbacks));
+    //console.log(lvec.name + ' lvec builder before ! events =  ' + JSON.stringify(lvec.event_callbacks));
     new_event(lvec,"change");
-    console.log(lvec.name + ' lvec builder after ! events =  ' + JSON.stringify(lvec.event_callbacks));
+    //console.log(lvec.name + ' lvec builder after ! events =  ' + JSON.stringify(lvec.event_callbacks));
     
     //ui.className="labelled_vector";
     lvec.inputs=[];
@@ -693,7 +693,7 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 	    value : lvec.value[v],
 	    ui_opts : {
 		label : true,
-		root_classes : ["inline btn btn-xs btn-default vertical_margin horizontal_margin"],
+		root_classes : ["inline panel panel-default horizontal_margin small"],
 		editable : ui_opts.editable,
 		type: ui_opts.type
 	    }
@@ -848,7 +848,7 @@ template_ui_builders.signup=function(ui_opts, signup){
     
     var fail_row=cc("div",pw.ui_root); fail_row.className="row";
     var pw_fail_reasons=cc("ul",fail_row);
-    pw_fail_reasons.className="alert alert-danger list-unstyled col-sm-4 col-sm-offset-4";
+    pw_fail_reasons.className="alert alert-danger list-unstyled col-sm-12 vertical_margin";
     pw_fail_reasons.setAttribute("role","alert");
     pw_fail_reasons.style.display="none";
 //    pw_fail_reasons.style.float="right";
@@ -2233,7 +2233,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     var xr=vec.xr=[1e30,-1e30];
     var yr=vec.yr=[1e30,-1e30];
-
+    
     //console.log("Drawing vector w,h=" + width + ", " + height );
     
     var xscale = vec.xscale=d3.scale.linear().range([0, width]);
@@ -2380,57 +2380,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
     }
     
-    // var zoom=vec.get('zoom');
-    // var unzoom=vec.get('unzoom');
-    
-    
-    // zoom.listen("click",function(){
-    // 	//return;
-    // 	var s=selection.value, r=range.value; 
-
-    // 	// var sc=false;
-
-    // 	// if(s[0]< r[0]){ s[0]=r[0];sc=true;}
-    // 	// if(s[1]> r[1]){s[1]=r[1];sc=true;}
-
-    // 	//vec.set_range(brush.extent());
-    // 	console.log("Set range to " + r[0] + ", " + r[1]);
-
-    // 	xscale.domain(r);
-    // 	vec.redraw();
-    // 	if(è(brush))brush.extent(r);
-
-    // 	//vec.set_range(r);
-	
-
-    // 	// if(sc){
-    // 	//     vec.trigger("selection_change", s);
-    // 	// }
-
-    // });
-
-
-    // unzoom.listen("click",function(){
-    // 	//brush.extent(range.value);
-    // 	//select_brush.extent(selection.value);
-	
-
-    // 	//vec.set_range(xr);
-
-    // 	// if(è(vec.min))
-    // 	//     range.set_value([vec.min, vec.max]);
-    // 	// else
-    // 	//     range.set_value([vec.start, 
-    // 	// 		     vec.start + vec.value.length*vec.step ]);
-	
-    // 	// console.log("unzoom to " + JSON.stringify(range.value) + " start = " + vec.start);
-    // 	//vec.trigger("range_change", range.value);
-    // });
-    
-    // //vec.listen("slided", function(){
-    // 	//vec.elements.unzoom.trigger("click");
-    // //});
-    
     
     vec.set_selection=function(new_sel){
 	selection.set_value(new_sel);
@@ -2455,25 +2404,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 	vec.trigger("selection_change", selection.value);
     }
     
-    // vec.set_range=function(new_range){
-
-    // 	if(è(new_range))
-    // 	    range.set_value(new_range);
-	
-	
-    // 	//vec.trigger("range_change", range.value);
-    // };
-
-    
-//     function range_changed() {
-// 	range.set_value(brush.extent());
-
-// 	/*
-// 	range.value[0]=brush.extent()[0];
-// 	range.value[1]=brush.extent()[1];
-// */
-//     }
-
     
     function selection_changed() {
 	//svg.select(".select_brush").call(select_brush);
@@ -2484,13 +2414,9 @@ template_ui_builders.vector=function(ui_opts, vec){
     }
 
     
-    // range.listen("change",function(){
-    // 	//console.log("Range changed!");
-    // 	//x.domain(range.value);
-    // });
-
 
     vec.config_range=function(xconf, yconf){
+
 	if(xconf===undefined) xconf=true;
 	if(yconf===undefined) yconf=true;
 	
@@ -2500,8 +2426,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 	xr=vec.xr=[1e30,-1e30];
 	yr=vec.yr=[1e30,-1e30];
-
-	
 	
 	for (var p=0;p<plots.length;p++){
 	    var pl=plots[p];
@@ -2512,28 +2436,48 @@ template_ui_builders.vector=function(ui_opts, vec){
 		//for(var x in pl) console.log("PL " + x);
 		var pll= pl.data.length;
 		//console.log("PLL start " +pl.args[0] + ", step " + pl.args[1] );
-		
-		for(var j=0; j < pll ; j++){
-		    var iy,ix;
-		    if(pl.x!==undefined){
-			iy=pl.data[j];
-			ix=pl.x(j);
-		    }else{
-			ix=pl.data[j][0];
-			iy=pl.data[j][1];
-		    }
+		var x_id=pl.x_id===undefined? 0 : pl.x_id;
+		var y_id=pl.y_id===undefined? 0 : pl.y_id;
 
-		    if(iy<yr[0])yr[0]=iy;
-		    if(iy>yr[1])yr[1]=iy;
-		    
-		    if(ix<xr[0])xr[0]=ix;
-		    if(ix>xr[1])xr[1]=ix;
+		
+		if(vec.x_range!==undefined){
+		    if(vec.x_range[0]<xr[0])xr[0]=vec.x_range[0];
+		    if(vec.x_range[1]>xr[1])xr[1]=vec.x_range[1];
+		}else{
+		    var ix;
+		    for(var j=0; j < pll ; j++){
+			
+			if(pl.x!==undefined){
+			    ix=pl.x(j);
+			}else
+			    ix=pl.data[j][x_id];
+			
+			if(ix<xr[0])xr[0]=ix;
+			if(ix>xr[1])xr[1]=ix;
+		    }
 		}
+		
+		if(vec.y_range!==undefined){
+		    if(vec.y_range[0]<yr[0])yr[0]=vec.y_range[0];
+		    if(vec.y_range[1]>yr[1])yr[1]=vec.y_range[1];
+		}else{
+		    var iy;
+		    
+		    for(var j=0; j < pll ; j++){
+		    
+			if(pl.x!==undefined){
+			    iy=pl.data[j];
+			}else{
+			    iy=pl.data[j][y_id];
+			}
+			
+			if(iy<yr[0])yr[0]=iy;
+			if(iy>yr[1])yr[1]=iy;
+		    }
+		}
+
 	    }
 	}
-	
-	
-
 	//xr=[0,24];
 	
 	if(xconf){
@@ -2544,7 +2488,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    
 	    //vec.set_range(xr);
 	    xscale.domain(xr);
-	    
 	    //console.log("Config zoom " + JSON.stringify(xscale.domain()));
 	    d3zoom.x(xscale);
 	    //for(var p in d3zoom) console.log(" P = " + p + " type " + typeof d3zoom[p]);
@@ -2735,7 +2678,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    //render_name : false,
 		label : true,
 		root_classes : ["inline"],
-		child_classes : ["btn btn-default btn-xs horizontal_margin inline"]
+		child_classes : ["panel panel-default btn-xs horizontal_margin inline"]
 	    },
 	    elements : {
 		enable : {
@@ -2751,8 +2694,9 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    ui_opts : {
 			root_classes : ["inline"],
 			type : 'edit',
-			value : color
-		    }
+		    },
+		    value : color
+
 		},
 	    }
 	};
@@ -2761,9 +2705,11 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 	lines.add_child(le,label);
 	le.elements.enable.listen("change", function () { vec.config_range();} );
-	le.elements.line_color.listen("change", function (c) { p.stroke=this.value; vec.config_range(false,false);} );
+	le.elements.line_color.listen("change", function (c) {
+	    p.stroke=this.value; vec.config_range(false,false);
+	});
 	
-	le.elements.enable.trigger("change");
+	//le.elements.enable.trigger("change");
 	p.le=le;
 	return le;
     }
@@ -2802,7 +2748,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	p.set_opts=function(opts){
 	    
 	    p.opts=opts;
-	    p.stroke=opts.stroke || "black";
+	    p.stroke=opts.stroke || "#000";
 	    
 	    p.stroke_width=opts.stroke_width || "1px";
 	    p.fill=opts.fill || "none";
@@ -2841,91 +2787,48 @@ template_ui_builders.vector=function(ui_opts, vec){
 		//p.path
 		//.attr("class", "line_black")
 		p.path.attr("d",
-		       p.line(p.data)
-		      );
-		
-		// p.path.filter( function (x) {
-		    
-		    
-		//     buf=[];
-		//     p.data.forEach(function(d,i){
-		// 	//var s=vec.xscale(d);
-		// 	var s=i*1.0;//vec.xscale(i);
-			
-		// 	if(s>=xscale.domain()[0] && s<=xscale.domain()[1]){
-			    
-		// 	    buf.push(d);
-		// 	}else
-		// 	    console.log("Filter point " + i + " x="+ s+ " dom : " + JSON.stringify(xscale.domain()));
-			
-		//     });
-
-		//     p.path.attr("d",
-		// 		p.line(buf)
-		// 	       );
-		    
-		    
-		// });
-
-		
-
-
-
-		// vec.svg.selectAll("path").filter(function(d, i) {
-		//     console.log("path filter " + d);
-		//     return false;
-		// })
-		//     .remove(); 
-		
-		//console.log("plot redraw..." + p.label + "DL = " +p.data.length  + " D0 = " + p.data[0]);
-
-		/*
-		context.append("text")
-		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0])-10) + ")")
-		    .attr("dy", ".35em")
-		    .attr("text-anchor", "start")
-		    .attr("font-size", "10px")
-		    .style("fill", p.stroke)
-		    .text(p.label);
-		*/
-		
+			    p.line(p.data)
+			   );
 	    }
 	}
     };
     
     
-    var points_plot=function(data, label, opts){
+    var points_plot=function(data, opts){
 
 	var p=this;
 
 	p.data= data;
+	if(opts===undefined) opts = {};
 	
-	p.line=vec.line=d3.svg.line()
-	    .x(function(d,i) { return xscale(d[0]); })
-	    .y(function(d,i) { return yscale(d[1]); });
+	var x_id=p.x_id = opts.x_id === undefined ? 0 : opts.x_id;
+	var y_id=p.y_id = opts.y_id === undefined ? 0 : opts.y_id;
+	
+	p.line=d3.svg.line()
+	    .x(function(d,i) {
+		if(opts.x_filter!==undefined) return xscale(opts.x_filter(d[x_id],d[y_id]));
+		return xscale(d[x_id]);
+	    })
+	    .y(function(d,i) {
+		if(opts.y_filter!==undefined) return yscale(opts.y_filter(d[x_id],d[y_id]));
+		return yscale(d[y_id]);
+	    });
 	//.interpolate("linear");
+	
+	if(vec.value===undefined) vec.value=[];
 	var plots = vec.value;
-
 	//var defname="line"+ (plots.length+1);
 	
 	p.stroke_width=opts.stroke_width || "1px";
 	p.fill=opts.fill || "none";
-	
 	p.label=opts.label || ("Line " + (plots.length+1));
 
 
-	var ple=create_line_label(p,p.label, '#000');
-	console.log("P.le="+ple.elements.enable.value);
+	var ple=create_line_label(p,p.label, '#77f');
 	p.stroke=p.le.elements.line_color.value; //opts.stroke || "black";
-
-
-
-	// create_ui({},p.le);
-	// lines.add_child(p.le,defname);
-	// p.le.listen("change", function () { vec.config_range();} );
 	
+	var draw_dots=true;
 	
-	//p.set_opts({});
 	p.redraw=function(context){
 	    
 	    ple.elements.enable.set_title(p.label);
@@ -2933,16 +2836,35 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    if(ple.elements.enable.value && p.data.length!==0){
 		
 		//var g=context.append('g');
+
+		p.path=context.append("path");
+		p.path.attr("stroke", p.stroke);
+		p.path.attr("stroke-width", p.stroke_width);
+		p.path.attr("fill", p.fill);
+
+		//p//.attr("d", lineFunction(lineData))
+		//p.path
+		//.attr("class", "line_black")
+		p.path.attr("d",
+			    p.line(p.data)
+			   );
+		
 		
 		// draw dots
-		context.selectAll(".dot")
-		    .data(data)
-		    .enter().append("circle")
-		    .attr("class", "dot")
-		    .attr("r", 2)
-		    .attr("cx", function(d){return xscale(d[0])})
-		    .attr("cy", function(d){return yscale(d[1])})
-		    .style("fill", function(d) { return p.stroke;});
+		
+		if(draw_dots){
+		    context.selectAll(".dot")
+			.data(data)
+			.enter().append("circle")
+			.attr("class", "dot")
+			.attr("r", 2)
+			.attr("cx", function(d){ return xscale(d[x_id]);})
+			.attr("cy", function(d){
+			    //console.log("Get " + y_id + " : " + d[y_id] + " : " + yscale(d[y_id]));
+			    return yscale(d[y_id]);
+			})
+			.style("fill", p.stroke);
+		    
 		// .on("mouseover", function(d) {
 		    // 	tooltip.transition()
 		    // 	    .duration(200)
@@ -2957,7 +2879,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 		    // 	    .duration(500)
 		    // 	    .style("opacity", 0);
 		    // });
-		
+		}
 		// context.selectAll('circles')
 		//     .data(p.data)
 		//     .enter()
@@ -2991,15 +2913,15 @@ template_ui_builders.vector=function(ui_opts, vec){
 		// //.attr("class", "line_black")
 		//     .attr("d", p.line);
 		
-		console.log("plot redraw..." + label + "DL = " +p.data.length  + " D0 = " + p.data[0][0]);
+		//console.log("plot redraw..." + "DL = " +p.data.length  + " D0 = " + p.data[0][0]);
 		
 		context.append("text")
-		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0][1])-10) + ")")
+		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0][y_id])-10) + ")")
 		    .attr("dy", ".35em")
 		    .attr("text-anchor", "start")
 		    .attr("font-size", "10px")
 		    .style("fill", p.stroke)
-		    .text(label);
+		    .text(p.label);
 	    }
 	}
     };
@@ -3039,15 +2961,15 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
 	//p.set_opts({});
 	p.redraw=function(context_in){
-
+	    
 	    if(!p.le.elements.enable.value) return;
-
+	    
 	    if(context_in!==undefined){
 		p.context=context_in.append("g");
 	    }
-
+	    
 	    var context=p.context;
-
+	    
 
 	    context.select("path").remove();
 	    context.select("text").remove();
@@ -3080,9 +3002,6 @@ template_ui_builders.vector=function(ui_opts, vec){
 	
     };
 
-    
-
-    
     vec.add_plot=function(data, xfunc){
 	//console.log("Adding plot DL=" + data.length + " ... ");
 	var args=[];
@@ -3102,9 +3021,9 @@ template_ui_builders.vector=function(ui_opts, vec){
 	return p;
     }
 
-    vec.add_plot_points=function(data, label, opts){
+    vec.add_plot_points=function(data, opts){
 
-	var p=new points_plot(data, label, opts);
+	var p=new points_plot(data, opts);
 	if(this.value===undefined) this.value=[];
 	this.value.push(p);
 	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);

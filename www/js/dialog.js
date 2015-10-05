@@ -488,10 +488,10 @@ function new_event(tpl_item, event_name){
     if(tpl_item.event_callbacks[event_name]===undefined){
 	tpl_item.event_callbacks[event_name]=[];
 	
-	if(tpl_item.name=="Parameters"){
-	    console.log("Creating callback for event ["+event_name+"] on " + tpl_item.name  );
-	    for (var e in tpl_item.event_callbacks) console.log("     -->Event " + e + " NL=" + tpl_item.event_callbacks[e].length );
-	}
+	// if(tpl_item.name=="Parameters"){
+	//     //console.log("Creating callback for event ["+event_name+"] on " + tpl_item.name  );
+	//     //for (var e in tpl_item.event_callbacks) console.log("     -->Event " + e + " NL=" + tpl_item.event_callbacks[e].length );
+	// }
 
 	
     }

@@ -1260,15 +1260,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
 		    var ibtn=tpl_root.intro_btn=ce("div");
-		    ibtn.className="fa fa-info-circle intro_btn";
+		    ibtn.className="fa fa-info-circle intro_btn text-info";
 		    node.appendChild(ibtn);
-		    ibtn.setAttribute("title", "More information...");
+		    ibtn.setAttribute("title", "Click for more information...");
 		    ibtn.addEventListener("click", function() {
 			if(ui_opts.intro_visible){
 			    this.className="fa fa-info-circle intro_btn";
+			    ibtn.setAttribute("title", "Click for more information...");
 			}
-			else
-			    this.className="fa fa-close intro_btn";
+			else{
+			    this.className="fa fa-close text-danger intro_btn";
+			    ibtn.setAttribute("title", "Close information panel");
+			}
 			
 			tpl_root.intro_div.style.display=ui_opts.intro_visible?"none":"";
 			ui_opts.intro_visible=!ui_opts.intro_visible;
@@ -1564,9 +1567,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		tpl_root.rebuild_name();
 	}
 	
-	tpl_root.set_title=function(title){
-	    tpl_root.name=title;
-	    //ui_name.innerHTML=title;
+	tpl_root.set_title=function(title, subtitle){
+
+	    if(title!==undefined){
+		tpl_root.name=title;
+	    }
+	    if(subtitle!==undefined){
+		tpl_root.subtitle=subtitle;
+	    }
 	    
 	    if(è(tpl_root.rebuild_name))
 		tpl_root.rebuild_name();
@@ -1574,6 +1582,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		setup_title();
 	    
 	    tpl_root.trigger("name_changed", title);
+	    
 	    //	span.appendChild( document.createTextNode("some new content") );
 	}
 	
@@ -1588,19 +1597,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.set_intro_text=function(intro_txt){
 	    if(tpl_root.intro_div===undefined){
 		if(ui_opts.intro_name===true){
-		    tpl_root.intro_div=cc("div",tpl_root.ui_name);
+		    var intro_node=ui_opts.intro_node!==undefined ? ui_opts.intro_node : 'div';
+		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_name);
 		}
 		else{
-		    tpl_root.intro_div=cc("div",tpl_root.ui_root);
+		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_root);
 		}
 		
 		tpl_root.intro_div.style.display= (ui_opts.intro_visible || ui_opts.intro_stick) ? "":"none";
 		sliding_stuff.push(tpl_root.intro_div);
-
-		
 	    }
-
-	    tpl_root.intro_div.className="text-muted";
+	    
+	    tpl_root.intro_div.className="text-info";
 	    tpl_root.intro_div.innerHTML=
 		"" //"<div class='alert alert-default'>"//>" //
 		+ intro_txt; 
@@ -1792,7 +1800,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		if(prep===undefined) prep=false;
 		
 		if(!add_child_common(e,ui,prep)) return;
-		
 		this.add_child_com(e);
 		
 		if(ù(ui_childs.div)){
@@ -2733,24 +2740,25 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    }
 		}
 		
-		if(tpl_root.default_value !== undefined
+		if(false && tpl_root.default_value !== undefined
 		   && tpl_root.set_value!==undefined
 		   && (item_ui.nodeName === "INPUT" || item_ui.nodeName === "SELECT")
 		  ){
+		    
 		    //console.log("Got ITEM type " + item_ui.nodeName);
 		    ui_opts.wrap=true;
 		    setup_wrap();
 		    tpl_root.wrap_ui.add_class("input-group");
 
 		    var reset_but=cc("span",tpl_root.wrap_ui);
-		    reset_but.className="btn btn-xs btn-warning input-group-addon fa fa-reply";
+		    reset_but.className="btn btn-xs btn-warning input-sm input-group-addon fa fa-reply";
 		    reset_but.addEventListener("click", function(){
 			tpl_root.set_default_value();
 		    });
 		}else
 		    setup_wrap();
 		
-
+		
 		
 		
 		if(è(ui_opts.edit_apply)){

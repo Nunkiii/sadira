@@ -88,12 +88,11 @@
 		
 	    };
 	    
-	    function user_login(){
+	    function user_login(u){
 		//lnav.fa_icon='user';
-		tb.set_item_name(lnav, "<strong>" + window.sadira.user.id + "</strong>");
+		tb.set_item_name(lnav, "<strong>" + u.id + "</strong>");
 		lnav.icon.style.color='springgreen';
-		
-		
+
 		lnav.elements.login.li.style.display='none';
 		lnav.elements.newacc.li.style.display='none';
 		lnav.elements.logout.li.style.display='';
@@ -111,15 +110,12 @@
 	    }
 	    
 	    window.sadira.listen('user_login', function(user){
-		user_login();
+		user_login(user);
 	    });
 	    
 	    window.sadira.listen('user_logout', function(user){
 		user_logout();
 	    });
-	    
-	    
-	    
 	    
 	    //       var ul=tb.create_item(login_nav, right_nav);
 	    //       tb.fill_elements(login_nav.subul, login_nav.elements);
@@ -156,7 +152,7 @@
 	catch(error){
 	    console.log("Error build widget !  " + dump_error(error));
 	    w=create_widget('error_page');
-	    w.set_value("Unknown widget : [<%= tpl_name %>] Error : " + error );
+	    w.set_value("While building widget [<%= tpl_name %>] : " + error );
 	    document.getElementById("content").appendChild(w.ui_root);
 	}
 	

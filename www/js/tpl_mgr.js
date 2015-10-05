@@ -345,6 +345,17 @@ local_templates.prototype.common_builder=function(obj){
     var lt=this;
 
     obj.get=function(n){ return get(obj,n); };
+    obj.get_parent=function(pname){
+	if(pname===undefined) return this.parent;
+	var p=this.parent;
+	
+	while(p!==undefined && p.parent!==undefined){
+	    if(p.parent.elements[pname]!==undefined)
+		return p.parent.elements[pname];
+	    p=p.parent;
+	}
+	return p;
+    };
     obj.add=function(key,child){return add(this,key,child);};
     obj.set=function(child,value){
 
@@ -579,14 +590,13 @@ local_templates.prototype.build_object=function(template){
     }
     
     if(tpl_types.length>0){
-	
-	
 	var ttype=tpl_types[0];
+	if(this.templates[ttype] === undefined) throw Error("Undefined template ["+ttype+"]");
 	for(var tpl=this.templates[ttype];tpl!==undefined;tpl=this.templates[ttype]){
 	    tpl_tree.unshift([ttype,tpl]); ttype=tpl.type;
 	}
     }
-
+    
     tpl_tree.forEach(function(tpl){
 	//console.log(" updating  from tpl " + JSON.stringify(tpl));
 	update_structure(object, tpl[1], true); //loct.update_template(tpl_item, tpl);

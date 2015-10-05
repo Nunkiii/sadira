@@ -4,12 +4,11 @@
 
 (function(){
     
-    console.log("Create template master...");
+    //console.log("Create template master...");
 
     window.tmaster=new local_templates();
     window.tmaster.add_templates(base_templates);
     var sadira=window.sadira = {};
-
     
     new_event(window.sadira,"ready");
     new_event(window.sadira,"user_login");
@@ -44,10 +43,11 @@
 		    if(res.user!=="none"){
 			sadira.user={
 			    id : res.user
-			}
+			};
+			sadira.trigger('user_login', sadira.user);
 		    }
 		}
-		    
+		
 	    }
 	    
 	});

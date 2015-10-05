@@ -259,7 +259,9 @@ function xhr_query(query, result_cb, opts){
 	    xhr.responseType = opts.type; //"arraybuffer"
 	
 	if(typeof opts.progress != 'undefined'){
-	    xhr.addEventListener("progress", opts.progress, false);
+	    xhr.addEventListener("progress", function(e) {
+		opts.progress({m: 'Loading', v : e.loaded, e : e});
+	    }, false);
 	}
 	
     }
@@ -319,29 +321,41 @@ function xhr_query(query, result_cb, opts){
 function json_query(query, result_cb, opts){
 
     xhr_query(query,function(error, text_data){
+
 	if(error) 
 	    return result_cb(error);
 	else{
 	    var data;
-
-	    try{
+	    
+	    if(typeof opts.progress != 'undefined'){
+		opts.progress({ m : "<i class='fa fa-spinner fa-spin text-warning'></i> Parsing JSON", v : 0.0 });
+	    }
+	    
+	    setTimeout(function(){
 		//console.log("DATA IN ["+text_data+"]");
-		data=JSON.parse(text_data);
-	    }
-	    catch (e){
-		return result_cb("json_query: JSON parse error " + e + " ("+text_data+")");
-	    }
+		try{
+		    data=JSON.parse(text_data);
+		    if(typeof opts.progress != 'undefined'){
+			opts.progress({ m : "<i class='fa fa-check text-success'></i> Parsing JSON done", v : 100.0 });
+		    }
+		}
+		catch (e){
+		    return result_cb("JSON parse error : " + dump_error(e) );
+		}
+		result_cb(null,data);
 
+	    }, 200);
+	    
 	    /*
-	    if(data.error){
-		return result_cb("json_query: Server reported error : " + data.error);
-	    }
+	      if(data.error){
+	      return result_cb("json_query: Server reported error : " + data.error);
+	      }
 	    */
-	    result_cb(null,data);
+	    
 	}
     }, opts);
 }
-
+    
 ////////////////////////////////////////////////////////////////////////////
 //AJAX request, parsing the result as JSON.
 

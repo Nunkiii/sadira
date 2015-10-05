@@ -9,6 +9,7 @@ var base_templates={
     double:{},
     labelled_vector:{ serialize_fields : ["value_labels"]},
     local_file:{},
+    email : { type : 'string'},
     bytesize:{},
     bool:{},
     string:{},
@@ -711,7 +712,7 @@ var base_templates={
 	    //sliding_animate : true,
 	    //sliding_dir : "h",
 	    //root_node : "li",
-	    //name_node : "h1",
+	    name_node : "h2",
 	    fa_icon : "sign-in",
 	    root_classes : ["container-fluid"],
 	    child_node_type : "form",
@@ -878,7 +879,7 @@ var base_templates={
 	    child_view_type : "pills",
 	    root_classes : ["container-fluid"],
 	    //name_classes : ["panel-heading"],
-	    //name_node : 'div',
+	    name_node : 'h2',
 	    child_classes : ["container-fluid"],
 	    intro_stick: true,
 	    fa_icon : 'key'
@@ -1097,7 +1098,7 @@ var base_templates={
 			name : "Selection",
 			value_labels : ["start","end"],
 			value : [0, 0],
-			ui_opts: {root_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
+			ui_opts: {root_classes : ["inline"], child_classes : ["inline"], label : true, fa_icon : "edit", sliding : true, slided: false},
 		    },
 		    lines : {
 			name : "Plots",
@@ -1149,7 +1150,7 @@ var base_templates={
 	ui_opts : {
 	    root_classes : ["container-fluid left"],
 	    //child_classes : ["container-fluid"],
-	    //child_view_type : "pills",
+	    child_view_type : "tabbed",
 	    //name_node : "h4",
 	    //name_classes : ["title_logo"],
 	    
@@ -1239,14 +1240,15 @@ var base_templates={
 	elements : {
 	    welcome : {
 		subtitle : "INAF/IASF-Bologna — <i>Astro-web-software </i>",
-		name : "QK/Sadira",
+		name : "Sadira",
 		type : "html",
 		//intro : "",
 		url : "/sadira/welcome.html",
 		ui_opts : {
-		    icon : "/sadira/icons/inaf_iasfbo.png",
-		    icon_size : "4em",
-		    //root_classes : ["row"],
+		    //in_root : 'prepend',
+		    icon : "/sadira/icons/iasfbo.png",
+		    //icon_size : "4em",
+		    //root_classes : ["jumbotron"],
 		  //  intro_stick : true,
 		    //render_name : false,
 		    //item_classes : ["row"]
@@ -1285,8 +1287,8 @@ var base_templates={
 	ui_opts : {
 	    root_classes : ["container-fluid"],
 	    child_classes : ["list-group"],
-	    intro_stick : true
-	    //child_view_type : "table"
+	    intro_stick : true,
+	    child_view_type : "table"
 	},
 	elements : {
 	    node : {
