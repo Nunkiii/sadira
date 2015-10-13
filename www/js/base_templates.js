@@ -6,8 +6,12 @@ var base_templates={
 	}
     },
     status:{},
-    double:{},
-    labelled_vector:{ serialize_fields : ["value_labels"]},
+    double:{
+	ui_opts:{
+	    root_classes : ["inline panel panel-default horizontal_margin small full_padding"]
+	}
+    },
+    labelled_vector:{ serialize_fields : ["value_labels"], serialize_childs : false,  elements : {} },
     local_file:{},
     email : { type : 'string'},
     bytesize:{},
@@ -29,24 +33,637 @@ var base_templates={
     demo_multilayer:{},
     object_editor:{},
     xd1_layer:{},
-    
-    container : {
-	name : "Container of typed objects",
+
+
+    button : {
 	ui_opts : {
-	    max_objects : 20
+	    root_node : 'button',
+	    type : 'default'
+	},
+	widget_builder : function(){
+	    var b=this;
+	    new_event(this,'click');
+	    var but=this.but=this.ui_root; //ce('button');
+	    var opts=this.ui_opts;
+	    but.setAttribute('type', 'button');
+
+
+	    var type='';
+	    if(opts.type===undefined)type='btn-default';
+	    else{ 
+		if(typeof opts.type=='array')
+		    opts.type.forEach(function(t){type+='btn-'+t+' '});
+		else type='btn-'+opts.type;
+	    }
+	    but.add_class('btn '+type);
+	    if(opts.name!==undefined)
+		but.innerHTML=opts.name;
+	    but.addEventListener('click',function(){b.trigger('click'); });
+	    //return but;
+	}
+    },
+    button_box : {
+	ui_opts : {
+	    button_size : undefined
+	},
+	widget_builder : function(){
+	    var div=this.ui_root;
+	    div.add_class("btn-group");
+	    if(this.ui_opts.button_size !== undefined) div.className+='btn-group-'+this.ui_opts.button_size;
+	    div.setAttribute('role','group');
+	    
+	    this.add_button=function(but){
+		div.appendChild(but.ui_root);
+		return this;
+	    }
+	}
+    },
+    yesno : {
+	name : "Are you sure ?",
+	ui_opts : {
+	    labels : ['yes','no'], fa_icon : 'question-circle', root_classes : 'well',
+	    child_classes : 'text-center big_vertical_margin',
+	    name_node : 'h4'
+	},
+	
+	elements : {
+	    bbox : { type : 'button_box' }
+	},
+	widget_builder : function(){
+	    new_event(this,'accept');
+	    var yn=this, bb=this.get('bbox');
+	    var byes=create_widget({ type : 'button', ui_opts : {name : this.ui_opts.labels[0], type : 'success'}});
+	    var bno=create_widget({ type : 'button', ui_opts : {name : this.ui_opts.labels[1], type : 'warning'}});
+
+	    byes.listen('click',function(){yn.trigger('accept', true);});
+	    bno.listen('click',function(){yn.trigger('accept', false);});
+	    bb.add_button(byes);
+	    bb.add_button(bno);
+	}
+    },
+    
+    input_group : {
+	ui_opts : {
+	    child_classes : "input-group"
+	}
+    },
+    dropdown : {
+	//type : 'button',
+	ui_opts : {
+	    update_label : true,
+	    //_classes : "dropdown"
+	},
+	widget_builder : function(){
+	    var dropdown=this;
+	    //this.ui_root.className="dropdown";
+	    
+	    var b=create_widget({ type : 'button', ui_opts : {  name : this.ui_opts.name, type : this.ui_opts.type} });
+	    
+	    b.but.add_class('dropdown-toggle');
+	    new_event(this,'select');
+	    
+	    // var but=this.but=cc('button',this.ui_root);
+	    // but.setAttribute('type', 'button');
+	    // but.className='btn btn-default dropdown-toggle';
+	    b.but.setAttribute('data-toggle',"dropdown");
+	    b.but.setAttribute('aria-haspopup',true);
+	    b.but.setAttribute('aria-expanded',false);
+	    
+	    var caret=cc('span',b.but); caret.className="caret";
+
+	    this.ui_root.appendChild(b.ui_root);
+	    var ul=this.ul=cc('ul',this.ui_root);
+	    ul.className='dropdown-menu';
+
+	    this.set_button_label=function(title){
+		b.but.innerHTML=title;
+		var caret=cc('span',b.but); caret.className="caret";
+	    }
+	    
+	    this.clear=function(){ ul.innerHTML=""; }
+	    
+	    this.add_item=function(item, id){
+		var li=item.li=cc('li', this.ul);
+		var a=cc('a',li);
+		
+		a.innerHTML=item.label;
+		li.setAttribute('data-id',id);
+		li.addEventListener('click', function(){
+			    //select( dd.items(li.getAttribute('data-id')));
+		    //dropdown.parent.select(dropdown.parent.items[this.getAttribute('data-id')]);
+		    dropdown.select(item);
+		});
+		
+	    }
+
+	    function setup_list(){
+		dropdown.clear();
+		var id=0;
+		
+		dropdown.items.forEach(function(item){
+		    dropdown.add_item(item, id);
+		    id++;
+		});
+		if(dropdown.items.length>0){
+		    b.but.remove_class('disabled');
+		    dropdown.select(dropdown.items[0]);
+		}else
+		    b.but.add_class('disabled');		    
+	    }
+
+	    dropdown.select=function(item){
+		dropdown.selected=item;
+		dropdown.value=item.label;
+		dropdown.trigger('select',item);
+		if(dropdown.ui_opts.update_label===true){
+		    b.but.innerHTML=item.label;
+		    var caret=cc('span',b.but); caret.className="caret";
+		}
+	    }
+	    
+	    
+	    dropdown.set_items=function(list){
+		dropdown.items=list;
+		setup_list();
+	    }
+	    
+	}
+    },
+    dropdown_input : {
+	type : 'input_group',
+	ui_opts : {
 	},
 	elements : {
-	    browse : {
-		name : 'Browser',
-		ui_opts : {},
-		object_builder : function(ui_opts, browse){
+	    dropdown : {
+		type : 'dropdown',
+		ui_opts : {
+		    root_classes : "input-group-btn",
+		    update_label : false
 		}
 	    },
-	    view : { name : 'Object details : '}
+	    input : {
+		ui_opts : {root_node : 'input'},
+		widget_builder : function(){
+		    var input_w=this;
+		    var input=this.ui_root; //input=ce('input');
+		    input.className='form-control';
+		    input.addEventListener('input',function(){
+			input_w.parent.value=this.value;
+		    });
+		    
+		}
+	    }
+	},
+	widget_builder : function(){
+	    var ddi=this;
+	    new_event(this, 'change');
+	    var dd=this.get('dropdown');
+	    var list_input=ddi.get('input');
+	    
+	    dd.listen('select',function(item){
+		
+		list_input.ui_root.value=item.label;
+		ddi.value=item.label;
+	    });
+	    ddi.input_value=function(value){
+		if(value!==undefined){
+		    list_input.ui_root.value=value;
+		    ddi.value=value;
+		}else
+		    return list_input.ui_root.value;
+	    }
+	    
+	    ddi.set_items=dd.set_items;
+	    ddi.select=dd.select; 
 	}
 
     },
+    
+    container : {
+	name : "Container",
+	child_type : undefined,
+	ui_opts : {
+	    //display_childs : false,
+	    child_view_type : 'dummy',
+	    max_objects : 20
+	},
+	object_builder : function(ui_opts, browse){
+	    var div = ce('div'); div.className='list-group';
+	    
+	    this.listen('add_child', function(c){
 
+		console.log("Building CONTAINER ! " + this.name);
+	    });
+	    this.listen('remove_child', function(){
+		
+	    });
+
+	    return div;
+	}
+    },
+
+    storage : {
+	name : "Browser storage",
+	
+	ui_opts : {
+	    
+	    child_view_type : 'div',
+	    fa_icon : 'database'
+	},
+	elements : {
+	    collections : {
+		name : "Collections",
+		type : "container",
+		child_type : "storage_collection",
+		ui_opts : {root_classes : 'container-fluid' }
+	    }
+	},
+	widget_builder : function(){
+
+	    var storage=this;
+	    var collections=storage.get('collections');
+
+	    storage.store_serialize=function(){
+		storage_serialize('storage',collections);
+	    }
+
+	    storage.store_deserialize=function(){
+		storage_deserialize('storage',{ object : collections });
+	    }
+	    
+	    storage.get_collection=function(cname){
+	    	for (var c in collections.elements){
+		    var cln=collections.elements[c];
+		    if(cln.name == cname){
+			return cln;
+		    }
+		}
+		return undefined;
+	    }
+	    
+	    storage.create_collection=function(collection_name, opts_in, cb_in){
+		var cb, opts;
+		if (cb_in===undefined){
+		    cb = opts_in;
+		    opts={};
+		}else{
+		    opts=opts_in;
+		    cb=cb_in;
+		}
+
+		if(storage.get_collection(collection_name)!==undefined)
+		    cb('Collection '+ collection_name + " already exist !");
+		else{
+		    var ctpl={ type: "storage_collection", name : collection_name, child_type : opts.child_type};
+		    var cln=create_widget(ctpl,collections);
+		    cln.set('id',Math.random().toString(36).substring(2));
+		    collections.add_child(cln);
+		    storage.store_serialize();
+		    cb(null, cln);
+		}
+		//cln.set('id',Math.random().toString(36).substring(2));
+	    }
+	    
+	    storage.collection=function(collection_name, opts_in, cb_in){
+		var cb, opts;
+		if (cb_in===undefined){
+		    cb = opts_in;
+		    opts={};
+		}else{
+		    opts=opts_in;
+		    cb=cb_in;
+		}
+		
+		var cln=storage.get_collection(collection_name);
+
+		if(cln !== undefined)
+		    cb(null, cln);
+		else{
+		    if(opts.create===true){
+			storage.create_collection(collection_name, opts, cb);
+			return;
+		    }else
+			cb("No such collection " + collection_name + " and no create option set!");
+		}
+	    }
+	    
+	    var bbox = create_widget({ type : 'button_box' });
+	    bbox.add_button( create_widget({ type : 'button', ui_opts : { name : 'Clear', type : 'danger'},
+					     widget_builder : function(){
+						 this.listen('click', function(){
+						     var yn=create_widget({
+							 type : 'yesno',
+							 name : "Please confirm you want to clear all this application data from your browser storage.",
+							 depth : storage.depth+1,
+							 ui_opts : { labels : ['Clear browser data', 'Cancel'] }
+						     });
+						     set_modal(yn,storage.ui_childs.div);
+						     yn.listen('accept', function (accept){
+							 //console.log("Accepted ? " + accept);
+							 
+							 if(accept){
+							     storage.message('clearing local storage...');
+							     localStorage.clear();
+							     storage.message('clearing local storage done', { type : 'success', title : 'Clearing local storage'});
+							 }
+							 
+							 yn.trigger('close');
+						     });
+						     
+						 });
+					     }
+					   } ));
+	    
+	    storage.store_deserialize();
+	    storage.ui_name.appendChild(bbox.ui_root);
+	    //return bbox.ui_root;
+	}
+    },
+
+    storage_collection : {
+	ui_opts : { fa_icon : "folder-o" },
+	name : "Invalid collection name",
+	elements : {
+	    id : { name : "Local storage key", type : 'string' , ui_opts : { label : true }  },
+	    docs : {
+		name : "Documents",
+		type : "container",
+		child_type : "storage_doc",
+	    }
+	},
+	widget_builder : function(){
+	    var cln=this;
+	    var docs=cln.get('docs');
+
+	    cln.store_serialize=function(){
+		storage_serialize(cln.val('id'), cln.get('docs'));
+	    }
+
+	    cln.store_deserialize=function(){
+		storage_deserialize(cln.val('id'), { object :  cln.get('docs') });
+	    }
+
+	    
+	    cln.get_document=function(opts){
+		
+		for(var d in docs.elements){
+		    var doc=docs.elements[d];
+		    if(opts.id !== undefined){
+			if(doc.val('id')==opts.id)
+			    return doc;
+		    }
+		    if(opts.name !== undefined){
+			if(doc.name==opts.name)
+			    return doc;
+		    }
+		}
+		return undefined;
+	    }
+	    
+	    cln.document=function(opts, cb){
+		
+		var ex_doc = this.get_document(opts);
+		
+		if(ex_doc!==undefined) {
+		    cb({ existed : true}, ex_doc);
+		    return;
+		}
+		
+		if(opts.create===true){
+		    var dtpl={ type: "storage_doc" };
+		    if(opts.name!==undefined) dtpl.name=opts.name;
+		    var doc=create_widget(dtpl,docs);
+		    doc.set('id',Math.random().toString(36).substring(2));
+		    docs.add_child(doc);
+		    cln.store_serialize();
+		    cb({ existed : false}, doc);
+		    return;
+		}
+		
+		cb({ error : "No such doc, and no create option flag"});
+	    };
+	    
+	    cln.delete_document=function(opts){
+		var todel_doc=cln.get_document(opts);
+		if(todel_doc===undefined)
+		    throw Error("Collection ["+cln.name+"] : Cannot delete doc : unknown doc identified by ["+JSON.stringify(opts)+"]");
+		var save_location=todel_doc.get('id');
+		localStorage.removeItem(save_location);
+		docs.remove_child(todel_doc);
+		cln.store_serialize();
+	    };
+	    
+	    if(cln.val('id')!==undefined)
+		cln.store_deserialize();
+	}
+    },
+    storage_doc : {
+	name : "Stored document",
+	ui_opts : { fa_icon : "file" },
+	elements : {
+	    date : { name : "Creation date", type : 'date', ui_opts : { label : true }  },
+	    tpl : { name : "Template", type : 'string', value : '' , ui_opts : { label : true }  },
+	    id : { name : "Ws ID", type : 'string' , ui_opts : { label : true }  }
+	},
+	widget_builder : function(){
+	    var doc=this;
+	    doc.set('date', new Date());
+	    
+	    doc.store_serialize=function(object, opts){
+
+		if(opts===undefined) opts={};
+		if(object.type!==undefined)
+		    doc.set('tpl', object.type);
+
+		storage_serialize(doc.val('id'), object);
+	    };
+	    
+	    doc.store_deserialize=function(opts){
+		console.log("DOC DESER : id " + doc.val('id'));
+		//console.log("DOC obj " + opts.object.name);
+		return storage_deserialize(doc.val('id'), opts);
+	    };
+	}
+    },
+    object_save : {
+
+    	name : 'Save to webstorage',
+	ui_opts : {
+	    root_classes : ["panel panel-default container-fluid"],
+	    child_classes : ["container-fluid vertical_margin"],
+	    fa_icon : 'save',
+	    //name_node : 'h4'
+	},
+	elements : {
+	    name : {
+		//name : "Save as :",
+		type : "dropdown_input",
+		ui_opts : {root_classes :  ["col-xs-12"]},
+		elements : {
+		    save_b : {
+			type : 'action', name : "Save",
+			ui_opts : {
+			    item_classes : ["btn btn-success"],
+			    root_classes :  ["input-group-btn"],
+			    fa_icon : "save"
+			}
+		    }
+		    
+		},
+		widget_builder : function(){
+		    var dd=this;
+		    var ddb=this.get('dropdown');
+		    ddb.set_button_label("Save as");
+		    
+		    var collection=dd.parent.collection;
+
+		    dd.populate=function(){
+			sadira.storage.collection(collection, function(error, cln){
+			    if(error)return; // dd.parent.message(error, { type : 'danger', title : 'Storage error'});
+			    cln.store_deserialize();
+			    var doc_list=cln.get('docs');
+			    var item_list=[];
+			    var tosel;
+			    for(var d in doc_list.elements){
+				var doc=doc_list.elements[d];
+				var item={ label : doc.name, value : doc.val('id') };
+				// if(saved_doc !== undefined) if(saved_doc.name==doc.name) tosel=item;
+				item_list.push(item);
+			    }
+			    dd.set_items(item_list);
+			    //if(tosel!==undefined) dd.select(tosel);
+			});
+		    };
+		    dd.populate();
+		}
+	    },
+	},
+	widget_builder : function(){
+	    
+	    var sui=this;
+	    var name=this.get('name');
+	    var collection=this.collection;
+
+	    new_event(this,'save_doc');
+	    
+	    this.get('save_b').listen('click', function(){
+		if(name.value===undefined || name.value===""){
+		    return sui.message("Please provide a valid name for your new document", { type : 'danger', title : 'Storage error'});
+		}
+		sadira.storage.collection(collection, { create : true}, function(error, cln){
+		    if(error)return sui.message(error, { type : 'danger', title : 'Storage error'});
+		    
+		    cln.document( { name : name.value, create : true}, function(status, doc){
+			if(status.error)return sui.message(status.error, { type : 'danger', title : 'Storage error'});
+			function really_save(){
+			    sui.trigger('save_doc', doc);
+			}
+			if(status.existed){
+			    var yn=create_widget({
+				type : 'yesno',
+				name : "Overwrite existing " + name.value + ' ?',
+				depth : sui.depth+1,
+				ui_opts : { labels : ['Overwrite', 'Cancel'] }
+			    });
+			    set_modal(yn,sui.ui_childs.div);
+			    yn.listen('accept', function (accept){
+				console.log("Accepted ? " + accept);
+				if(accept){
+				    really_save();
+				}
+				
+				yn.trigger('close');
+			    });
+			}else
+			    really_save();
+			
+			
+		    });
+		    
+		    
+		});
+		
+		console.log("Saving..!!!!");
+	    });
+	}
+    },
+    object_loader : {
+	name : "Object load",
+	ui_opts : {
+	    root_classes : ["panel panel-default container-fluid vertical_padding"],
+	    child_classes : ["row"],
+	    fa_icon : 'download',
+	    //name_node : 'h4'
+	},
+	elements : {
+	    name : {
+		//name : "Select :",
+		type : "dropdown_input",
+		ui_opts : {
+		    root_classes : "col-xs-12", label : true,  item_classes : [""],
+		    //name_classes : "input-group-addon"
+		},
+		elements : {
+		    load_b : {
+			type : 'action',
+			name : "Load",
+			ui_opts : {
+			    root_classes : "input-group-btn",
+			    item_classes : "btn btn-info",
+			    fa_icon : "load"
+			},
+			widget_builder : function(){
+			    
+			}
+		    }
+						    
+		},
+		widget_builder : function(){
+		    var dd=this;
+		    var ddb=this.get('dropdown');
+		    var load_b=this.get('load_b');
+		    
+		    ddb.set_button_label("Loading ...");
+
+		    new_event(dd.parent,'load_doc');
+		    
+		    var collection = dd.parent.collection;
+		    
+		    dd.populate=function(){
+			sadira.storage.collection(collection,{create : true}, function(error, cln){
+			    if(error){
+				ddb.set_button_label(error);
+				return; // dd.parent.message(error, { type : 'danger', title : 'Storage error'});
+			    }
+			    cln.store_deserialize();
+			    ddb.set_button_label(collection);
+			    var doc_list=cln.get('docs');
+			    var item_list=[];
+			    //var tosel;
+			    for(var d in doc_list.elements){
+				var doc=doc_list.elements[d];
+				var item={ label : doc.name, value : doc.val('id'), doc : doc };
+				
+				// if(saved_doc !== undefined)
+				//     if(saved_doc.name==doc.name) tosel=item;
+				item_list.push(item);
+			    }
+			    dd.set_items(item_list);
+			    //if(tosel!==undefined) dd.select(tosel);
+			    
+			    load_b.listen('click', function(){
+				dd.parent.trigger('load_doc',ddb.selected.doc);
+			    });
+			    
+			});
+		    };
+		    dd.populate();
+		}
+		
+	    },
+	}
+    },
+    
     browser : {
 	ui_opts : {
 	    
@@ -61,8 +678,9 @@ var base_templates={
 	subtitle : "an error occured !",
 	type : "html",
 	ui_opts : {
-	    root_classes : ["list-group-item vertical_margin"],
-	    item_classes : ["alert alert-danger"]
+	    wrap : true, wrap_classes : ["container-fluid"],
+	    root_classes : ["container-fluid jumbotron"],
+	    item_classes : ["col-sm-offset-2 col-sm-8 alert alert-danger big_vertical_margin"]
 	},
 	value : "Error message"
     },
@@ -1030,7 +1648,6 @@ var base_templates={
 		
 	}
     },
-    
     process : {
 	name : "Process",
 	elements : {
@@ -1064,7 +1681,7 @@ var base_templates={
 	ui_opts : {
 	    // root_classes : ["container-fluid"],
 	    //child_classes : ["container-fluid"]
-
+	    item_classes : "vector_plot",
 	    enable_range : false,
 	    enable_selection : false
 	},

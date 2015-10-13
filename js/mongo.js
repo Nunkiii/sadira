@@ -123,7 +123,9 @@ server.prototype.connect = function(cb, options_in) {
 		    }
 		    if(every_group!==undefined && every_group!==null){
 			mongo.everybody_group=every_group;
+			console.log("USer creatinnnnng!");
 			var du=create_object("user");
+			console.log("USer created!");
 			du.get('groups').add_link(every_group);
 			mongo.default_user=get_template_data(du);
 			console.log("Created default user : " + JSON.stringify(mongo.default_user));

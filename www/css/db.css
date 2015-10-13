@@ -77,6 +77,12 @@ On top of bootsrap 3
 } 
 */
 
+.full_width{
+	display: block;
+	width : 100%;
+	
+}
+
 .full_height_scroll{
  max-height: 100vh;
  overflow-y : auto;	
@@ -217,14 +223,21 @@ padding-left: .5em;
   color: white;
 }
 
+.panel {
+       background : transparent;
+}
+
+.panel > label {
+  margin-bottom: 0px;
+}
 
 .sadira_panel{
-	z-index : 100;
-	position : fixed;
-	right: 0px;
-	top: 0px;
-	color: white;
-	border: 1px solid blue;
+ z-index : 100;
+ position : fixed;
+ right: 0px;
+ top: 0px;
+ color: white;
+ border: 1px solid blue;
 }
 
 
@@ -603,6 +616,10 @@ ul.toolbar {
   background: rgba(80,80,80,.6);
 }
 
+.no_vertical_margin{
+	margin-top : 0em;
+}
+
 .horizontal_margin {
 margin-right : .5em;
 }
@@ -625,6 +642,10 @@ margin-right : .5em;
 .vertical_padding {
   padding-top : .5em;
   padding-bottom : .5em;
+}
+
+.full_padding {
+  padding : .5em;
 }
 
 .title_margin {
@@ -766,8 +787,9 @@ Widget - w-m
   background: transparent;
 
 }
-
-
+.vector_plot > svg{
+	max-height: 50vh;
+}
 .camwindow .widget .content {
   height: 0%;
   display: none;
@@ -933,28 +955,6 @@ label.unslided{
 */
   
 }
-
-/*
-.db[data-type="login"] {
-  display: table-cell;
-  vertical-align: middle;  
-}
-.db[data-type="login"] .label{
-  padding : .8em;
-  vertical-align: bottom;
-  margin-right: 1em;
-}
-.db[data-type="login"] label{
-  color: lightgrey;
-  font-weight: normal;
-  margin-right: .5em;
-}
-
-.db[data-type="login"] >a{
-  display : inline-block;
-  }
-*/
-
 
 .un_editable{
   cursor: pointer;
@@ -1403,9 +1403,11 @@ background-color: white;
 
 .intro_btn{
   font-size: .9em;
- /* color: rgba(90,80,200,1.0); */
-  padding: .3em;
+ /*
+	color: rgba(90,80,200,1.0);
   padding-left : 1em;
+*/
+  padding: .3em;
   cursor: pointer;
 }
 
@@ -1484,13 +1486,13 @@ d3 vector shape
 /*
 
 */
-fill: grey;
+fill: #aaa;
       stroke: none;
   font-family: sans-serif;
   font-weight: normal;
     font-style: normal;	
   stroke-width: 1px;
-  font-size: .6em;
+  font-size: .5em;
 
 }
 
@@ -1668,6 +1670,14 @@ Child representations
   margin-top: 1em;
   vertical-align: top;
 
+}
+
+div[data-type="vector"]{
+
+}
+
+div[data-type="double"] > .control-label{
+   width: 5em;
 }
 
 /*

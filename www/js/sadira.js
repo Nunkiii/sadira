@@ -13,6 +13,114 @@
     new_event(window.sadira,"ready");
     new_event(window.sadira,"user_login");
     new_event(window.sadira,"user_logout");
+
+    sadira.setup_storage=function(){
+	var storage_tpl={ type : 'storage', ui_opts : {close : true}};
+	sadira.storage=create_widget(storage_tpl);
+    };
+
+    sadira.setup_root_widget=function(tpl_name){
+    	var w;
+	try{
+	    var widget_template=tmaster.build_object(tpl_name);
+	    if(widget_template.toolbar===undefined){
+		widget_template.toolbar={   };
+	    }
+	    
+	    var tb=widget_template.toolbar;
+	    if(tb.elements===undefined) tb.elements={} ;
+	    if(widget_template.ui_opts===undefined){
+		widget_template.ui_opts = { name_node : 'h3'} ;
+		
+	    }
+	    else
+		widget_template.ui_opts.name_node='h3';
+	    
+	    tb.ui_opts={ toolbar_classes : ["navbar-inverse navbar-fixed-top"] };
+	    
+	    //      var right_nav=tb.create_navbar('navbar-nav navbar-right');
+
+	    var lnav=tb.elements.login_nav = {
+		name : "User access",
+		fa_icon : 'globe',
+		pos : 'right',
+		elements : {
+		    login : {name : "Log in",type : 'login' },
+		    logout : {name : "Log out",type : 'logout' },
+		    newacc : { name : "Create new account", type : "signup" },
+		    home : { name : "User homepage", type : "user_home" },
+		    storage : { name : "Storage", widget : sadira.storage }
+		}
+		
+	    };
+	    
+	    function user_login(u){
+		//lnav.fa_icon='user';
+		tb.set_item_name(lnav, "<strong>" + u.id + "</strong>");
+		lnav.icon.style.color='springgreen';
+
+		lnav.elements.login.li.style.display='none';
+		lnav.elements.newacc.li.style.display='none';
+		lnav.elements.logout.li.style.display='';
+		lnav.elements.home.li.style.display='';
+		
+	    }
+	    function user_logout(){
+		//lnav.fa_icon='globe';
+		tb.set_item_name(lnav, "Sadira");
+		lnav.icon.style.color='';
+		lnav.elements.login.li.style.display='';
+		lnav.elements.newacc.li.style.display='';
+		lnav.elements.logout.li.style.display='none';
+		lnav.elements.home.li.style.display='none';
+	    }
+	    
+	    window.sadira.listen('user_login', function(user){
+		user_login(user);
+	    });
+	    
+	    window.sadira.listen('user_logout', function(user){
+		user_logout();
+	    });
+	    
+	    //       var ul=tb.create_item(login_nav, right_nav);
+	    //       tb.fill_elements(login_nav.subul, login_nav.elements);
+	    
+	    /*
+	      var login_w=tmaster.build_template('login');
+	      
+	      login_w.ui_opts.name_node='a';
+	      login_w.ui_opts.root_node='li';
+	      login_w.ui_opts.sliding=true;
+	      login_w.ui_opts.sliding_animate=true;
+	      login_w.ui_opts.sliding_dir='h';
+	      login_w.ui_opts.slided=false;
+	      
+	      create_ui({}, login_w);
+	      var sp=ce('span'); sp.className='caret';
+	      login_w.ui_root.appendChild(sp);
+	      login_w.ui_name.style.display='inline-block';
+	      
+       //right_nav.appendChild(login_w.ui_root);
+       tb.unav.appendChild(login_w.ui_root);
+	    */
+	    
+	    create_ui({},widget_template);
+	    
+	    window.sadira.user!==undefined ? user_login() : user_logout();
+	    
+	    widget_template.interpret_url();
+	    attach_ui(widget_template, document.getElementById("content"));
+
+	    window.sadira.session_start();
+	}
+	catch(error){
+	    console.log("Error build widget !  " + dump_error(error));
+	    w=create_widget('error_page');
+	    w.set_value("While building widget ["+tpl_name+"] : " + dump_error(error) );
+	    document.getElementById("content").appendChild(w.ui_root);
+	}
+    }
     
     sadira.session_start=function(opts){
 
@@ -54,6 +162,7 @@
     }
     
     window.addEventListener("load",function(){
+	window.sadira.setup_storage();
 	window.sadira.trigger("ready", window.sadira);
 	console.log("sadira ready....");
     });

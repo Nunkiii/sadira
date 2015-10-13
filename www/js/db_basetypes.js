@@ -624,7 +624,7 @@ template_ui_builders.double=function(ui_opts, tpl_item){
 	break;
 
     case "edit": 
-
+	
 	ui=tpl_item.ui=ce("input");
 	ui.className="form-control";
 	
@@ -693,7 +693,8 @@ template_ui_builders.labelled_vector=function(ui_opts, lvec){
 	    value : lvec.value[v],
 	    ui_opts : {
 		label : true,
-		root_classes : ["inline panel panel-default horizontal_margin small"],
+		
+		item_classes : 'inline',
 		editable : ui_opts.editable,
 		type: ui_opts.type
 	    }
@@ -1077,7 +1078,7 @@ template_ui_builders.login=function(ui_opts, login){
 	//status_tpl.set_value(err);
 	login_tpl.ui_root.style.display="";
 	login.intro_div.className="alert alert-danger";
-	login.intro_div.innerHTML = "<p><strong>Login error :</strong> " + err + "</p>";
+	login.intro_div.innerHTML = '<div class="col-xs-10"><p><strong>Login error :</strong> ' + err + "</p></div>";
 
 	login.intro_div.appendChild(login_tpl.item_ui);
 	login_tpl.set_title( "Retry !");
@@ -1087,10 +1088,6 @@ template_ui_builders.login=function(ui_opts, login){
     function success_mode(info){
 	
 	mode="success";
-	//status_tpl.ui.className="text-success";
-	//status_tpl.set_value("Logged in as " + (è(info)?info:""));
-	//user_tpl.ui_root.add_class("has-success");
-	//status_tpl.ui_root.style.display="none";
 	show_input(false);
 	
 	//login.set_title("Logged in as " + login.user_id);
@@ -1099,14 +1096,26 @@ template_ui_builders.login=function(ui_opts, login){
 	login.intro_div.appendChild(login_tpl.item_ui);
 	login_tpl.set_title("Logout");
 
-	//login_tpl.hide(true);
-	
-	// login_tpl.ui.remove_class("btn-primary");
-	// login_tpl.ui.add_class("btn-warning");
-	// login_tpl.ui_root.style.display="";
-	// login_tpl.disable(false);
-
     }
+    
+    user_tpl.ui.addEventListener("keydown",function(e){
+	if(e.keyCode == 13){
+	    user_name=this.value;
+	    check();
+	    pw_tpl.pui.focus();
+	    return false;
+	}
+    }, false);
+
+    pw_tpl.pui.addEventListener("keydown",function(e){
+	if(e.keyCode == 13){
+	    user_password=this.value;
+	    check();
+	    login_tpl.trigger('click');
+	    return false;
+	}
+    }, false);
+    
     
     user_tpl.ui.addEventListener("input", function(v){
 	user_name=this.value;
@@ -1124,6 +1133,7 @@ template_ui_builders.login=function(ui_opts, login){
     //var hp=ab2b64(hh);
     //var hp = sjcl.codec.base64.fromBits(hhh);  
     //console.log("HH ["+hh+"] HP["+hp+"]");
+
     
     login_tpl.listen("click",function(){
 	switch(mode){
@@ -1134,6 +1144,7 @@ template_ui_builders.login=function(ui_opts, login){
 	    var hp=sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(user_password));
 	    
 	    user_password="*";
+	    pw_tpl.pui.value="";
 	    console.log("Login " + user_name + " hpw " + hp + " ...");
 	    
 	    var post_data = "email="+encodeURIComponent(user_name)+"&hashpass="+encodeURIComponent(hp);
@@ -1372,9 +1383,28 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
     
     new_event(tpl_item,"change");
 
+    var ui;
+    tpl_item.set_value=function(nv){
+	
+	//console.log("Bool : " + tpl_item.name + " : " + nv);
+	if(nv !== undefined){
+	    tpl_item.value=nv;
+	    tpl_item.trigger("change", tpl_item.value);
+	}
+	else
+	    if(tpl_item.value===undefined)
+		if(tpl_item.default_value!==undefined)
+		    tpl_item.value=tpl_item.default_value;
+
+	if(tpl_item.value===undefined)tpl_item.value=false;
+	if(ui!==undefined)
+	    ui.checked=tpl_item.value;
+    }
+
+    
     switch (ui_opts.type){
     case "short":
-	var ui=tpl_item.ui=ce("span");
+	ui=tpl_item.ui=ce("span");
 	//ui.className="value";
 	tpl_item.set_value=function(nv){
 	    if(typeof nv !='undefined')tpl_item.value=nv;
@@ -1386,26 +1416,16 @@ template_ui_builders.bool=function(ui_opts, tpl_item){
 	//if(è(tpl_item.ui_name))
 	//    tpl_item.ui_root.removeChild(tpl_item.ui_name);
 
-	var ui=tpl_item.ui=ce("input");
+	//tpl_item.ui_name.innerHTML="";
+	//var ui=tpl_item.ui=cc("input", tpl_item.ui_name, true);
+	ui=tpl_item.ui=ce("input");
+	//ui.innerHTML=tpl_item.name;
 	ui.type="checkbox";
 
 	//tpl_item.ui_root.add_class("checkbox");
 	//tpl_item.ui_root.appendChild(lab);
 	
 	
-	tpl_item.set_value=function(nv){
-
-	    if(nv !== undefined){
-		tpl_item.value=nv;
-		tpl_item.trigger("change", tpl_item.value);
-	    }
-	    else
-		if(tpl_item.value===undefined)
-		    if(tpl_item.default_value!==undefined)
-			tpl_item.value=tpl_item.default_value;
-	    if(tpl_item.value===undefined)tpl_item.value=false;
-	    ui.checked=tpl_item.value;
-	}
 
 	ui.addEventListener("change",function(){
 	    tpl_item.set_value(this.checked); 
@@ -1482,28 +1502,28 @@ template_ui_builders.string=function(ui_opts, tpl_item){
 	ui.className="form-control";
 	
 	ui.addEventListener("input",function(){
-	    console.log("INPUT Event ont text");
+	    //console.log("INPUT Event ont text");
 	    tpl_item.set_value(this.value); 
 	    
 	},false);
 
 	ui.addEventListener("keydown",function(e){
-	    
 	    if(e.keyCode == 13){
-		console.log("Helloooo !");
-		e.preventDefault();
+		//console.log("Helloooo !");
+		//
 		tpl_item.set_value(this.value);
 		if(ui_opts.editable !== undefined){
-		    console.log("Helloooo EDIT !");
+		    e.preventDefault();
+		    //console.log("Helloooo EDIT !");
 		    tpl_item.ui_opts.type="short";
 		    tpl_item.rebuild();
 		}
 		return false;
 	    }
-	});
+	}, false);
 
-	
-	
+
+
 	break;
     default: 
 	throw "Unknown UI type ";
@@ -1596,8 +1616,10 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	 }
 	
 	var pui=tpl_item.pui=cc("input",cnt);
-	var lab=tpl_item.lui=cc("span",cnt); lab.className="btn btn-info input-group-addon";
-	lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-close'></span>";//"⎃";
+	var lab=tpl_item.lui=cc("span",cnt);
+	
+	lab.className="btn btn-default input-group-addon";
+	lab.innerHTML="<i class='fa fa-eye'></i>";
 	//var show=cc("input",lab); show.type="checkbox";
 	pui.className="form-control";
 	pui.type="password";
@@ -1607,8 +1629,8 @@ template_ui_builders.password=function(ui_opts, tpl_item){
 	lab.onclick=function(){
 	    pui.show=!pui.show;
 	    pui.type= pui.show ? "text" : "password";
-	    var eye=pui.show ? "open" : "close";
-	    lab.innerHTML="<span class='glyphicon glyphicon glyphicon-eye-"+eye+"'></span>";//"⎃";
+	    var eye=pui.show ? "-slash" : "";
+	    lab.innerHTML="<i class='fa fa-eye"+eye+"'></i>";
 	    //console.log("pt = " + pui.type);
 
 	}
@@ -1931,11 +1953,7 @@ template_ui_builders.combo=function(ui_opts, combo){
     ui_opts.type='edit';
     
     
-    //new_event(combo,"change");
-    
-    //    if(ui_opts.type==="edit"){
-    //console.log("Style " + style);
-    
+    new_event(combo,"change");
     
     if(style==="menu"){
 	ui=combo.ui=ce("div"); ui.className="dropdown";
@@ -1955,10 +1973,10 @@ template_ui_builders.combo=function(ui_opts, combo){
     else{
 	ui=combo.ui=ce("select"); ui.className="form-control";
 	
-	//ui.addEventListener('change', function(c){
-	//combo.set_value(this.value);
-	//combo.trigger('change', combo.value);
-	//},false);
+	ui.addEventListener('change', function(c){
+	    combo.set_value(this.value);
+	    combo.trigger('change', combo.value);
+	},false);
 	
     }
     
@@ -1990,7 +2008,7 @@ template_ui_builders.combo=function(ui_opts, combo){
 	    }
 	});
 	
-	if(combo.options.length>0){
+	if(combo.options.length>0 && combo.value===undefined){
 	    var oo=combo.options[0];
 	    if(typeof oo === "string")
 		combo.set_value(oo);
@@ -2029,20 +2047,40 @@ template_ui_builders.combo=function(ui_opts, combo){
     // }
 
 
-    config_common_input(combo);
+    //config_common_input(combo);
+    
+    
+    combo.set_value=function(nv){
+	
+	if(è(nv)){
+	    //console.log("COMBO + "+ combo.name + "  set value to " + nv);
+	    var ch=(nv!==combo.value);
+	    combo.value=nv;
+	    if(ch)
+		combo.trigger("change", combo.value);
+	}
+	
+	if(è(combo.value)){
+	    combo.ui.value=combo.value;
+	}
+	// else
+	//     if(è(combo.set_placeholder_value))
+	// 	combo.set_placeholder_value();
+    }
+    
     
     combo.set_default_value=function(){
 	if(è(combo.default_value)) return combo.set_value(combo.default_value);
-
+	
 	if(è(combo.options))
 	    if(combo.options.length>0)
 		return combo.set_value(combo.options[0].value);
 
-	if(è(combo.holder_value)) combo.set_holder_value(combo.holder_value);
+	//if(è(combo.holder_value)) combo.set_holder_value(combo.holder_value);
     }	
 
     combo.set_options();
-    //combo.set_default_value();
+    combo.set_default_value();
     return ui;
 }
 
@@ -2074,12 +2112,12 @@ template_ui_builders.action=function(ui_opts, action){
     
     if(è(action.link)){
 	
-	ui = ce("a");
+	ui = action.ui=ce("a");
 	ui.href=action.link;
 
     }else{
 	
-	ui = ce(bnode);
+	ui = action.ui= ce(bnode);
 
 	new_event(action,"click");
 
@@ -2296,7 +2334,8 @@ template_ui_builders.vector=function(ui_opts, vec){
 
     vec.xlabel="X";
     vec.ylabel="Y";
-    
+
+    /*
     vec.serialize=function(){
 	var v=[];
 	vec.value.forEach(function(p){
@@ -2306,6 +2345,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     }
 
     vec.deserialize=function(v){
+	if(v===undefined) return;
 	vec.value=vec.plots=[];
 	lines.elements={};
 	if(lines.ui_childs!==undefined && lines.ui_childs.div!==undefined)
@@ -2325,6 +2365,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	vec.redraw();
 	vec.config_range();
     }
+    */
     
     vec.set_value=function(v){
 	if(v!==undefined){
@@ -2431,6 +2472,10 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    var pl=plots[p];
 	    
 	    //console.log("Config Range : plot "+p+" ND " +plots[p].data.length);
+	    if(pl.le===undefined){
+		console.log("Bug");
+		break;
+	    }
 	    
 	    if(pl.le.val('enable')){
 		//for(var x in pl) console.log("PL " + x);
@@ -2535,11 +2580,11 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
-
+    
     if(ui_opts.show_cursor){
 	console.log("Create cursor UI....");
 	
-	var cursor=create_widget({ name : "Cursor ",
+	var cursor=vec.cursor=create_widget({ name : "Cursor ",
 				   type : "labelled_vector", value : [0,0],
 				   value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
 				   ui_opts : {
@@ -2658,8 +2703,12 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	
 	if(vec.value!==undefined)
-	    for(var i=0;i<vec.value.length;i++)
-		vec.value[i].redraw(context);
+	    for(var i=0;i<vec.value.length;i++){
+		if(vec.value[i].redraw !== undefined)
+		    vec.value[i].redraw(context);
+		else
+		    console.log("Bug no redraw func on plot !");
+	    }
 	
 	//console.log("redraw trigger  " + context);
 	vec.trigger("redraw", context);
@@ -2755,14 +2804,14 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    
 	    var pl = plots===undefined ? 0 : plots.length;
 	    var defname="Line"+ (pl+1);
-
-	    p.label=opts.label || defname;
-
+	    
+	    p.label=opts.label===undefined ? defname : opts.label;
+	    
 	    if(p.le===undefined){
 		p.le=create_line_label(p, p.label, p.stroke)
 	    }else{
-		//p.le.set('line_color',p.stroke);
-		//p.le.set_name(p.label);
+		p.le.set('line_color',p.stroke);
+		p.le.get('enable').set_title(p.label);
 	    }
 	}
 	

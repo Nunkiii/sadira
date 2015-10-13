@@ -463,10 +463,7 @@ var _sadira = function(){
 	    //obj.db.perm.grant();
 	}
 
-	
 	//tpl_mgr.template_object.prototype.check_permission=function(perm, cb){}
-
-	
 	tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
 	    if(this.apis===undefined) this.apis={};
 	    this.apis[opts.name]={ opts : opts, f: cb };
