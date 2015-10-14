@@ -22,7 +22,7 @@
     sadira.setup_root_widget=function(tpl_name){
     	var w;
 	try{
-	    var widget_template=tmaster.build_object(tpl_name);
+	    var widget_template=sadira.root_widget=tmaster.build_object(tpl_name);
 	    if(widget_template.toolbar===undefined){
 		widget_template.toolbar={   };
 	    }
@@ -110,15 +110,16 @@
 	    window.sadira.user!==undefined ? user_login() : user_logout();
 	    
 	    widget_template.interpret_url();
-	    attach_ui(widget_template, document.getElementById("content"));
+	    attach_ui(widget_template, document.getElementsByTagName('body')[0]);
 
 	    window.sadira.session_start();
 	}
 	catch(error){
 	    console.log("Error build widget !  " + dump_error(error));
 	    w=create_widget('error_page');
-	    w.set_value("While building widget ["+tpl_name+"] : " + dump_error(error) );
-	    document.getElementById("content").appendChild(w.ui_root);
+	    w.set_value("<div class='panel-heading'>While building widget ["+tpl_name+"] : </div><div class='panel-content'>" + dump_error(error) + "</div>" );
+	    //document.getElementById("content").appendChild(w.ui_root);
+	    document.getElementsByTagName('body')[0].appendChild(w.ui_root);
 	}
     }
     
@@ -131,9 +132,10 @@
 	    if(sadira.user!==undefined) delete sadira.user;
 	    
 	    if(error){
-		var ep=create_widget('error_page');
-		ep.set_value(error);
-		window.document.body.appendChild(ep.ui_root);
+		sadira.root_widget.message(error, { type : 'warning', title : 'Session register', last : 3000});
+		// var ep=create_widget('error_page');
+		// ep.set_value(error);
+		// window.document.body.appendChild(ep.ui_root);
 	    }
 	    
 	    if(res!==undefined){

@@ -2335,6 +2335,11 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.xlabel="X";
     vec.ylabel="Y";
 
+    vec.serialize=function(){
+	vec.value=[];
+	return vec.value;
+    }
+    
     /*
     vec.serialize=function(){
 	var v=[];
@@ -2580,43 +2585,69 @@ template_ui_builders.vector=function(ui_opts, vec){
     
     //{width: 200, height: 100, margin : {top: 0, right: 10, bottom: 30, left: 50} };
 
-    
-    if(ui_opts.show_cursor){
-	console.log("Create cursor UI....");
-	
-	var cursor=vec.cursor=create_widget({ name : "Cursor ",
-				   type : "labelled_vector", value : [0,0],
-				   value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
-				   ui_opts : {
-				       label : true,
-				       root_classes : ["container-fluid"],
-				       child_classes : ["inline"],
-				       sliding: true,
-				       slided : true
-				   }
-				 });
+    new_event(vec, 'mousemove');
 
-	vec.get('btns').add_child(cursor);
+    vec.svg.on('mousemove', function () {
 	
-	new_event(vec, 'mousemove');
-	vec.svg.on('mousemove', function () {
-	    var mp = d3.mouse(this);
-	    mp[0]-=margin.left;
-	    mp[1]-=margin.top;
-	    
-	    var tw=vec.svg.node().clientWidth-margin.left-margin.right;
-	    //console.log("PIX " + mp[0]);
-	    //var ar= vec.svg.node().clientWidth/vec.vw;
-	    mp[0]=mp[0]/vec.width;
-	    //console.log("Frac " + mp[0]);
-	    mp[0]=vec.xr[0]+mp[0]*(vec.xr[1]-vec.xr[0]);
-	    //mp[1]=yscale(mp[1]);
-	    vec.trigger('mousemove', mp);
-	    cursor.set_value(mp);
-	    //console.log("MouseMove " + JSON.stringify(mp));
+	var mpx= d3.mouse(this);
+	var mp =[mpx[0]-margin.left,mpx[1]-margin.top,mpx[0],mpx[1]];
+	
+	//var tw=vec.svg.node().clientWidth-margin.left-margin.right;
+	//console.log("PIX " + mp[0]);
+	//var ar= vec.svg.node().clientWidth/vec.vw;
+	mp[0]=mp[0]/vec.width;
+	mp[1]=vec.yr[1]-(mp[1]/vec.height)*(vec.yr[1]-vec.yr[0]);
+	//console.log("Frac " + mp[0]);
+	mp[0]=vec.xr[0]+mp[0]*(vec.xr[1]-vec.xr[0]);
+	//mp[1]=vec.yr[0]+ (vec.yr[1]-mp[1])*(vec.yr[1]-vec.yr[0]);
+
+	//mp[1]=yscale(mp[1]);
+	vec.trigger('mousemove', mp);
+	
+	//console.log("MouseMove " + JSON.stringify(mp));
+    });
+    
+    
+    if(ui_opts.show_cursor===true){
+	vec.cursor=vec.get('btns').add_child(
+	    create_widget({
+		name : "Cursor ",
+		type : "labelled_vector", value : [0,0],
+		value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
+		ui_opts : {
+		    label : true,
+		    root_classes : ["container-fluid"],
+		    child_classes : ["inline"],
+		    sliding: true,
+		    slided : true
+		}
+	    }), 'cursor');
+	
+	vec.listen('mousemove', function(mp){
+	    vec.cursor.set_value([mp[0],mp[1]]);
 	});
     }
     
+    if(ui_opts.cursor_shape!==undefined){
+	
+	var cursor_line=vec.svg.append('line')
+	    .attr('x1',10)
+	    .attr('y1',margin.top)
+	    .attr('x2',10)
+	    .attr('y2',vec.height+margin.top)
+	    .attr('stroke','rgba(20,20,20,1.0)')
+	    .attr('stroke-width','1')
+	    .attr('pointer-events', 'none')
+	    .attr('stroke-linecap','round');	
+	
+	
+	vec.listen('mousemove', function(mp){
+	    cursor_line.attr('x1',mp[2]);
+	    cursor_line.attr('x2',mp[2]);
+	});
+	
+    }
+
     
     vec.redraw=function(){
 	
@@ -2643,7 +2674,10 @@ template_ui_builders.vector=function(ui_opts, vec){
 
 	vec.svg.select("g").remove();
 	
-	var context= vec.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");	
+	var context= vec.svg.append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+	    //.attr('z-index', 10)
+	;	
 	
 	//console.log("VECTOR REDRAW ! Nplots=" + vec.value.length + " zoom " + xscale.domain());
 	vec.xr= xscale.domain();
@@ -2851,7 +2885,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	if(opts===undefined) opts = {};
 	
 	var x_id=p.x_id = opts.x_id === undefined ? 0 : opts.x_id;
-	var y_id=p.y_id = opts.y_id === undefined ? 0 : opts.y_id;
+	var y_id=p.y_id = opts.y_id === undefined ? 1 : opts.y_id;
 	
 	p.line=d3.svg.line()
 	    .x(function(d,i) {
@@ -2983,13 +3017,13 @@ template_ui_builders.vector=function(ui_opts, vec){
 	p.range=(opts.range===undefined) ? vec.xr : opts.range;
 	p.sampling=(opts.sampling!==undefined) ? opts.sampling : 1.0;
 	
-	p.line=vec.line=d3.svg.line()
+	p.line=d3.svg.line()
 	    .x(function(d,i) { return xscale(d[0]); })
 	    .y(function(d,i) { return yscale(d[1]); });
 	
-	p.label=(opts.label===undefined) ? "line"+ (vec.value.length+1) : opts.label;
+	p.label=(opts.label===undefined) ? "Function"+ (vec.value.length+1) : opts.label;
 	
-	p.stroke=opts.stroke || "black";
+	p.stroke=opts.stroke || "#000";
 	p.stroke_width=opts.stroke_width || "1px";
 	p.fill=opts.fill || "none";
 
@@ -3025,17 +3059,22 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    
 	    //p.le.set_title(p.label);
 	    sample_data();
-
-	    p.path=context.append("path");
-	    p.path.attr("stroke", p.stroke);
-	    p.path.attr("stroke-width", p.stroke_width);
-	    p.path.attr("fill", p.fill);
-	    
-	    p.path.datum(p.data)
-	    //.attr("class", "line_black")
-		.attr("d", p.line);
 	    
 	    if(p.le.value && p.data.length!==0){
+		
+		p.path=context.append("path");
+		p.path.attr("stroke", p.stroke);
+		p.path.attr("stroke-width", p.stroke_width);
+		p.path.attr("fill", p.fill);
+		
+		p.path.attr("d",
+			    p.line(p.data)
+			   );
+		
+		// p.path.datum(p.data)
+		// 	//.attr("class", "line_black")
+		// 	.attr("d", p.line);
+		
 		
 		context.append("text")
 		    .attr("transform", "translate(" + (5) + "," + (yscale(p.data[0][1])-10) + ")")
@@ -3083,6 +3122,7 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.add_plot_func=function(func, opts){
 
 	var p=new function_plot(func, opts);
+	if(this.value===undefined) this.value=[];
 	this.value.push(p);
 	//console.log("Added plot DL=" + p.data.length + " NP="+plots.length);
 	this.config_range();

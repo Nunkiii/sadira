@@ -12,6 +12,7 @@ function storage_deserialize(item, opts){
     
     try{
 	var storage_string=localStorage.getItem(item);
+	
 	if(storage_string===null){
 	    console.log("Cannot get storage string " + item);
 	    return undefined;
@@ -23,12 +24,30 @@ function storage_deserialize(item, opts){
 	    var o=opts.object;
 	    if(o===undefined)
 		o=tmaster.create_object_from_data(odata);
+	    
 	    else{
+		// var oldo=o;
+		
+		// o=tmaster.create_object_from_data(odata);
+		// //var or=o.ui_root; //.parentNode;
+		// if(o.key!==undefined){
+		//     oldo.parent.update_child(o,oldo.key);
+		// }
+
+		// delete oldo;
+		//delete o.ui_root;
+		//delete o.ui_name;
+		//delete o.ui_childs;
+
 		//console.log("loading ["+item+"] on " + o.name +" data : " + JSON.stringify(odata));
 		set_template_data(o, odata);
+
+		//create_ui({},o);
+		//o.parentNode.replaceChild(or,o.ui_root);
+		
 	    }
-	    if(o.rebuild_name!==undefined)
-		o.rebuild_name();
+	    // if(o.rebuild_name!==undefined)
+	    // 	o.rebuild_name();
 	    return o;
 	    
 	}
@@ -767,6 +786,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    tpl_root.ui_root.appendChild(epage.ui_root);
 	}
 
+	if(ui_opts.debug===true){
+	    tpl_root.ui_root.appendChild(create_widget({ type : 'button', ui_opts : { name : 'data'}, widget_builder : function(){
+		this.listen('click',function(){
+		    console.log('CLIII');
+		    //var b=this;
+		    var data=get_template_data(tpl_root);
+		    var div=cc('pre', tpl_root.ui_root); div.innerHTML=JSON.stringify(data, null , 5);
+		});
+	    } }).ui_root);
+	    
+	}
+	
 	
 	tpl_root.debug_clean=function(msg){
 	    if(è(tpl_root.debug_widget)){
@@ -808,6 +839,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		delete tpl_root.eui;
 	    }
 
+	    if(opts.wait===true){
+		opts.title='<i class="fa fa-spinner fa-spin"></i>'+opts.title;
+	    }
+		
+	    
 	    eui=tpl_root.eui=create_widget({
 		name : opts.title, type: "string",
 		value : msg,
@@ -820,7 +856,24 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    //name_classes : ["text-danger"]
 		}
 	    }, tpl_root);
-	    ui_content.appendChild(eui.ui_root);
+
+
+	    if(tpl_root.ui_toolbar!==undefined)
+		insertAfter(tpl_root.ui_toolbar, eui.ui_root);
+	    else{
+		if(tpl_root.ui_name!==undefined)
+		    insertAfter(tpl_root.ui_name, eui.ui_root);
+		else
+		    tpl_root.ui_root.prependChild(eui.ui_root);
+	    }
+
+	    //ui_content.appendChild(eui.ui_root);
+
+	    if(opts.last!==undefined)
+		setTimeout(function(){
+		    ui_content.removeChild(tpl_root.eui.ui_root);
+		    delete tpl_root.eui;
+		},opts.last);
 	    
 	}
 	
@@ -1017,11 +1070,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    tb.setup_toolbar_widget=function(w){
 		w.depth=tpl_root.depth;
 		//w.set_title();
-		console.log("Setup tb widget " + w.name + " type " + w.type);
+		//console.log("Setup tb widget " + w.name + " type " + w.type);
 		w.listen('close', function(){
 		    if(tpl_root.tb_ui!==undefined){
 			tpl_root.ui_root.removeChild(tpl_root.tb_ui.ui_root);
-			    tpl_root.tb_ui=undefined;
+			tpl_root.tb_ui=undefined;
 		    }
 			//tti.on=false;
 		    
@@ -1289,8 +1342,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
     function replace_name_widget(w){
 	//return;
-	tpl_root.bbox.hide(true);
-	if(tpl_root.toolbar!==undefined)
+	//tpl_root.bbox.hide(true);
+	tpl_root.bbox.ui_childs.div.style.display='none'; 
+	
+	if(tpl_root.ui_toolbar!==undefined)
 	    insertAfter(tpl_root.ui_toolbar, w.ui_root);
 	else
 	    insertAfter(tpl_root.ui_name, w.ui_root);
@@ -1298,61 +1353,35 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//tpl_root.ui_name.parentNode.replaceChild(w.ui_root, tpl_root.ui_name);
 	w.listen('close', function(){
 	    //w.ui_root.parentNode.replaceChild(tpl_root.ui_name,w.ui_root);
-	    tpl_root.bbox.hide(false);
+	    tpl_root.bbox.ui_childs.div.style.display=''; 
 	    w.ui_root.parentNode.removeChild(w.ui_root);
 	});
 	return w;
     }
 
+
+    
     function attach_bbox(){
 	//console.log(tpl_root.name + " attach BBOX is ");
-
+	if(tpl_root.bbox===undefined)return;
+	if(tpl_root.bbox.ui_childs.div===undefined) return;
 	
-	if(tpl_root.bbox===undefined)
-	    return;
-
-
 	var node= (tpl_root.toolbar!==undefined) ?
 	    tpl_root.toolbar.dnav : ( tpl_root.ui_title_name!==undefined ? tpl_root.ui_title_name : tpl_root.ui_root);
+
+	//console.log(tpl_root.name + " ATTACH BBOX div is " + tpl_root.bbox.ui_childs.div );
+	//for (var p in tpl_root.bbox.elements) console.log("BBOX P " + p );
 	
 	node.appendChild(tpl_root.bbox.ui_childs.div);
 	
     }
-    
-    function setup_save(){
-	
-	if(ui_opts.save===undefined) return;
 
-	
-	
-	if (window.localStorage === undefined) {
-	    widget.debug("Error setting up save : browser storage is not available !");
-	    return;
-	}
-
+    function setup_bbox(){
 	if(tpl_root.bbox===undefined){
-	    var path=tpl_root.path();
-	    console.log(tpl_root.name +  " : setup save ! path= " + path );
-	    
-	    var saved_doc=storage_deserialize(path);
-
-	    function setup_saved_doc(){
-		if(tpl_root.base_name===undefined)
-		    tpl_root.base_name=tpl_root.name;
-		if(tpl_root.base_name===undefined) tpl_root.base_name=saved_doc.name;
-		tpl_root.set_title(tpl_root.base_name, saved_doc.name);
-	    }
-	    if(saved_doc !== undefined){
-		//tpl_root.debug("Recovering from doc " + saved_doc.name + " id " + saved_doc.val('id'));
-		saved_doc.store_deserialize({object : tpl_root});
-		setup_saved_doc();
-		//tpl_root.debug("Recovering OK! " + tpl_root.base_name);
-	    }
-
 	    var box_opts={};
-	    var btn_node;
+	    
 	    if(tpl_root.toolbar){
-		box_opts.child_classes = "navbar-nav pull-right";
+		box_opts.child_classes = "navbar-nav btn-group pull-right";
 		box_opts.child_node_type='ul';
 		btn_node='li';
 	    }else{
@@ -1360,114 +1389,155 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    
 	    // is localStorage available?
-	    var bbox=tpl_root.bbox=create_widget(
-		{
-		    //type : "string",
-		    //name : "BBOX",
-		    ui_opts : box_opts,
-		   // type : 'button_box',
-		    
-		    elements : {
-			save : {
-			    name : "Save",type : "action",
-			    ui_opts : {
-				item_classes : ["btn btn-xs btn-success"], fa_icon : "save", root_node : btn_node, root_classes : 'inline'},
-			    widget_builder : function(){
-				this.listen('click', function(){
-				    var object_save=replace_name_widget(create_widget({
-					type : "object_save",
-					collection : ui_opts.save,
-					depth : (tpl_root.depth+1),
-					ui_opts : {
-					    close : true,
-					},
-					widget_builder : function(){
-					    if(saved_doc!==undefined)
-						this.get('name').input_value(saved_doc.name);
-					}
-				    }));
-				    object_save.listen('save_doc',function(doc){
-					doc.store_serialize(tpl_root);
-					storage_serialize(path, doc);
-					saved_doc=doc;
-					
-					setup_saved_doc();
-
-					object_save.get('name').populate();
-					console.log("Message !!!!");
-					object_save.message("Object written in local storage", { type : 'info', title : 'OK'});
-					
-				    });
-				});
-			    }
-			    
-			},
-			load : {
-			    name : "Load",
-			    type : "action",
-			    ui_opts : { item_classes : ["btn btn-xs btn-info"], fa_icon : "download", root_node : btn_node, root_classes : 'inline'},
-			    widget_builder : function(){
-				var bui=this.ui;
-				var box=this.parent;
-				this.listen('click', function(){
-				    bui.setAttribute('disabled',true);
-				    var loader=replace_name_widget(create_widget(
-					{
-					    name : 'Load from webstorage',
-					    type : "object_loader",
-					    collection : ui_opts.save,
-					    depth : (tpl_root.depth+1),
-					    ui_opts : {
-						close : true,
-					    },
-					    widget_builder : function(){
-						if(saved_doc!==undefined)
-						    this.get('name').input_value(saved_doc.name);
-					    }
-					}//widg
-					
-				    ));
-				    loader.listen('close', function(){
-					bui.removeAttribute('disabled');
-				    });
-				    loader.listen('load_doc',function(doc){
-					console.log("Restoring doc " + doc.val("id"));
-					doc.store_deserialize({object : tpl_root});
-					storage_serialize(path, doc);
-					saved_doc=doc;
-					setup_saved_doc();
-				    });
-				});
-			    }
-			    
-			}
-			// del : {
-			//     name : "",type : "action",
-		    //     ui_opts : { item_classes : ["btn btn-xs btn-danger"], fa_icon : "trash"}
-			// }
-		    },
-		    widget_builder : function(){
-			var bbox=this;
-			console.log("Building BBox is " + bbox.name + " childs " + bbox.ui_childs);
-			
-			// bbox.get('load').listen('click', function(){
-			// });
-			// bbox.get('del').listen('click', function(){
-		    // });
-			
-		    }
-		});
-
-	    console.log(tpl_root.name + " bbox created " );
-	    attach_bbox();
+	    var bbox=tpl_root.bbox=create_widget({
+		ui_opts : box_opts,
+		elements : {},
+		type : 'button_box'
+	    });
+	    
+	    
 	}
+	console.log(tpl_root.name + " SETUP BBOX div is " + tpl_root.bbox.ui_childs.div );
     }
 
 
+    tpl_root.add_bbox_item=function(item, key){
+	setup_bbox();
+	tpl_root.bbox.add_child(item, key);
+	attach_bbox();
+    }
+    
+    function setup_save(){
+	
+	if(ui_opts.save===undefined) return;
+	
+	if (window.localStorage === undefined) {
+	    widget.debug("Error setting up save : browser storage is not available !");
+	    return;
+	}
+
+	setup_bbox();
+	
+	var path=tpl_root.path();
+	//console.log(tpl_root.name +  " : setup save ! path= " + path );
+	
+	var saved_doc=storage_deserialize(path);
+	
+	function setup_saved_doc(){
+	    // if(tpl_root.base_name===undefined)
+	    // 	tpl_root.base_name=tpl_root.name;
+	    // if(tpl_root.base_name===undefined) tpl_root.base_name=saved_doc.name;
+
+	    tpl_root.set_title(tpl_root.name, saved_doc.name);
+	}
+	if(saved_doc !== undefined){
+	    //tpl_root.debug("Recovering from doc " + saved_doc.name + " id " + saved_doc.val('id'));
+	    if(saved_doc.store_deserialize({object : tpl_root}) === undefined ){
+		delete saved_doc;
+		saved_doc=undefined;
+		
+		
+	    }else{
+		
+		setup_saved_doc();
+	    }
+	    //tpl_root.debug("Recovering OK! " + tpl_root.base_name);
+	}
+
+	var btn_node;
+	tpl_root.bbox.add_child(create_widget({
+	    //name : "",
+	    type : "button",
+	    ui_opts : {
+		type : ['xs','success'],
+		fa_icon : "save"},
+	    widget_builder : function(){
+		this.listen('click', function(){
+		    var object_save=replace_name_widget(create_widget({
+			type : "object_save",
+			collection : ui_opts.save,
+			depth : (tpl_root.depth+1),
+			ui_opts : {
+			    close : true,
+			},
+			widget_builder : function(){
+			    if(saved_doc!==undefined)
+				this.get('name').input_value(saved_doc.name);
+			}
+		    }));
+		    object_save.listen('save_doc',function(doc){
+			doc.store_serialize(tpl_root);
+			storage_serialize(path, doc);
+			saved_doc=doc;
+			
+			setup_saved_doc();
+			//object_save.get('name').populate();
+			//object_save.get('name').hide();
+			tpl_root.message(doc.name + " written in collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+			object_save.trigger('close');
+			
+		    });
+		});
+	    }
+	    
+	}, tpl_root.bbox), 'save');
+
+	tpl_root.bbox.add_child(create_widget({
+	    //name : "",
+	    type : "button",
+	    ui_opts : { type : ['xs','info'], fa_icon : "download"},
+	    widget_builder : function(){
+		var box=this.parent;
+		this.listen('click', function(){
+		    
+		    var loader=replace_name_widget(create_widget(
+			{
+			    name : 'Load from webstorage',
+			    type : "object_loader",
+			    collection : ui_opts.save,
+			    depth : (tpl_root.depth+1),
+			    ui_opts : {
+				close : true,
+			    },
+			    widget_builder : function(){
+				if(saved_doc!==undefined)
+				    this.get('name').input_value(saved_doc.name);
+			    }
+			}//widg
+			
+		    ));
+		    loader.listen('load_doc',function(doc){
+			//console.log("Restoring doc " + doc.val("id"));
+			tpl_root.message(doc.name + " : loading from collection" + ui_opts.save, { type : 'info', title : 'Loading', wait : true});
+			doc.store_deserialize({object : tpl_root});
+			storage_serialize(path, doc);
+			saved_doc=doc;
+			setup_saved_doc();
+			
+			tpl_root.message(doc.name + " laoded from collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+			loader.trigger('close');
+		    });
+		});
+	    }
+	    
+	}, tpl_root.bbox),'load');
+	
+	console.log(tpl_root.name + " SETUP BBOX SAVELOAD div is " + tpl_root.bbox.ui_childs.div );
+	
+	
+	attach_bbox();
+    }
+    
+
     tpl_root.set_subtitle=function(subtitle){
+	if(tpl_root.ui_subtitle===undefined)
+	    tpl_root.ui_subtitle=cc('small',tpl_root.ui_title_name);
+	
 	tpl_root.subtitle=subtitle;
-	if(è(tpl_root.rebuild_name))
-	    tpl_root.rebuild_name();
+	tpl_root.ui_subtitle.innerHTML=subtitle;
+	
+	// if(è(tpl_root.rebuild_name))
+	//     tpl_root.rebuild_name();
     }
     
     tpl_root.set_title=function(title, subtitle){
@@ -1490,36 +1560,72 @@ function create_ui(global_ui_opts, tpl_root, depth){
     }
     
     
+    function setup_intro(node){
 
+    	if(è(tpl_root.intro)){
+	    
+	    if(tpl_root.intro_div===undefined){
+		var intro_node=ui_opts.intro_node!==undefined ? ui_opts.intro_node : 'blockquote';
+		
+		    
+		if(ui_opts.intro_name===true){
+		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_name);
+		}
+		else{
+		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_root);
+		    
+		}
+
+		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false || ui_opts.intro_title!==undefined){
+		    var title='<i class="fa fa-info-circle text-info">';
+		    title+=' </i>';
+		    if(ui_opts.intro_title!==undefined){
+			title+=' <strong class="text-info">'+ui_opts.intro_title+'</strong>';
+		    }else
+			title+=' <strong class="text-info"> More information</strong>';
+
+		    tpl_root.intro_div.innerHTML=title;
+		}
+
+		tpl_root.intro_div.style.display= (ui_opts.intro_visible || ui_opts.intro_stick) ? "":"none";
+		sliding_stuff.push(tpl_root.intro_div);
+		
+		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
+		    var ibtn=tpl_root.close_intro_btn=ce("div");
+		    ibtn.className="fa fa fa-close text-danger pull-right intro_btn";
+		    tpl_root.intro_div.appendChild(ibtn);
+		    ibtn.setAttribute("title", "Close information panel");
+		    ibtn.addEventListener("click", function() {
+			tpl_root.intro_btn.style.display='';
+			tpl_root.intro_div.style.display='none';
+			ui_opts.intro_visible=false;//!ui_opts.intro_visible;
+		    });
+		}
+
+		tpl_root.intro_content=cc('div',tpl_root.intro_div);
+		
+	    }
+	    
+	    tpl_root.intro_div.className="text-muted small";
+	    
+	    //if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
+	    
+	    if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
+		var ibtn=tpl_root.intro_btn=ce("div");
+		ibtn.className="fa fa-info-circle intro_btn text-info";
+		node.appendChild(ibtn);
+		ibtn.setAttribute("title", "Click for more information...");
+		ibtn.addEventListener("click", function() {
+			tpl_root.intro_btn.style.display='none';
+			tpl_root.intro_div.style.display='';
+			ui_opts.intro_visible=true;
+		} );
+	    }
+	}
+    }
     
     function setup_title(){
 	if(tpl_root.ui_name!==undefined) return;
-	
-	function setup_intro(node){
-    	    if(è(tpl_root.intro)){
-		//if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
-		
-		if(ui_opts.intro_stick===undefined || ui_opts.intro_stick===false){
-		    var ibtn=tpl_root.intro_btn=ce("div");
-		    ibtn.className="fa fa-info-circle intro_btn text-info";
-		    node.appendChild(ibtn);
-		    ibtn.setAttribute("title", "Click for more information...");
-		    ibtn.addEventListener("click", function() {
-			if(ui_opts.intro_visible){
-			    this.className="fa fa-info-circle intro_btn";
-			    ibtn.setAttribute("title", "Click for more information...");
-			}
-			else{
-			    this.className="fa fa-close text-danger intro_btn";
-			    ibtn.setAttribute("title", "Close information panel");
-			}
-			
-			tpl_root.intro_div.style.display=ui_opts.intro_visible?"none":"";
-			ui_opts.intro_visible=!ui_opts.intro_visible;
-		    } );
-		}
-	    }
-	}
 	
 	delete tpl_root.ui_name; delete ui_name;
 	delete tpl_root.ui_title_name;
@@ -1660,7 +1766,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    add_close_button(tpl_root,ui_name_text);
 		
 		if(è(tpl_root.subtitle)){
-		    var subtitle=cc("small",ui_name_text);
+		    var subtitle=tpl_root.ui_subtitle=cc("small",ui_name_text);
 		    subtitle.innerHTML=tpl_root.subtitle;
 		    //subtitle.className="col-sm-12 col-md-6";
 		}
@@ -1807,23 +1913,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	*/
 
 	tpl_root.set_intro_text=function(intro_txt){
-	    if(tpl_root.intro_div===undefined){
-		var intro_node=ui_opts.intro_node!==undefined ? ui_opts.intro_node : 'div';
-		
-
-		if(ui_opts.intro_name===true){
-		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_name);
-		}
-		else{
-		    tpl_root.intro_div=cc(intro_node,tpl_root.ui_root);
-		}
-		
-		tpl_root.intro_div.style.display= (ui_opts.intro_visible || ui_opts.intro_stick) ? "":"none";
-		sliding_stuff.push(tpl_root.intro_div);
-	    }
-	    
-	    tpl_root.intro_div.className="text-muted";
-	    tpl_root.intro_div.innerHTML=
+	    if(tpl_root.intro_div===undefined) setup_intro();
+	    tpl_root.intro_content.innerHTML=
 		"" //"<div class='alert alert-default'>"//>" //
 		+ intro_txt; 
 	    //+ "</div>";
@@ -1925,7 +2016,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
     //
 
     if(è(ui_opts.close)){
-	console.log("Created close event on " + tpl_root.name);
+	//console.log("Created close event on " + tpl_root.name);
 	new_event(tpl_root,"close");
 	if(tpl_root.parent!==undefined){
 	    tpl_root.listen("close", function(){
@@ -1934,7 +2025,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		//cnt.remove_child(child);
 	    });
 	}else{
-	    console.log(tpl_root.name + " No parent so no close event connected !");
+	    //console.log(tpl_root.name + " No parent so no close event connected !");
 	}
     }
     
@@ -2630,6 +2721,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    var select_frame=tpl_root.ui_childs.select_frame=function(f){
 		var selected_frame=tpl_root.ui_childs.selected_frame;
+
+		if(tpl_root.tb_ui!==undefined) tpl_root.tb_ui.trigger('close');
+		    
 		
 		if(typeof selected_frame!='undefined'){
 
@@ -2723,7 +2817,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
   		if(è(ico))
 		    e.a.prependChild(ico);
 		
-		if(e.ui_opts.close) add_close_button(e,e.a);
+		//if(e.ui_opts.close) add_close_button(e,e.a);
 		
 		if(cvtype==="radio") {
 		    if(ù(rad_group))rad_group=Math.random().toString(36).substring(2);
@@ -2781,6 +2875,16 @@ function create_ui(global_ui_opts, tpl_root, depth){
 			    select_frame(e);
 		    }
 		}//else console.log("LAAABELLL " + e.name);
+		
+
+		if(!e.ui_opts.close){
+		    e.ui_opts.close=true;
+		    //add_close_button(e,e.a);
+		    e.set_title();
+		}
+		e.listen('close', function(){
+		    tpl_root.ui_childs.close_selected_frame();
+		});
 		
 		e.listen("name_changed", function(new_title){
 		    set_frame_name(e);
@@ -2878,7 +2982,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//console.log("Adding child " + tpl.name + " root is  " + tpl.ui_root);
 	
 	tpl_root.ui_childs.add_child(tpl, tpl.ui_root);
-	
+	return tpl;
     };
 
     tpl_root.remove_child=function(key){
@@ -2894,6 +2998,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
     tpl_root.update_child=function(tpl, child_key){
 	var child=tpl_root.get(child_key);
 	if(ù(child)){
+
+	    console.log("Repalced child  (WAS UNDEF) key "+ child_key + " new name " + tpl.name + " old was " + child.name );
+	    
 	    return tpl_root.add_child(tpl,child_key);
 	    //return tpl_root.debug("update_child error: "+tpl_root.name+" : No such child " + child_key);
 	}
@@ -2901,7 +3008,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.elements[child_key]=tpl;
 
 	child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
-	
+	console.log("Repalced child  key "+ child_key + " N=" + tpl.name + " old was " + child.name );
+	 
     }
 
     tpl_root.clear_childs=function(){
@@ -2913,7 +3021,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
     
     
     tpl_root.hide=function(hide){
-	ui_root.style.display=hide? "none":"";
+	if(hide===undefined) hide=true;
+	tpl_root.ui_root.style.display= hide===true ? "none":"";
+	if(tpl_root.ui_root.ui_childs!==undefined && tpl_root.ui_root.ui_childs.div!==undefined)
+	    tpl_root.ui_root.ui_childs.div.style.display=hide === true? "none":"";
     }
     
     tpl_root.disable_rec=function(dis, rec){
@@ -2921,7 +3032,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(è(this.disable_element)) this.disable_element(dis);
 	if(rec && è(tpl_root.elements))
 	    for(var e in tpl_root.elements){
-		tpl_root.elements[e].disable_rec(dis, rec);
+		tpl_root.elements[e].disable(dis, rec);
+		//tpl_root.elements[e].disable_rec(dis, rec);
 	    };
 	
     }
@@ -2930,12 +3042,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	if(ù(dis)){ dis=true; rec=true;}
 	if(ù(rec))rec=true;
 
-	var dis_el=ui_opts.root_element!==undefined ? tpl_root.item_ui : tpl_root.ui_root;
-	
-	if(dis)
-	    dis_el.add_class("masked");
-	else
-	    dis_el.remove_class("masked");    
+	var dis_els = [tpl_root.item_ui, tpl_root.ui_root];
+
+	dis_els.forEach(function(de){
+	    if(de!==undefined){
+		if(dis)
+		    de.setAttribute('disabled',true);
+		else
+		    de.removeAttribute('disabled');
+	    }
+	});
+
+	//dis_el.remove_class("masked");    
 
 	//console.log(tpl_root.name + " : disabled ? " + dis);
 	tpl_root.trigger("disabled", dis);
@@ -3279,11 +3397,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
     if(ui_opts.item_root){
 	//ui_root=ce("div");
 	setup_root();
-	setup_save();
+	
 	setup_title();
 	
 
 	setup_item();
+	setup_save();
 	
 	if(item_ui!==undefined){
 	    item_ui.setAttribute("data-type", tpl_root.type);
@@ -3298,9 +3417,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	setup_title();
 	setup_childs();
 	setup_item();
-	setup_save();
-
 	setup_sliding();
+	setup_save();
     }
     
     if(ui_opts.root){

@@ -133,7 +133,8 @@ function set_template_data(t, data){
     }
     
     if(è(data.els)){
-	if(t.type==='container' || t.elements===undefined)t.elements={};
+	if(//t.type==='container' ||
+	   t.elements===undefined)t.elements={};
 	for(var te in data.els){
 	    
 	    if(t.elements[te]===undefined){
@@ -142,6 +143,7 @@ function set_template_data(t, data){
 		    
 		    if(typeof window !== 'undefined'){
 			var w=create_widget(data.els[te].type, t);
+
 			if(t.add_child===undefined){
 			    console.log("Bug here for " + t.name + " type " + t.type);
 			    t.elements[te]={};
@@ -323,15 +325,21 @@ local_templates.prototype.create_object_from_data=function(data){
     	console.log("NULL DATA !!!????");
     	return null;
     }
-    
-    if(data.type===undefined) throw Error("Cannot build object from data name ["+data.name+"]: Not a template");
 
-    console.log("Create from data object type " + data.type + " name " + data.name);
+    var obj;
+    if(data.type===undefined){
+	obj=this.build_object({});
+	//throw Error("Cannot build object from data name ["+data.name+"]: Not a template");
+
+    }else
+	obj=this.build_object(data.type);
+
     
-    var obj=this.build_object(data.type);
+    console.log("Create from data " + obj.type + " name " + obj.name + " DATA ["+JSON.stringify(data)+"]");
+    //console.log("Create from data object type " + data.type + " name " + data.name);
+    //obj.build();
+    if(typeof window !== 'undefined') create_ui({},obj);
     
-    console.log("Create from data " + obj.type + " name " + obj.name);
-    obj.build();
     set_template_data(obj, data);
     return obj;
 }

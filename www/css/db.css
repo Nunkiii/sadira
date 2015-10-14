@@ -223,8 +223,11 @@ padding-left: .5em;
   color: white;
 }
 
+body {
+}
+
 .panel {
-       background : transparent;
+      /* background : transparent; */
 }
 
 .panel > label {
@@ -919,9 +922,12 @@ label.unslided{
   font-weight: "bold";
 }
 
+
 .navbar-brand > * > small {
 	      color: lightgrey;
 }
+
+
 
 .navbar-brand > *{
 	     margin: 0px;

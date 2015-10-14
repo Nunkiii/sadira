@@ -50,14 +50,19 @@ var base_templates={
 
 	    var type='';
 	    if(opts.type===undefined)type='btn-default';
-	    else{ 
-		if(typeof opts.type=='array')
-		    opts.type.forEach(function(t){type+='btn-'+t+' '});
+	    else{
+		//console.log("OTYPE " + typeof opts.type);
+		if(typeof opts.type==='object')
+		    opts.type.forEach(function(t){type+='btn-'+t+' ';});
 		else type='btn-'+opts.type;
 	    }
 	    but.add_class('btn '+type);
 	    if(opts.name!==undefined)
 		but.innerHTML=opts.name;
+
+	    if(opts.fa_icon!==undefined)
+		but.innerHTML= '<i class="fa fa-'+opts.fa_icon + '"></i> '+but.innerHTML;
+	    
 	    but.addEventListener('click',function(){b.trigger('click'); });
 	    //return but;
 	}
@@ -433,8 +438,9 @@ var base_templates={
 		    var dtpl={ type: "storage_doc" };
 		    if(opts.name!==undefined) dtpl.name=opts.name;
 		    var doc=create_widget(dtpl,docs);
-		    doc.set('id',Math.random().toString(36).substring(2));
-		    docs.add_child(doc);
+		    var docid=Math.random().toString(36).substring(2);
+		    doc.set('id',docid);
+		    docs.add_child(doc,docid);
 		    cln.store_serialize();
 		    cb({ existed : false}, doc);
 		    return;
@@ -447,9 +453,10 @@ var base_templates={
 		var todel_doc=cln.get_document(opts);
 		if(todel_doc===undefined)
 		    throw Error("Collection ["+cln.name+"] : Cannot delete doc : unknown doc identified by ["+JSON.stringify(opts)+"]");
-		var save_location=todel_doc.get('id');
+		var save_location=todel_doc.val('id');
+		
 		localStorage.removeItem(save_location);
-		docs.remove_child(todel_doc);
+		docs.remove_child(save_location);
 		cln.store_serialize();
 	    };
 	    
@@ -468,7 +475,7 @@ var base_templates={
 	widget_builder : function(){
 	    var doc=this;
 	    doc.set('date', new Date());
-	    
+	    var doc_ui=ce('div');
 	    doc.store_serialize=function(object, opts){
 
 		if(opts===undefined) opts={};
@@ -479,17 +486,58 @@ var base_templates={
 	    };
 	    
 	    doc.store_deserialize=function(opts){
-		console.log("DOC DESER : id " + doc.val('id'));
+		//console.log("DOC DESER : id " + doc.val('id'));
 		//console.log("DOC obj " + opts.object.name);
 		return storage_deserialize(doc.val('id'), opts);
 	    };
+
+	    
+	    doc.add_bbox_item(create_widget({
+		name : 'View', type : 'action', ui_opts : { item_classes : 'btn btn-primary btn-sm', fa_icon : 'view' },
+		widget_builder : function(){
+		    this.listen('click', function(){
+			var doc_object=doc.store_deserialize();
+			doc_ui.appendChild(doc_object.ui_root);
+		    });
+		}
+		
+	    }),'load');
+	    
+	    doc.add_bbox_item(create_widget({
+		name : 'Delete', type : 'action', ui_opts : { item_classes : 'btn btn-danger btn-sm', fa_icon : 'delete' },
+		widget_builder : function(){
+		    this.listen('click', function(){
+			var yn=create_widget({
+			    type : 'yesno',
+			    name : "Really delete document " + doc.name + ' from local storage ?',
+			    depth : doc.depth+1,
+			    ui_opts : { labels : ['Delete', 'Cancel'] }
+			});
+			set_modal(yn,doc.ui_childs.div);
+			yn.listen('accept', function (accept){
+			    if(accept){
+				doc.parent.parent.delete_document({ id : doc.val('id')});
+				doc.parent.parent.message('Deleted ' + doc.val('id'));
+			    }
+			    
+			    yn.trigger('close');
+			});
+			
+		    });
+		}
+		
+	    }),'delete');
+					    
+
+	    return doc_ui;
+	    
 	}
     },
     object_save : {
-
+	
     	name : 'Save to webstorage',
 	ui_opts : {
-	    root_classes : ["panel panel-default container-fluid"],
+	    root_classes : ["panel panel-success container-fluid"],
 	    child_classes : ["container-fluid vertical_margin"],
 	    fa_icon : 'save',
 	    //name_node : 'h4'
@@ -544,11 +592,13 @@ var base_templates={
 	    var name=this.get('name');
 	    var collection=this.collection;
 
+	    this.set_subtitle(collection);
+	    
 	    new_event(this,'save_doc');
 	    
 	    this.get('save_b').listen('click', function(){
 		if(name.value===undefined || name.value===""){
-		    return sui.message("Please provide a valid name for your new document", { type : 'danger', title : 'Storage error'});
+		    return sui.message("Please provide a valid name for your new document", { type : 'danger', title : 'Storage error', last : 4000});
 		}
 		sadira.storage.collection(collection, { create : true}, function(error, cln){
 		    if(error)return sui.message(error, { type : 'danger', title : 'Storage error'});
@@ -590,7 +640,7 @@ var base_templates={
     object_loader : {
 	name : "Object load",
 	ui_opts : {
-	    root_classes : ["panel panel-default container-fluid vertical_padding"],
+	    root_classes : ["panel panel-info container-fluid vertical_padding"],
 	    child_classes : ["row"],
 	    fa_icon : 'download',
 	    //name_node : 'h4'
@@ -600,7 +650,7 @@ var base_templates={
 		//name : "Select :",
 		type : "dropdown_input",
 		ui_opts : {
-		    root_classes : "col-xs-12", label : true,  item_classes : [""],
+		    root_classes : ["col-xs-12"], label : true,  item_classes : [""],
 		    //name_classes : "input-group-addon"
 		},
 		elements : {
@@ -628,6 +678,7 @@ var base_templates={
 		    new_event(dd.parent,'load_doc');
 		    
 		    var collection = dd.parent.collection;
+		    dd.parent.set_subtitle(collection);
 		    
 		    dd.populate=function(){
 			sadira.storage.collection(collection,{create : true}, function(error, cln){
@@ -639,7 +690,7 @@ var base_templates={
 			    ddb.set_button_label(collection);
 			    var doc_list=cln.get('docs');
 			    var item_list=[];
-			    //var tosel;
+			    
 			    for(var d in doc_list.elements){
 				var doc=doc_list.elements[d];
 				var item={ label : doc.name, value : doc.val('id'), doc : doc };
@@ -647,8 +698,17 @@ var base_templates={
 				// if(saved_doc !== undefined)
 				//     if(saved_doc.name==doc.name) tosel=item;
 				item_list.push(item);
+				
 			    }
 			    dd.set_items(item_list);
+			    
+			    if(item_list.length===0){
+				dd.elements.input.disable();
+				//dd.elements.input.ui_root.setAttribute('disabled',true);
+				dd.elements.dropdown.disable(); 
+				load_b.disable();
+				dd.message('Collection '+dd.parent.collection +' is empty !', { type : 'warning', title : 'Nothing yet'});
+			    }
 			    //if(tosel!==undefined) dd.select(tosel);
 			    
 			    load_b.listen('click', function(){
@@ -680,9 +740,11 @@ var base_templates={
 	ui_opts : {
 	    wrap : true, wrap_classes : ["container-fluid"],
 	    root_classes : ["container-fluid jumbotron"],
-	    item_classes : ["col-sm-offset-2 col-sm-8 alert alert-danger big_vertical_margin"]
+	    item_classes : ["col-sm-offset-1 col-sm-10 alert alert-danger vertical_margin"],
+	    icon : "/sadira/icons/hal9000.jpg"
 	},
-	value : "Error message"
+	value : "Error message",
+	
     },
 
     db_collection : {

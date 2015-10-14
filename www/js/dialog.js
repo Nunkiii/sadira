@@ -444,13 +444,14 @@ function new_event(tpl_item, event_name){
 	    for(var c=0;c<cbn.length;c++){
 		if(cb===cbn[c]){
 		    console.log("That function is already listenning to !" + event_name);
-		    return;
+		    return undefined;
 		}
 	    };
 	    cb.persist=persist;
 	    cbn.push(cb);
 	    if(tpl_item.name=="Parameters")
 		console.log(tpl_item.name + " : new listener for ["+event_name+"] persist " + persist + " N= " + cbn.length);
+	    return this;
 	};
 
 	tpl_item.unlisten=function(event_name, cb){
@@ -460,10 +461,12 @@ function new_event(tpl_item, event_name){
 	    for( var c=0;c<cbn.length;c++) {
 		if(cbn[c]==cb){
 		    //console.log("Found CB to be removed..");
-		    return cbn.splice(c,1);//remove(c);
+		    cbn.splice(c,1);//remove(c);
+		    return tpl_item;
 		}
 	    }
 	    throw "unlisten: callback not found " ;
+	    return undefined;
 	}
 	
 	tpl_item.trigger=function(event_name, data){
@@ -477,6 +480,7 @@ function new_event(tpl_item, event_name){
 	    cbs.forEach(function(cb){
 		cb.call(tpl_item,data);
 	    });
+	    return tpl_item;
 	};
 
 	tpl_item.has_event=function(event_name){
@@ -494,7 +498,7 @@ function new_event(tpl_item, event_name){
 	// }
 
 	
-    }
+  }
     
 
 }
