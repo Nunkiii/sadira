@@ -2336,8 +2336,11 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.ylabel="Y";
 
     vec.serialize=function(){
-	vec.value=[];
-	return vec.value;
+	//vec.value=[];
+	return {};
+    }
+
+    vec.deserialize=function(v){
     }
     
     /*
@@ -2616,7 +2619,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 		value_labels : ["C<sub>X</sub>","C<sub>Y</sub>"],
 		ui_opts : {
 		    label : true,
-		    root_classes : ["container-fluid"],
+		    root_classes : ["container-fluid inline"],
 		    child_classes : ["inline"],
 		    sliding: true,
 		    slided : true
@@ -2635,7 +2638,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    .attr('y1',margin.top)
 	    .attr('x2',10)
 	    .attr('y2',vec.height+margin.top)
-	    .attr('stroke','rgba(20,20,20,1.0)')
+	    .attr('stroke','rgba(200,200,200,1.0)')
 	    .attr('stroke-width','1')
 	    .attr('pointer-events', 'none')
 	    .attr('stroke-linecap','round');	

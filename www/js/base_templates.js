@@ -399,7 +399,8 @@ var base_templates={
 	widget_builder : function(){
 	    var cln=this;
 	    var docs=cln.get('docs');
-
+	    new_event(this,'changed');
+	    
 	    cln.store_serialize=function(){
 		storage_serialize(cln.val('id'), cln.get('docs'));
 	    }
@@ -407,7 +408,6 @@ var base_templates={
 	    cln.store_deserialize=function(){
 		storage_deserialize(cln.val('id'), { object :  cln.get('docs') });
 	    }
-
 	    
 	    cln.get_document=function(opts){
 		
@@ -443,6 +443,7 @@ var base_templates={
 		    docs.add_child(doc,docid);
 		    cln.store_serialize();
 		    cb({ existed : false}, doc);
+		    cln.trigger('changed');
 		    return;
 		}
 		
@@ -701,6 +702,10 @@ var base_templates={
 				
 			    }
 			    dd.set_items(item_list);
+
+			    cln.listen('changed', function(){
+				dd.populate();
+			    });
 			    
 			    if(item_list.length===0){
 				dd.elements.input.disable();
@@ -708,6 +713,11 @@ var base_templates={
 				dd.elements.dropdown.disable(); 
 				load_b.disable();
 				dd.message('Collection '+dd.parent.collection +' is empty !', { type : 'warning', title : 'Nothing yet'});
+			    }else{
+				dd.elements.input.disable(false);
+				dd.elements.dropdown.disable(false);
+				load_b.disable(false);
+				dd.message('Ok', { last : 1000});
 			    }
 			    //if(tosel!==undefined) dd.select(tosel);
 			    
@@ -1750,7 +1760,7 @@ var base_templates={
 	elements :{
 	    btns : {
 		store : false,
-		ui_opts: { root_classes : ["inline"], child_classes : [] },
+		ui_opts: { root_classes : ["inline"], child_classes : ['inline'] },
 		elements : {
 		    // zoom :   { name:  "", type : "action", ui_opts:{fa_icon : "search-plus", item_classes : ["btn btn-default btn-sm"]}},  
 		    // unzoom : { name : "", type : "action", ui_opts:{item_classes:["btn btn-default btn-sm"], fa_icon : "search-minus",}},
@@ -1785,7 +1795,7 @@ var base_templates={
 			    label : true,
 			    child_classes : ["inline"],
 			    sliding: true,
-			    slided: true
+			    slided: false
 			}
 		    }
 		}
