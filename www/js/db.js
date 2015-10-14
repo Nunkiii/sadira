@@ -1606,7 +1606,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		
 	    }
 	    
-	    tpl_root.intro_div.className="text-muted small";
+	    tpl_root.intro_div.className="text-muted";// small";
 	    
 	    //if(ù(ui_opts.intro_visible)) ui_opts.intro_visible=false;
 	    
