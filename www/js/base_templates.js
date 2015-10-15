@@ -123,11 +123,10 @@ var base_templates={
 	    var dropdown=this;
 	    //this.ui_root.className="dropdown";
 	    
-	    var b=create_widget({ type : 'button', ui_opts : {  name : this.ui_opts.name, type : this.ui_opts.type} });
+	    var b=create_widget({ type : 'button', ui_opts : {  name : this.ui_opts.name, type : this.ui_opts.type || ['default']} });
 	    
 	    b.but.add_class('dropdown-toggle');
 	    new_event(this,'select');
-	    
 	    // var but=this.but=cc('button',this.ui_root);
 	    // but.setAttribute('type', 'button');
 	    // but.className='btn btn-default dropdown-toggle';
