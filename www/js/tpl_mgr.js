@@ -151,7 +151,11 @@ function set_template_data(t, data){
 			    t.add_child(w, te);
 		    }
 		    else{
-			t.elements[te]=create_object(data.els[te].type);
+			var no=build_object(data.els[te].type, true);
+			no.build();
+			//t.add_child(no, te);
+			t.elements[te]=no;
+			//t.elements[te]=create_object(data.els[te].type);
 		    }
 		    
 		}else
@@ -327,18 +331,21 @@ local_templates.prototype.create_object_from_data=function(data){
     }
 
     var obj;
+    var isobject= (typeof(window) === 'undefined');
     if(data.type===undefined){
-	obj=this.build_object({});
+	obj=this.build_object({},isobject);
 	//throw Error("Cannot build object from data name ["+data.name+"]: Not a template");
 
     }else
-	obj=this.build_object(data.type);
+	obj=this.build_object(data.type,isobject);
 
     
     console.log("Create from data " + obj.type + " name " + obj.name + " DATA ["+JSON.stringify(data)+"]");
     //console.log("Create from data object type " + data.type + " name " + data.name);
     //obj.build();
-    if(typeof window !== 'undefined') create_ui({},obj);
+    if(typeof window !== 'undefined')
+	create_ui({},obj);
+    else obj.build({object:true});
     
     set_template_data(obj, data);
     return obj;
@@ -633,7 +640,9 @@ local_templates.prototype.build_template=function(template){
 local_templates.prototype.build_object=function(template, is_object){
 
     if(template===undefined) throw Error("No template given");
-    
+
+    if(is_object===undefined) is_object=false;
+
     var last_structure;
     var tpl_types=[];
     var object= new template_object(); 
@@ -655,14 +664,13 @@ local_templates.prototype.build_object=function(template, is_object){
     
     function update_structure(struct, tpl, root, is_object){
 	
-	
 	for(var p in tpl){
 	    var obj=tpl[p];
 	    
 	    switch(p){
 	    case 'type':
 		struct.type=obj;
-		if(root && is_object===undefined)
+		if(root && is_object===false)
 		    add_builder(struct,template_ui_builders[obj]);
 		break;
 	    case 'elements' :
@@ -676,7 +684,7 @@ local_templates.prototype.build_object=function(template, is_object){
 			    if(struct.elements[c]===undefined) struct.elements[c]=new template_object();
 			    if(child.type!==undefined){
 				//console.log("Building child " + c + ' substruct ' + JSON.stringify(child));
-				struct.elements[c]=lt.build_object(child);
+				struct.elements[c]=lt.build_object(child, is_object);
 				//console.log("After building child " + c + ' substruct ' + JSON.stringify(child));
 				}else
 				    update_structure(struct.elements[c], child, true, is_object);
@@ -691,7 +699,7 @@ local_templates.prototype.build_object=function(template, is_object){
 		}
 		break;
 	    case 'widget_builder' :
-		if(root && is_object===undefined)
+		if(root && is_object===false)
 		    add_builder(struct,obj);
 		break;
 	    case 'object_builder' :

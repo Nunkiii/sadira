@@ -37,8 +37,8 @@ module.exports={
 	// 	type: "string"
 	//     }
 	// },
-	object_builder : function(la){
-
+	object_builder : function(){
+	    var la=this;
 	    la.create_password=function(clear_password, cb) {}
 	    
 	    la.check_password=function(clear_password, cb) {

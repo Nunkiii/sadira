@@ -112,20 +112,22 @@ exports.init=function(pkg, sad, cb){
 	    
 	    user=create_object_from_data(user);
 	    //console.log("---> User is " + JSON.stringify(user));
-	    
-	    user.get('local').check_password(hashpass, function(error, match){
-		if(error)
-		    return done(null, false, "checkpass error : "+error );
-
-		if(match){
-		    //console.log("checkpass match = " + match + " YEAHHH !!!!");    
-		    return done(null, user, "Yeah!Login!!");
-		}
-
+	    var loca=user.get('local');
+	    for(var p in loca) console.log("P G " + p);
+	    user.get('local')
+		.check_password(hashpass, function(error, match){
+		    if(error)
+			return done(null, false, "checkpass error : "+error );
+		    
+		    if(match){
+			//console.log("checkpass match = " + match + " YEAHHH !!!!");    
+			return done(null, user, "Yeah!Login!!");
+		    }
+		    
 		//console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
-		return done(null, false, "Oops! Wrong password");
-		
-	    });
+		    return done(null, false, "Oops! Wrong password");
+		    
+		});
 	});
 	
     }));

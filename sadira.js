@@ -471,6 +471,8 @@ var _sadira = function(){
 	
 	
 	var tmaster=this.tmaster= new tpl_mgr.local_templates(this);
+
+	GLOBAL.build_object=function(){ return tmaster.build_object.apply(tmaster,arguments); }
 	GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
 	GLOBAL.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
 	
@@ -478,9 +480,10 @@ var _sadira = function(){
 	tmaster.add_templates(system_templates);
 	
 	
-	tmaster.templates.user_group.object_builder =function(group){
-	    group.listen('server_data',function(data){
-	    });
+	tmaster.templates.user_group.object_builder =function(){
+	    var group=this;
+	    //for(var p in group) console.log("P G" + p);
+	    group.listen('server_data',function(data){});
 
 	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
 		var gp=g.db.perm();
