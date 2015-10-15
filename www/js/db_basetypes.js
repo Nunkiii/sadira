@@ -2593,21 +2593,12 @@ template_ui_builders.vector=function(ui_opts, vec){
     vec.svg.on('mousemove', function () {
 	
 	var mpx= d3.mouse(this);
-	var mp =[mpx[0]-margin.left,mpx[1]-margin.top,mpx[0],mpx[1]];
+	var mp =[
+	    vec.xr[0]+(mpx[0]-margin.left)/vec.width*(vec.xr[1]-vec.xr[0]),
+	    vec.yr[1]-((mpx[1]-margin.top)/vec.height)*(vec.yr[1]-vec.yr[0]),
+	    mpx[0],mpx[1]];
 	
-	//var tw=vec.svg.node().clientWidth-margin.left-margin.right;
-	//console.log("PIX " + mp[0]);
-	//var ar= vec.svg.node().clientWidth/vec.vw;
-	mp[0]=mp[0]/vec.width;
-	mp[1]=vec.yr[1]-(mp[1]/vec.height)*(vec.yr[1]-vec.yr[0]);
-	//console.log("Frac " + mp[0]);
-	mp[0]=vec.xr[0]+mp[0]*(vec.xr[1]-vec.xr[0]);
-	//mp[1]=vec.yr[0]+ (vec.yr[1]-mp[1])*(vec.yr[1]-vec.yr[0]);
-
-	//mp[1]=yscale(mp[1]);
 	vec.trigger('mousemove', mp);
-	
-	//console.log("MouseMove " + JSON.stringify(mp));
     });
     
     
@@ -2638,7 +2629,7 @@ template_ui_builders.vector=function(ui_opts, vec){
 	    .attr('y1',margin.top)
 	    .attr('x2',10)
 	    .attr('y2',vec.height+margin.top)
-	    .attr('stroke','rgba(200,200,200,1.0)')
+	    .attr('stroke','rgba(50,50,50,1.0)')
 	    .attr('stroke-width','1')
 	    .attr('pointer-events', 'none')
 	    .attr('stroke-linecap','round');	
