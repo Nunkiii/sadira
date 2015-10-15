@@ -1754,6 +1754,7 @@ var base_templates={
 	    // root_classes : ["container-fluid"],
 	    //child_classes : ["container-fluid"]
 	    item_classes : "vector_plot",
+	    item_bottom : true,
 	    enable_range : false,
 	    enable_selection : false
 	},

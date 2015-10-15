@@ -2182,6 +2182,18 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    ui_childs.remove_child=function(e){tpl_root.trigger('remove_child', e);};
 	    
 	    break;
+
+	case 'root' : 
+	    ui_childs.add_child=function(e){
+		ui_content.appendChild(e.ui_root);
+		tpl_root.trigger('add_child', e);
+	    };
+	    ui_childs.replace_child=function(nctpl){
+		tpl_root.trigger('update_child', e);};
+	    ui_childs.remove_child=function(e){
+		tpl_root.trigger('remove_child', e);};
+	    
+	    break;
 	    
 	    
 	case "div":
@@ -3122,9 +3134,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    if(ui_opts.name_after===true)
 			ui_content.prependChild(item_ui);
 		    else{
-			// if(ui_childs && ui_childs.div !==undefined)
-			//     ui_childs.div.parentNode.insertBefore(item_ui, ui_childs.div);
-			// else
+			if(ui_childs && ui_childs.div !==undefined && ui_opts.item_bottom!==true)
+			    ui_childs.div.parentNode.insertBefore(item_ui, ui_childs.div);
+			else
 			    ui_content.appendChild(item_ui);
 		    }
 
