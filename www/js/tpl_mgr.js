@@ -672,6 +672,7 @@ local_templates.prototype.build_object=function(template, is_object){
 		struct.type=obj;
 		if(root && is_object===false)
 		    add_builder(struct,template_ui_builders[obj]);
+
 		break;
 	    case 'elements' :
 		if(root){
@@ -732,11 +733,12 @@ local_templates.prototype.build_object=function(template, is_object){
     }
     
     tpl_tree.forEach(function(tpl){
-	//console.log(" updating  from tpl " + JSON.stringify(tpl));
+	//console.log(" updating  from tpl " + tpl[0]);
 	update_structure(object, tpl[1], true, is_object); //loct.update_template(tpl_item, tpl);
 
 
-	if(tpl[1].type===undefined && is_object===undefined){
+	if(tpl[1].type===undefined && is_object===false){
+	    //console.log("Looking for builder for " + tpl[0]);
 	    var tub=template_ui_builders[tpl[0]];
 	    if(tub!==undefined){
 		add_builder(object, tub);
