@@ -924,7 +924,7 @@ label.unslided{
 
 
 .navbar-brand > * > small {
-	      color: lightgrey;
+	      color: darkgrey;
 }
 
 
@@ -1484,7 +1484,7 @@ d3 vector shape
 
 .axis  path, .axis line {
   fill: none;
-  stroke: lightgrey; 
+  stroke: #505050; 
   shape-rendering: crispEdges;
 }
 
@@ -1492,7 +1492,7 @@ d3 vector shape
 /*
 
 */
-fill: #aaa;
+fill: #555;
       stroke: none;
   font-family: sans-serif;
   font-weight: normal;

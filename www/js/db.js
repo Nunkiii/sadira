@@ -1397,7 +1397,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    
 	}
-	console.log(tpl_root.name + " SETUP BBOX div is " + tpl_root.bbox.ui_childs.div );
+	//console.log(tpl_root.name + " SETUP BBOX div is " + tpl_root.bbox.ui_childs.div );
     }
 
 
@@ -1446,9 +1446,10 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	var btn_node;
 	tpl_root.bbox.add_child(create_widget({
-	    
 	    type : "button",
+	    
 	    ui_opts : {
+		tip : 'Save ' + ui_opts.save,	
 		root_node : tpl_root.toolbar===undefined? 'button' : 'li',
 		name : tpl_root.toolbar===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-save text-success'></it> Save</a>",
 		type : tpl_root.toolbar===undefined? ['xs','success'] : undefined,
@@ -1488,11 +1489,13 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.bbox.add_child(create_widget({
 	    //name : "",
 	    type : "button",
+	    
 	    ui_opts : {
+		tip : 'Load ' + ui_opts.save,
 		root_node : tpl_root.toolbar===undefined? 'button' : 'li',
-		name : tpl_root.toolbar===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Load</a>",
+		name : tpl_root.toolbar===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Open</a>",
 		type : tpl_root.toolbar===undefined? ['xs','info'] : undefined,
-		fa_icon : tpl_root.toolbar===undefined? "download": undefined
+		fa_icon : tpl_root.toolbar===undefined? "folder-open": undefined
 	    },
 	    widget_builder : function(){
 		var box=this.parent;
@@ -1709,13 +1712,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		phead.appendChild(ui_name);
 		ui_content=pcontent;
 	    }
-
-	    if(typeof tpl_root.tip != 'undefined'){
-		ui_name.setAttribute("title", tpl_root.tip);
-	    }
-	    
-
-	    
 
 	    
 	    tpl_root.get_title_node=function(){ return this.ui_name; }
@@ -3200,6 +3196,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    tpl_root.set_default_value();
 		}
 	    }
+
+	    if(typeof ui_opts.tip != 'undefined'){
+		if(ui_name!==undefined)
+		    ui_name.setAttribute("title", ui_opts.tip);
+		else
+		    ui_root.setAttribute("title", ui_opts.tip);
+	    }
+	    
 	}
 	catch(e){
 	    tpl_root.debug("Error building "+tpl_root.name+" : " + dump_error(e));
