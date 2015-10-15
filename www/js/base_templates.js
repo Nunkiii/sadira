@@ -48,15 +48,16 @@ var base_templates={
 	    but.setAttribute('type', 'button');
 
 
-	    var type='';
-	    if(opts.type===undefined)type='btn-default';
-	    else{
+
+	    if(opts.type!==undefined){
+		var type='';
 		//console.log("OTYPE " + typeof opts.type);
 		if(typeof opts.type==='object')
 		    opts.type.forEach(function(t){type+='btn-'+t+' ';});
 		else type='btn-'+opts.type;
+		but.add_class('btn '+type);
 	    }
-	    but.add_class('btn '+type);
+	    
 	    if(opts.name!==undefined)
 		but.innerHTML=opts.name;
 

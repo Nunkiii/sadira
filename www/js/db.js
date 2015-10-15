@@ -1381,7 +1381,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    var box_opts={};
 	    
 	    if(tpl_root.toolbar){
-		box_opts.child_classes = "navbar-nav btn-group pull-right";
+		box_opts.child_classes = "nav navbar-nav btn-group pull-right";
 		box_opts.child_node_type='ul';
 		btn_node='li';
 	    }else{
@@ -1446,11 +1446,14 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	var btn_node;
 	tpl_root.bbox.add_child(create_widget({
-	    //name : "",
+	    
 	    type : "button",
 	    ui_opts : {
-		type : ['xs','success'],
-		fa_icon : "save"},
+		root_node : tpl_root.toolbar===undefined? 'button' : 'li',
+		name : tpl_root.toolbar===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-save text-success'></it> Save</a>",
+		type : tpl_root.toolbar===undefined? ['xs','success'] : undefined,
+		fa_icon : tpl_root.toolbar===undefined? "save": undefined
+	    },
 	    widget_builder : function(){
 		this.listen('click', function(){
 		    var object_save=replace_name_widget(create_widget({
@@ -1485,7 +1488,12 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.bbox.add_child(create_widget({
 	    //name : "",
 	    type : "button",
-	    ui_opts : { type : ['xs','info'], fa_icon : "download"},
+	    ui_opts : {
+		root_node : tpl_root.toolbar===undefined? 'button' : 'li',
+		name : tpl_root.toolbar===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Load</a>",
+		type : tpl_root.toolbar===undefined? ['xs','info'] : undefined,
+		fa_icon : tpl_root.toolbar===undefined? "download": undefined
+	    },
 	    widget_builder : function(){
 		var box=this.parent;
 		this.listen('click', function(){
