@@ -1330,7 +1330,7 @@ _sadira.prototype.load_apis = function (cb){
     var sad=this;
     sad.apis={};
 
-    console.log("Loading apis...");
+    this.log("Loading apis...");
 
     for (var u in sad.users)
 	console.log(" U " + u);

@@ -318,7 +318,7 @@ server.prototype.find=function(opts, cb){
     mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.grants' : 1, 'db.p' : 1}, function(err, data){
 	if(err) return cb(err);
 	if(data){
-	    //console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
+	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
 	    var col=create_object_from_data(data);
 	    var p=new perm( col.db.p );
 
