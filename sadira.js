@@ -224,7 +224,7 @@ perm.prototype.check=function(user, mode){
     var ks=this[mode];
     
     if(ks===undefined){
-	console.log("No such mode " + mode + " default policy is Forbid.");
+	console.log("Permission "+ this + " : No such mode " + mode + " default policy is Forbid ! User=" + JSON.stringify(user));
 	return false;
     }
     //console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
