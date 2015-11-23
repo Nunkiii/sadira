@@ -221,10 +221,11 @@ perm.prototype.toString=function(){
 
 perm.prototype.check=function(user, mode){
 
+    //console.log("Permission ["+ this + "] : checking mode [" + mode + "]  User=" + JSON.stringify(user));
     var ks=this[mode];
     
     if(ks===undefined){
-	console.log("Permission "+ this + " : No such mode " + mode + " default policy is Forbid ! User=" + JSON.stringify(user));
+	console.log("Permission ["+ this + "] : No such mode [" + mode + "] default policy is Forbid ! User=" + JSON.stringify(user));
 	return false;
     }
     //console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
@@ -1340,7 +1341,7 @@ _sadira.prototype.load_apis = function (cb){
 	    if (cb === undefined)
 		return console.log("Unhandled error " + err);
 	    else
-		return cb(err);
+		return cb("While getting API collection items : ",err);
 	}
 
 	sad.log("Loading " + api_data.length + " APIS ");
