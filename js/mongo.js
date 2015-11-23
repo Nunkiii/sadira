@@ -168,6 +168,10 @@ server.prototype.write_doc=function(doc,a,b){
     if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
     
     var data=get_template_data(doc);
+
+    if(coll===undefined){
+	return cb("Error : no collection defined for doc name [" + doc.name + "] !" );
+    }
     //console.log("read data " + JSON.stringify(data));
 
     var mdb=this.db.collection(coll);
