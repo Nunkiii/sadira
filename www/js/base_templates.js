@@ -1,3 +1,9 @@
+var nodejs= typeof module !== 'undefined'; //Checking if we are in Node
+
+if(nodejs)
+    var crypto = require('crypto');
+
+
 var base_templates={
 
     progress:{
@@ -46,9 +52,6 @@ var base_templates={
 	    var but=this.but=this.ui_root; //ce('button');
 	    var opts=this.ui_opts;
 	    but.setAttribute('type', 'button');
-
-
-
 	    if(opts.type!==undefined){
 		var type='';
 		//console.log("OTYPE " + typeof opts.type);
@@ -68,6 +71,9 @@ var base_templates={
 	    //return but;
 	}
     },
+    
+    
+  
     button_box : {
 	ui_opts : {
 	    button_size : undefined
@@ -733,6 +739,43 @@ var base_templates={
 	    },
 	}
     },
+
+    code : {
+	name : "Source code",
+	ui_opts : { fa_icon : 'code'},
+	widget_builder : function(){
+	    var code=this;
+	    var ui=ce('div');
+	    
+	    // var bbox=create_widget({ type : 'button_box', ui_opts : {root_classes : ['vertical_margin']} });
+	    // var save=create_widget({ type : 'button', ui_opts : { name : 'Save', fa_icon : 'save'}, root_classes : []});	    
+	    // bbox.add_button(save);	    
+	    // ui.appendChild(bbox.ui_root);
+	    code.ed_div=cc('div',ui);
+	    code.ed_div.style.height='50vh';
+	    this.ace_editor=ace.edit(code.ed_div);
+	    this.ace_editor.setTheme("ace/theme/monokai");
+	    this.ace_editor.getSession().setMode("ace/mode/javascript");
+
+	    this.ace_editor.getSession().on('change', function(e) {
+		code.value=code.ace_editor.getValue();
+		// e.type, etc
+	    });
+	    
+	    this.set_value=function(v){
+		if(v!==undefined)
+		    code.value=v;
+		if(code.value!==undefined)
+		    code.ace_editor.setValue(code.value);
+	    }
+
+	    if(this.value!==undefined) this.set_value();
+	    else if(this.default_value!==undefined) this.set_value(this.default_value);
+	    
+	    return ui;
+	}
+
+    },
     
     browser : {
 	ui_opts : {
@@ -760,32 +803,29 @@ var base_templates={
     db_collection : {
 
 	name : "Object collection",
+
 	ui_opts : {
 	    fa_icon : "reorder",
 	    name_elm : "name",
 	    mini_elm : "description"
 	},
 	elements : {
-
-	    description  : {
-		type : "string",
-		name : "Description",
-		default_value : "Description of this collection..."
-	    },
-	    
 	    name : {
 		name : "Collection name",
 		type : "string",
 		holder_value : "Enter name here",
 		ui_opts : { label : true}
 	    },
-
+	    description  : {
+		type : "string",
+		name : "Description",
+		default_value : "Description of this collection..."
+	    },
 	    template : {
 		name : "Collection template",
 		type : "string",
 		ui_opts : { label : true}
 	    },
-	    
 	    dbname : {
 		name : "Database name",
 		type : "string",
@@ -906,27 +946,90 @@ var base_templates={
 	    
 	}
     },
+
+
+    db_collection_chooser : {
+	name : "Select collection",
+	
+	ui_opts : {
+	    type  : "edit",
+	    //label :  true,
+	    root_classes : ["col-sm-12"],
+	    collection : "collections"
+	},
+	type : "combo",
+	widget_builder : function(){
+	    var colsel=this;
+
+	    colsel.get_collection_list=function(cb){
+		var r=new request({ cmd : '/api/dbcom/get'});
+		
+		r.execute(function(err, result){
+		    
+		    if(err){
+			colsel.message(dump_error(err), { type : 'danger', title : 'Error query'});
+			return;
+		    }
+		    
+		    if(result.length>0){
+			
+			colsel.options=[];
+			
+			result.forEach(function(d){
+			    colsel.options.push({value : d.els.name.value, label : d.els.name.value /*d._id*/});
+			    //var w=create_widget(d.type);
+			    //set_template_data(w,d);
+			    //console.log("D= " + JSON.stringify(d));
+			    //object.ui_childs.add_child(w, w.ui_root);
+			});
+			
+ 			colsel.set_options();
+			cb(true);
+			
+		    }else{
+			colsel.set_title("No collection available");
+			colsel.disable();
+			cb(true);
+		    }
+		    // colsel.listen("change", function (value) {
+		    // 	console.log("changed to " + value);
+		    // 	get_collection_objects(colsel.value);
+		    // });
+		
+		});
+	    }
+
+	    if(colsel.ui_opts.collection===undefined){
+	    	colsel.get_collection_list(function(ok){
+	    	    if(ok === true){
+	    		console.log("Got collections");
+	    		//get_collection_objects(colsel.value);
+	    	    }
+	    	});
+	    }else{
+	    	colsel.hide(true);
+	    	//get_collection_objects(ui_opts.collection);
+	    }
+	    
+	    colsel.get_collection_list(function(){});
+	}
+    },
+    
     
     db_browser : {
 
-	name : "Database browser !!!!",
+	name : "Database browser",
+	type : "data_nav",
 	
 	ui_opts : {
 	    root_classes : ["container-fluid"],
 	    child_classes : ["container-fluid"],
 	    fa_icon : "archive"
 	},
-
+	
 	elements : {
-	    colsel : {
-		name : "Select collection",
-		
-		ui_opts : {
-		    type  : "edit",
-		    label :  true,
-		    root_classes : ["col-sm-12"],
-		},
-		type : "combo"
+	    data_source : {
+		type : 'db_collection_chooser'
 	    },
 	    cnt : {
 		ui_opts : {
@@ -935,15 +1038,13 @@ var base_templates={
 		},
 		elements : {
 		    browser : {
-			//name : "Object browser",
-			ui_opts : { root_classes : ["col-sm-6"]},
-			elements : {
-			    list : {
-				ui_opts : {
-				    root_classes : ["container_fluid"]
-				},
-				name : "Object list"
-			    }
+			name : "Browse",
+			
+			ui_opts : {
+			    root_classes : ["col-sm-6"]
+			},
+			widget_builder : function(){
+			    
 			}
 		    }
 		    ,
@@ -963,55 +1064,17 @@ var base_templates={
 	    //console.log("DBB start " + dbb.name);
 
 	    var browser = dbb.get('browser');
-	    var list = dbb.get('list');
-	    var colsel=dbb.get("colsel");
+	    
 	    var object=dbb.get("object");
+	    var colsel=dbb.get("data_source");
 	    
-	    var tb=cc('table',list.ui_root);
+	    //var tb=cc('table',list.ui_root);
 	    
-	    tb.className='table table-hover';
+	    //tb.className='table table-hover';
 	    
-	    function get_collection_list(cb){
-		var r=new request({ cmd : '/api/dbcom/get'});
-		
-		r.execute(function(err, result){
-
-		    if(err){
-			object.ui_root.innerHTML=err;
-			return;
-		    }
-		    
-		    if(result.length>0){
-			
-			colsel.options=[];
-			
-			result.forEach(function(d){
-			    colsel.options.push({value : d.els.name.value, label : d.els.name.value /*d._id*/});
-			    //var w=create_widget(d.type);
-			    //set_template_data(w,d);
-			    //console.log("D= " + JSON.stringify(d));
-			    //object.ui_childs.add_child(w, w.ui_root);
-			});
-			
-			colsel.set_options();
-			cb(true);
-			
-		    }else{
-			colsel.set_title("No collection available");
-			colsel.disable();
-			cb(true);
-		    }
-		    
-		    colsel.listen("change", function (value) {
-			console.log("changed to " + value);
-			get_collection_objects(colsel.value);
-		    });
-		
-		});
-	    }
 
 	    function get_collection_objects(collection_name){
-
+		
 		console.log("Col name : " + collection_name);
 		var r=new request({ cmd : '/api/dbcom/get', args : { collection : collection_name} });
 		
@@ -1023,7 +1086,9 @@ var base_templates={
 			return;
 		    }
 		    
-		    //dbb.debug(JSON.stringify(result,null,5));
+		    dbb.debug(JSON.stringify(result,null,5));
+
+		    return;
 		    
 		    if(result!==undefined){
 			if(result.error !== undefined)
@@ -1031,16 +1096,16 @@ var base_templates={
 
 			dbb.debug_clean();
 			
-			list=create_widget({
-			    //name : "Collection <i>" + collection_name + "</i>",
-			    ui_opts : {
-				root_classes : ["col-sm-12"],
-				child_classes : ["container-fluid"],
-				//child_view_type : "table"
-			    }
-			}, browser);
+			// list=create_widget({
+			//     //name : "Collection <i>" + collection_name + "</i>",
+			//     ui_opts : {
+			// 	root_classes : ["col-sm-12"],
+			// 	child_classes : ["container-fluid"],
+			// 	//child_view_type : "table"
+			//     }
+			// }, browser);
 			
-			browser.update_child(list,"list");
+			// browser.update_child(list,"list");
 			
 			result.forEach(function(d, i){
 			    
@@ -1092,18 +1157,7 @@ var base_templates={
 		    }
 		});
 	    }
-
-	    if(ui_opts.collection===undefined){
-		get_collection_list(function(ok){
-		    if(ok === true){
-			console.log("Got collections");
-			get_collection_objects(colsel.value);
-		    }
-		});
-	    }else{
-		colsel.hide(true);
-		get_collection_objects(ui_opts.collection);
-	    }
+	    
 	    
 	}
     },
@@ -1231,8 +1285,10 @@ var base_templates={
 	    },
 	},
     },
+
     local_access : {
-	tpl_desc : "All info for an internally administered user.",
+
+	intro : "All info for an internally administered user.",
 	name : "Local credentials",
 	ui_opts : {
 	    fa_icon : "leaf"
@@ -1266,7 +1322,50 @@ var base_templates={
 		name : "User name",
 		type: "string"
 	    }
+	},
+	object_builder : function(){
+	    var la=this;
+	    la.create_password=function(clear_password, cb) {}
+	    
+	    la.check_password=function(clear_password, cb) {
+		var hash=la.val('hashpass');
+		var salt=la.val('salt');
+		
+		console.log("check passwd ["+clear_password+"]["+salt+"]");
+		var h=crypto.createHash('sha256');
+		
+		h.update(salt,'base64');
+		h.update(clear_password,'utf-8');
+		
+		var true_hash=h.digest('base64');
+		var match=(true_hash==hash) ? true:false;
+		
+		//console.log("Compare DB=["+true_hash+"] AND ["+hash+"] match = " + match);
+		
+		cb(null,match);
+		
+	    };
+	    
+	    
+	    la.set_password=function(clear_password){
+		var hp=crypto.createHash('sha256');
+		hp.update(clear_password);
+		
+		var h=crypto.createHash('sha256');
+		var salt=crypto.randomBytes(32);//.toString('base64');
+		
+		h.update(salt);
+		h.update(hp.digest('base64'),'utf-8');
+		
+		la.set('hashpass',h.digest('base64'))
+		    .set('salt',salt.toString('base64'));
+
+		//console.log("Setting pass to [" + clear_password +"]" + la.val('hashpass'));
+		
+		return la;
+	    };
 	}
+	
     },
     facebook_access : {
 	name : "Facebook credentials",
@@ -1840,7 +1939,7 @@ var base_templates={
 	ui_opts : {
 	    root_classes : ["container-fluid left"],
 	    //child_classes : ["container-fluid"],
-	    child_view_type : "tabbed",
+	    //child_view_type : "tabbed",
 	    //name_node : "h4",
 	    //name_classes : ["title_logo"],
 	    
@@ -1959,14 +2058,14 @@ var base_templates={
 	name : "SoftName",
 	type : "url",
 	ui_opts : {
-	    root_classes : ["panel panel-default"],
-	    name_classes : ["panel-heading"],
-	    item_classes : ["panel-content"],
+	    // root_classes : ["panel panel-default"],
+	    // name_classes : ["panel-heading"],
+	    // item_classes : ["panel-content"],
 	    icon : "/sadira/icons/brands/nodejs.svg",
 	    intro_stick : true,
-	    //icon_size : "4em",
-	    name_node : "div",
-	    
+	    icon_size : "6em",
+	    name_node : "h4",
+	    //label : true
 	}
     },
     
@@ -2004,127 +2103,179 @@ var base_templates={
     },
 
     ui_demo : {
-	name : "Toolkit test", subtitle : "Sadira/Tk sandbox",
-	intro : "<p>Write the template and builder code for your widget then try to run it</p>",
+	name : "Widget test", subtitle : "Sadira toolkit widget sandbox",
+	intro : "<p>Write a custom widget by writing its template JavaScript code.</p>",
 	ui_opts : {
-	    root: true,
+	    //root: true,
+	    intro_stick : true,
 	    root_classes : ["container-fluid"],
-	    child_classes : ["row"]
+	    //child_classes : ["row"]
 	},
 	//toolbar : {},
 
 	elements : {
-	    code : {
-		//name : "Widget source code",
-		ui_opts : {
-		    root_classes : ["col-md-6"],
-		    child_classes : ["container-fluid"],
-		    child_view_type : "tabbed"
-		},
-		elements : {
+	    // code : {
+	    // 	name : "Widget source code",
+	    // 	ui_opts : {
+	    // 	    //root_classes : ["col-md-6"],
+	    // 	    child_classes : ["container-fluid"],
+	    // 	    //child_view_type : "tabbed"
+	    // 	},
+	    // 	elements : {
 		    source : {
-			name : "Source code",
-			ui_opts : {child_view_type : "tabbed"},
+			//name : "Source code",
+			ui_opts : {
+			    //child_view_type : "tabbed",
+			    root_classes : ['col-md-6 col-sm-12']
+			},
 			elements : {
 			    template : {
-				name : "Template",subtitle : "Edit source code (in JavaScript for simplicity)",
+				name : "Template code",intro : "Edit your widget's source code",
 				type : "code",
-				default_value : '{\n\ttype : "hello",\n\tname : "Hello",\n\tsubtitle : "Hello Sadira/Tk!",\n\t elements : {\n\t\tbtn : {\n\t\t\ttype : "action",\n\t\t\tname : "Click me !"\n\t\t},\n\t\ttext : {\n\t\t\tname : "Result :",\n\t\t\t type : "string"\n\t\t}\n\t}\n}',
+				
+				default_value : '(function(){\nreturn {\n\tname : "Hello",\n\tsubtitle : "Hello Sadira/Tk!",\n\t elements : {\n\t\tbtn : {\n\t\t\ttype : "action",\n\t\t\tname : "Click me !"\n\t\t},\n\t\ttext : {\n\t\t\tname : "Result :",\n\t\t\t type : "string"\n\t\t}\n\n} }})(); ',
 				
 				//default_value: '{}',
 				ui_opts : {
-				    type : "edit",
+				    intro_stick : true,
+				    save : "sandbox_code",
 				    root_classes : ["container-fluid"],
-				    highlight_source : true
-				}
-			    },
-			    builder : {
-				name : "Template builder",subtitle : "Edit your widget builder source code",
-				type : "code",
-				default_value : 'function(ui_opts, hello_tpl){\n\thello_tpl.get("btn").listen("click", function(){\n\t\thello_tpl.get("text").set_value("Hello World!");\n\t});\n }',
-				ui_opts : {
-				    type : "edit",
-				    root_classes : ["container-fluid"],
-				    
-				    highlight_source : true
-				}
-			    },
-			    widget : {
-				name : "Choose an existing widget to start with :",
-				ui_opts: {
-				    type : "edit",//,
-				    label : true,
-				    in_root: "prepend",
-				    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
 				},
-				elements :{
-				    tlist : {
-					//name : "Choose:",
-					type : "template_list",
-					//type : "string",
-					ui_opts : {
-					    type : "edit",
-					    item_classes : [],
-					    //style:"menu",
-					    text_node : "span",
+				elements : {
+				    
+				    widget : {
+					name : "Choose an existing widget to start with :",
+					ui_opts: {
+					    type : "edit",//,
 					    label : true,
-					    item_root : true,
+					    in_root: "prepend",
+					    root_classes : ["container-fluid"],child_classes : ["form-group input-group"]
+					},
+					elements :{
+					    tlist : {
+						//name : "Choose:",
+						type : "template_list",
+						//type : "string",
+						ui_opts : {
+					    type : "edit",
+						    item_classes : [],
+						    //style:"menu",
+						    text_node : "span",
+					    label : true,
+						    item_root : true,
+						}
+					    },
+					    tpl_set : {
+						type : "action",
+						name : "Set template in editor",
+						ui_opts : {
+						    button_node : "span",
+						    item_classes : ["btn btn-info "], fa_icon : "play",
+						    //item_root : true,
+						    root_classes : ["input-group-btn"]
+						}
+					    }
 					}
 				    },
-				    tpl_set : {
-					type : "action",
-					name : "Set template in editor",
-					ui_opts : {
-					    button_node : "span",
-					    item_classes : ["btn btn-info "], fa_icon : "play",
-					    //item_root : true,
-					    root_classes : ["input-group-btn"]
-					}
-				    }
+				    
 				}
 			    },
 			    
 			}
 		    },
-	    	    compile : {
-			name : "Compilation",
+	    compile : {
+		//name : "Compilation",
 			ui_opts : {
-			    root_classes : ["container-fluid"],
+			    root_classes : ['col-md-6 col-sm-12'],
 			    child_classes : ["container-fluid"],
 			},
 			elements : {
-			    build : {
-				name : "Build/rebuild widget",
-					type : "action",
-				ui_opts : {item_classes : ["btn btn-primary"], item_root : true}
-			    },
 			    status : {
 				ui_opts : {
-				    root_classes : ["well row"], label:true
+				    root_classes : ["well"],
 				},
 				type : "string",
-				name : "JS compile"
+				name : "JS compile",
+				elements : {
+				    build : {
+					type : "button",
+					ui_opts : { type : ["primary"], name : "Compile and create widget", fa_icon : 'cogs' }
+				    }
+				    
+				}
 			    },
-			    build_status : {
-				ui_opts : { root_classes : ["well row" ], label:true},
-				type : "string",
-				name : "Widget build"
+			    // build_status : {
+			    // 	ui_opts : { root_classes : ["well row" ], label:true},
+			    // 	type : "string",
+			    // 	name : "Widget build"
+			    // },
+			    view : {
+				name : "Your widget",
+				ui_opts : {
+				    //root_classes : ["col-md-6 "],
+				    child_classes : ["container-fluid panel panel-default"],
+				}
+				
 			    }
+			    
 			}
 			
 		    },
 		    
-		}
-	    },
+	    // 	}
+	    // },
 
-	    view : {
-		name : "Your widget",
-		ui_opts : {
-		    root_classes : ["col-md-6 "],
-		    child_classes : ["container-fluid panel panel-default"],
+	    
+	},
+	
+	widget_builder : function(){
+	    var demo=this;
+	    var template=demo.get("template");
+	    //var builder=demo.get("builder");
+	    var build=demo.get("build");
+	    var status=demo.get("status");
+	    //var build_status=demo.get("build_status");
+	    var view=demo.get("view");
+	    
+	    var tpl_select=demo.get("tlist");
+	    var tpl_set=demo.get("tpl_set");
+	    
+	    view.set_title("No widget to show");
+	    
+	    tpl_set.listen("click", function(){
+		var tpl_name=tpl_select.value;
+		this.parent.message("Applying template  " + tpl_name);
+		var template_source=tmaster.get_master_template(tpl_name);
+		if(template_source !== undefined){
+		    var template_string=template_source.toSource();
+		    template.set_value(template_string);
 		}
-		
+	    });
+	    
+	    function clear_widget(w){
+		if(è(w)) demo.update_child(w, "view");
+		    
 	    }
+	    
+	    build.listen("click",function(){
+		
+		try{
+		    var template_code_string=template.ace_editor.getValue();
+		    status.message(template_code_string,{ type : "info", title : "Compiling " });
+
+		    var template_code=eval(template_code_string);
+		    status.message(JSON.stringify(template_code),{ type : "success", title : "JS code compiled "});
+		    tmaster.set_template("hello", template_code);
+		    clear_widget(create_widget("hello"));
+		    //status.set_alert({ type : "success", content : "Widget created"});
+		}
+		catch(e){
+		    status.message("<pre>" + dump_error(e)+"</pre>", { type : 'danger', title : "Error compiling JS for template : "+ e.message});
+		    //status.set_alert({type: "error", content });
+		}
+
+	    });
+     
 
 	}
 

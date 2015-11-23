@@ -152,7 +152,7 @@ function set_template_data(t, data){
 		    }
 		    else{
 			var no=build_object(data.els[te].type, true);
-			no.build();
+			no.build({recurse : true});
 			//t.add_child(no, te);
 			t.elements[te]=no;
 			//t.elements[te]=create_object(data.els[te].type);
@@ -198,11 +198,12 @@ function update_template(tpl, uptpl){
 }
 
 local_templates.prototype.set_template=function(tname, template){
-    if(this.templates[tname]===undefined)
+//    if(this.templates[tname]===undefined)
 	this.templates[tname]=template;
-    else{
-	update_template(this.templates[tname],template);
-    }
+  
+  // else{
+  // 	update_template(this.templates[tname],template);
+  //   }
 }
 
 local_templates.prototype.add_templates=function(templates){
@@ -297,15 +298,26 @@ template_object.prototype.add_link=function(linko){
 
 
 template_object.prototype.build=function(opts_in){
+    //console.log(this.name + " t " + this.type + " build ");
+
     var ui;
     var tpl_node=this;
     var opts=opts_in===undefined? {}:opts_in;
+    
+    if(opts.recurse===true){
+	for(var e in this.elements)
+	    this.elements[e].build(opts);
+    }
     if(tpl_node.builders!==undefined){
+
 	var nb=0;
 	var bl=tpl_node.builders.length;
 
+	//console.log(this.name + " t " + this.type + " build NB=" + bl);
+	
 	if(opts.object===true)
 	    tpl_node.builders.forEach(function(b){
+		//console.log("Exec builder " + b.toString());
 		var bui=b.call(tpl_node,tpl_node);
 		if(ui === undefined) ui=bui;
 		nb++;
@@ -313,6 +325,7 @@ template_object.prototype.build=function(opts_in){
 	    });
 	else
 	    tpl_node.builders.forEach(function(b){
+		//console.log("Exec Widget builder " + b.toString());
 		var bui=b.call(tpl_node,opts, tpl_node);
 		if(ui === undefined) ui=bui;
 		nb++;
@@ -323,6 +336,16 @@ template_object.prototype.build=function(opts_in){
 }
 
 
+local_templates.prototype.create_objects_from_data=function(data){
+    var lt=this;
+    var nd=data.length;
+    var objects=[];
+    data.forEach(function(d){
+	objects.push(lt.create_object_from_data(d));
+    });
+    return objects;
+}
+
 local_templates.prototype.create_object_from_data=function(data){
 
     if(data===null){
@@ -332,22 +355,32 @@ local_templates.prototype.create_object_from_data=function(data){
 
     var obj;
     var isobject= (typeof(window) === 'undefined');
+
+    
     if(data.type===undefined){
 	obj=this.build_object({},isobject);
 	//throw Error("Cannot build object from data name ["+data.name+"]: Not a template");
-
-    }else
+	
+    }else{
+	
 	obj=this.build_object(data.type,isobject);
+    }
 
     
-    console.log("Create from data " + obj.type + " name " + obj.name + " DATA ["+JSON.stringify(data)+"]");
+    //console.log("Create from data " + obj.type + " name " + obj.name + " DATA ["+JSON.stringify(data)+"]");
     //console.log("Create from data object type " + data.type + " name " + data.name);
     //obj.build();
+    
+    
     if(typeof window !== 'undefined')
 	create_ui({},obj);
-    else obj.build({object:true});
+    else{
+	//console.log("Building " + obj.type);
+	obj.build({object:true, recurse : true});
+    }
     
     set_template_data(obj, data);
+    
     return obj;
 }
 
@@ -357,289 +390,19 @@ local_templates.prototype.create_object=function(template, cb){
     var app=this.app;
     //console.log("create tpl "+template+"pname = " + typeof this);
     //for(var k in Object.keys(this)) console.log("tmk " + k + " v=" + this[k]);
-
-    if(template===undefined){
-	if(cb!==undefined) return cb(null, new template_object());
-	else return new template_object();
-    }
-
-    //var obj=this.build_template(template);
     var obj=this.build_object(template, true);
-
-    function build_elements(t, cb){
-	if(cb===undefined) cb=function(e){
-	    if(e) console.log("Unhandled build_elements error " + e);
-	}
-
-	//tmaster.common_builder(t);
-
-	function build_childs(cb){
-	    if(t.object_builder!==undefined)
-		t.object_builder(t,app);
-	    if(t.elements!==undefined){
-		var ne=Object.keys(t.elements).length;
-		for(var e in t.elements){
-		    build_elements(t.elements[e],function(er){
-			if(er) return cb(er);
-			ne--;
-			//console.log("Building child " + e + "ne = " + ne) ;
-
-			if(ne===0) cb(null);
-		    });
-		}
-	    }else cb(null);
-	}
-	if(è(tmaster.object_builder)){
-	    tmaster.object_builder(t, function(e){
-		if(e) return cb(e);
-		build_childs(cb);
-	    });
-	}else
-	    build_childs(cb);
-
-
-    }
-    build_elements(obj,cb);
+    
+    //console.log("Build object " + obj.name + " type " + obj.type);
+    obj.build({object:true, recurse: true});
     return obj;
-}
-
-
-local_templates.prototype.update_template=function(tpl_item, tpl){
-    var toup=["ui_opts"];
-    var me=this;
-    //console.log("update template item " + tpl_item.type + " base " + tpl.type + " templ " + tpl.toString());
-    for(var ti=0;ti< toup.length;ti++){
-	var t=toup[ti];
-	//console.log(tpl_item.name + " : Check " + t + " typof " + typeof tpl_item[t] );
-
-	if(typeof tpl[t]!='undefined'){
-	    if(typeof tpl_item[t]=='undefined')
-		tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
-	    //else
-	    for(var o in tpl[t]){
-		//console.log(tpl_item.name + " : Checking to add child " + o + " name " + tpl[t][o].name + " type " + tpl[t][o].type);
-		if(tpl_item[t][o]===undefined){
-		    tpl_item[t][o]=clone_obj(tpl[t][o]);
-
-		}
-		//else this.update_template(tpl_item[t][o], tpl[t][o]);
-
-	    }
-
-	    //for(var e in tpl_item[t]) console.log(tpl_item.name + " CHILD " + e );
-	}
-    }
-    var t='elements';
-    if(typeof tpl[t]!='undefined'){
-	if(typeof tpl_item[t]=='undefined')
-	    tpl_item[t]=clone_obj(tpl[t]); //tpl[t];
-	for(var o in tpl[t]){
-	    if(tpl_item[t][o]===undefined){
-		tpl_item[t][o]=clone_obj(tpl[t][o]);
-		
-	    }
-	}
-    }
-
     
-
-    for(var o in tpl){// Object.keys(tpl)){
-	//console.log("PRoc " + o);
-	switch(o){
-	case "name" : if(tpl_item.name===undefined) tpl_item.name=tpl.name; break;
-	case "subtitle" : if(tpl_item.subtitle===undefined) tpl_item.subtitle=tpl.subtitle; break;
-	case "intro" : if(tpl_item.intro===undefined) tpl_item.intro=tpl.intro; break;
-	case "elements" : break;
-	case "ui_opts" : break;
-	case "widget_builder" :
-	    if(tpl_item.builders===undefined)
-		tpl_item.builders=[tpl.widget_builder];
-	    else
-		tpl_item.builders.push(tpl.widget_builder);
-	    //if(tpl_item.type=='sspec')
-	    //console.log("Added base builder " + tpl.widget_builder.toString());
-	    break;
-	case "type":
-	    //tpl_item.type=tpl.type; break;
-
-	    if(tpl_item.type===undefined){
-		tpl_item.type=tpl.type;
-	    }else{
-		//tpl_item.btype=tpl.type;
-	    }
-	    break;
-	default:
-	    tpl_item[o]=clone_obj(tpl[o]);
-	    break;
-	}
-    }
-
-    var t=template_ui_builders[tpl_item.type];
-
-    if(t!==undefined){
-	if(tpl_item.builders===undefined)
-	    tpl_item.builders=[t];
-	else
-	    tpl_item.builders.push(t);
-    }
-
-
-    // if(tpl_item.widget_builder!==undefined){
-    // if(tpl_item.builders===undefined)
-    //     tpl_item.builders=[tpl_item.widget_builder];
-    // else
-    //     tpl_item.builders.push(tpl_item.widget_builder);
-    // //if(tpl_item.type=='sspec')
-    // //console.log("Added last child builder " + tpl_item.widget_builder.toString());
-    // }
-
-
-    //console.log("Subst templates for "+tpl_item.name +" [" + tpl_item.type + "] btype ["+tpl_item.btype+"] tpl name is " + tpl.name );
 }
-
-local_templates.prototype.substitute_template=function(tpl_item){
-    var loct=this;
-    //console.log("Substitute " + tpl_item.name + " type " + tpl_item.type);
-    if(tpl_item===undefined) return true;
-
-    var tname=tpl_item.type;
-    if(tname===undefined) tname=tpl_item.tname;
-
-
-    if(tname!==undefined){
-	if(tpl_item.type==="template"){
-	    throw "deprecated [template] type ! (name=["+tpl_item.name+"])";
-	}
-
-	var tpl=this.templates[tname];
-	var tpl_tree=[];//, tname=tpl_item.type;
-
-	while(tpl!==undefined) {
-	    tpl.tname=tname;
-	    tpl_tree.unshift(tpl);
-
-	    if(tpl.type!==undefined){
-		tpl=this.templates[tpl.type];
-		tname=tpl.type;
-	    }else tpl=undefined;
-	}
-	tpl_tree.forEach(function(tpl){
-	    //console.log(tpl_item.name + " updating  from tpl " + tpl.type);
-	    loct.update_template(tpl_item, tpl);
-	});
-    }
-
-
-
-    // tpl=this.templates[tpl_item.type];
-    // if(tpl!==undefined) {
-    // //console.log("Subst templ type " + tpl_item.type);
-    // this.update_template(tpl_item, tpl);
-    // }
-
-    //console.log("Subst templ DONE");
-    return true;
-}
-
-local_templates.prototype.substitute_templates=function(tpl){
-    // if(tpl.type=="double")
-    //console.log(tpl.name + " : Subst Tpl : " + tpl.type);
-
-    if(tpl===undefined) return undefined;
-    this.substitute_template(tpl);
-    for (var e in tpl.elements){
-	this.substitute_templates(tpl.elements[e]);
-    }
-    if(è(tpl.toolbar)){
-	for(var tbi in tpl.toolbar){
-	    this.substitute_templates(tpl.toolbar[tbi]);
-	}
-    }
-    return tpl;
-}
-
-
-local_templates.prototype.build_template=function(template){
-
-    var tpl;
-
-    if(typeof template === 'string'){
-
-	var master_tpl=this.templates[template];
-	if(master_tpl===undefined) throw "Unknown template ["+template+"]";
-	//tpl=clone_obj(master_tpl);
-	//console.log("Building template " + template);
-	tpl=new template_object();
-	tpl.type=template;
-
-	for(var key in master_tpl){
-
-	    if (master_tpl.hasOwnProperty(key))
-		tpl[key] = clone_obj(master_tpl[key]);
-
-	    //console.log("copy key " + key + " : " + tpl[key] );
-
-	}
-	if(tpl === undefined)
-	    throw "Unknown template " + template;
-
-	// if(tpl.type!==undefined){
-	//     //console.log("got type " + tpl.type + " ==? " + template);
-	//     if(tpl.type !== template){
-	// tpl.btype=tpl.type;
-	// tpl.type=template;
-	// //console.log("Ok got types " + tpl.type + " and " + tpl.btype);
-	//     }
-	// }else tpl.type=template;
-    }else{
-	//console.log("Template is an object " + typeof template + " : " + JSON.stringify(tpl));
-	tpl=template;
-    }
-
-    this.substitute_templates(tpl);
-    
-    return tpl;
-}
-
-
-
-// local_templates.prototype.create_object=function(template, cb){
-
-//     if(template===undefined){
-//     	if(cb!==undefined) return cb(null, new template_object());
-//     	else return new template_object();
-//     }
-    
-//     var tmaster=this;
-//     var app=this.app;
-
-//     if(cb===undefined)
-// 	cb=function(e){
-// 	    if(e!==null){
-// 		console.log("Error : " + e);
-//     		throw e;
-// 	    }
-// 	}
-    
-//     try{
-// 	console.log("Building template ... ");
-// 	var obj = tmaster.build_object(template);
-// 	console.log("Building template ... done ");
-// 	obj.build();
-// 	console.log("Constr template ... done ");
-// 	cb(null, obj);
-// 	console.log("Callabck call ... done ");
-// 	return obj;
-//     }
-//     catch (e){
-// 	cb(e);
-// 	return null;
-//     }
 
 
 local_templates.prototype.build_object=function(template, is_object){
 
-    if(template===undefined) throw Error("No template given");
+    if(template===undefined)
+	throw Error("No template given");
 
     if(is_object===undefined) is_object=false;
 
@@ -665,7 +428,9 @@ local_templates.prototype.build_object=function(template, is_object){
     function update_structure(struct, tpl, root, is_object){
 	
 	for(var p in tpl){
+
 	    var obj=tpl[p];
+	    //console.log("update structure property " + p);
 	    
 	    switch(p){
 	    case 'type':
@@ -687,8 +452,8 @@ local_templates.prototype.build_object=function(template, is_object){
 				//console.log("Building child " + c + ' substruct ' + JSON.stringify(child));
 				struct.elements[c]=lt.build_object(child, is_object);
 				//console.log("After building child " + c + ' substruct ' + JSON.stringify(child));
-				}else
-				    update_structure(struct.elements[c], child, true, is_object);
+			    }else
+				update_structure(struct.elements[c], child, true, is_object);
 			    
 			}else{
 			    console.log(tpl.name + "["+tpl.type+"] Strange element " + c + " undef !");
@@ -708,9 +473,12 @@ local_templates.prototype.build_object=function(template, is_object){
 		    add_builder(struct,obj);
 		break;
 	    default:
-		if(typeof(obj) != 'object')
+		if(typeof(obj) != 'object'){
 		    struct[p]=obj;
+		}
 		else{
+		    //console.log(p + " COPY  type " + typeof(obj) + " str[p]=" + struct[p]);
+
 		    //if(p==='ui_opts')	console.log(struct.name + " ui_opts "+ JSON.stringify(struct[p],null,5) +" update with "+JSON.stringify(obj,null,5));
 			
 		    
@@ -722,17 +490,23 @@ local_templates.prototype.build_object=function(template, is_object){
 		}
 	    }
 	}
+
+	//console.log("Updated structure " + struct.name +" tpl name " + tpl.name + " type " + struct.type + "TPL " + JSON.stringify(tpl));
     }
     
     if(tpl_types.length>0){
 	var ttype=tpl_types[0];
 	if(this.templates[ttype] === undefined) throw Error("Undefined template ["+ttype+"]");
-	for(var tpl=this.templates[ttype];tpl!==undefined;tpl=this.templates[ttype]){
+	for(var tpl=this.templates[ttype];tpl!==undefined && ttype!==undefined;tpl=this.templates[ttype]){
 	    tpl_tree.unshift([ttype,tpl]); ttype=tpl.type;
 	}
     }
+ 
     
+    //console.log(object.type + " build NT=" + tpl_tree.length);
+
     tpl_tree.forEach(function(tpl){
+	//console.log("API build  template " + tpl[0] + " with " + JSON.stringify(tpl[1]));
 	//console.log(" updating  from tpl " + tpl[0]);
 	update_structure(object, tpl[1], true, is_object); //loct.update_template(tpl_item, tpl);
 
@@ -748,6 +522,16 @@ local_templates.prototype.build_object=function(template, is_object){
 	
     });
 
+    if(this.object_builder!==undefined){
+	add_builder(object, this.object_builder);
+    }
+
+    if(this.widget_builder!==undefined){
+	add_builder(object, this.widget_builder);
+    }
+
+    //console.log(object.name + " t " + object.type + " nb " + object.builders.length );
+    
     function set_keys(o,k){
 	o.key=k;
 	if(o.elements)

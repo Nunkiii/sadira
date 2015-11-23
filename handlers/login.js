@@ -9,37 +9,41 @@ var crypto=require('crypto');
 exports.init=function(pkg, sad, cb){
 
 
-    var mongo=sad.mongo;
+    var mongo=sad.mongo.sys;
     var app=sad.app;
     var passport=sad.passport;
+
+    console.log("Register login serialize funcs...");
     
     passport.serializeUser(function(user, done) {
-	//console.log("Serialize USER ! " + user.db.id);
+	console.log("Serialize USER ! " + user.db.id);
 	done(null, user.db.id);
     });
 
     passport.deserializeUser(function(id, done) {
-	console.log("Deserialize USER ID " + id);
+	//console.log("Deserialize USER ID " + id);
 	mongo.find1({ type : "Users", id : id},
-		    done
+		    //done
 
-		    /*
 		    function(err, user) {
 			
 			if(err){
 			    console.log("Error looking up user " + err);
+			    done(err);
 			}
 			
 			if(user!==undefined)
 			    done(err, user);
-			else
-			    done("User (id + "+id+") not found !");
+			else{
+			    console.log("User not found ! " + id);
+	//done("User (id + "+id+") not found !");
+			    done("pass",undefined);
+			}
 		    }
-
-		    */
+		    
 		   );
     });
-
+    
     // =========================================================================
     // LOCAL SIGNUP =============================================================
     // =========================================================================
@@ -58,7 +62,7 @@ exports.init=function(pkg, sad, cb){
 			 // we are checking to see if the user trying to login already exists
 			 //console.log("Begin signup  process for " + email);
 			 
-			 mongo.find_user(email, function(err, user) {
+			 sad.find_user(email, function(err, user) {
 			     if (err){
 				 console.log("Error looking up user: " + err);
 				 return done(err);
@@ -102,7 +106,7 @@ exports.init=function(pkg, sad, cb){
 	
 	//console.log("Login init for " + email + " pass " + hashpass);
 
-	mongo.find_user(email,function(err, user) {
+	sad.find_user(email,function(err, user) {
 	    if (err){
 		console.log("Error looking for user " + err);
 		return done(err);
@@ -110,17 +114,17 @@ exports.init=function(pkg, sad, cb){
 	    if (user===undefined || user===null)
 		return done(null, false, "User not found !");
 	    
-	    user=create_object_from_data(user);
+	    var user_object=create_object_from_data(user);
 	    //console.log("---> User is " + JSON.stringify(user));
-	    var loca=user.get('local');
-	    for(var p in loca) console.log("P G " + p);
-	    user.get('local')
-		.check_password(hashpass, function(error, match){
+	    var loca=user_object.get('local');
+	    //for(var p in loca) console.log("P G " + p);
+	    
+	    loca.check_password(hashpass, function(error, match){
 		    if(error)
 			return done(null, false, "checkpass error : "+error );
 		    
 		    if(match){
-			//console.log("checkpass match = " + match + " YEAHHH !!!!");    
+			console.log("checkpass match = " + match + " YEAHHH !!!!");    
 			return done(null, user, "Yeah!Login!!");
 		    }
 		    
@@ -253,7 +257,8 @@ exports.init=function(pkg, sad, cb){
 		    //return next(err);
 		}
 		// 	//var ejsd={}; sad.set_user_data(req,ejsd);
-	     	res.json({ user : { id : user._id, login_name : user.get_login_name()} });
+		var uobj=create_object_from_data(user);
+	     	res.json({ user : { id : user._id, login_name : uobj.get_login_name()} });
 		res.end();
 	    });
 	    

@@ -17,65 +17,6 @@ module.exports={
 	    si : {type : "double"},
 	}
     },
-    
-    local_access : {
-	// tpl_desc : "All info for an internally administered user.",
-	// name : "Local credentials",
-	// elements : {
-	//     email: {
-	// 	type: "email",
-	// 	holder_value : "Any valid email adress? ..."
-	//     },
-	//     hashpass: {
-	// 	type: "password"
-	//     },
-	//     salt: {
-	// 	type: "string",
-	// 	name: "Password salt"
-	//     },
-	//     username: {
-	// 	type: "string"
-	//     }
-	// },
-	object_builder : function(){
-	    var la=this;
-	    la.create_password=function(clear_password, cb) {}
-	    
-	    la.check_password=function(clear_password, cb) {
-		var hash=la.val('hashpass');
-		var salt=la.val('salt');
-		
-		console.log("check passwd ["+clear_password+"]["+salt+"]");
-		var h=crypto.createHash('sha256');
-		
-		h.update(salt,'base64');
-		h.update(clear_password,'utf-8');
-		
-		
-		var true_hash=h.digest('base64');
-		var match=(true_hash==hash) ? true:false;
-		
-		console.log("Compare DB=["+true_hash+"] AND ["+hash+"] match = " + match);
-		
-		cb(null,match);
-		
-	    };
-	    
-	    
-	    la.set_password=function(clear_password){
-		var h=crypto.createHash('sha256');
-		var salt=crypto.randomBytes(32);//.toString('base64');
-		
-		h.update(salt);
-		h.update(clear_password,'utf-8');
-		
-		la.set('hashpass',h.digest('base64'))
-		    .set('salt',salt.toString('base64'));
-		
-		return la;
-	    };
-	}
-    },
 
     group_data : {
 	name : "User groups",
@@ -109,8 +50,13 @@ module.exports={
     },
     
     api : {
-	object_builder : function (api){
-	    
+	object_builder : function (){
+	    console.log("api object_builder ...");
+	    var api=this;
+	    this.handle_api=function(h){
+		console.log("Handling API !!");
+		api.api_handler=h;
+	    }
 	}
     },
 
@@ -121,15 +67,17 @@ module.exports={
 	    
 	    config_toolbars : {
 		type : "api",
-		api_handler : function(req, res){
-		    sad.mongo.find_group(gname, function(err, group){
+		object_builder : function(){
+		    this.handle_api( function(req, res){
+			sad.mongo.find_group(gname, function(err, group){
+			});
 		    });
 		}
+		
 	    }
 	}
     },
-					
-    
+
     session : {
 
 	name : "session",
@@ -138,37 +86,43 @@ module.exports={
 	elements : {
 	    info : {
 		type : "api",
-		api_handler : function (req, res){
-
-		    if(req.user===undefined){
-			return res.json({user : "none"});
-		    }
-		    
-		    //console.log("Session info request " + JSON.stringify(req.user));
-		    
-		    return res.json( { user : req.user.els.credentials.els.local.els.username.value, id : req.user.db.id });
+		object_builder : function(){
+		    console.log("Session info build");
+		    this.handle_api( function(req, res){
+			
+			if(req.user===undefined){
+			    return res.json({user : "none"});
+			}
+			
+			//console.log("Session info request " + JSON.stringify(req.user));
+			
+			return res.json( { user : req.user.els.credentials.els.local.els.username.value, id : req.user.db.id });
+		    });
 		}
 		
 	    },
 	    get_toolbar_items : {
 		type : 'api',
-		api_handler : function (req, res){
-		    if(req.user===undefined)
+		object_builder : function(){
+		    this.handle_api( function(req, res){
+			if(req.user===undefined)
 			return res.json([]);
-		    var ugroups=req.user.els.groups.els;
-		    var tb_tools=[];
-		    var ng=0;for (var gid in ugroups)ng++;
-		    for (var gid in ugroups){
-			req.sad.mongo.find1({ collection : 'Groups', id : gid}, function(err, group){
-			    if(err!==null)
-				return res.json({error : err});
-			    tb_tools.push({id : gid, name : group.name});
-			    ng--;
-			    if(ng==0)
-				return res.json(tb_tools);
-			});
-			
-		    }
+			var ugroups=req.user.els.groups.els;
+			var tb_tools=[];
+			var ng=0;for (var gid in ugroups)ng++;
+			for (var gid in ugroups){
+			    req.sad.mongo.find1({ collection : 'Groups', id : gid}, function(err, group){
+				if(err!==null)
+				    return res.json({error : err});
+				tb_tools.push({id : gid, name : group.name});
+				ng--;
+				if(ng==0)
+				    return res.json(tb_tools);
+			    });
+			    
+			}
+		    });
+		    
 		    
 		}
 	    }
@@ -180,93 +134,66 @@ module.exports={
 
 	name : "dbcom",
 	type : "api_provider",
-
+	
 	elements : {
 	    
 	    get : {
 		
 		type : "api",
-		api_handler : function (req, res){
-		    
-		    var inp=get_json_parameters(req);
-		    var coll=inp["collection"];
+		object_builder : function(){
+		    this.handle_api( function(req, res){
+			
+			var inp=get_json_parameters(req);
+			var coll=inp["collection"];
 
-		    if(coll===undefined) coll="collections";
-		    
-		    console.log("Looking for collection " + coll);
-		    
-		    req.sad.mongo.find({ collection : coll, user : req.user}, function(err, colls){
 			
-			if(err)
-			    return res.json({error : err});
+			if(coll===undefined) coll="collections";
 			
-			colls.forEach(function(d){
-			    delete d.db;
+			console.log("Looking for collection " + coll);
+			var uobj=create_object_from_data(req.user);
+			req.sad.mongo.sys.find({ collection : coll, user : uobj}, function(err, colls){
+			    
+			    if(err)
+				return res.json({error : err});
+			    
+			    colls.forEach(function(d){
+				delete d.db;
+			    });
+			    
+			    return res.json(colls);
 			});
-			
-			return res.json(colls);
 		    });
+		    
 		}
+	    	
 	    }
 	    
 	}
-	
     },
     
-    le_template_del_template : {
+    template_object : {
 
-	name : "Template",
-	subtitle : "Sadira/tk template",
+	name : "My Template Object",
+	subtitle : "A Sadira/tk object template",
+	intro : "Description of object functionality here.",
+
+	db : {
+	    grants : [['g','everybody','r'],['g','admin','w']],
+	    collection : "templates"
+	},
 	elements : {
 	    name :{
-		name : "Template name",
-		intro : "<p>The template <i>nickname</i>, should be written in <pre><code> type='';</code></pre> declarations in client widgets.</p><p>No   Space  , No camelCase Please, but <strong>do what you want</strong> finally</p>",
+		name : "Template key",
+		//intro : "<p>The template <i>nickname</i>, should be written in <pre><code> type='';</code></pre> declarations in client widgets.</p><p>No   Space  , No camelCase Please, but <strong>do what you want</strong> finally</p>",
 		type : "string",
-		holder_value: "Write template nickname here ",
+		holder_value: "Write template key name here... ",
 		ui_opts : {
 		    type : "edit"
 		}
 	    },
-	    version :{
-		name : "Version",
-		type : "labelled_vector",
-		default_value : [0,0,0],
-	    },
-	    user :{
-		type : "user",
-		db : {
-		    populate : true
-		},
-		ui_opts : {
-		    item_root : true
-		} 
-	    },
-	    description:{
-		name : "Description",
-		subtitle : "Template usage and features",
-		type : "html"
-	    },
 	    code : {
-		name : "Source code",
-		elements : {
-		    template_code : {
-			name : "Template code",
-			intro : "<h4>Template EcmaScript code</h4> <p>This is the template code....</p>",
-			type : "code",
-			default_value : "{}"
-		    },
-		    widget_builder_code : {
-			name : "Template builder code",
-			intro : "<strong>Template GUI builder code</strong> <p>This is the widget builder code....</p>",
-			type : "code",
-			default_value : "function(ui_opts,tpl){}"
-		    },
-		    server_builder_code : {
-			name : "Template server-side builder code",
-			type : "code",
-			default_value : "function(tpl){}"
-		    }
-		}
+		name : "Template source code",
+		type : 'code'
 	    }
 	}
     },
@@ -321,8 +248,8 @@ module.exports={
 	// 	cmo.collection("colormaps");
 	// 	cmo.save();
 		
-	// 	return;
-
+		// 	return;
+		
 		var fs=require('fs');
 		fs.readFile(file,'utf8', function (err, data) {
 		    if (err) throw err;

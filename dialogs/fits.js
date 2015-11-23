@@ -1,11 +1,75 @@
 var SRZ=require('../www/js/serializer.js');
 var fits = require('../../node-fits/build/Release/fits.node');
 
+
 exports.init=function(pkg, app,cb){
-  //console.log("Init fits !");
-  app.dialog("fits.test_get_data", test_get_data);
-  cb();
+    //console.log("Init fits !");
+    //var fn="/home/fullmoon/prog/astrometry.net-0.46/catalogs/brightstars.fits";
+    var fn="/home/fullmoon/prog/dev/node-fits/test/asu.fit";
+    app.dialog("fits.test_get_data", test_get_data);
+    get_fits_table_data({ file_name : fn}, function(e,data){
+	if(e) return console.log("Err " + e);
+    });
+    cb();
+    
 }
+
+
+
+function get_fits_table_data(opts, cb){
+
+    var f=fits.file(opts.file_name);
+    
+    var headers=f.get_headers_array();
+    console.log("Head : " + JSON.stringify(headers, null, 5));
+
+
+    f.set_hdu(1);
+
+    f.get_table_columns({ type : "hash"},function(er, column_info){
+	
+	if(er) return cb(er);
+
+	console.log("Col info " + JSON.stringify(column_info, null, 5));
+	var object_tpl = {db : {collection : "Tycho2", name : "data"}, elements : {}};
+	
+	for (var c in column_info.columns){
+	    var col=column_info.columns[c];
+	    object_tpl.elements[c]={
+		type : col.type==="text" ? "string" : "double",
+		name : c,
+		value : col.type==="text" ? "" : "0.0",
+	    };
+	};
+	
+	var object = create_object(object_tpl);
+	var object_col=[];
+	for(var x in object.elements) object_col.push(object.elements[x]);
+	
+	f.set_hdu(1);
+
+	for(var seq=0;seq<1000;seq++){
+	    f.get_table_data(function(er, data){
+		if(er) return cb(er);
+		console.log("nrows " + data.length);
+		data.forEach(function(row){
+		    for(var i=0;i<row.length;i++)
+			object_col[i].value=row[i];
+		    
+		    object.save();
+		    delete object._id;
+		    //var object_data=get_template_data(object);
+		    //console.log(JSON.stringify(object_data, null, 5));
+		});
+
+		console.log("Wrote seq " + seq);
+		
+	    }, { nrows : 1000, row_start : seq*1000} );
+	}
+    });
+}
+
+
 
 var layer_defaults = [ 
     {

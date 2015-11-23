@@ -811,7 +811,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		    name : "Widget debug", type: "text",
 		    ui_opts : {
 			sliding : true, sliding_dir : "h", sliding_animate : true, slided : true, label : true,
-			root_classes : ["container-fluid well"],
+			root_classes : ["container-fluid"],
 			item_classes : ["container-fluid"]
 			//name_classes : ["text-danger"]
 		    }
@@ -2212,8 +2212,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		this.add_child_com(e);
 		
 		create_childs_div();
-		//if(e.ui_opts.close) add_close_button(e,e.ui_name, false);
-		//ui.add_class("row");
+		//console.log(tpl_root.name + " Adding child " + e.name);
 		prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	    }
 	    
@@ -3015,7 +3014,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	var child=tpl_root.get(child_key);
 	if(ù(child)){
 
-	    console.log("Repalced child  (WAS UNDEF) key "+ child_key + " new name " + tpl.name + " old was " + child.name );
+	    //console.log("Repalced child  (WAS UNDEF) key "+ child_key + " new name " + tpl.name  );
 	    
 	    return tpl_root.add_child(tpl,child_key);
 	    //return tpl_root.debug("update_child error: "+tpl_root.name+" : No such child " + child_key);

@@ -1,32 +1,36 @@
-// Sadira astro-web framework - PG Sprimont <fullmoon@swing.be> (2013) - INAF/IASF Bologna, Italy.
+// Sadira astro-web framework - PG Sprimont <sprimont@email.ru> (2013-2015) - INAF/IASF Bologna, Italy.
 // Do what you want with this file.
 
 
-var mongo = require('mongodb');
-
-//var Db = mongo.Db,
-var MongoClient = mongo.MongoClient,
-Server = mongo.Server,
-ReplSetServers = mongo.ReplSetServers,
-ObjectID = mongo.ObjectID,
-Binary = mongo.Binary,
-GridStore = mongo.GridStore,
-Grid = mongo.Grid,
-Code = mongo.Code;
-
-var BSON = mongo.BSON;
-
+var mongo_pack = require('mongodb');
 var assert = require('assert');
 
-function server(pkg,app) {
+var
+MongoClient = mongo_pack.MongoClient,
+Server = mongo_pack.Server,
+ReplSetServers = mongo_pack.ReplSetServers,
+ObjectID = mongo_pack.ObjectID,
+Binary = mongo_pack.Binary,
+GridStore = mongo_pack.GridStore,
+Grid = mongo_pack.Grid,
+Code = mongo_pack.Code,
+BSON = mongo_pack.BSON;
+
+
+//A connexion to a mongodb server
+
+function server(pkg,app, opts) {
     this.sad=app;
-    var config_in=pkg.opts;
+    var config_in=pkg.mongo.opts;
+    var pkg_key=pkg.project_key !== undefined ? pkg.project_key : "sadira";
+    if(opts===undefined) opts={};
+    var db_name=opts.db_name!==undefined ? opts.db_name:"system";
     
     var def_port=27017;
     var config=this.config={
 	mongo_host : "localhost",
 	mongo_port : def_port,
-	mongo_db : "sadira",
+	mongo_db : pkg_key+"_"+db_name,
 	replica_set_name : "sadira_repset",
 	replica_set_enable : false,
 	replica_set :[
@@ -100,7 +104,7 @@ server.prototype.connect = function(cb, options_in) {
 	if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
 	
 	console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
-	
+	mongo.url=url;
 	MongoClient.connect(url, options, function(err, db) {
 	    if(err){
 		var em="Mongo error while opening DB [" + dbname + "] : " + err;
@@ -109,33 +113,8 @@ server.prototype.connect = function(cb, options_in) {
 		return cb(em);
 	    }
 	    mongo.db=db;
-
-	    mongo.find_user("god", function (err, admin_u){
-		if(err){
-		    return cb(err);
-		}
-
-		mongo.admin=admin_u;
-		
-		mongo.find_group("everybody", function (err, every_group){
-		    if(err){
-			return cb(err);
-		    }
-		    if(every_group!==undefined && every_group!==null){
-			mongo.everybody_group=every_group;
-			console.log("USer creatinnnnng!");
-			var du=create_object("user");
-			console.log("USer created!");
-			du.get('groups').add_link(every_group);
-			mongo.default_user=get_template_data(du);
-			console.log("Created default user : " + JSON.stringify(mongo.default_user));
-		    }else
-			console.log("No every_group, no bootstraop ?????????????????????");
-		    cb(null,db);
-		});
-		
-	    });
-
+	    cb(null,mongo);
+	    
 	});
     }
     catch (e){
@@ -266,7 +245,7 @@ server.prototype.find=function(opts, cb){
     var mongo=this;
     if(opts.user===null) opts.user=mongo.default_user;
     
-    console.log("FIND opts=" + JSON.stringify(opts));
+    //console.log("FIND opts=" + JSON.stringify(opts));
     var q=create_query(opts);
     //console.log(type+ " : finding " + op + " = " + value);
 
@@ -279,7 +258,7 @@ server.prototype.find=function(opts, cb){
     
     function get_docs(){
 	//var q={};
-	console.log("Mongo find collection ["+coll+"] : query = ["+JSON.stringify(q)+"]");
+	//console.log("Mongo find collection ["+coll+"] : query = ["+JSON.stringify(q)+"]");
 	mongo.db.collection(coll).find(q, {}, function(err, cursor){
 
 	    if(err){
@@ -329,11 +308,12 @@ server.prototype.find=function(opts, cb){
 	
     }
 
-    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.p' : 1}, function(err, data){
+    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.grants' : 1, 'db.p' : 1}, function(err, data){
 	if(err) return cb(err);
 	if(data){
-	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
-	    var p=new perm( data.db.p );
+	    //console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
+	    var col=create_object_from_data(data);
+	    var p=new perm( col.db.p );
 
 	    if(p.check(user,'r')){
 		//var db_coll=data.els.name.value;
@@ -355,8 +335,9 @@ server.prototype.find=function(opts, cb){
 server.prototype.find1=function(opts, cb){
 
     var q=create_query(opts);
-    //console.log(type+ " : finding " + op + " = " + value);
+    
     var coll=opts.collection!==undefined ? opts.collection : opts.type;
+    //console.log(" find1 " + JSON.stringify(q) + " col = " + coll);
     this.db.collection(coll).findOne(q, {}, function (err, data){
 
 	if(err) return cb(err);
@@ -367,50 +348,8 @@ server.prototype.find1=function(opts, cb){
 	
     });
     //function(error, res){});
-    
-    
 }
 
-server.prototype.find_group = function (gname, cb){
-    this.find1({type : 'Groups', path : 'name', value : gname}, cb);
-}
-
-server.prototype.group_id = function (gname, cb){
-    this.find_group(gname, function(err, group){
-	if(err)
-	    return cb(err);
-	
-	if(group!==undefined && group!==null){
-	    console.log(gname + " : getting group id " + group._id);
-	    return cb(null,group._id);
-	}else{
-	    console.log("Group " + gname + " not found !");
-	    cb("Group " + gname + " not found !");
-	}
-    });
-}
-		
-
-
-server.prototype.find_user=function(identifier, cb){
-    var mongo=this;
-    mongo.find1({type: "Users", path:'credentials.local.email', value : identifier},function(err, user) {
-	if(err) return cb(err);
-	if(user===undefined || user===null){
-	    mongo.find1({type: "Users", path:'credentials.local.username', value : identifier},function(err, user) {
-		if(err) return cb(err);
-		if(user===undefined){
-		    return cb(null);
-		}
-		return cb(null,user);
-		
-	    });
-	    
-	}else
-	    return cb(null,user);
-	
-    });
-}
 
 
 

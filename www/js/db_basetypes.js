@@ -110,82 +110,6 @@ template_ui_builders.array=function(ui_opts, arr){
 }
 
 
-template_ui_builders.ui_demo=function(ui_opts, demo){
-    
-    var template=demo.get("template");
-    var builder=demo.get("builder");
-    var build=demo.get("build");
-    var status=demo.get("status");
-    var build_status=demo.get("build_status");
-    var view=demo.get("view");
-
-    var tpl_select=demo.get("tlist");
-    var tpl_set=demo.get("tpl_set");
-
-    view.set_title("No widget to show");
-    
-    tpl_set.listen("click", function(){
-	var tpl_name=tpl_select.value;
-	this.parent.debug("Applying template  " + tpl_name);
-	if(è(template_ui_builders[tpl_name]))
-	    builder.set_value(template_ui_builders[tpl_name].toString());
-	else
-	    builder.set_value("function(ui_opts, tpl){}");
-	if(è(tmaster.templates[tpl_name]))
-	    template.set_value(JSON.stringify(tmaster.templates[tpl_name],null,5));
-	else
-	    template.set_value("{}");
-    });
-
-    function clear_widget(w){
-	view.set_title("No widget to show");
-	if(è(w))
-	    view.update_child(w, "userw");
-    }
-    
-    build.listen("click",function(){
-
-	var user_template, user_builder;
-	var builder_code,template_code;
-
-	builder_code="user_builder = " + builder.value;
-	template_code="user_template="+template.value;
-
-	try{
-	    
-	    eval(template_code);
-	    try{
-		eval(builder_code);
-		try{
-		    status.set_alert({ type : "success", content : "JS code compiled"});
-		    template_ui_builders.hello=user_builder;
-		    tmaster.set_template("hello", user_template);
-		    clear_widget(create_widget("hello"));
-		    build_status.set_alert({ type : "success", content : "Widget created"});
-		}
-		catch(e){
-		    build_status.set_alert({type: "error", content : "Error widget creation : <pre>" + dump_error(e) + "</pre>"});
-		}
-		
-	    }
-	    catch(e){
-		//console.log("E : " + dump_error(e));
-		status.set_alert({type : "error", content : "Error compiling JS for builder : <pre>" + dump_error(e)+"</pre>"});
-	    }
-	}
-	catch(e){
-	    status.set_alert({type: "error", content : "Error compiling JS for template : <pre>" + dump_error(e)+"</pre>"});
-	}
-	//build.parent.debug("Eval [" + builder_code + "] tpl [" + template_code+"]");
-
-	
-	
-    });
-     
-    
-}
-
-
 template_ui_builders.dbtypes=function(ui_opts, dbt){
 
     for(var dt in template_ui_builders){
@@ -1865,7 +1789,7 @@ template_ui_builders.marked=function(ui_opts, tpl_item){
 }
 
 template_ui_builders.html=function(ui_opts, tpl_item){
-
+    
     var ui=ce("div");
     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     
@@ -1894,8 +1818,9 @@ template_ui_builders.html=function(ui_opts, tpl_item){
 	download_url(tpl_item.url,function(error, html_content){
 	    if(error){
 		tpl_item.debug("Error downloading html content : "  + error);
-	    }else
+	    }else{
 		tpl_item.set_value(html_content);
+	    }
 	});
     }else
 	tpl_item.set_value();
@@ -1903,48 +1828,48 @@ template_ui_builders.html=function(ui_opts, tpl_item){
     return ui;
 }
 
-template_ui_builders.code=function(ui_opts, tpl_item){
+// template_ui_builders.code=function(ui_opts, tpl_item){
 
-    var ui=tpl_item.ui=ce("pre");
-    //ui.className="html_content";
+//     var ui=tpl_item.ui=ce("pre");
+//     //ui.className="html_content";
     
-    tpl_item.set_value=function(nv){
-	if(typeof nv !='undefined')
-	    tpl_item.value=nv;
-	//ui.innerHTML="<code>"+tpl_item.value+"</code>";
-	//if(ui.innerHTML!=tpl_item.value)
-	ui.innerHTML=tpl_item.value;
+//     tpl_item.set_value=function(nv){
+// 	if(typeof nv !='undefined')
+// 	    tpl_item.value=nv;
+// 	//ui.innerHTML="<code>"+tpl_item.value+"</code>";
+// 	//if(ui.innerHTML!=tpl_item.value)
+// 	ui.innerHTML=tpl_item.value;
 
-    }
+//     }
     
-    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+//     ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     
-    if(ui_opts.type==="edit"){
-	new_event(tpl_item,"change");
+//     if(ui_opts.type==="edit"){
+// 	new_event(tpl_item,"change");
 
-	ui.setAttribute("contentEditable", true);
-	ui.setAttribute("spellCheck",false);
-	ui.addEventListener("input", function(){
-	    //tpl_item.debug("Changed !!! [" + ui.innerHTML + "]");
-	    tpl_item.value=ui.innerHTML;
-	    if(è(ui_opts.highlight_source))
-		;//if(ui_opts.highlight_source) hljs.highlightBlock(ui);
+// 	ui.setAttribute("contentEditable", true);
+// 	ui.setAttribute("spellCheck",false);
+// 	ui.addEventListener("input", function(){
+// 	    //tpl_item.debug("Changed !!! [" + ui.innerHTML + "]");
+// 	    tpl_item.value=ui.innerHTML;
+// 	    if(è(ui_opts.highlight_source))
+// 		;//if(ui_opts.highlight_source) hljs.highlightBlock(ui);
 	    
-	    //tpl_item.trigger("change");
-	})
-    }
+// 	    //tpl_item.trigger("change");
+// 	})
+//     }
     
-    if(tpl_item.url){
-	download_url(tpl_item.url,function(error, html_content){
-	    tpl_item.set_value(html_content);
-	});
-    }
+//     if(tpl_item.url){
+// 	download_url(tpl_item.url,function(error, html_content){
+// 	    tpl_item.set_value(html_content);
+// 	});
+//     }
 
-    tpl_item.set_value();
+//     tpl_item.set_value();
     
-    return tpl_item.ui;
+//     return tpl_item.ui;
 
-}
+// }
 
 template_ui_builders.combo=function(ui_opts, combo){
     
