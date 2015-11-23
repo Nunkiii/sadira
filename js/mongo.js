@@ -169,6 +169,13 @@ server.prototype.write_doc=function(doc,a,b){
     
     var data=get_template_data(doc);
     //console.log("read data " + JSON.stringify(data));
+
+    var mdb=this.db.collection(coll);
+
+    if(mdb===undefined){
+	cb("No such collection [" + coll + "]");
+	return;
+    }
     
     if(doc.id()!==undefined){
 	var q={ _id : doc.id() };

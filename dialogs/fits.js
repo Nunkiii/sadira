@@ -5,11 +5,11 @@ var fits = require('../../node-fits/build/Release/fits.node');
 exports.init=function(pkg, app,cb){
     //console.log("Init fits !");
     //var fn="/home/fullmoon/prog/astrometry.net-0.46/catalogs/brightstars.fits";
-    var fn="/home/fullmoon/prog/dev/node-fits/test/asu.fit";
-    app.dialog("fits.test_get_data", test_get_data);
-    get_fits_table_data({ file_name : fn}, function(e,data){
-	if(e) return console.log("Err " + e);
-    });
+    // var fn="/home/fullmoon/prog/dev/node-fits/test/asu.fit";
+    // app.dialog("fits.test_get_data", test_get_data);
+    // get_fits_table_data({ file_name : fn}, function(e,data){
+    // 	if(e) return console.log("Err " + e);
+    // });
     cb();
     
 }
