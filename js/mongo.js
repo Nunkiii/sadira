@@ -320,6 +320,22 @@ server.prototype.find=function(opts, cb){
 	if(data){
 	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
 	    var col=create_object_from_data(data);
+	    if(col.db.p===undefined){
+		console.log("p field not exists for collection " + coll + " creating...");
+		col.grant(col.db.grants, function(e){
+		    if(e){
+			sad.log("!!grant error " + e);
+			return cb("Granting error ! " + e);
+		    }
+		    col.save();
+		    //console.log("Apllyed grants ok to " + obj.name);
+		    //delete obj.db.grants;
+		    //cb(null);
+		});
+		
+		
+	    }
+	    
 	    var p=new perm( col.db.p );
 
 	    if(p.check(user,'r')){

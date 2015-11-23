@@ -376,7 +376,7 @@ var _sadira = function(){
 	
 	tpl_mgr.local_templates.prototype.object_builder=function(){
 	    var obj=this;
-	    //console.log("COOMON Object builder ! for " + obj.name + " type " + obj.type);
+	    console.log("COOMON Object builder ! for " + obj.name + " type " + obj.type);
 
 	    if( obj.db===undefined) obj.db={};
 
