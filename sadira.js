@@ -225,7 +225,7 @@ perm.prototype.check=function(user, mode){
     var ks=this[mode];
     
     if(ks===undefined){
-	console.log("Permission ["+ this + "] : No such mode [" + mode + "] default policy is Forbid ! User=" + JSON.stringify(user));
+	console.log("Permission ["+ this + "] : No such mode [" + mode + "] default policy is Forbid ! User=" + user.get_login_name());
 	return false;
     }
     //console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
@@ -376,7 +376,7 @@ var _sadira = function(){
 	
 	tpl_mgr.local_templates.prototype.object_builder=function(){
 	    var obj=this;
-	    console.log("COOMON Object builder ! for " + obj.name + " type " + obj.type);
+	    //console.log("COOMON Object builder ! for " + obj.name + " type " + obj.type);
 
 	    if( obj.db===undefined) obj.db={};
 
@@ -515,22 +515,17 @@ var _sadira = function(){
 		    
 		    if(sad.cluster.isMaster) return;
 
-		    if(è(argv['bootstrap'])) {
-			sad.bootstrap=true;
-			if(sad.cluster.worker.id==1){
-			    var bs=require("./js/bootstrap.js");
-			    bs.init({},sad);
-			}else{
-			    sad.log("Not worker 1 not bootstrap !!");
-			}
+		    // if(è(argv['bootstrap'])) {
+		    // 	sad.bootstrap=true;
+		    // 	if(sad.cluster.worker.id==1){
+		    // 	    var bs=require("./js/bootstrap.js");
+		    // 	    //bs.init({},sad);
+		    // 	}else{
+		    // 	    sad.log("Not worker 1 not bootstrap !!");
+		    // 	}
 			
-		    }
+		    // }
 		    
-		    sad.load_apis(function(error){
-			if(error===null){
-			    sad.load_routes();
-			}
-		    });
 		    //create_group_cache();
 		});
 	}
@@ -888,7 +883,32 @@ _sadira.prototype.load_routes = function (){
 	//sad.log("rendering index " + JSON.stringify(index_info));
 	//res.render('index.ejs', index_info); // load the index.ejs file
     });
-
+    
+    sad.app.get('/api/reset', function(req, res, next) {
+	if(req.user===undefined) return res.json({error : "No user connected"});
+	
+	console.log("API reset : User is " + JSON.stringify(req.user._id, null, 4));
+	
+	sad.in_group(req.user, 'admin', function(error, allowed){
+	    if(error)
+	    {
+		console.log("Error checking perm : " + error);
+		return res.json({error : "Error checking perm : " + error});
+	    }
+	    console.log("checking perm e=" + error + " allowed = " + allowed);
+		if(allowed!==true)
+		    return res.json({error : "No admin priviledges"});
+	    else
+		sad.reset_apis(function(error){
+		    if(error)
+			return res.json({error : "Reset apis error : " + error});
+		    else
+			return res.json({info : "OK"});
+		});
+	});
+    });
+    
+    
     /*
     sad.app.get('/testperm', function(req, res) {
 	
@@ -1332,16 +1352,13 @@ _sadira.prototype.load_apis = function (cb){
 
     this.log("Loading apis...");
 
-    for (var u in sad.users)
-	console.log(" U " + u);
-
     sad.mongo.sys.find({ user : sad.users.god, collection : "Apis"}, function(err, api_data){
 
-	if(err){
+	if(err!==null){
 	    if (cb === undefined)
 		return console.log("Unhandled error " + err);
 	    else
-		return cb("While getting API collection items : ",err);
+		return cb("Error while getting API collection items : " + err);
 	}
 
 	sad.log("Loading " + api_data.length + " APIS ");
@@ -1357,29 +1374,6 @@ _sadira.prototype.load_apis = function (cb){
 
 	    //aprov.register_route(sad);
 	}
-	sad.app.get('/api/reset', function(req, res, next) {
-	    if(req.user===undefined) return res.json({error : "No user connected"});
-	    
-	    console.log("API reset : User is " + JSON.stringify(req.user._id, null, 4));
-	    
-	    sad.in_group(req.user, 'admin', function(error, allowed){
-		if(error)
-		{
-		    console.log("Error checking perm : " + error);
-		    return res.json({error : "Error checking perm : " + error});
-		}
-		console.log("checking perm e=" + error + " allowed = " + allowed);
-		if(allowed!==true)
-		    return res.json({error : "No admin priviledges"});
-		else
-		    sad.reset_apis(function(error){
-			if(error)
-			    return res.json({error : "Reset apis error : " + error});
-			else
-			    return res.json({info : "OK"});
-		    });
-	    });
-	});
 	
 	sad.app.all('/api/:provider/:api', function(req, res, next) {
 	    //if(req.user!==undefined) req.user=create_object_from_data(req.user); //.build({recurse : true});
@@ -1456,6 +1450,7 @@ _sadira.prototype.reset_apis=function(cb){
 
     app.mongo.sys.db.collection("Apis").drop();
     console.log("Registering " + napis + " Apis -...");
+
     default_apis.forEach(function(api){
 	var c=app.tmaster.create_object(api);
 	
@@ -1467,7 +1462,7 @@ _sadira.prototype.reset_apis=function(cb){
 		cb(null, 'Apis registered !');
 	});
 
-	cb(null, 'Apis registered !');
+	//cb(null, 'Apis registered !');
     });
     
 }
@@ -1582,8 +1577,16 @@ _sadira.prototype.start_worker = function (cb){
 	    
 	    sad.create_websocket_server();
 	    sad.create_webrtc_server();		
+
+	    sad.load_apis(function(error){
+		if(error!==null){
+		    sad.log("Load API error : " + error);
+		}
+		sad.load_routes();
+		cb(null);
+	    });
 	    
-	    cb(null);
+	    
 	    
 	});
 	

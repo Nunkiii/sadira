@@ -170,7 +170,7 @@ server.prototype.write_doc=function(doc,a,b){
     var data=get_template_data(doc);
 
     if(coll===undefined){
-	return cb("Error : no collection defined for doc name [" + doc.name + "] !" );
+	return cb("write_doc error : no collection defined for doc name [" + doc.name + "] type ["+doc.type+"] !" );
     }
     //console.log("read data " + JSON.stringify(data));
 
@@ -319,36 +319,46 @@ server.prototype.find=function(opts, cb){
 	
     }
 
-    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{'db.grants' : 1, 'db.p' : 1}, function(err, data){
+    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{}, function(err, data){
 	if(err) return cb(err);
+
 	if(data){
 	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
 	    var col=create_object_from_data(data);
+
+	    function continue_stuff(){
+		var p=new perm( col.db.p );
+
+		if(p.check(user,'r')){
+		    //var db_coll=data.els.name.value;
+		    console.log("Granted for collection " + coll);// + " db collection " + db_coll);
+		    return get_docs();
+		}
+		else
+		    return cb("Not enough rights to list the collection ["+coll+"]!");
+	    }
+
 	    if(col.db.p===undefined){
-		console.log("p field not exists for collection " + coll + " creating...");
+		console.log("p field not exists for collection " + coll + " creating : grants = " + JSON.stringify(col.db.grants));
 		col.grant(col.db.grants, function(e){
 		    if(e){
 			sad.log("!!grant error " + e);
 			return cb("Granting error ! " + e);
 		    }
-		    col.save();
-		    //console.log("Apllyed grants ok to " + obj.name);
+		    console.log("Saving collection ["+coll+"] : " + JSON.stringify(col));
+		    col.save(function (error){
+			if(error!==null)
+			    return cb("Error saving collection item " + error);
+			console.log("Apllyed grants ok to " + coll.name);
+			continue_stuff();
+		    });
 		    //delete obj.db.grants;
 		    //cb(null);
 		});
 		
 		
-	    }
+	    }else continue_stuff();
 	    
-	    var p=new perm( col.db.p );
-
-	    if(p.check(user,'r')){
-		//var db_coll=data.els.name.value;
-		console.log("Granted for collection " + coll);// + " db collection " + db_coll);
-		return get_docs();
-	    }
-	    else
-		return cb("Not enough rights to list the collection ["+coll+"]!");
 	}else{
 	    console.log("Collection [" + coll + "] : No permission set (-> implicit allow!)");
 	    return get_docs();

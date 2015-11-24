@@ -83,13 +83,14 @@ function get_template_data(t){
 
 function set_template_data(t, data){
     // if(t.type==='combo'){
-    // 	console.log("Setting template data for " + data.name + " data" + JSON.stringify(data));
+
+    // console.log("Setting template data for " + data.name + " data" + JSON.stringify(data));
     // 	console.log(t.name + "."+t.type+" : setting template data...");
-	//console.log("Deserialize found for ["+data.value+"] to ["+t.name+"] ");
+    // 	console.log("Deserialize found for ["+data.value+"] to ["+t.name+"] ");
     // 	for(var p in t)
     // 	    console.log("Prop " + p);
-    // }
-	//
+
+    //    }
 
     if(t.deserialize!==undefined){
 
@@ -118,7 +119,7 @@ function set_template_data(t, data){
     }
     
     if(t.db===undefined)t.db={};
-    if(è(data.db)){
+    if(data.db !== undefined){
 	for(var te in data.db){
 	    t.db[te]=data.db[te];
 	}
