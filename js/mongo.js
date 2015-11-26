@@ -103,7 +103,7 @@ server.prototype.connect = function(cb, options_in) {
 
 	if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
 	
-	console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
+	//console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
 	mongo.url=url;
 	MongoClient.connect(url, options, function(err, db) {
 	    if(err){

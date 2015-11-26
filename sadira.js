@@ -322,7 +322,7 @@ var _sadira = function(){
 	post_handlers : [],
 	ncpu : system_ncpu, //using number of cpu present in system by default
 	//    ncpu : 1; //Using a single thread by default.
-	html_rootdir : process.cwd()+'/www', //This is the root directory for all the served files.
+	html_rootdir : '/var/www', //process.cwd()+'/www', //This is the root directory for all the served files.
 	file_server : true
     }; 
 
@@ -488,7 +488,7 @@ var _sadira = function(){
 	
 	tmaster.templates.user_group.object_builder =function(){
 	    var group=this;
-	    //for(var p in group) console.log("P G" + p);
+
 	    group.listen('server_data',function(data){});
 
 	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
@@ -499,39 +499,18 @@ var _sadira = function(){
 	};
 
 	//Loading handlers.
-	
 	function started(start_error){
-
+	    
 	    if(start_error) throw "Error starting : " + start_error;
 	    
-	    //start_func(function(e){
-
-	    if(! sad.cluster.isMaster)
-		sad.initialize_plugins(function(error){
-		    
-		    if(error){
-			throw error;
-		    }
-		    
-		    if(sad.cluster.isMaster) return;
-
-		    // if(è(argv['bootstrap'])) {
-		    // 	sad.bootstrap=true;
-		    // 	if(sad.cluster.worker.id==1){
-		    // 	    var bs=require("./js/bootstrap.js");
-		    // 	    //bs.init({},sad);
-		    // 	}else{
-		    // 	    sad.log("Not worker 1 not bootstrap !!");
-		    // 	}
-			
-		    // }
-		    
-		    //create_group_cache();
-		});
 	}
+
+	sad.cluster.isMaster ? sad.start_master(started) : sad.start_worker(started);
 	
 	
-	sad.cluster.isMaster ? this.start_master(started) : this.start_worker(started);
+	
+	
+	
 	
 	//	});
 	
@@ -928,38 +907,6 @@ _sadira.prototype.load_routes = function (){
 
     */
     
-    sad.app.all('*', function(request, res){
-	
-	//The request was not handled by custom url handlers.
-	//If enabled, proxying the query to another web service
-	
-	try{
-	    //sad.log("proxy request https? " + request.connection.encrypted );
-	    if(request.connection.encrypted){ //https connexion
-		if(sad.options.https_proxy){
-		    //console.log("Proxy https " + request.url);
-		    sad.https_proxy.web(request, res);
-		    return;
-		}else {
-		    return res.render('error.ejs', " Local file service unhandled : " + request.url);
-		    //return res.status('Not found', 404);
-		}
-	    }else{
-		if(sad.options.http_proxy){
-		    //console.log("Proxy http " + request.url);
-		    sad.http_proxy.web(request, res);
-		    return;
-		    
-		}else return res.render('error.ejs', " Local file service unhandled : " + request.url);
-	    }
-	}
-	
-	catch (e){
-	    sad.log('Proxy error : ' + dump_error(e));
-	    return res.render('error.ejs', " 500 : Proxy error for URL : " + request.url + " e : " + dump_error(e));
-	    //return res.status('Sadira: Proxy error : ' + e, 500);
-	}
-    });
 
 
 }
@@ -1039,26 +986,30 @@ _sadira.prototype.find_user=function(identifier, cb){
 
 _sadira.prototype.check_admin_user = function(cb){
     var admin_name="god";
-
+    var sad=this;
     this.check_user(admin_name, ['users','everybody','admin'], function(err, admin){
 	if(err) return cb(err);
 
 	var access=admin.get('credentials').get('local');
 	var pass=access.get('hashpass');
 	
-	var bs=require("./js/bootstrap.js");
+	if(pass.value===undefined){
+	    
+	    if(sad.cluster.worker.id===1){
+		var bs=require("./js/bootstrap.js");
+		bs.get_strong_console_password(admin_name,function(error, pw){
+		    if(error) return cb(error);
+		    access.set_password(pw);
+		    //app.log("saving admin user.....");
+		    admin.save();
+		    cb(null,admin);
+		},{
+		    minLength              : 5,
+		    minOptionalTestsToPass : 0
+		});
+	    }
 
-	if(pass.value===undefined)
-	    bs.get_strong_console_password(admin_name,function(error, pw){
-		if(error) return cb(error);
-		access.set_password(pw);
-		//app.log("saving admin user.....");
-		admin.save();
-		cb(null,admin);
-	    },{
-		minLength              : 5,
-		minOptionalTestsToPass : 0
-	    });
+	}
 	else
 	    cb(null, admin);
     });
@@ -1075,7 +1026,7 @@ _sadira.prototype.check_user = function(user_name, groups, cb){
 	var usr;
 	
 	if(user_obj!==undefined){
-	    console.log("User "+user_name +" already exists....");
+	    //console.log("User "+user_name +" already exists....");
 	    if(app.users===undefined) app.users={};
 	    var reset_p = user_obj.db.p===undefined;
 	    usr=create_object_from_data(user_obj);
@@ -1295,7 +1246,8 @@ _sadira.prototype.load_mongodb = function (cb){
     
     console.log("Initializing mongodb...");
     if(sad.options.mongo===undefined){
-	throw "Cannot start mongodb : You need to provide a mongo section in the sadira configuration file !";
+	sad.options.mongo={ opts : { mongo_host : 'localhost', mongo_port : 27017 }};
+	//throw "Cannot start mongodb : You need to provide a mongo section in the sadira configuration file !";
     }
     
     function connect_to_databases(databases, cb){
@@ -1307,7 +1259,7 @@ _sadira.prototype.load_mongodb = function (cb){
 		if(error)
 		    return cb(error);
 		
-	    sad.log("Connected to " + mongo.url );
+		//sad.log("Connected to " + mongo.url );
 		ndb--;
  		// if(sad.cluster.worker.id===1){
 		//     var cm=create_object("colormap");
@@ -1337,7 +1289,6 @@ _sadira.prototype.load_mongodb = function (cb){
 		    cb(null);
 		});
 	    });
-		
 	    
 	});
 	
@@ -1583,7 +1534,16 @@ _sadira.prototype.start_worker = function (cb){
 		    sad.log("Load API error : " + error);
 		}
 		sad.load_routes();
-		cb(null);
+		sad.initialize_plugins(function(error){
+		    
+		    if(error){
+			return cb(error);
+		    }
+		    
+		    sad.load_default_route();
+		    cb(null);
+		});
+		
 	    });
 	    
 	    
@@ -1595,123 +1555,247 @@ _sadira.prototype.start_worker = function (cb){
     
 }
 
+_sadira.prototype.load_default_route=function(){
+    var sad=this;
+    sad.app.all('*', function(request, res){
+	
+	//The request was not handled by custom url handlers.
+	//If enabled, proxying the query to another web service
+	if(sad.options.http_proxy){
+	try{
+	    //sad.log("proxy request https? " + request.connection.encrypted );
+	    if(request.connection.encrypted){ //https connexion
+		if(sad.options.https_proxy){
+		    //console.log("Proxy https " + request.url);
+		    sad.https_proxy.web(request, res);
+		    return;
+		}else {
+		    return res.render('error.ejs', " Local file service unhandled : " + request.url);
+		    //return res.status('Not found', 404);
+		}
+	    }else{
+		if(sad.options.http_proxy){
+		    //console.log("Proxy http " + request.url);
+		    sad.http_proxy.web(request, res);
+		    return;
+		    
+		}else return res.render('error.ejs', " Local file service unhandled : " + request.url);
+	    }
+	}
+	
+	catch (e){
+	    sad.log('Proxy error : ' + dump_error(e));
+	    return res.render('error.ejs', " 500 : Proxy error for URL : " + request.url + " e : " + dump_error(e));
+	    //return res.status('Sadira: Proxy error : ' + e, 500);
+	}
+	}else{
+	    sad.file_server(request,res);
+	}
+    });
+}
+
+//Builtin web file server.
+//From here the server is behaving as a simple file server.
+//Here we should detect if the user is not trying to get something like ../../etc/passwd
+//It seems that url.parse did the check for us (?) : uri is trimmed of the ../../
+
+_sadira.prototype.file_server = function(request, res){
+    var sad=this;
+    //console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
+    var uri = unescape(url.parse(request.url).pathname);
+    var filename = path.join(sad.options.html_rootdir, uri);
+    
+    //Content-types used by the built-in http file server.
+    //The second boolean  member is used to specify if a cache http header is appended for this file type.
+    
+    var content_types = {
+	'.html': [ "text/html;charset=utf-8", false],
+	'.css':  [ "text/css", false],
+	'.js':   ["text/javascript;charset=utf-8", false],
+	'.jpg':   ["image/jpeg", true],
+	'.JPG':   ["image/jpeg", true],
+	'.jpeg':  [ "image/jpeg", true],
+	'.ico' : ["image/x-icon", true],
+	'.png':   ["image/png", true],
+	'.svg':   ["image/svg+xml", true],
+	'.woff' : ['application/font-woff', true],
+	'.eot'  : ['application/vnd.ms-fontobject', true],
+	'.ttf'  : ['application/x-font-ttf', true]
+    };
+    
+    
+    fs.exists(filename, function(exists) {
+	
+	if(!exists) {
+	    sad.log('404 not found for uri ' + filename);
+	    
+	    // sad.error_404(res, uri, function() {
+	    // 	res.end();
+	    // });
+	    
+	    res.writeHead(404, {"Content-Type": "text/plain"});
+	    res.write("Unavailable resource ["+uri+"] !\n");
+	    res.end();
+	    return;
+	}
+	
+	var fstat=fs.statSync(filename);
+	if (fstat.isDirectory()) filename += '/index.html';
+	
+	fs.readFile(filename, "binary", function(err, file) {
+	    var headers={};
+	    for(var h in cors_headers) headers[h]=cors_headers[h];
+
+	    if(err) {
+		headers["Content-Type"] = "text/plain";
+		console.log('Error ! ' + err);
+		res.writeHead(500, headers);
+		res.write(err + "\n");
+		res.end();
+		return;
+	    }
+	    
+	    var content_type = content_types[path.extname(filename)];
+	    
+	    if (content_type) {
+		headers["Content-Type"] = content_type[0];
+		
+		if(content_type[1] == true){
+		    headers["Cache-Control"]="public,max-age=31536000";
+		}
+		
+	    }else
+		console.log("Unknown extension" + path.extname(filename));
+	    
+	    headers["Content-Length"]=fstat.size;
+	    //console.log('Serving ' + filename +' : headers : ' + JSON.stringify(headers) );
+	    res.writeHead(200, headers);
+	    res.write(file, "binary");
+	    res.end();
+	});
+    });
+}
+
 //Creates the http servers 
 
 _sadira.prototype.create_http_server = function(cb){
     
     var sad=this;
-
+	
     function handle_proxy_error(e,req,res){
-	var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
-	sad.log(ctype+' proxy error : ' + dump_error(e) );
-	res.writeHead(500, {"Content-Type": "text/plain"});
-	res.end("Sadira " + ctype + " proxy error : " + e + "\n");
-    }
-
-    if(è(sad.options.http_port)){ 
+	    var ctype= req.connection.encrypted ? "HTTPS" : "HTTP";
+	    sad.log(ctype+' proxy error : ' + dump_error(e) );
+	    res.writeHead(500, {"Content-Type": "text/plain"});
+	    res.end("Sadira " + ctype + " proxy error : " + e + "\n");
+	}
 	
-	var http_port = parseInt(sad.options.http_port, 10);
+	//if(sad.options.http_port === undefined)  sad.options.http_port = 8000;
+	//if(sad.options.https_port === undefined)  sad.options.https_port = 4430;
 	
-	
-	
-	if(sad.options.http_proxy){
-	    var http_proxy = require('http-proxy');
-	    var proxy_config={
-		target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
-	    };
-	    sad.log("starting HTTP server on port " + http_port + " -> proxy to " + proxy_config.target);
-	    sad.http_proxy=http_proxy.createServer(proxy_config);
-	    sad.http_proxy.on('error', handle_proxy_error);
-	}else 
-	    sad.log("starting HTTP server on port " + http_port + " NO proxy.");
-	
-	try{
-	    var http = require('http');
+	if(è(sad.options.http_port)){ 
 	    
-	    //sad.http_server = http.createServer(sad.handle_request);
-	    sad.http_server = http.createServer(sad.app);
-	    sad.http_server.sadira=sad;
-
-	    sad.http_server.on("error", function (e) {
-		sad.log("HTTP server error " + JSON.stringify(e));
-		cb(e);
-	    });
+	    var http_port = parseInt(sad.options.http_port, 10);
 	    
-	    sad.http_server.on("listening", function () {
-		sad.log("HTTP server listening on " + http_port);
-		if(!sad.options.https_port)  return cb(null,"OK");
-	    });
-
-	    sad.http_server.on("connection", function (sock) {
-	    });
-
-	    sad.http_server.on("close", function (sock) {
-		cb("http socket closed");
-	    });
-	    //console.log("http listen on " + http_port);
+	    
+	
+	    if(sad.options.http_proxy){
+		var http_proxy = require('http-proxy');
+		var proxy_config={
+		    target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
+		};
+		sad.log("starting HTTP server on port " + http_port + " -> proxy to " + proxy_config.target);
+		sad.http_proxy=http_proxy.createServer(proxy_config);
+		sad.http_proxy.on('error', handle_proxy_error);
+	    }else 
+		sad.log("starting HTTP server on port " + http_port + " NO proxy.");
+	    
+	    try{
+		var http = require('http');
+		
+		//sad.http_server = http.createServer(sad.handle_request);
+		sad.http_server = http.createServer(sad.app);
+		sad.http_server.sadira=sad;
+		
+		sad.http_server.on("error", function (e) {
+		    sad.log("HTTP server error " + JSON.stringify(e));
+		    cb(e);
+		});
+		
+		sad.http_server.on("listening", function () {
+		    sad.log("HTTP server listening on " + http_port);
+		    if(!sad.options.https_port)  return cb(null,"OK");
+		});
+		
+		sad.http_server.on("connection", function (sock) {
+		});
+		
+		sad.http_server.on("close", function (sock) {
+		    cb("http socket closed");
+		});
+		//console.log("http listen on " + http_port);
 	    sad.http_server.listen(http_port);
-
+		
+	    }
+	    catch (e){
+		sad.log("Fatal error on starting http : " + e);
+		return cb(e);
+	    }
 	}
-	catch (e){
-	    sad.log("Fatal error on starting http : " + e);
-	    return cb(e);
-	}
-    }
-    
-    if(sad.options.https_port){
-
-
-	var https_port = parseInt(sad.options.https_port, 10);
-
 	
-	
-	if(!è(sad.options.ssl)) throw ("No SSL config found !");
-	if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
-	if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
-	
-	var ssl_data = {
-	    key: fs.readFileSync(sad.options.ssl.key_file),
-	    cert: fs.readFileSync(sad.options.ssl.cert_file)
-	};
-
-
-	if(è(sad.options.ssl.ca_file)) ssl_data.ca=fs.readFileSync(sad.options.ssl.ca_file);
-
-	//sad.log("PROXY SSL config : " + JSON.stringify(ssl_data));
-
-	if(sad.options.https_proxy){
-
-	    var http_proxy = require('http-proxy');
-
-	    var proxy_config={
-		target :  ù(sad.options.https_proxy_url) ? "https://localhost:4430" : "https://" + sad.options.https_proxy_url,
-		https : true,
-		ssl : ssl_data,
-		secure : false
+	if(sad.options.https_port){
+	    
+	    
+	    var https_port = parseInt(sad.options.https_port, 10);
+	    
+	    
+	    
+	    if(!è(sad.options.ssl)) throw ("No SSL config found !");
+	    if(!è(sad.options.ssl.key_file)) throw ("No SSL key file given !");
+	    if(!è(sad.options.ssl.cert_file)) throw ("No SSL certificate file given !");
+	    
+	    var ssl_data = {
+		key: fs.readFileSync(sad.options.ssl.key_file),
+		cert: fs.readFileSync(sad.options.ssl.cert_file)
 	    };
-
-	    sad.log("setting up HTTPS server on port " + https_port + " -> proxy to " + proxy_config.target);	
-	    sad.https_proxy=http_proxy.createServer(proxy_config);
-	    sad.https_proxy.on('error', handle_proxy_error);
-	}else
-	    sad.log("setting up HTTPS server on port " + https_port + " NO proxy");
-	
-        //Certificates for the https server
-
-	try{
-
-	    var https = require('https');
 	    
-	    sad.ssl_data = ssl_data;
 	    
-	    var https_options = ssl_data;
+	    if(è(sad.options.ssl.ca_file)) ssl_data.ca=fs.readFileSync(sad.options.ssl.ca_file);
 	    
-	    //https_options.secureProtocol="SSLv3_method";
-	    https_options.rejectUnauthorized=false;
-
-	    //sad.https_server = https.createServer(https_options, sad.handle_request);
-	    sad.https_server = https.createServer(https_options, sad.app);
-	    sad.https_server.sadira=sad;
+	    //sad.log("PROXY SSL config : " + JSON.stringify(ssl_data));
+	    
+	    if(sad.options.https_proxy){
+		
+		var http_proxy = require('http-proxy');
+		
+		var proxy_config={
+		    target :  ù(sad.options.https_proxy_url) ? "https://localhost:4430" : "https://" + sad.options.https_proxy_url,
+		    https : true,
+		    ssl : ssl_data,
+		    secure : false
+		};
+		
+		sad.log("setting up HTTPS server on port " + https_port + " -> proxy to " + proxy_config.target);	
+		sad.https_proxy=http_proxy.createServer(proxy_config);
+		sad.https_proxy.on('error', handle_proxy_error);
+	    }else
+		sad.log("setting up HTTPS server on port " + https_port + " NO proxy");
+	    
+            //Certificates for the https server
+	    
+	    try{
+		
+		var https = require('https');
+		
+		sad.ssl_data = ssl_data;
+		
+		var https_options = ssl_data;
+		
+		//https_options.secureProtocol="SSLv3_method";
+		https_options.rejectUnauthorized=false;
+		
+		//sad.https_server = https.createServer(https_options, sad.handle_request);
+		sad.https_server = https.createServer(https_options, sad.app);
+		sad.https_server.sadira=sad;
 
 	    sad.https_server.on("listening", function () {
 		sad.log("HTTPS server listening on " + https_port);
@@ -1922,11 +2006,11 @@ function clone(obj) {
 _sadira.prototype.initialize_plugins=function(cb){
 
     var sad=this;
-    //var cwd=process.cwd();
+    var cwd=process.cwd();
     var plugs=sad.options.plugins;
     
     if(plugs===undefined) {
-	return;
+	plugs = { login : { enabled : true, file : cwd+'/handlers/login.js' } };
     }
     
     var pload_func=function(pn) {

@@ -12,7 +12,7 @@ exports.init=function(pkg, sad, cb){
     var mongo=sad.mongo.sys;
     var app=sad.app;
     var passport=sad.passport;
-
+    
     console.log("Register login serialize funcs...");
     
     passport.serializeUser(function(user, done) {
@@ -230,7 +230,8 @@ exports.init=function(pkg, sad, cb){
 	return res.json({error : "Login failed ! TESTING"});
     });
 
-    
+
+    console.log("Log post");
     app.post('/login', function(req, res, next) {
 	
 	passport.authenticate('local-login', {session : true}, function(err,user,info) {
@@ -309,12 +310,15 @@ exports.init=function(pkg, sad, cb){
     // });
 
     
-    
+    if(pkg.opts!==undefined) {
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
 
+
+    if(pkg.opts.facebookAuth !== undefined){
     sad.common_header_data.facebook=pkg.opts.facebookAuth;
+
 
     passport.use(new facebook_strategy({
 	
@@ -381,11 +385,13 @@ exports.init=function(pkg, sad, cb){
     
     //console.log("Passport initialized ");
     
-
+    }
     // =========================================================================
     // GOOGLE ==================================================================
     // =========================================================================
 
+    if(pkg.opts.googleAuth !== undefined){
+	
     sad.common_header_data.google=pkg.opts.googleAuth;
     
     passport.use(new google_strategy({
@@ -446,6 +452,7 @@ exports.init=function(pkg, sad, cb){
 		failureRedirect : '/'
 	    }));
 
+    }
     //passport.authenticate('local-login'),
 
 
@@ -458,7 +465,7 @@ exports.init=function(pkg, sad, cb){
 
     
 
-
+    }
 
     
     cb(null);
