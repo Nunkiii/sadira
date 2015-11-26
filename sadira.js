@@ -1190,48 +1190,81 @@ _sadira.prototype.setup_database=function(close_cb){
 
     app.collections={};
     app.groups={};
+
     
-    default_collections.forEach(function(obj){
-	
-	app.find_collection(obj.els.name.value, function(error, col){
-	    if(error) return close_cb(error);
-	    var o;
-	    if(col===undefined){
-		o=app.tmaster.create_object_from_data(obj);
-		o.save();
-	    }else{
-		var reset_p = col.db.p===undefined;
-		o=app.tmaster.create_object_from_data(col);
-		if(reset_p) o.save();
+    function load_objects(objects){
+	objects.forEach(function(obj){
+	    app.find_collection(obj.els.name.value, function(error, col){
+		if(error) return close_cb(error);
+		
+		if(app.worker && app.worker.id==1){
+		    var o;
+		    if(col===undefined){
+			o=app.tmaster.create_object_from_data(obj);
+			o.save();
+		    }else{
+			var reset_p = col.db.p===undefined;
+			o=app.tmaster.create_object_from_data(col);
+			if(reset_p) o.save();
+			
+		    }
+		    coll=o;
+		}
+		if(col!==undefined)
+		    app.collections[obj.els.name.value]=col;
+		n--;
+		if(n===0) close_cb(null);
+	    });
+	    
+	});
+
+    };
+
+    load_objects(default_collections);
+    load_objects(default_groups);
+    
+    // default_collections.forEach(function(obj){
+    // 	app.find_collection(obj.els.name.value, function(error, col){
+    // 	    if(error) return close_cb(error);
+    // 	    if(app.worker.id==1){
+    // 		var o;
+    // 		if(col===undefined){
+    // 		    o=app.tmaster.create_object_from_data(obj);
+    // 		    o.save();
+    // 		}else{
+    // 		    var reset_p = col.db.p===undefined;
+    // 		    o=app.tmaster.create_object_from_data(col);
+    // 		    if(reset_p) o.save();
 		    
-	    }
-	    app.collections[obj.els.name.value]=o;
-	    
-	    
-	    n--;
-	    if(n===0) close_cb(null);
-	});
+    // 		}
+    // 		coll=o;
+    // 	    }
+    // 	    if(col!==undefined)
+    // 		app.collections[obj.els.name.value]=col;
+    // 	    n--;
+    // 	    if(n===0) close_cb(null);
+    // 	});
 	
-    });
+    // });
     
-    default_groups.forEach(function(obj){
-	app.find_group(obj.els.name.value, function(error, g){
-	    if(error) return close_cb(error);
-	    var o ;
-	    if(g===undefined){
-		o=app.tmaster.create_object_from_data(obj);
-		o.save();
-	    }else{
-		var reset_p = g.db.p===undefined;
-		o=app.tmaster.create_object_from_data(g);
-		if(reset_p) o.save();
-	    }
+    // default_groups.forEach(function(obj){
+    // 	app.find_group(obj.els.name.value, function(error, g){
+    // 	    if(error) return close_cb(error);
+    // 	    var o ;
+    // 	    if(g===undefined){
+    // 		o=app.tmaster.create_object_from_data(obj);
+    // 		o.save();
+    // 	    }else{
+    // 		var reset_p = g.db.p===undefined;
+    // 		o=app.tmaster.create_object_from_data(g);
+    // 		if(reset_p) o.save();
+    // 	    }
 	    
-	    app.groups[obj.els.name.value]=o;
-	    n--;
-	    if(n===0) close_cb(null);
-	});
-    });
+    // 	    app.groups[obj.els.name.value]=o;
+    // 	    n--;
+    // 	    if(n===0) close_cb(null);
+    // 	});
+    // });
     
 }
 
