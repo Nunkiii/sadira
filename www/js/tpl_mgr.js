@@ -292,9 +292,10 @@ template_object.prototype.add_link=function(linko){
 	    o.db={ id : id, link : true};
 	    return o;
 	}
+    }else{
+	console.log("Error creating link to " + JSON.stringify(linko));
+	return undefined;
     }
-    console.log("Error creating link !");
-    return undefined;
 };
 
 
