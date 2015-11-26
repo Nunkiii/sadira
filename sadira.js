@@ -1277,7 +1277,7 @@ _sadira.prototype.load_mongodb = function (cb){
 	throw "Mongodb already started !";
     }
     
-    console.log("Initializing mongodb...");
+    //console.log("Initializing mongodb...");
     if(sad.options.mongo===undefined){
 	sad.options.mongo={ opts : { mongo_host : 'localhost', mongo_port : 27017 }};
 	//throw "Cannot start mongodb : You need to provide a mongo section in the sadira configuration file !";
