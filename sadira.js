@@ -320,8 +320,8 @@ var _sadira = function(){
 	dialogs : [],
 	get_handlers : [],
 	post_handlers : [],
-	ncpu : system_ncpu, //using number of cpu present in system by default
-	//    ncpu : 1; //Using a single thread by default.
+	//ncpu : system_ncpu, //using number of cpu present in system by default
+	ncpu : 1, //Using a single thread by default.
 	html_rootdir : '/var/www', //process.cwd()+'/www', //This is the root directory for all the served files.
 	file_server : true
     }; 
@@ -1224,6 +1224,18 @@ _sadira.prototype.setup_database=function(close_cb){
     app.collections={};
     app.groups={};
 
+    function done(key, o, h){
+	if(o!==undefined){
+	    
+	    app[key][h]=o;
+	}
+	
+	n--;
+	app.log("Done. remaining " + n);
+	if(n===0) close_cb(null); 
+	
+    }
+    
     
     function load_objects(key, objects){
 	if(app[key]===undefined) app[key]={};
@@ -1238,16 +1250,6 @@ _sadira.prototype.setup_database=function(close_cb){
 		// else
 		//     app.log("Collection " + key + " : looked up object " + col.name + " type " + col.type);
 		
-		function done(o, h){
-		    if(o!==undefined){
-			
-			app[key][h]=o;
-		    }
-		    
-		    n--;
-		    if(n===0) close_cb(null);
-		    
-		}
 
 
 		if(app.cluster.worker.id===1){
@@ -1261,30 +1263,32 @@ _sadira.prototype.setup_database=function(close_cb){
 			    if(err===null){
 				//col=o;
 				app.log("Created default object name " + oo.name + " type " + oo.type + " in collection " + oo.db.collection);
-				done(oo, oo.val('name'));
+				done(key, oo, oo.val('name'));
 			    }else close_cb(err);
 			});
 		    }else{
 			var reset_p = col.db.p===undefined;
 			o=app.tmaster.create_object_from_data(col);
-			if(reset_p) o.save(function(err,oo){
-			    if(err===null){
-				app.log("Resetted default object name " + oo.name + " type " + oo.type);
-				done(oo, oo.val('name'));
-			    }else close_cb(err);
-					  
-			});
-			
+			if(reset_p)
+			    o.save(function(err,oo){
+				if(err===null){
+				    app.log("Resetted default object name " + oo.name + " type " + oo.type);
+				    done(key, oo, oo.val('name'));
+				}else close_cb(err);
+				
+			    });
+			else
+			    done(key, o, o.val('name'));
 		    }
 		    
-		}else done(col, obj.els.name.value);
+		}else done(key, col, obj.els.name.value);
 		
 	    });
 	    
 	});
 
     };
-
+    
     load_objects('collections',default_collections);
     load_objects('groups',default_groups);
     
