@@ -1042,40 +1042,42 @@ _sadira.prototype.check_user = function(user_name, groups, cb){
 	    if(app.users===undefined) app.users={};
 	    var reset_p = user_obj.db.p===undefined;
 	    usr=create_object_from_data(user_obj);
-	    if(reset_p) usr.save();
+	    if(reset_p && app.cluster.worker.id===1) usr.save();
 	    
 	}else{
-	    console.log("creating user "+ user_name+" ...");
-
-	    
-	    usr=create_object("user");
-
-	    usr.set('nick', user_name);
-	    
-	    usr.db.collection="users";
-	    usr.db.name="sys";
-	    var local_access=usr.get('credentials').get('local');
-	    
-	    if(local_access===undefined){
-		local_access=create_object("local_access");
-		usr.get('credentials').add('local',local_access);
-		console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
-	    }
-	    
-	    //for(var p in local_access.elements) console.log("LOC P " + p);
-	    
-	    local_access.set('username',user_name);
-	    var ugroups=usr.get('groups');
-	    groups.forEach(function(g){
-		var apgroup=app.groups[g];
+	    if(app.cluster.worker.id===1){
+		console.log("creating user "+ user_name+" ...");
 		
-		if(apgroup!==undefined)
-		    ugroups.add_link(apgroup);
-		else{
-		    app.log("Unknown group " + g + " groups are : ");
-		    for (var gn in app.groups) app.log("GROUP " + gn);
+		
+		usr=create_object("user");
+		
+		usr.set('nick', user_name);
+		
+		usr.db.collection="users";
+		usr.db.name="sys";
+		var local_access=usr.get('credentials').get('local');
+		
+		if(local_access===undefined){
+		    local_access=create_object("local_access");
+		    usr.get('credentials').add('local',local_access);
+		    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
 		}
-	    });
+		
+		//for(var p in local_access.elements) console.log("LOC P " + p);
+		
+		local_access.set('username',user_name);
+		var ugroups=usr.get('groups');
+		groups.forEach(function(g){
+		    var apgroup=app.groups[g];
+		    
+		    if(apgroup!==undefined)
+			ugroups.add_link(apgroup);
+		    else{
+			app.log("Unknown group " + g + " groups are : ");
+			for (var gn in app.groups) app.log("GROUP " + gn);
+		    }
+		});
+	    }
 	}
 
 	app.users[user_name]=usr;
