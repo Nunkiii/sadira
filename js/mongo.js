@@ -172,7 +172,8 @@ server.prototype.write_doc=function(doc,a,b){
     if(coll===undefined){
 	return cb("write_doc error : no collection defined for doc name [" + doc.name + "] type ["+doc.type+"] !" );
     }
-    //console.log("read data " + JSON.stringify(data));
+
+    
 
     var mdb=this.db.collection(coll);
 
@@ -180,6 +181,8 @@ server.prototype.write_doc=function(doc,a,b){
 	cb("No such collection [" + coll + "]");
 	return;
     }
+
+    //console.log("Collection " + coll + " ready to write data ...");
     
     if(doc.id()!==undefined){
 	var q={ _id : doc.id() };
@@ -187,6 +190,7 @@ server.prototype.write_doc=function(doc,a,b){
 	    if(err) cb(err);
 	    else{
 		set_template_data(doc,result.value);
+		//console.log("Collection " + coll + " update data OK ");// + JSON.stringify(doc));
 		cb(null,doc);
 	    }
 	});
@@ -196,8 +200,10 @@ server.prototype.write_doc=function(doc,a,b){
 	    if(err) cb(err);
 	    else{
 		if(result.ops.length===1){
+		    
 		    //console.log("docs = " + JSON.stringify(result.ops[0]));
 		    set_template_data(doc, result.ops[0]);
+		    //console.log("Collection " + coll + " insert data OK ");// + JSON.stringify(doc));
 		    cb(null, doc);
 		}else
 		    cb("result.ops has a problem...?");

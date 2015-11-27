@@ -22,7 +22,7 @@ exports.init=function(pkg, sad, cb){
 
     passport.deserializeUser(function(id, done) {
 	//console.log("Deserialize USER ID " + id);
-	mongo.find1({ type : "Users", id : id},
+	mongo.find1({ type : "users", id : id},
 		    //done
 
 		    function(err, user) {
@@ -78,7 +78,7 @@ exports.init=function(pkg, sad, cb){
 				     .set('email',email)
 				     .set_password(hashpass);
 
-				 new_user.db.collection="Users";
+				 new_user.db.collection="users";
 				 new_user.get("credentials").add('local',access);
 
 				 new_user.save( function(err, r) {

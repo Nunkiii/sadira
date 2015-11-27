@@ -691,50 +691,49 @@ _sadira.prototype.start_master = function (cb){
     var ncpu=sad.options.ncpu;
     
     sad.log("Spawning worker processes on " + ncpu + " core(s) (f "+f+")...");
-    
-    for (var i = 0; i < ncpu; i++) {
 
+    var alive_workers=0;
+    
+ //   for (var i = 0; i < ncpu; i++) {
+//    while(alive_workers!==ncpu){
 	//var args = [ /* ... */ ];
 	//var options = { stdio: ['pipe','pipe','pipe','pipe','pipe'] };  // first three are stdin/out/err
 	//
 
 	//var cproc = require('child_process').spawn(cmd, args, options);
-	var worker=sad.cluster.fork();//options);
-
 	
-	sad.cluster.on('online', function(worker) {
-	    //sad.log("Yay, the worker "+worker.id +" responded after it was forked");
+    sad.cluster.on('online', function(worker) {
 
-	    // for(var p in worker.process){
-	    // 	console.log("wp " + p + " T " + typeof worker.process[p]);
-	    // }
-
-	    // for(var i=0;i<worker.process.stdio.length;i++){
-	    // 	console.log("STDIO["+i+"] is " + worker.process.stdio[i]);
-	    // }
-	    
-	    // var pipe = worker.process.stdin;
-	    // pipe.write(Buffer('hello this is master printing on you!'));
-	    
-	});
+	sad.log("Yay, the worker "+worker.id +" responded after it was forked");
+	
+	// for(var p in worker.process){
+	// 	console.log("wp " + p + " T " + typeof worker.process[p]);
+	// }
+	
+	// for(var i=0;i<worker.process.stdio.length;i++){
+	// 	console.log("STDIO["+i+"] is " + worker.process.stdio[i]);
+	// }
+	
+	// var pipe = worker.process.stdin;
+	// pipe.write(Buffer('hello this is master printing on you!'));
 	
 	worker.on('message', function(m){ //Handling incoming messages from workers
 	    
 	    if(ù(sad.ipss)) { sad.log("Unhandled message, no IPS!"); return; }
-
+	    
 	    var cmd = m.cmd;
 	    if(ù(cmd)) { sad.log("No message command!"); return; }
 	    var id = m.id;
 	    if(ù(id)) { sad.log("No message id!"); return;}
 	    var service = m.service;
 	    if(ù(service)) { sad.log("No service name given!"); return; }
-	    
+		
 	    var ips=sad.ipss[service];
 	    if(ù(ips)) { sad.log("No such service ["+service+"]!"); return; }
 	    
 	    //var data=m.data;
 	    //if(ù(data)) { sad.log("No message data!"); return; }
-
+	    
 	    sad.log("IPS["+ips.service+"] : Received worker message! " + JSON.stringify(m)); 
 	    
 	    switch(cmd){
@@ -746,7 +745,7 @@ _sadira.prototype.start_master = function (cb){
 		console.log("De-registering client from service ["+service+"]");
 		ips.client_disconnect(m);
 		break;
-	    case "route":
+		case "route":
 		console.log("Routing REC worker message to IPS ["+service+"]");
 		ips.receive(m);
 		break;
@@ -757,7 +756,15 @@ _sadira.prototype.start_master = function (cb){
 	    
 	});
 	
-    }
+	alive_workers++;
+	if(alive_workers!==ncpu)
+	    sad.cluster.fork();//options);
+	
+    });
+    
+    
+    
+    //    }
     
     sad.cluster.on('exit', function(worker, code, signal) {
 	sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
@@ -786,6 +793,9 @@ _sadira.prototype.start_master = function (cb){
 	}
 	
     });
+    
+    if(ncpu>0)
+	sad.cluster.fork();//options);
 }
 
 
@@ -913,7 +923,7 @@ _sadira.prototype.load_routes = function (){
 
 // _sadira.prototype.check_group=function(gname, cb){
     
-//     this.mongo.sys.find1({type : 'Groups', path : 'name', value : gname}, function(err, admin_group){
+//     this.mongo.sys.find1({type : 'groups', path : 'name', value : gname}, function(err, admin_group){
 // 	if(err){
 // 	    return cb("error looking for group" + gname + " : " + err);
 // 	}
@@ -925,7 +935,7 @@ _sadira.prototype.load_routes = function (){
 // 	else{
 	    
 //       	    var admin_group=app.tmaster.create_object("user_group");
-// 	    admin_group.db.collection="Groups";
+// 	    admin_group.db.collection="groups";
 // 	    admin_group.db.name="sys";
 // 	    admin_group.set("name",gname)
 // 	    //.set("description",gdesc)
@@ -941,7 +951,7 @@ _sadira.prototype.load_routes = function (){
 // }
 
 _sadira.prototype.find_group = function (gname, cb){
-    this.mongo.sys.find1({type : 'Groups', path : 'name', value : gname}, cb);
+    this.mongo.sys.find1({type : 'groups', path : 'name', value : gname}, cb);
 }
 
 _sadira.prototype.find_collection = function (name, cb){
@@ -966,10 +976,10 @@ _sadira.prototype.group_id = function (gname, cb){
 
 _sadira.prototype.find_user=function(identifier, cb){
     var mongo=this.mongo.sys;
-    mongo.find1({type: "Users", path:'credentials.local.email', value : identifier},function(err, user) {
+    mongo.find1({type: "users", path:'credentials.local.email', value : identifier},function(err, user) {
 	if(err) return cb(err);
 	if(user===undefined || user===null){
-	    mongo.find1({type: "Users", path:'credentials.local.username', value : identifier},function(err, user) {
+	    mongo.find1({type: "users", path:'credentials.local.username', value : identifier},function(err, user) {
 		if(err) return cb(err);
 		if(user===undefined){
 		    return cb(null);
@@ -985,11 +995,13 @@ _sadira.prototype.find_user=function(identifier, cb){
 }
 
 _sadira.prototype.check_admin_user = function(cb){
+
     var admin_name="god";
     var sad=this;
+    
     this.check_user(admin_name, ['users','everybody','admin'], function(err, admin){
 	if(err) return cb(err);
-
+	
 	var access=admin.get('credentials').get('local');
 	var pass=access.get('hashpass');
 	
@@ -1040,7 +1052,7 @@ _sadira.prototype.check_user = function(user_name, groups, cb){
 
 	    usr.set('nick', user_name);
 	    
-	    usr.db.collection="Users";
+	    usr.db.collection="users";
 	    usr.db.name="sys";
 	    var local_access=usr.get('credentials').get('local');
 	    
@@ -1050,23 +1062,34 @@ _sadira.prototype.check_user = function(user_name, groups, cb){
 		console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
 	    }
 	    
-	    for(var p in local_access.elements) console.log("LOC P " + p);
+	    //for(var p in local_access.elements) console.log("LOC P " + p);
 	    
 	    local_access.set('username',user_name);
+	    var ugroups=usr.get('groups');
 	    groups.forEach(function(g){
-		usr.get('groups').add_link(app.groups[g]);
+		var apgroup=app.groups[g];
+		
+		if(apgroup!==undefined)
+		    ugroups.add_link(apgroup);
+		else{
+		    app.log("Unknown group " + g + " groups are : ");
+		    for (var gn in app.groups) app.log("GROUP " + gn);
+		}
 	    });
 	}
 
 	app.users[user_name]=usr;
-	usr.save();
-	return cb(null,usr);
+	usr.save(function(err, usr){
+	    return cb(err,usr);
+	});
+	
     });
 }
 
 
 var default_collections = [
     {
+	name : "MongoDB system collections",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1080,6 +1103,7 @@ var default_collections = [
 	}
     },
     {
+	name : "Object templates",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1087,11 +1111,12 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "Templates"},
+	    name : { value : "templates"},
 	    template : { value : "db_collection"},
 	}
     },
     {
+	name : "Users",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1099,11 +1124,12 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "Users"},
+	    name : { value : "users"},
 	    template : { value : "user"},
 	}
     },
     {
+	name : "User groups",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1111,12 +1137,13 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "Groups"},
+	    name : { value : "groups"},
 	    template : { value : "user_group"},
 	}
 	
     },
     {
+	name : "API providers",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1124,11 +1151,12 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "Apis"},
+	    name : { value : "apis"},
 	    template : { value : "api_provider"},
 	}
     },
     {
+	name : "MongoDB user collections",
 	type : "db_collection",
 	db : {
 	    name : 'data',
@@ -1145,11 +1173,12 @@ var default_collections = [
 
 var default_groups = [
     {
+	name : "Adminitrators",
 	type : "user_group",
 	db : {
 	    name : 'sys',
 	    grants : [['g','users','r'],['g','admin','w']],
-	    collection : "Groups"
+	    collection : "groups"
 	},
 	els : {
 	    name : { value : "admin"},
@@ -1157,11 +1186,12 @@ var default_groups = [
 	}
     },
     {
+	name : "Users",
 	type : "user_group",
 	db : {
 	    name : 'sys',
 	    grants : [['g','users','r'],['g','admin','w']],
-	    collection : "Groups"
+	    collection : "groups"
 	},
 	els : {
 	    name : { value : "users"},
@@ -1169,11 +1199,12 @@ var default_groups = [
 	}
     },
     {
+	name : "Visitors",
 	type : "user_group",
 	db : {
 	    name : 'sys',
 	    grants : [['g','users','r'],['g','admin','w']],
-	    collection : "Groups"
+	    collection : "groups"
 	},
 	els : {
 	    name : { value : "everybody"},
@@ -1192,36 +1223,68 @@ _sadira.prototype.setup_database=function(close_cb){
     app.groups={};
 
     
-    function load_objects(objects){
+    function load_objects(key, objects){
+	if(app[key]===undefined) app[key]={};
 	objects.forEach(function(obj){
-	    app.find_collection(obj.els.name.value, function(error, col){
+	    app.mongo.sys.find1({collection : key, path : 'name', value : obj.els.name.value}, function(error, col){
+	    //app.find_collection(obj.els.name.value, function(error, col){
+
 		if(error) return close_cb(error);
+
+		// if(col===undefined)
+		//     app.log("Collection " + key + " : undefined base object " + obj.els.name.value);
+		// else
+		//     app.log("Collection " + key + " : looked up object " + col.name + " type " + col.type);
 		
-		if(app.worker && app.worker.id==1){
+		function done(o, h){
+		    if(o!==undefined){
+			
+			app[key][h]=o;
+		    }
+		    
+		    n--;
+		    if(n===0) close_cb(null);
+		    
+		}
+
+
+		if(app.cluster.worker.id===1){
 		    var o;
+		    //console.log("Wid = "  + app.cluster.worker.id + " col = " + col);
 		    if(col===undefined){
+			
 			o=app.tmaster.create_object_from_data(obj);
-			o.save();
+			//app.log("Saving new default object " + o.name + " type " + o.type);
+			o.save(function(err, oo){
+			    if(err===null){
+				//col=o;
+				app.log("Created default object name " + oo.name + " type " + oo.type + " in collection " + oo.db.collection);
+				done(oo, oo.val('name'));
+			    }else close_cb(err);
+			});
 		    }else{
 			var reset_p = col.db.p===undefined;
 			o=app.tmaster.create_object_from_data(col);
-			if(reset_p) o.save();
+			if(reset_p) o.save(function(err,oo){
+			    if(err===null){
+				app.log("Resetted default object name " + oo.name + " type " + oo.type);
+				done(oo, oo.val('name'));
+			    }else close_cb(err);
+					  
+			});
 			
 		    }
-		    coll=o;
-		}
-		if(col!==undefined)
-		    app.collections[obj.els.name.value]=col;
-		n--;
-		if(n===0) close_cb(null);
+		    
+		}else done(col, obj.els.name.value);
+		
 	    });
 	    
 	});
 
     };
 
-    load_objects(default_collections);
-    load_objects(default_groups);
+    load_objects('collections',default_collections);
+    load_objects('groups',default_groups);
     
     // default_collections.forEach(function(obj){
     // 	app.find_collection(obj.els.name.value, function(error, col){
@@ -1333,8 +1396,8 @@ _sadira.prototype.load_mongodb = function (cb){
 _sadira.prototype.load_apis = function (cb){
     var sad=this;
     sad.apis={};
-
-    this.log("Loading apis...");
+    
+    //this.log("Loading apis...");
 
     sad.mongo.sys.find({ user : sad.users.god, collection : "Apis"}, function(err, api_data){
 
@@ -1345,34 +1408,44 @@ _sadira.prototype.load_apis = function (cb){
 		return cb("Error while getting API collection items : " + err);
 	}
 
-	sad.log("Loading " + api_data.length + " APIS ");
+	//sad.log("Loading " + api_data.length + " APIS ");
 
-	for(var i=0;i<api_data.length;i++){
-	    var aprov=create_object_from_data(api_data[i]);
-	    //console.log("Loading api provider : [" + JSON.stringify(aprov,null,5) + "]");
-	    sad.apis[aprov.name]=aprov;
-
-	    if(sad.apis[aprov.name]!==undefined){
-			
+	if(api_data.length === 0){
+	    
+	    sad.reset_apis(function(err, ok){
+		if(err) return cb(err);
+		else
+		    sad.load_apis(cb);
+	    });
+	}else{
+	
+	    for(var i=0;i<api_data.length;i++){
+		var aprov=create_object_from_data(api_data[i]);
+		//console.log("Loading api provider : [" + JSON.stringify(aprov,null,5) + "]");
+		sad.apis[aprov.name]=aprov;
+		
+		if(sad.apis[aprov.name]!==undefined){
+		    
+		}
+		
+		//aprov.register_route(sad);
 	    }
-
-	    //aprov.register_route(sad);
+	    
+	    sad.app.all('/api/:provider/:api', function(req, res, next) {
+		//if(req.user!==undefined) req.user=create_object_from_data(req.user); //.build({recurse : true});
+		
+		var provider=sad.apis[req.params.provider];
+		//console.log("Looking for provider " + req.params.provider + " got " + JSON.stringify(provider));
+		
+		if(provider===undefined) return res.json({error : "unknown api provider " + req.params.provider });
+		var api=provider.get(req.params.api);
+		if(api===undefined) return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
+		//console.log("Api handler : " + JSON.stringify(api));
+		return api.api_handler(req,res,next);
+	    });
+	
+	    cb(null);
 	}
-	
-	sad.app.all('/api/:provider/:api', function(req, res, next) {
-	    //if(req.user!==undefined) req.user=create_object_from_data(req.user); //.build({recurse : true});
-	    
-	    var provider=sad.apis[req.params.provider];
-	    //console.log("Looking for provider " + req.params.provider + " got " + JSON.stringify(provider));
-	    
-	    if(provider===undefined) return res.json({error : "unknown api provider " + req.params.provider });
-	    var api=provider.get(req.params.api);
-	    if(api===undefined) return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
-	    //console.log("Api handler : " + JSON.stringify(api));
-	    return api.api_handler(req,res,next);
-	});
-	
-	cb(null);
     });
     
 }
@@ -1431,9 +1504,9 @@ _sadira.prototype.reset_apis=function(cb){
     ];
 
     var napis=default_apis.length;
-
+    
     app.mongo.sys.db.collection("Apis").drop();
-    console.log("Registering " + napis + " Apis -...");
+    console.log("Registering initial " + napis + " Apis -...");
 
     default_apis.forEach(function(api){
 	var c=app.tmaster.create_object(api);
@@ -1921,7 +1994,7 @@ _sadira.prototype.create_webrtc_server=function() {
 	// socket disconnected
 	
 	cnx.on('close', function(closeReason, description) {
-	    console.log("websocket closed : "+closeReason+" ("+description+") ");
+	    sad.log("websocket closed : "+closeReason+" ("+description+") ");
 	    cnx=null;
 	    return;
 	});
