@@ -427,7 +427,7 @@ var _sadira = function(){
 		
 		if(gr===undefined) gr='r';
 		sad.group_id(gname, function(err, group_id){
-		    console.log("trying to grant group " + gname + " id " + group_id);
+		    //console.log("granting group " + gname + " id " + group_id);
 		    if(err)
 			return cb!==undefined? cb(err): console.log("grant error " + err);
 		    if(obj.db.p===undefined) obj.db.p=new perm();
@@ -445,23 +445,30 @@ var _sadira = function(){
 		return obj.db.collection===undefined? obj.type : obj.db.collection; 
 	    };
 
-	    
-	    if(obj.db.grants!==undefined){
-		if(obj.db.p===undefined){
-		    console.log("Applying grants "+JSON.stringify(obj.db.grants)+" to ["+obj.name+"] !! ");
-		    obj.grant(obj.db.grants, function(e){
-			if(e){
-			    sad.log("!!grant error " + e);
-			    return;
-			    //return cb(e);
-			}
-			//obj.save();
-			//console.log("Apllyed grants ok to " + obj.name);
-			//delete obj.db.grants;
-			//cb(null);
-		    });
+	    obj.set_grants=function(cb){
+		var o=this;
+		if(o.db.grants!==undefined){
+		    console.log("We have grants : "+JSON.stringify(o.db.grants)+" P= ["+o.db.p+"]");
+					
+		    if(o.db.p===undefined){
+			console.log("Applying grants "+JSON.stringify(o.db.grants)+" to ["+o.name+"] !! ");
+			o.grant(o.db.grants, function(e){
+			    if(e!=null){
+				sad.log("!!grant error " + e);
+				return cb(e);
+				//return cb(e);
+			    }
+			    o.save(cb);
+			    
+			    //console.log("Apllyed grants ok to " + obj.name);
+			    //delete obj.db.grants;
+			    //cb(null);
+			});
+		    }
 		}
+
 	    }
+	    
 	    // obj.handle_request=function(req_name, req_cb){
 	    // 	if(obj.apis===undefined) obj.apis={};
 	    // 	obj.apis[req_name]=req_cb;
@@ -470,7 +477,7 @@ var _sadira = function(){
 	    
 	    //obj.db.perm.grant();
 	}
-
+	
 	//tpl_mgr.template_object.prototype.check_permission=function(perm, cb){}
 	tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
 	    if(this.apis===undefined) this.apis={};
@@ -1267,18 +1274,19 @@ _sadira.prototype.setup_database=function(close_cb){
 			    }else close_cb(err);
 			});
 		    }else{
-			var reset_p = col.db.p===undefined;
+			
 			o=app.tmaster.create_object_from_data(col);
-			if(reset_p)
-			    o.save(function(err,oo){
-				if(err===null){
-				    app.log("Resetted default object name " + oo.name + " type " + oo.type);
-				    done(key, oo, oo.val('name'));
-				}else close_cb(err);
+			// var reset_p = col.db.p===undefined;
+			// if(reset_p)
+			//     o.save(function(err,oo){
+			// 	if(err===null){
+			// 	    app.log("Resetted default object name " + oo.name + " type " + oo.type);
+			// 	    done(key, oo, oo.val('name'));
+			// 	}else close_cb(err);
 				
-			    });
-			else
-			    done(key, o, o.val('name'));
+			//     });
+			// else
+			done(key, o, o.val('name'));
 		    }
 		    
 		}else done(key, col, obj.els.name.value);

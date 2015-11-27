@@ -189,8 +189,10 @@ server.prototype.write_doc=function(doc,a,b){
 	this.db.collection(coll).findOneAndUpdate(q,data, options, function(err, result){
 	    if(err) cb(err);
 	    else{
-		set_template_data(doc,result.value);
-		//console.log("Collection " + coll + " update data OK ");// + JSON.stringify(doc));
+		if(result.value!==null)
+		    set_template_data(doc,result.value);
+		else
+		    console.log("Collection " + coll + " null value ");
 		cb(null,doc);
 	    }
 	});
@@ -312,7 +314,7 @@ server.prototype.find=function(opts, cb){
 				objects.push(d);
 			}
 			    else
-				console.log("Perm not granted for user "+JSON.stringify(user)+" ! " + p);
+				console.log("Perm not granted for user "+user.get_login_name() +" ! " + p);
 			}else
 			    objects.push(d);
 		    }else

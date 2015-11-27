@@ -24,7 +24,7 @@ exports.init=function(pkg, sad, cb){
 	//console.log("Deserialize USER ID " + id);
 	mongo.find1({ type : "users", id : id},
 		    //done
-
+		    
 		    function(err, user) {
 			
 			if(err){
@@ -37,7 +37,7 @@ exports.init=function(pkg, sad, cb){
 			else{
 			    console.log("User not found ! " + id);
 	//done("User (id + "+id+") not found !");
-			    done("pass",undefined);
+			    done(null,{});
 			}
 		    }
 		    

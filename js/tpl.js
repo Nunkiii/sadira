@@ -93,10 +93,10 @@ module.exports={
 			if(req.user===undefined){
 			    return res.json({user : "none"});
 			}
-			
+			var uobj=create_object_from_data(req.user);
 			//console.log("Session info request " + JSON.stringify(req.user));
-			
-			return res.json( { user : req.user.els.credentials.els.local.els.username.value, id : req.user.db.id });
+			var uname=uobj.get_login_name!==undefined ? uobj.get_login_name() : "Invalid user";
+			return res.json( { user : uname, id : uobj.id() });
 		    });
 		}
 		

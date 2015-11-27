@@ -123,6 +123,8 @@ function set_template_data(t, data){
 	for(var te in data.db){
 	    t.db[te]=data.db[te];
 	}
+
+	
     }		
     if(è(data._id)){
 	t.db.id=data._id;
@@ -168,9 +170,19 @@ function set_template_data(t, data){
     }
 
     new_event(t,"data_loaded");
-    t.trigger("data_loaded",data);
 
-    return t;
+    if(data.db!==undefined && data.db.p===undefined && data.db.grants!==undefined){
+	t.set_grants(function(error){
+	    if(error){
+		console.log("grant error " + error);
+	    }
+	    t.trigger("data_loaded",data);
+	    return t;
+	});
+    }else{
+	t.trigger("data_loaded",data);
+	return t;
+    }
 }
 
 
