@@ -5,7 +5,7 @@
     widget_builder : function(ok, fail){
 	this.listen('click', function(){
 	    
-	}}
+	});
     }
 })
     

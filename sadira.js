@@ -299,7 +299,7 @@ var _sadira = function(){
 		if(err) {
 		    return reject("Error loading builtin template " + err);
 		}
-		//console.log("Reading builtin tpl " + data.slice(0,50));
+		console.log("Reading  " + tpl_name);// ""data.slice(0,50));
 		try{
 		    var object_code=eval(data+"");
 		
@@ -308,6 +308,7 @@ var _sadira = function(){
 		}
 		catch(e){
 		    console.log("Error load code builtin TPL " + e);
+		    reject(e);
 		}
 	    });
 	});
@@ -318,8 +319,9 @@ var _sadira = function(){
     var builtin_templates=["template_object", "code", "db_collection", "string", "data_nav", "table", "double", "action", "view"];
     
     multi(load_builtin_template, builtin_templates).then(function(){
-	//console.log("Initialized builtin templates...");
-	//for(var t in tmaster.templates) console.log("T " + t);
+	sad.log("Done initializing builtin templates");
+
+	for(var t in tmaster.templates) console.log("T " + t);
 	sad.cluster.isMaster ? sad.start_master() : sad.start_worker();
     }).catch(function(err){
 	sad.log("Fatal error while initializing sadira : " +dump_error(err));
@@ -704,44 +706,46 @@ _sadira.prototype.start_master = function (){
 }
 
 _sadira.prototype.initialize_templates = function (){
-
+    var sad=this;
+    
     var prom=new Promise(function(ok,fail){
-
+	var nf;
+	
 	function read_template(f){
 	    var p=new Promise(function(cont,die){
 		create_object("template_object").then(function(obj){
 		    
 		    obj.read_source_file(f, function(err, o){
 			if(err){
-			    return die("Error read : " + err);
+			    return die("Error reading template ["+f+"] source file : " + err);
 			}
-			//console.log("TPL ["+f+"] obj created " + obj.name + " RS " + (obj.read_source_file!==undefined));
-			
-			obj.register();
-			obj.db_update();
-			cont(obj);
-			//nf--;
-			// //console.log("Process " + obj.name + " remains " + nf);
-			// if(nf===0){
-			//     console.log("Done reading source files /////");
-			//     load_templates();
-			// }
+			obj.register().then(function(){
+			    obj.db_update();
+			    nf--;
+			    sad.log("Processed template ["+f+"] : remains " + nf);
+			    cont(obj);
+			}).catch(function(e){
+			    return die("Error loading ASCII template ["+f+"]" + dump_error(e));
+			});
 		    });
 		}).catch(function(e){
-		    return die("Error loading ASCII template " + dump_error(e));
+		    return die("Error loading ASCII template ["+f+"]" + dump_error(e));
 		});
 	    });
 	    return p;
 	}
 	
-	console.log("Glob reading...");
-	
 	var glob = require("glob");
+	
 	glob("templates/*.js", function (er, files) {
 	    if(er) fail(e);
-	    console.log("Loading "+files.length +"  ASCII templates .... ");
+	    nf=files.length;
+	    console.log("Loading "+nf +"  templates from source .... ");
 	    
-	    multi(read_template, files).then(function(templates){ok(templates)}).catch(function(e){fail(e);});
+	    multi(read_template, files).then(function(templates){
+		sad.log("Done loading template sources!");
+		ok(templates);
+	    }).catch(function(e){fail(e);});
 	    
 	});
 	
@@ -772,7 +776,10 @@ _sadira.prototype.load_templates = function (cb){
 
 	if(nt===0){
 	    console.log("No templates found ! Auto-bootstrapping....");
-	    sad.initialize_templates().then( function(){ sad.load_templates(cb); }).catch(function(e){ cb(e);});
+	    sad.initialize_templates().then( function(){
+		sad.load_templates(cb);
+
+	    }).catch(function(e){ cb(e);});
 	    
 	    return;
 	}
