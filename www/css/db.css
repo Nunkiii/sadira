@@ -103,20 +103,11 @@ On top of bootsrap 3
   */
 }
 
-.navbar-brand>img {
-  width : 1.5em;
-  margin-right : .3em;	
-  display: inline-block;
-}
-
-.navbar-inverse>div>div>h3{
- color : #EEE;
-}
 
 .ico{
   width: 1.5em;
   display: inline-block;
-  top: -.3em;
+/*  top: -.3em; */
   position: relative;
   margin-right: .5em;
 }
@@ -169,6 +160,11 @@ pre {
   font-family : monospace;
 }
 
+.table>thead>tr>th {
+  padding : 0px;
+}
+
+
 .table_cell {
   padding : .5em;
   border-right : 1px solid grey;
@@ -213,15 +209,6 @@ padding-left: .5em;
   width: 100%;
 }
 
-.brand_name {
-  background : #404040;
-  color: white;
-}
-
-.brand_link {
-  font-size : 1.3em;
-  color: white;
-}
 
 body {
 }
@@ -623,6 +610,10 @@ ul.toolbar {
 	margin-top : 0em;
 }
 
+.no_margin{
+	margin : 0em;
+}
+
 .horizontal_margin {
 margin-right : .5em;
 }
@@ -648,7 +639,11 @@ margin-right : .5em;
 }
 
 .full_padding {
-  padding : .5em;
+  padding : 1em;
+}
+
+.full_margin{
+  margin : 1em;
 }
 
 .title_margin {
@@ -904,10 +899,6 @@ label.unslided{
   background-color : transparent;
 }
 
-.navbar-brand{
-  font-weight: 300;
-}
-
 
 .title_logo > span{
   color: springgreen;
@@ -918,6 +909,7 @@ label.unslided{
 }
 
 .navbar-brand {
+  font-weight: 300;
   font-family : "Ubuntu";
   font-weight: "bold";
 }
@@ -928,11 +920,33 @@ label.unslided{
 }
 
 
+.navbar-brand>img {
+  width : 1.5em;
+  margin-right : .3em;	
+  display: inline-block;
+}
 
+.navbar-inverse>div>div>h3{
+ color : #EEE;
+}
+
+.brand_name {
+  background : #404040;
+  color: white;
+}
+
+.brand_link {
+  font-size : 1.3em;
+  color: white;
+}
+
+
+/*
 .navbar-brand > *{
 	     margin: 0px;
 	     padding: 0px;
 }
+*/
 
 .noborder {
 	  border: 0px;
@@ -1563,6 +1577,23 @@ fill: #555;
   fill: #eee;
   stroke: black;
 }
+
+
+
+
+
+path.slice{
+stroke-width:2px;
+}
+
+polyline{	
+opacity: .3;
+stroke:  black;
+stroke-width: 2px;
+fill: none;
+}
+
+
 
 rect.pane {
   cursor: move;

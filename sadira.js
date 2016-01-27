@@ -11,6 +11,12 @@ var async = require("./www/js/community/async");
 var DLG = require("./www/js/dialog");
 var DGM = require("./www/js/datagram");
 var utils = require("./www/js/utils");
+
+
+var tpl_mgr = require("./www/js/tpl_mgr");
+//var base_type = require("./www/js/db_basetypes");
+
+
 var BSON=bson().BSON;
 
 var mongodb=require("mongodb");
@@ -144,6 +150,7 @@ process.on('SIGTERM', function(){
 */
 
 GLOBAL.dump_error =function (err) {
+    if(err===null) return console.log("No Error !");
     var rs="";
     if (typeof err === 'object') {
 	if (err.message) {
@@ -185,107 +192,6 @@ function dispatcher(name) {
 
 
 
-/**
- * Permission class. 
- * @class perm
- */
-
-GLOBAL.perm=function(pi){
-    var p=this;
-    if(pi!==undefined){
-	['r','w','x'].forEach(function(m){
-	    if(pi[m]!==undefined) p[m]=pi[m];
-	});
-    }
-}
-
-perm.prototype.toString=function(){
-    var s=''; var p=this;
-    ['r','w','x'].forEach(function(m){
-	var ks=p[m];
-	if(ks!==undefined){
-	    s+= "[Mode " + m + " : ";
-	    for(var t in ks){
-		var kt=ks[t];
-		s+=" for " + t + "[";
-		for(var tid=0;tid<kt.length;tid++){
-		    s+="id:"+ kt[tid]+",";
-		}
-		s+="], ";
-	    }
-	    s+="], ";
-	}
-    });
-    return s;
-}
-
-perm.prototype.check=function(user, mode){
-
-    //console.log("Permission ["+ this + "] : checking mode [" + mode + "]  User=" + JSON.stringify(user));
-    var ks=this[mode];
-    
-    if(ks===undefined){
-	console.log("Permission ["+ this + "] : No such mode [" + mode + "] default policy is Forbid ! User=" + user.get_login_name());
-	return false;
-    }
-    //console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
-    if(user===undefined || user===null){
-	return false;
-    }
-
-    //console.log("Permission " + this + " : checking user " + JSON.stringify(user, null, 5));
-    console.log("Permission " + this + " : checking user " + user.name + " nick " + user.val('nick'));
-
-    
-    if(ks.u!==undefined){
-	var uid=user.id();
-	for(var i=0;i<ks.u.length;i++){
-	    //console.log("Check obj user " + ks.u[i] + " with user " + uid);
-	    if(ks.u[i]==uid) return true;
-	}
-    }
-
-    if(ks.g!==undefined){
-	var ugrp=user.elements.groups.elements;
-	if(ugrp!==undefined) 
-	    for(var g in ugrp){
-		for(var i=0;i<ks.g.length;i++){
-		    console.log("Check obj group [" + ks.g[i] + "] with user gr [" + g+"]");
-		    if(ks.g[i]==g){
-			//console.log("YYYYYYYYEEEESS");
-			return true;
-		    }else{
-			//console.log("NOOOOOOOOO");
-		    }
-		}
-	    }
-    }
-    return false;
-}
-
-perm.prototype.grant=function(gr){
-    var p=this;
-    ['r','w','x'].forEach(function(m){
-	//console.log("checking ["+m+"] grant " + JSON.stringify(gr));
-	if(gr[m]!==undefined){
-	    var ks=p[m];
-	    if(ks===undefined)
-		ks=p[m]={}; // g : [], u : [] };
-	    ['g','u'].forEach(function(t){
-		var a=gr[m][t];
-		if(a!==undefined){
-		    if(ks[t]===undefined) ks[t]=[];
-		    for(var tid=0;tid<a.length;tid++){
-			//console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
-			ks[t].push(a[tid]);
-		    }
-		}
-		
-	    });
-	}
-    });
-}
-
 
 /**
  * Main framework class. A single instance of this class is created at startup. 
@@ -301,6 +207,8 @@ var _sadira = function(){
 
     //Configuring cluster (multi process spawn with port sharing) and inter-process communications
 
+    
+    
     sad.cluster = require('cluster');
     sad.cluster_messages=[]; //Array of active interprocess messages
 
@@ -323,7 +231,8 @@ var _sadira = function(){
 	//ncpu : system_ncpu, //using number of cpu present in system by default
 	ncpu : 1, //Using a single thread by default.
 	html_rootdir : '/var/www', //process.cwd()+'/www', //This is the root directory for all the served files.
-	file_server : true
+	file_server : true,
+	bootstrap : true
     }; 
 
     //Reading the config file if given in --cf
@@ -360,173 +269,62 @@ var _sadira = function(){
 
     if(sad.options.ncpu==0)sad.options.ncpu=system_ncpu;
     
-    try{
-	
-	var tpl_mgr=this.tpl_mgr=require('./www/js/tpl_mgr');
-	var base_templates=require('./www/js/base_templates');
-	var system_templates=require('./js/tpl');
-
-	function create_group_cache(cb){
-	    sad.mongo.sys.find( { type: 'group'}, function(err, groups){
-		for(var i=0;i<groups.length;i++)
-		    console.log("Group : " + JSON.stringify(groups[i]));
-		
-	    });
-	}
-	
-	tpl_mgr.local_templates.prototype.object_builder=function(){
-	    var obj=this;
-	    //console.log("COOMON Object builder ! for " + obj.name + " type " + obj.type);
-
-	    if( obj.db===undefined) obj.db={};
-
-
-	    obj.save=function(a,b){
-		var dbn=obj.db.name!==undefined ? obj.db.name : 'data';
-		return sad.mongo[dbn].write_doc(this,a,b);
-	    };
-	    //obj.dbcreate=function(a,b){return sad.mongo.sys.write_doc(this,a,b);};
-	    //obj.db={
-	    //perm : new perm()
-	    //};
-
-	    obj.id=function(){
-		return obj.db.id;
-	    };
-	    obj.perm=function(){
-		return obj.db.p;
-	    };
-
-	    obj.grant=function(rules, cb){
-		var nr=rules.length;
-		function res_cb(e){
-		    if(e) return cb(e);
-		    nr--;
-		    if(nr===0) cb(null);
-		}
-		
-		rules.forEach(function(r){
-		    r[0]==='u' ?
-			obj.grant_user(r[1],r[2],res_cb) :
-			obj.grant_group(r[1],r[2],res_cb);
-		});
-	    }
+    //var tpl_mgr=this.tpl_mgr=require('./www/js/tpl_mgr');
+    
+    function create_group_cache(cb){
+	sad.mongo.sys.find( { type: 'group'}, function(err, groups){
+	    for(var i=0;i<groups.length;i++)
+		console.log("Group : " + JSON.stringify(groups[i]));
 	    
-	    obj.grant_user=function(uname, gr, cb){
-		if(gr===undefined) gr='r';
-		sad.find_user(uname, function(err, user){
-		    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
-		    if(obj.db.p===undefined) obj.db.p=new perm();
-		    var g={}; g[gr]={u : [user._id] };
-		    obj.db.p.grant(g);
-		    if(cb!==undefined)cb(null);
-		});
-	    };
-
-	    obj.grant_group=function(gname, gr, cb){
-		
-		if(gr===undefined) gr='r';
-		sad.group_id(gname, function(err, group_id){
-		    //console.log("granting group " + gname + " id " + group_id);
-		    if(err)
-			return cb!==undefined? cb(err): console.log("grant error " + err);
-		    if(obj.db.p===undefined) obj.db.p=new perm();
-		    var g={}; g[gr]={g : [group_id] };
-		    obj.db.p.grant(g);
-		    if(cb!==undefined)cb(null);
-		});
-		
-	    };
-	    
-	    obj.collection=function(cname){
-		if(cname!==undefined){
-		    obj.db.collection=cname;
-		}
-		return obj.db.collection===undefined? obj.type : obj.db.collection; 
-	    };
-
-	    obj.set_grants=function(cb){
-		var o=this;
-		if(o.db.grants!==undefined){
-		    console.log("We have grants : "+JSON.stringify(o.db.grants)+" P= ["+o.db.p+"]");
-					
-		    if(o.db.p===undefined){
-			console.log("Applying grants "+JSON.stringify(o.db.grants)+" to ["+o.name+"] !! ");
-			o.grant(o.db.grants, function(e){
-			    if(e!=null){
-				sad.log("!!grant error " + e);
-				return cb(e);
-				//return cb(e);
-			    }
-			    o.save(cb);
-			    
-			    //console.log("Apllyed grants ok to " + obj.name);
-			    //delete obj.db.grants;
-			    //cb(null);
-			});
-		    }
-		}
-
-	    }
-	    
-	    // obj.handle_request=function(req_name, req_cb){
-	    // 	if(obj.apis===undefined) obj.apis={};
-	    // 	obj.apis[req_name]=req_cb;
-	    // };
-	    
-	    
-	    //obj.db.perm.grant();
-	}
-	
-	//tpl_mgr.template_object.prototype.check_permission=function(perm, cb){}
-	tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
-	    if(this.apis===undefined) this.apis={};
-	    this.apis[opts.name]={ opts : opts, f: cb };
-	};
-	
-	var tmaster=this.tmaster= new tpl_mgr.local_templates(this);
-
-	GLOBAL.build_object=function(){ return tmaster.build_object.apply(tmaster,arguments); }
-	GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
-	GLOBAL.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
-	
-	tmaster.add_templates(base_templates);
-	tmaster.add_templates(system_templates);
-	
-	tmaster.templates.user_group.object_builder =function(){
-	    var group=this;
-
-	    group.listen('server_data',function(data){});
-
-	    group.handle_request({ name : 'add_user', perm : new perm( { x : { g : "admin" }} ) }, function( rq_data, rq_cb){
-		var gp=g.db.perm();
-		var gu=u.db.perm();
-		
-	    });
-	};
-
-	//Loading handlers.
-	function started(start_error){
-	    
-	    if(start_error) throw "Error starting : " + start_error;
-	    
-	}
-
-	sad.cluster.isMaster ? sad.start_master(started) : sad.start_worker(started);
-	
-	
-	
-	
-	
-	
-	//	});
-	
-    }
-    catch (e){
-	sad.log("Fatal error while initializing sadira : " +dump_error(e));
-	process.exit(1);
+	});
     }
     
+    
+    //tpl_mgr.template_object.prototype.check_permission=function(perm, cb){}
+    tpl_mgr.template_object.prototype.handle_request=function(opts, cb){
+	if(this.apis===undefined) this.apis={};
+	this.apis[opts.name]={ opts : opts, f: cb };
+    };
+    
+    var tmaster=this.tmaster= new tpl_mgr.local_templates(this);
+    
+    GLOBAL.build_object=function(){ return tmaster.build_object.apply(tmaster,arguments); }
+    GLOBAL.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
+    GLOBAL.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
+    
+    function load_builtin_template(tpl_name){
+	var promise=new Promise(function(resolv,reject){
+	    var fs = require('fs');
+	    fs.readFile("templates/"+tpl_name+".js", function(err, data) {
+		if(err) {
+		    return reject("Error loading builtin template " + err);
+		}
+		//console.log("Reading builtin tpl " + data.slice(0,50));
+		try{
+		    var object_code=eval(data+"");
+		
+		    sad.tmaster.set_template(tpl_name, object_code);
+		    resolv(object_code);
+		}
+		catch(e){
+		    console.log("Error load code builtin TPL " + e);
+		}
+	    });
+	});
+	return promise;
+    }
+    
+    
+    var builtin_templates=["template_object", "code", "db_collection", "string", "data_nav", "table", "double", "action", "view"];
+    
+    multi(load_builtin_template, builtin_templates).then(function(){
+	//console.log("Initialized builtin templates...");
+	//for(var t in tmaster.templates) console.log("T " + t);
+	sad.cluster.isMaster ? sad.start_master() : sad.start_worker();
+    }).catch(function(err){
+	sad.log("Fatal error while initializing sadira : " +dump_error(err));
+	process.exit(1);
+    });
 } 
 
 
@@ -681,42 +479,138 @@ _sadira.prototype.start_session_handling = function (){
 
 /* Start master process */
 
-_sadira.prototype.start_master = function (cb){
+_sadira.prototype.start_master = function (){
 
-    //Starting cluster
     var sad=this;
+    var toSource = require('tosource');
+    
+    sad.load_mongodb(function(error){
+	if(error){
+	    app.log("Fatal :" + error);
+	    exit(1);
+	}
+	
+	var pre_bootstrap=false;
+	if(pre_bootstrap===true){
 
-    sad.nworkers=0;
-    
-    var f=0;
-    
-    if(sad.options.http_port) f+=1;
-    if(sad.options.https_port) f+=1;
-    
-    // Forking workers.
-    
-    var ncpu=sad.options.ncpu;
-    
-    sad.log("Spawning worker processes on " + ncpu + " core(s) (f "+f+")...");
+	    var nt=0;
+	    
+	    //var bootstrap=false;
+	    return; //!!!!!!!!!!!!!!!!!!
+	    var base_templates=require('./www/js/base_templates');
+	    var view_templates=require('./www/js/view');
+	    var system_templates=require('./js/tpl');
 
-    var alive_workers=0;
+	    
+	    sad.tmaster.add_templates(base_templates);
+	    sad.tmaster.add_templates(view_templates);
+	    sad.tmaster.add_templates(system_templates);
+	    
+
+	    
+	    for (var tname in sad.tmaster.templates){
+		var t=sad.tmaster.templates[tname];
+		
+		
+		console.log("name " + tname + " key " + t.key + " : " + t.name + ":\n------------------");
+		create_object("template_object").then(function(obj){
+		    obj.name=t.key;
+		    obj.subtitle=t.name;
+		    
+		    if(template_ui_builders[tname]!==undefined)
+			t.widget_builder=template_ui_builders[tname];
+		    
+		    
+		    obj.set("code",toSource(t));
+		    //break;
+		    
+		    obj.write_source_file("templates/");
+		    
+		    //console.log("Source : " + toSource(t));
+		    console.log("DATA:" +  JSON.stringify(get_template_data(obj), null, 5));
+		    
+		    //if(t.widget_builder)
+		    //		console.log("BUILDER : " + t.widget_builder.toString());
+		    
+		    nt++;
+		});
+	    }
+	    console.log(nt + " TEMPLATES : ");
+	    return;
+	}
+	
+
+	sad.load_templates(function(err){
+	    if(err!==null){
+		sad.log("Fatal load templates error : " + err);
+		process.exit(1);
+	    }
+	    
+	    sad.log("Loaded templates !");
+	    
+	    sad.setup_database(function(err){
+		if(err!==null){
+		    sad.log("Fatal SETUP DB error " + dump_error(err));
+		    process.exit(1);
+		}
+		
+		sad.log("Checking admin user... ");
+		
+		sad.check_admin_user().then( function( god){
+		    sad.log("Checking everybody... ");
+		    sad.check_user('everybody',['everybody']).then(function(everybody){
+			start_cluster();
+			sad.log("Master ready !");
+			
+		    }).catch(function(err){ cb(err);});
+		}).catch(function(err){
+		    sad.log("FATAL Error check admin " + dump_error(err));
+		    process.exit(1);
+		});
+		
+		
+		
+		
+	    });
+	});
+	
+    });
     
- //   for (var i = 0; i < ncpu; i++) {
-//    while(alive_workers!==ncpu){
+    
+    
+    //Starting cluster
+    function start_cluster(){
+	sad.nworkers=0;
+	
+	var f=0;
+	
+	if(sad.options.http_port) f+=1;
+	if(sad.options.https_port) f+=1;
+	
+	// Forking workers.
+	
+	var ncpu=sad.options.ncpu;
+	
+	sad.log("Spawning worker processes on " + ncpu + " core(s) (f "+f+")...");
+	
+	var alive_workers=0;
+	
+	//   for (var i = 0; i < ncpu; i++) {
+	//    while(alive_workers!==ncpu){
 	//var args = [ /* ... */ ];
 	//var options = { stdio: ['pipe','pipe','pipe','pipe','pipe'] };  // first three are stdin/out/err
 	//
-
+	
 	//var cproc = require('child_process').spawn(cmd, args, options);
 	
-    sad.cluster.on('online', function(worker) {
-
-	sad.log("Yay, the worker "+worker.id +" responded after it was forked");
+	sad.cluster.on('online', function(worker) {
+	    
+	    //sad.log("Yay, the worker "+worker.id +" responded after it was forked");
 	
-	// for(var p in worker.process){
-	// 	console.log("wp " + p + " T " + typeof worker.process[p]);
-	// }
-	
+	    // for(var p in worker.process){
+	    // 	console.log("wp " + p + " T " + typeof worker.process[p]);
+	    // }
+	    
 	// for(var i=0;i<worker.process.stdio.length;i++){
 	// 	console.log("STDIO["+i+"] is " + worker.process.stdio[i]);
 	// }
@@ -724,87 +618,200 @@ _sadira.prototype.start_master = function (cb){
 	// var pipe = worker.process.stdin;
 	// pipe.write(Buffer('hello this is master printing on you!'));
 	
-	worker.on('message', function(m){ //Handling incoming messages from workers
-	    
-	    if(ù(sad.ipss)) { sad.log("Unhandled message, no IPS!"); return; }
-	    
-	    var cmd = m.cmd;
-	    if(ù(cmd)) { sad.log("No message command!"); return; }
-	    var id = m.id;
-	    if(ù(id)) { sad.log("No message id!"); return;}
-	    var service = m.service;
-	    if(ù(service)) { sad.log("No service name given!"); return; }
+	    worker.on('message', function(m){ //Handling incoming messages from workers
 		
-	    var ips=sad.ipss[service];
-	    if(ù(ips)) { sad.log("No such service ["+service+"]!"); return; }
+		if(ù(sad.ipss)) { sad.log("Unhandled message, no IPS!"); return; }
+		
+		var cmd = m.cmd;
+		if(ù(cmd)) { sad.log("No message command!"); return; }
+		var id = m.id;
+		if(ù(id)) { sad.log("No message id!"); return;}
+		var service = m.service;
+		if(ù(service)) { sad.log("No service name given!"); return; }
+		
+		var ips=sad.ipss[service];
+		if(ù(ips)) { sad.log("No such service ["+service+"]!"); return; }
+		
+		//var data=m.data;
+		//if(ù(data)) { sad.log("No message data!"); return; }
+		
+		sad.log("IPS["+ips.service+"] : Received worker message! " + JSON.stringify(m)); 
 	    
-	    //var data=m.data;
-	    //if(ù(data)) { sad.log("No message data!"); return; }
-	    
-	    sad.log("IPS["+ips.service+"] : Received worker message! " + JSON.stringify(m)); 
-	    
-	    switch(cmd){
-	    case "register":
-		console.log("Registering new client to service ["+service+"]");
-		ips.client_connect(m);
-		break;
-	    case "deregister":
-		console.log("De-registering client from service ["+service+"]");
-		ips.client_disconnect(m);
-		break;
+		switch(cmd){
+		case "register":
+		    console.log("Registering new client to service ["+service+"]");
+		    ips.client_connect(m);
+		    break;
+		case "deregister":
+		    console.log("De-registering client from service ["+service+"]");
+		    ips.client_disconnect(m);
+		    break;
 		case "route":
-		console.log("Routing REC worker message to IPS ["+service+"]");
-		ips.receive(m);
-		break;
-	    default:
-		sad.log("Unknown message command ["+cmd+"]"); return; 
-		break;
-	    };
+		    console.log("Routing REC worker message to IPS ["+service+"]");
+		    ips.receive(m);
+		    break;
+		default:
+		    sad.log("Unknown message command ["+cmd+"]"); return; 
+		    break;
+		};
+		
+	    });
+	    
+	    alive_workers++;
+	    if(alive_workers!==ncpu)
+		sad.cluster.fork();//options);
 	    
 	});
 	
-	alive_workers++;
-	if(alive_workers!==ncpu)
+	
+	
+	//    }
+	
+	sad.cluster.on('exit', function(worker, code, signal) {
+	    sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
+	    sad.nworkers--;
+	    if(signal==1){
+		sad.log("Triggering collective suicide");
+		process.exit(1);
+	    }else{
+		sad.log("Surviving...");
+	    }
+	});
+	
+	sad.cluster.on('listening', function(worker, address) {
+	    
+	    sad.log("A worker is now connected to " + address.address + ":" + address.port);
+	    
+	    worker.online=true;
+	    sad.nworkers++;
+	    
+	    if(sad.nworkers == f*sad.options.ncpu){
+		
+		if(sad.use_https==true)
+		    sad.log("Sadira(SSL): "+ sad.options.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
+		
+		if(sad.use_http==true)
+		    sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
+		
+		//sad.log("Let's rock and roll! (CTRL + C to shutdown)");
+	    }
+	    
+	});
+	
+	if(ncpu>0)
 	    sad.cluster.fork();//options);
-	
-    });
-    
-    
-    
-    //    }
-    
-    sad.cluster.on('exit', function(worker, code, signal) {
-	sad.log('worker ' + worker.id + ' pid ' + worker.process.pid + ' died.');
-	sad.nworkers--;
-	sad.log("Triggering collective suicide");
-	process.exit(1);
-    });
-    
-    sad.cluster.on('listening', function(worker, address) {
-	
-	//sad.log("A worker is now connected to " + address.address + ":" + address.port);
-	
-	worker.online=true;
-	sad.nworkers++;
-	
-	if(sad.nworkers == f*sad.options.ncpu){
-	    
-	    if(sad.use_https==true)
-		sad.log("Sadira(SSL): "+ sad.options.ncpu +" thread(s) listenning @ https://"+address.address+":" + sad.https_tcp_port );
-	    
-	    if(sad.use_http==true)
-		sad.log("Sadira(CLR): "+ sad.options.ncpu +" thread(s) listenning @ http://"+address.address+":" + sad.http_tcp_port );
-	    
-	    sad.log("Let's rock and roll! (CTRL + C to shutdown)");
-	    cb(null);
-	}
-	
-    });
-    
-    if(ncpu>0)
-	sad.cluster.fork();//options);
+    }
 }
 
+_sadira.prototype.initialize_templates = function (){
+
+    var prom=new Promise(function(ok,fail){
+
+	function read_template(f){
+	    var p=new Promise(function(cont,die){
+		create_object("template_object").then(function(obj){
+		    
+		    obj.read_source_file(f, function(err, o){
+			if(err){
+			    return die("Error read : " + err);
+			}
+			//console.log("TPL ["+f+"] obj created " + obj.name + " RS " + (obj.read_source_file!==undefined));
+			
+			obj.register();
+			obj.db_update();
+			cont(obj);
+			//nf--;
+			// //console.log("Process " + obj.name + " remains " + nf);
+			// if(nf===0){
+			//     console.log("Done reading source files /////");
+			//     load_templates();
+			// }
+		    });
+		}).catch(function(e){
+		    return die("Error loading ASCII template " + dump_error(e));
+		});
+	    });
+	    return p;
+	}
+	
+	console.log("Glob reading...");
+	
+	var glob = require("glob");
+	glob("templates/*.js", function (er, files) {
+	    if(er) fail(e);
+	    console.log("Loading "+files.length +"  ASCII templates .... ");
+	    
+	    multi(read_template, files).then(function(templates){ok(templates)}).catch(function(e){fail(e);});
+	    
+	});
+	
+	
+    });
+    
+    return prom;
+}
+
+_sadira.prototype.load_templates = function (cb){
+
+    var sad=this;
+
+    if(sad.options.bootstrap===true){
+	console.log("Force-bootstrapping....");
+	sad.initialize_templates().then( function(){
+	    sad.options.bootstrap=false;
+	    sad.load_templates(cb);
+	}).catch(function(e){ cb(e);});
+	return;
+    }
+    
+    this.mongo.sys.find( {collection : "templates" }, function(err, template_data){
+	if(err) return cb(err);
+	if(sad.templates===undefined) sad.templates=[];
+	var nt=template_data.length;
+	sad.log("Loading templates from MongoDB..." + nt);
+
+	if(nt===0){
+	    console.log("No templates found ! Auto-bootstrapping....");
+	    sad.initialize_templates().then( function(){ sad.load_templates(cb); }).catch(function(e){ cb(e);});
+	    
+	    return;
+	}
+	
+	//multi(create_object_from_data,template_data).then(function(tobj){
+
+	var stop=false;
+	
+	template_data.forEach(function(tdata){
+	    if(stop) return;
+	    
+	    //sad.log("Create template object " + tdata.els.code.value.length);
+	    
+	    create_object_from_data(tdata).then(function(tobj){
+		
+		//sad.log("Load template DATA " + JSON.stringify(tdata.name + "  type " + tdata.type + " Tobj " + tobj.type + " name " + tobj.name+" CODE " + tobj.elements.code.value.slice(0,50) + " CODE_DATA " + tdata.els.code.value.slice(0,50) ));
+		
+		
+		//stop=true; cb(null); return;
+		
+		if(tobj.register!==undefined)
+		    tobj.register();
+		else
+		    console.log("NO REGISTER for " + tdata.name);
+		sad.templates.push(tobj);
+
+		nt--;
+
+		if(nt===0){
+		    cb(null);
+		}
+	    }).catch(function(e){
+		sad.log("Error creating template " + dump_error(e));
+		cb(e);
+	    });
+	});
+
+    });
+}
 
 _sadira.prototype.load_routes = function (){
     var sad=this;
@@ -881,6 +888,14 @@ _sadira.prototype.load_routes = function (){
     });
     
     sad.app.get('/api/reset', function(req, res, next) {
+	sad.reset_apis(function(error){
+	    if(error)
+		return res.json({error : "Reset apis error : " + error});
+	    else
+		return res.json({info : "OK"});
+	});
+	return;
+
 	if(req.user===undefined) return res.json({error : "No user connected"});
 	
 	console.log("API reset : User is " + JSON.stringify(req.user._id, null, 4));
@@ -958,11 +973,12 @@ _sadira.prototype.load_routes = function (){
 // }
 
 _sadira.prototype.find_group = function (gname, cb){
-    this.mongo.sys.find1({type : 'groups', path : 'name', value : gname}, cb);
+    this.mongo.sys.find1({
+	collection : 'groups', path : [ { name : 'name', value : gname} ]}, cb);
 }
 
 _sadira.prototype.find_collection = function (name, cb){
-    this.mongo.sys.find1({type : 'collections', path : 'name', value : name}, cb);
+    this.mongo.sys.find1({collection : 'collections', path : 'name', value : name}, cb);
 }
 
 
@@ -972,7 +988,7 @@ _sadira.prototype.group_id = function (gname, cb){
 	    return cb(err);
 	
 	if(group!==undefined && group!==null){
-	    //console.log(gname + " : getting group id " + group._id);
+	    //console.log("GOT GROUP " + gname + " : getting group id " + group._id);
 	    return cb(null,group._id);
 	}else{
 	    console.log("Group " + gname + " not found !");
@@ -988,9 +1004,6 @@ _sadira.prototype.find_user=function(identifier, cb){
 	if(user===undefined || user===null){
 	    mongo.find1({type: "users", path:'credentials.local.username', value : identifier},function(err, user) {
 		if(err) return cb(err);
-		if(user===undefined){
-		    return cb(null);
-		}
 		return cb(null,user);
 		
 	    });
@@ -1001,104 +1014,223 @@ _sadira.prototype.find_user=function(identifier, cb){
     });
 }
 
-_sadira.prototype.check_admin_user = function(cb){
+_sadira.prototype.check_admin_user = function(){
 
     var admin_name="god";
     var sad=this;
+
+    var promise=new Promise(function(resolv,reject){
+
     
-    this.check_user(admin_name, ['users','everybody','admin'], function(err, admin){
-	if(err) return cb(err);
-	
-	var access=admin.get('credentials').get('local');
-	var pass=access.get('hashpass');
-	
-	if(pass.value===undefined){
-	    
-	    if(sad.cluster.worker.id===1){
-		var bs=require("./js/bootstrap.js");
-		bs.get_strong_console_password(admin_name,function(error, pw){
-		    if(error) return cb(error);
-		    access.set_password(pw);
-		    //app.log("saving admin user.....");
-		    admin.save();
-		    cb(null,admin);
-		},{
-		    minLength              : 5,
-		    minOptionalTestsToPass : 0
-		});
-	    }
+	sad.check_user(admin_name, ['users','everybody','admin'])
+	    .then(function(admin){
 
-	}
-	else
-	    cb(null, admin);
-    });
-}
+		//console.log("OK ADMIN INIT " + JSON.stringify(admin));
 
-_sadira.prototype.check_user = function(user_name, groups, cb){
-    var app=this;
-    if(app.users===undefined) app.users={};
-    
-    this.find_user(user_name, function(err, user_obj){
-
-	if(err) return cb("error looking for user" + user_name + " : "+ err);
-	
-	var usr;
-	
-	if(user_obj!==undefined){
-	    //console.log("User "+user_name +" already exists....");
-	    if(app.users===undefined) app.users={};
-	    var reset_p = user_obj.db.p===undefined;
-	    usr=create_object_from_data(user_obj);
-	    if(reset_p && app.cluster.worker.id===1) usr.save();
-	    
-	}else{
-	    if(app.cluster.worker.id===1){
-		console.log("creating user "+ user_name+" ...");
-		
-		
-		usr=create_object("user");
-		
-		usr.set('nick', user_name);
-		
-		usr.db.collection="users";
-		usr.db.name="sys";
-		var local_access=usr.get('credentials').get('local');
-		
-		if(local_access===undefined){
-		    local_access=create_object("local_access");
-		    usr.get('credentials').add('local',local_access);
-		    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
+		var access, local, pass;
+		try {
+		    access=admin.get('credentials');
+		    local=access.get('local');
+		    pass=local.get('hashpass');
+		}
+		catch(e) {
+		    //console.log("Error !" + e);
+		    return reject(e);
 		}
 		
-		//for(var p in local_access.elements) console.log("LOC P " + p);
+		console.log("OK ADMIN INITTT");
 		
-		local_access.set('username',user_name);
-		var ugroups=usr.get('groups');
-		groups.forEach(function(g){
-		    var apgroup=app.groups[g];
-		    
-		    if(apgroup!==undefined)
-			ugroups.add_link(apgroup);
-		    else{
-			app.log("Unknown group " + g + " groups are : ");
-			for (var gn in app.groups) app.log("GROUP " + gn);
-		    }
-		});
-	    }
-	}
+		
+		if(pass.value===undefined){
+		    console.log("OK ADMIN CHECKING PASS");
 
-	app.users[user_name]=usr;
-	usr.save(function(err, usr){
-	    return cb(err,usr);
-	});
-	
+		    //	    if(sad.cluster.worker.id===1){
+		    var bs=require("./js/bootstrap.js");
+		    bs.get_strong_console_password(admin_name,function(error, pw){
+			if(error) return reject(error);
+			local.set_password(pw);
+			sad.log("Re saving admin user..... ID " + admin.db.id);
+			admin.save(function(err, data){
+			    if(err) reject(err); else resolv(data);
+			});
+			//cb(null,admin);
+		    },{
+			minLength              : 5,
+			minOptionalTestsToPass : 0
+		    });
+		    //	    }
+		    
+		}
+		else{
+		    console.log("OK ADMIN DONE");
+
+		    resolv(admin);
+		}
+	    })
+    	    .catch(function(err){
+		console.log("Error create ADMIN " + err);
+		reject(err);
+	    });
     });
+    
+    return promise;
 }
 
+_sadira.prototype.check_user = function(user_name, groups){
+    var app=this;
+
+    var promise=new Promise(function(resolv,reject){
+	if(app.users===undefined) app.users={};
+
+	app.log("Checking user " + user_name);
+	
+	app.find_user(user_name, function(err, user_obj){
+
+	    //console.log("UserErr "+err +" " );
+	    
+	    if(err) return reject("error looking for user" + user_name + " : "+ err);
+	    
+	    if(user_obj!==undefined){
+		//console.log("User "+user_name +" already exists....D=" + JSON.stringify(user_obj));
+		if(app.users===undefined) app.users={};
+		//var reset_p = user_obj.db.p===undefined;
+		create_object_from_data(user_obj)
+		    .then(function(usr){
+			//if(reset_p && app.cluster.worker.id===1) usr.save();
+			app.users[user_name]=usr;
+			resolv(usr);
+			
+
+		    })
+		    .catch(function(error){
+			console.log("Error create object " + error);
+			reject(error);
+		    });
+	    }else{
+	    //	    if(app.cluster.worker.id===1){
+		console.log("creating user "+ user_name+" ...");
+
+		create_object("user").then(function(usr){
+
+		    console.log("created user "+ user_name+" ...");
+		    usr.name=user_name;
+		    console.log("created user "+ user_name+" ...");
+
+		    try{
+			usr.set('nick', user_name);
+
+		    console.log("created user "+ user_name+" ...");
+		    usr.db.collection="users";
+		    console.log("created user "+ user_name+" ...");
+		    usr.db.name="sys";
+		    console.log("created user "+ user_name+" ...");
+		    var local_access=usr.get('credentials').get('local');
+
+		    console.log("created user "+ user_name+" ...");
+		    
+		    if(local_access===undefined){
+			console.log("creating LA "+ user_name+" ...");
+			create_object("local_access").then(function(local_access){
+			    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
+			    usr.get('credentials').add('local',local_access);
+			    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
+			    
+			    local_access.set('username',user_name);
+			    console.log("Getting groups " + usr.elements.groups );
+			    var ugroups=usr.get('groups');
+			    console.log("Getting groups " + usr.elements.groups + " OK");
+
+			    for(var i=0;i<groups.length;i++){
+				//groups.forEach(function(g){
+				var g=groups[i];
+				var apgroup=app.groups[g];
+				
+				if(apgroup!==undefined){
+				    app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name());
+				    ugroups.add_link(apgroup);
+
+				    // ,function(e){
+				    // 	console.log("Addlink error " + e);
+				    // 	reject(err);
+				    // });
+				    app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name() + "DONE");
+				}
+				else{
+				    app.log("Unknown group " + g + " groups are : ");
+				    for (var gn in app.groups)
+					app.log("GROUP " + gn);
+				}
+				
+			    };
+			    
+			    usr.save(function(err, u){
+				console.log("Saving USER " + u.db.id + " : " + JSON.stringify(get_template_data(usr).els.groups));
+				if(err) reject(err);
+				else resolv(usr);
+			    });
+
+			    
+			});
+		    }
+		    }
+		    catch(e){
+			console.log("Nick error " + e + JSON.stringify(usr));
+		    }		    
+		    
+		    //for(var p in local_access.elements) console.log("LOC P " + p);
+		    
+		});
+	    }
+	});
+    });
+
+    return promise;
+}
+
+var default_mongo_databases = [
+    {
+	name : "sys",
+	subtitle : "Main system database",
+	type : "db_mongo",
+	db : {
+	    name : 'sys',
+	    grants : [['g','everybody','r'],['g','admin','w']],
+	    collection : "mongo_databases"
+	}
+    },
+    {
+	name :"data",
+	subtitle : "User collections database",
+	type : "db_mongo",
+	db : {
+	    name : 'sys',
+	    grants : [['g','everybody','r'],['g','admin','w']],
+	    collection : "mongo_databases"
+	}
+    },
+    
+];
 
 var default_collections = [
     {
-	name : "MongoDB system collections",
+	name : "mongo_databases",
+	subtitle : "MongoDB databases",
+	type : "db_collection",
+	db : {
+	    name : 'sys',
+	    grants : [['g','everybody','r'],['g','admin','w']],
+	    collection : "collections"
+	    
+	},
+	els : {
+	    
+	    template : { value : "mongo_database"}
+	}
+    },
+    
+    {
+	name : "sql_databases",
+	subtitle : "SQL databases",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1107,12 +1239,29 @@ var default_collections = [
 	    
 	},
 	els : {
-	    name : { value : "collections"},
+	    
+	    template : { value : "sql_database"},
+	}
+    },
+
+    {
+	name : "collections",
+	subtitle : "MongoDB system collections",
+	type : "db_collection",
+	db : {
+	    name : 'sys',
+	    grants : [['g','everybody','r'],['g','admin','w']],
+	    collection : "collections"
+	    
+	},
+	els : {
+	    
 	    template : { value : "db_collection"},
 	}
     },
     {
-	name : "Object templates",
+	name : "templates",
+	subtitle : "QK Templates",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1120,39 +1269,41 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "templates"},
-	    template : { value : "db_collection"},
+	    template : { value : "template_object"},
 	}
     },
     {
-	name : "Users",
+	name :  "users",
+	subtitle : "Registered users",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
-	    grants : [['g','admin','w'],['g','admin','r']],
+	    grants : [['g','everybody','r'],['g','admin','w']],
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "users"},
+	    
 	    template : { value : "user"},
 	}
     },
     {
-	name : "User groups",
+	name : "groups",
+	subtitle : "Registered User groups",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
-	    grants : [['g','admin','w'],['g','admin','r']],
+	    grants : [['g','everybody','r'],['g','admin','w']],
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "groups"},
+	    
 	    template : { value : "user_group"},
 	}
 	
     },
     {
-	name : "API providers",
+	name : "apis",
+	subtitle : "API providers",
 	type : "db_collection",
 	db : {
 	    name : 'sys',
@@ -1160,20 +1311,21 @@ var default_collections = [
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "apis"},
+	    
 	    template : { value : "api_provider"},
 	}
     },
     {
-	name : "MongoDB user collections",
+	name : "collections",
+	subtitle : "MongoDB user collections",
 	type : "db_collection",
 	db : {
 	    name : 'data',
-	    grants : [['g','users','r'],['g','admin','w']],
+	    grants : [['g','everybody','r'],['g','admin','w']],
 	    collection : "collections"
 	},
 	els : {
-	    name : { value : "collections"},
+	    
 	    template : { value : "db_collection"},
 	}
     }
@@ -1182,7 +1334,8 @@ var default_collections = [
 
 var default_groups = [
     {
-	name : "Adminitrators",
+	name :  "admin",
+	subtitle : "Adminitrators group",
 	type : "user_group",
 	db : {
 	    name : 'sys',
@@ -1190,12 +1343,13 @@ var default_groups = [
 	    collection : "groups"
 	},
 	els : {
-	    name : { value : "admin"},
+	    
 	    description : { value : "Wizards and magicians only." }
 	}
     },
     {
-	name : "Users",
+	name : "users",
+	subtitle : "Users group",
 	type : "user_group",
 	db : {
 	    name : 'sys',
@@ -1203,34 +1357,46 @@ var default_groups = [
 	    collection : "groups"
 	},
 	els : {
-	    name : { value : "users"},
 	    description : { value : "Registered gnomes, goblins and farfadets." }
 	}
     },
     {
-	name : "Visitors",
+	name : "everybody",
+	subtitle : "Everybody group",
 	type : "user_group",
 	db : {
 	    name : 'sys',
-	    grants : [['g','users','r'],['g','admin','w']],
+	    grants : [['g','everybody','r'],['g','admin','w']],
 	    collection : "groups"
 	},
 	els : {
-	    name : { value : "everybody"},
+	    
 	    description : { value : "All the remaining trolls." }
 	}
     }
+
 ];
 
 
 
 _sadira.prototype.setup_database=function(close_cb){
     var app=this;
-    var n=default_collections.length+default_groups.length;
 
-    app.collections={};
-    app.groups={};
-
+    var stuff=[
+	{ key : "groups", data :  default_groups },
+	{ key : "collections", data : default_collections},
+	{ key : "mongo_databases", data : default_mongo_databases }
+    ];
+    var n=0;
+    stuff.forEach(function(s){
+	app.log("Checkng " + s.key + " N=" + s.data.length);
+	n+=s.data.length; app[s.key]={};
+    });
+    
+    app.log("Checking database ... ("+n+" objects)");
+//    close_cb(null); return;
+    
+    
     function done(key, o, h){
 	if(o!==undefined){
 	    
@@ -1238,67 +1404,109 @@ _sadira.prototype.setup_database=function(close_cb){
 	}
 	
 	n--;
-	app.log("Done. remaining " + n);
-	if(n===0) close_cb(null); 
+	app.log("Done ["+key+"]["+h+"]. remaining " + n);
+	if(n===0){
+	    var sid=0;
+	    
+	    function apply_grants(){
+		
+		if (sid === stuff.length){
+		    
+		    return close_cb(null);
+		}
+		
+		//console.log("We are at " + sid + " until " + stuff.length);
+		
+		var ng=stuff[sid].data.length;
+		stuff[sid].data.forEach(function(g){
+
+		    if(g.o===undefined){
+			app.log("No g.o !! ["+stuff[sid].key+"] name " + g.name );
+			return;
+		    }
+		    
+		    
+		    if(g.o.db!==undefined && g.o.db.grants!==undefined && g.o.db.p===undefined){
+			//app.log("Apply grants to ["+stuff[sid].key+"] name " + g.name + " obj="+g.o);
+			g.o.grant(g.o.db.grants,function(e){
+			    if(e!==null){
+				console.log("Error Init grants for group " + g + " : "  + e);
+				
+				return close_cb(e);
+			    }
+			    //app.log("SAVING grants to ["+stuff[sid].key+"] name " + g.name + " obj="+g.o);
+			    g.o.save(function(e){
+				
+				if(e) return close_cb(e);
+				
+				ng--;
+				if(ng===0){
+				    sid++;
+				    apply_grants();
+				}
+			    });
+			    
+			});
+		    }else{
+			console.log("Undef obj !!");
+			ng--;
+			if(ng===0){
+			    sid++;
+			    apply_grants();
+			}
+		    }
+				    
+		});
+	    }
+	    apply_grants();
+	}
 	
     }
     
     
     function load_objects(key, objects){
+
 	if(app[key]===undefined) app[key]={};
+	
 	objects.forEach(function(obj){
-	    app.mongo.sys.find1({collection : key, path : 'name', value : obj.els.name.value}, function(error, col){
-	    //app.find_collection(obj.els.name.value, function(error, col){
+	    console.log("Loading base object " + obj.name + " on " + key);
+	    app.mongo.sys.find1({collection : key, path : [{ name : 'name', value :  obj.name }]}, function(error, col){
 
-		if(error) return close_cb(error);
+		if(error){
+		    console.log("EEE " + error );
+		    return close_cb(error);
 
-		// if(col===undefined)
-		//     app.log("Collection " + key + " : undefined base object " + obj.els.name.value);
-		// else
-		//     app.log("Collection " + key + " : looked up object " + col.name + " type " + col.type);
-		
+		}
 
-
-		if(app.cluster.worker.id===1){
-		    var o;
-		    //console.log("Wid = "  + app.cluster.worker.id + " col = " + col);
+		app.tmaster.create_object_from_data(col===undefined ? obj : col).then(function(o){
+		    obj.o=o;
+		    app.log("Saving new default object " + o.name + " type " + o.type);
 		    if(col===undefined){
-			
-			o=app.tmaster.create_object_from_data(obj);
-			//app.log("Saving new default object " + o.name + " type " + o.type);
-			o.save(function(err, oo){
+			o.save(function(err,oo){
 			    if(err===null){
-				//col=o;
-				app.log("Created default object name " + oo.name + " type " + oo.type + " in collection " + oo.db.collection);
-				done(key, oo, oo.val('name'));
-			    }else close_cb(err);
+				app.log("Resetted default object name " + oo.name + " type " + oo.type);
+				done(key, oo, oo.name);
+			    }else{
+				app.log("Errir save " + err);
+				close_cb(err);
+			    }
 			});
-		    }else{
-			
-			o=app.tmaster.create_object_from_data(col);
-			// var reset_p = col.db.p===undefined;
-			// if(reset_p)
-			//     o.save(function(err,oo){
-			// 	if(err===null){
-			// 	    app.log("Resetted default object name " + oo.name + " type " + oo.type);
-			// 	    done(key, oo, oo.val('name'));
-			// 	}else close_cb(err);
-				
-			//     });
-			// else
-			done(key, o, o.val('name'));
-		    }
+		    }else done(key, o, o.name);
 		    
-		}else done(key, col, obj.els.name.value);
+		}).catch(function(e){
+		    app.log("Error create_object " + err);
+		    close_cb(err);
+		});
 		
 	    });
 	    
 	});
-
+	
     };
     
-    load_objects('collections',default_collections);
-    load_objects('groups',default_groups);
+    stuff.forEach(function(s){
+	load_objects(s.key,s.data);
+    });
     
     // default_collections.forEach(function(obj){
     // 	app.find_collection(obj.els.name.value, function(error, col){
@@ -1345,16 +1553,21 @@ _sadira.prototype.setup_database=function(close_cb){
     
 }
 
+_sadira.prototype.load_mariadb = function (cb){
+    var sad=this;
+    
+}
 
 _sadira.prototype.load_mongodb = function (cb){
 
     var sad=this;
+
     if(sad.mongo===undefined) sad.mongo={};
     else{
 	throw "Mongodb already started !";
     }
     
-    //console.log("Initializing mongodb...");
+    console.log("Initializing mongodb...");
     if(sad.options.mongo===undefined){
 	sad.options.mongo={ opts : { mongo_host : 'localhost', mongo_port : 27017 }};
 	//throw "Cannot start mongodb : You need to provide a mongo section in the sadira configuration file !";
@@ -1362,14 +1575,17 @@ _sadira.prototype.load_mongodb = function (cb){
     
     function connect_to_databases(databases, cb){
 	var ndb=databases.length;
+	console.log("Connecting to " + ndb + " MongoDB databases..." );
+
 	databases.forEach(function(db_name){
 	    sad.mongo[db_name]=new mongo_pack.server(sad.options,sad, {db_name : db_name});
-	    
+	    console.log("Created a new MongoDB database!" );
 	    sad.mongo[db_name].connect(function(error, mongo){
+		
 		if(error)
 		    return cb(error);
-		
-		//sad.log("Connected to " + mongo.url );
+		//console.log("Connected to a new MongoDB database! "  );
+		sad.log("Connected to " + mongo.url );
 		ndb--;
  		// if(sad.cluster.worker.id===1){
 		//     var cm=create_object("colormap");
@@ -1387,21 +1603,8 @@ _sadira.prototype.load_mongodb = function (cb){
     connect_to_databases(default_databases, function(error){
 
 	if(error!==null) return cb(error);
-
-	sad.setup_database(function(err){
-	    if(err!==null)return cb(err);
-
-	    sad.check_admin_user( function(err, god){
-		if(err!==null)return cb(err);
-		
-		sad.check_user('everybody',['everybody'], function(err, everybody){
-		    if(err!==null)return cb(err);
-		    cb(null);
-		});
-	    });
-	    
-	});
 	
+	cb(null);
 	
     });
 }
@@ -1422,7 +1625,7 @@ _sadira.prototype.load_apis = function (cb){
 		return cb("Error while getting API collection items : " + err);
 	}
 
-	//sad.log("Loading " + api_data.length + " APIS ");
+	sad.log("Loading " + api_data.length + " APIS ");
 
 	if(api_data.length === 0){
 	    
@@ -1434,13 +1637,14 @@ _sadira.prototype.load_apis = function (cb){
 	}else{
 	
 	    for(var i=0;i<api_data.length;i++){
-		var aprov=create_object_from_data(api_data[i]);
-		//console.log("Loading api provider : [" + JSON.stringify(aprov,null,5) + "]");
-		sad.apis[aprov.name]=aprov;
-		
-		if(sad.apis[aprov.name]!==undefined){
+		create_object_from_data(api_data[i]).then(function(aprov){
+		    //console.log("Loading api provider : [" + JSON.stringify(aprov,null,5) + "]");
+		    sad.apis[aprov.name]=aprov;
 		    
-		}
+		    if(sad.apis[aprov.name]!==undefined){
+			
+		    }
+		});
 		
 		//aprov.register_route(sad);
 	    }
@@ -1473,7 +1677,7 @@ _sadira.prototype.check_group_perm=function(user, mode, name, cb){
 	var p=new perm( { mode : { g : gid }} );
 
 	if(p.check(user,mode)){
-	    console.log("Check OK for group "+gid +"  ");
+	    //console.log("Check OK for group "+gid +"  ");
 	    cb(null,true);
 	}else cb(null,false);
 	
@@ -1487,7 +1691,7 @@ _sadira.prototype.in_group=function(user, name, cb){
 	    return cb(err);
 	
 	for (var g in user.els.groups.els){
-	    console.log("Check group id " + g + " id = " + gid);
+	    //console.log("Check group id " + g + " id = " + gid);
 	    if(g==gid) return cb(null,true);
 	}
 
@@ -1523,16 +1727,20 @@ _sadira.prototype.reset_apis=function(cb){
     console.log("Registering initial " + napis + " Apis -...");
 
     default_apis.forEach(function(api){
-	var c=app.tmaster.create_object(api);
+	app.tmaster.create_object(api).then(function(c){
+	    
+	    c.save(function(err, doc){
+		if(err)return cb(err);
+		//console.log("Ok, db api recorded : " + JSON.stringify(doc));
+		napis--;
+		if(napis===0)
+		    cb(null, 'Apis registered !');
+	    });
+	})
+	    .catch(function(err){
+		app.log("API creation error " + err);
+	    });
 	
-	c.save(function(err, doc){
-	    if(err)return cb(err);
-	    console.log("Ok, db api recorded : " + JSON.stringify(doc));
-	    napis--;
-	    if(napis===0)
-		cb(null, 'Apis registered !');
-	});
-
 	//cb(null, 'Apis registered !');
     });
     
@@ -1540,137 +1748,180 @@ _sadira.prototype.reset_apis=function(cb){
 
 /* Start worker process */
 
-_sadira.prototype.start_worker = function (cb){
+_sadira.prototype.start_worker = function (){
+
+    
     
     var sad=this;
 
     var app=sad.app=express();
+    sad.apis={};
+    sad.users={};
+    //app.use(logger());
+    app.sadira=sad;
 
     app.disable('x-powered-by');
+
+    sad.log("Starting... !");
+    //if(sad[key]===undefined) sad[key]={};
+    
+    // objects.forEach(function(obj){
+    // 	app.mongo.sys.find1({collection : key, path : 'name', value : obj.els.name.value}, function(error, col){
+    // 	    //app.find_collection(obj.els.name.value, function(error, col){
+	    
+    // 	    if(error) return close_cb(error);
+
+
     
     sad.load_mongodb(function(error){
 	if(error) return cb(error);
-
-	
-	//console.log("Mongodb STARTED !");
-	sad.apis={};
-	//app.use(logger());
-	app.sadira=sad;
-	//app.set('view engine', 'ejs'); // set up ejs for templating
-	// required for passport
-	
-	app.set('view engine', 'ejs');
-	app.set("views", "ejs/");
-
-
-	sad.throw_client_error=function(m, res){
-	    res.render('error.ejs', m ); 
-	};
-
-	
-	app.use(cookieParser());
-	app.use(bodyParser.urlencoded({ extended : true}));
-	app.use(bodyParser.json());
-	
-	app.use(methodov());
-	
-	sad.start_session_handling();
-	
-	var passport = require('passport');
-	
-	app.use(passport.initialize());
-	app.use(passport.session()); // persistent login sessions
-	
-	sad.passport=passport;
-	
-        sad.app.use(function(req, res, next) {
-	    req.sad=sad;
-	    res.header("x-powered-by", "Sadira");
-	    //console.log("Cookies : " + JSON.stringify(req.cookies));
-	    //console.log("Session : " + JSON.stringify(req.session) + " ID : " + req.cookies['sadira.sid']);
-	    
-	    //console.log("PPort : " + JSON.stringify(req._passport));
-	    //console.log("User auth ?? : " + req.isAuthenticated());
-	    //if(req.user!==undefined){
-	    //	console.log("We have a user " + JSON.stringify(req.user));
-		
-	    //}else{
-	    //	console.log("noooooo nobody");
-	    //  }
-	    next();
-	});	
 	
 	
-	process.on('message', function(m){ //Handling incoming messages from master process.
-	    
-	    var cmd = m.cmd;
-	    if(ù(cmd)) { sad.log("No message command!"); return; }
-	    var id = m.id;
-	    if(ù(id)) { sad.log("No message id!"); return; }
-	    
-	    //var service = m.service;
-	    //if(ù(service)) { sad.log("No service name given!"); return; }
-	    var ips=sad.ipss[id];
-	    if(ù(ips)) { sad.log("No such client socket id ["+id+"]!"); return; }
-	    
-	    
-	    var data=m.data;
+	sad.log("Mongodb STARTED !");
 	
-	    switch(cmd){
-	    case "register":
-		//if(ù(data)) { sad.log("No message data!"); return; }
-		console.log("Client attached to IPS service ["+ips.service+"]");
-		ips.trigger("connected", data);
-		break;
-	    case "deregister":
-		ips.trigger("disconnected", data);
-		delete sad.ipss[id];
-		break;
-	    case "route":
-		ips.trigger("message", data);
-		break;
-	    default:
-		sad.log("Unknown message command ["+cmd+"]"); return; 
-		break;
-	    };
-	    
-	    // sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
-	});
-	//sad.log("Worker "+ sad.cluster.worker.id + " created" );
-	
-	sad.create_http_server(function(error, ok){
-	    if(error!=null){
-		sad.log("Fatal : HTTP create " + error  );
+    
+	sad.load_templates(function(err){
+	    if(err!==null){
+		sad.log("Fatal " + err);
 		process.exit(1);
+		return ;
 	    }
-	    //if(error!=null) 
-	    //   throw error; 
 	    
-	    sad.create_websocket_server();
-	    sad.create_webrtc_server();		
+	    sad.log("Loaded templates !");
 
-	    sad.load_apis(function(error){
-		if(error!==null){
-		    sad.log("Load API error : " + error);
-		}
-		sad.load_routes();
-		sad.initialize_plugins(function(error){
-		    
-		    if(error){
-			return cb(error);
-		    }
-		    
-		    sad.load_default_route();
-		    cb(null);
+	    //return;
+	    
+	    //app.set('view engine', 'ejs'); // set up ejs for templating
+	    // required for passport
+
+	    
+	    
+	    sad.find_user("god", function(err, god){
+		if(err) { throw Exception("No god user ! " + err); } 
+		create_object_from_data(god).then(function(god){
+		    sad.users.god=god;
 		});
+	    });
+	    
+	    sad.find_user("everybody", function(err, everybody){
+		if(err) { throw Exception("No everybody user ! " + err); } 
+		create_object_from_data(everybody).then(function(ev){sad.users.everybody=ev;});
 		
 	    });
 	    
 	    
+	    app.set('view engine', 'ejs');
+	    app.set("views", "ejs/");
 	    
+	    
+	    sad.throw_client_error=function(m, res){
+		res.render('error.ejs', m ); 
+	    };
+	    
+	    
+	    app.use(cookieParser());
+	    app.use(bodyParser.urlencoded({ extended : true}));
+	    app.use(bodyParser.json());
+	    
+	    app.use(methodov());
+	    
+	    sad.start_session_handling();
+	    
+	    var passport = require('passport');
+	    
+	    app.use(passport.initialize());
+	    app.use(passport.session()); // persistent login sessions
+	    
+	    sad.passport=passport;
+	    
+            sad.app.use(function(req, res, next) {
+		req.sad=sad;
+		res.header("x-powered-by", "Sadira");
+		//console.log("Cookies : " + JSON.stringify(req.cookies));
+		//console.log("Session : " + JSON.stringify(req.session) + " ID : " + req.cookies['sadira.sid']);
+		
+		//console.log("PPort : " + JSON.stringify(req._passport));
+		//console.log("User auth ?? : " + req.isAuthenticated());
+		//if(req.user!==undefined){
+		//	console.log("We have a user " + JSON.stringify(req.user));
+		
+		//}else{
+		//	console.log("noooooo nobody");
+		//  }
+		next();
+	    });	
+	    
+	    
+	    process.on('message', function(m){ //Handling incoming messages from master process.
+		
+		var cmd = m.cmd;
+		if(ù(cmd)) { sad.log("No message command!"); return; }
+		var id = m.id;
+		if(ù(id)) { sad.log("No message id!"); return; }
+		
+		//var service = m.service;
+		//if(ù(service)) { sad.log("No service name given!"); return; }
+		var ips=sad.ipss[id];
+		if(ù(ips)) { sad.log("No such client socket id ["+id+"]!"); return; }
+		
+		
+		var data=m.data;
+		
+		switch(cmd){
+		case "register":
+		    //if(ù(data)) { sad.log("No message data!"); return; }
+		    console.log("Client attached to IPS service ["+ips.service+"]");
+		    ips.trigger("connected", data);
+		    break;
+		case "deregister":
+		    ips.trigger("disconnected", data);
+		    delete sad.ipss[id];
+		    break;
+		case "route":
+		    ips.trigger("message", data);
+		    break;
+		default:
+		    sad.log("Unknown message command ["+cmd+"]"); return; 
+		    break;
+		};
+		
+		// sad.log('Worker ' + sad.cluster.worker.id + ' received a new message ! : ' + JSON.stringify(m));
+	    });
+	    //sad.log("Worker "+ sad.cluster.worker.id + " created" );
+	    
+	    sad.create_http_server(function(error, ok){
+		if(error!=null){
+		    sad.log("Fatal : HTTP create " + error  );
+		    process.exit(1);
+		}
+		//if(error!=null) 
+		//   throw error; 
+		
+		sad.create_websocket_server();
+		sad.create_webrtc_server();		
+		
+		sad.load_apis(function(error){
+		    if(error!==null){
+			sad.log("Load API error : " + error);
+		    }
+		    sad.load_routes();
+		    sad.initialize_plugins(function(error){
+			
+			if(error){
+			    sad.log("Fatal : Plugin Init error " + error  );
+			    process.exit(1);
+			    return;
+			}
+			
+			sad.load_default_route();
+		    });
+		    
+		});
+		
+	    
+		
+	    });
 	});
-	
-	
     });
     
 }
@@ -1739,6 +1990,7 @@ _sadira.prototype.file_server = function(request, res){
 	'.png':   ["image/png", true],
 	'.svg':   ["image/svg+xml", true],
 	'.woff' : ['application/font-woff', true],
+	'.woff2' : ['application/font-woff2', true],
 	'.eot'  : ['application/vnd.ms-fontobject', true],
 	'.ttf'  : ['application/x-font-ttf', true]
     };

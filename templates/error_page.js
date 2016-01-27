@@ -1,0 +1,10 @@
+({ name:"Ooops...",
+  subtitle:"an error occured !",
+  type:"html",
+  ui_opts:{ wrap:true,
+    wrap_classes:[ "container-fluid" ],
+    root_classes:[ "container-fluid jumbotron" ],
+    item_classes:[ "col-sm-offset-1 col-sm-10 alert alert-danger vertical_margin" ],
+    icon:"/sadira/icons/hal9000.jpg" },
+  value:"Error message",
+  key:"error_page" })

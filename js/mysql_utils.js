@@ -53,8 +53,7 @@ exports.sql=function(opts){
     return this;
 }
 
-exports.sql.prototype.sql_connect=function(result_cb) {
-
+exports.sql.prototype.connect=function(result_cb) {
     
     var me=this;
     
@@ -62,12 +61,12 @@ exports.sql.prototype.sql_connect=function(result_cb) {
 
     function try_connect(){
 	
-	if(è(me.timeout)){
+	if(me.timeout!==undefined){
 	    //console.log("Clear timeout....");
 	    clearTimeout(me.timeout);
 	}
 	
-	if(è(me.sql_cnx)){
+	if(me.sql_cnx!==undefined){
 	    //console.log("sql connexion state is " + me.sql_cnx.state);
 	    if(me.sql_cnx.state=='authenticated') 
 		return result_cb(null, me.sql_cnx);
@@ -109,7 +108,7 @@ exports.sql.prototype.sql_connect=function(result_cb) {
 		me.timeout=setTimeout(try_connect, 2000); 
 		
 	    }else{
-		console.log("CNX OPEN, OK CNX id : " + this.threadId);
+		console.log("CNX OPEN, OK CNX id : " + me.threadId);
 		me.query("set names utf8",function(err,res){
 		    result_cb(null, me.sql_cnx);
 		});	
@@ -122,18 +121,11 @@ exports.sql.prototype.sql_connect=function(result_cb) {
 }
 
 exports.sql.prototype.query=function(q, cb){
-    this.sql_connect(function(err, sql_cnx) {
+    this.connect(function(err, sql_cnx) {
 	if(err)
 	    return cb("SQL query error : " + err); 
-
-	var query = sql_cnx.query(q,function(err, result) {
-	    if(err){
-		return cb(err); 
-	    }
-	    else {
-		cb(null, result);
-	    }
-	});
+	
+	sql_cnx.query(q,cb);
 	
 	//console.log(query.sql);
     });

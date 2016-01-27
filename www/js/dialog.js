@@ -29,6 +29,119 @@ if(nodejs){
     DGM.datagram=datagram;
 }
 
+
+/**
+ * Permission class. 
+ * @class perm
+ */
+
+var perm=function(pi){
+    var p=this;
+    if(pi!==undefined){
+	['r','w','x'].forEach(function(m){
+	    if(pi[m]!==undefined) p[m]=pi[m];
+	});
+    }
+}
+
+if(nodejs)
+  GLOBAL.perm=perm;
+
+perm.prototype.toString=function(){
+  var s=''; var p=this;
+  ['r','w','x'].forEach(function(m){
+    var ks=p[m];
+    if(ks!==undefined){
+      s+= "[Mode " + m + " : ";
+	    for(var t in ks){
+	var kt=ks[t];
+	s+=" for " + t + "[";
+	for(var tid=0;tid<kt.length;tid++){
+	  s+="id:"+ kt[tid]+",";
+		}
+		s+="], ";
+	    }
+	    s+="], ";
+	}
+    });
+    return s;
+}
+
+perm.prototype.check=function(user, mode){
+
+    
+    var ks=this[mode];
+    
+    if(ks===undefined){
+	//console.log("Permission ["+ this + "] : No such mode [" + mode + "] default policy is Forbid ! User=" + user.get_login_name());
+	return false;
+    }
+    //console.log("PERM checking mode  " + mode + " perm = " + JSON.stringify(ks));
+    if(user===undefined || user===null){
+	return false;
+    }
+
+    //console.log("Permission ["+ this + "] : checking mode [" + mode + "]  User=" + user.get_login_name() );
+    //console.log("Permission " + this + " : checking user " + JSON.stringify(user, null, 5));
+    //console.log("Permission " + this + " : checking user " + user.name + " nick " + user.val('nick'));
+
+    
+    if(ks.u!==undefined){
+	var uid=user.id();
+	for(var i=0;i<ks.u.length;i++){
+	    //console.log("Check obj user " + ks.u[i] + " with user " + uid);
+	    if(ks.u[i]==uid) return true;
+	}
+    }
+
+    if(ks.g!==undefined){
+	if(user.elements===undefined) return false;
+	if(user.elements.groups===undefined) return false;
+	
+	var ugrp=user.elements.groups.elements;
+	
+	if(ugrp!==undefined) 
+	    for(var g in ugrp){
+		for(var i=0;i<ks.g.length;i++){
+		    //console.log("Check requested group [" + ks.g[i] + "] with user group [" + g+"]");
+		    if(ks.g[i]==g){
+			//console.log("YYYYYYYYEEEESS. Done");
+			return true;
+		    }else{
+			
+		    }
+		}
+	    }
+    }
+    
+    //console.log("NOOOOOOOOO. "+ user.get_login_name() +" is Not allowed.");
+    return false;
+}
+
+perm.prototype.grant=function(gr){
+    var p=this;
+    ['r','w','x'].forEach(function(m){
+	//console.log("checking ["+m+"] grant " + JSON.stringify(gr));
+	if(gr[m]!==undefined){
+	    var ks=p[m];
+	    if(ks===undefined)
+		ks=p[m]={}; // g : [], u : [] };
+	    ['g','u'].forEach(function(t){
+		var a=gr[m][t];
+		if(a!==undefined){
+		    if(ks[t]===undefined) ks[t]=[];
+		    for(var tid=0;tid<a.length;tid++){
+			//console.log("Granting mode " + m + " for " + t + " id: " + a[tid] );
+			ks[t].push(a[tid]);
+		    }
+		}
+		
+	    });
+	}
+    });
+}
+
+
 var dialog = function (header, mgr){
 
     this.header=null;
@@ -469,16 +582,16 @@ function new_event(tpl_item, event_name){
 	    return undefined;
 	}
 	
-	tpl_item.trigger=function(event_name, data){
+	tpl_item.trigger=function(event_name, data,data2){
 	    var cbs=tpl_item.event_callbacks[event_name];
 	    if(typeof cbs=='undefined')
 		cbs=tpl_item.event_callbacks[event_name]=[]; //throw "No such event " + event_name ;
 		
-	    //if(event_name=="name_changed") return;
-	    //console.log(tpl_item.name + " : trigger event [" + event_name +"] to " + cbs.length +" listeners");
+	    // if(event_name=="data_loaded") 
+	    // 	console.log(tpl_item.name + " : trigger event [" + event_name +"] to " + cbs.length +" listeners");
 	    
 	    cbs.forEach(function(cb){
-		cb.call(tpl_item,data);
+		cb.call(tpl_item,data,data2);
 	    });
 	    return tpl_item;
 	};

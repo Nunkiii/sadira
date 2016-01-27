@@ -11,7 +11,6 @@ exports.init=function(pkg, app,cb){
     // 	if(e) return console.log("Err " + e);
     // });
     cb();
-    
 }
 
 
@@ -227,6 +226,7 @@ function test_get_data(dlg, status_cb){
 function test_get_multi_data(dlg, status_cb){
     
     var f = new fits.file();
+
     f.file_name="./example_fits_files/example.fits";
     f.read_image_hdu(function(error, image){
 	

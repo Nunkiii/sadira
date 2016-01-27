@@ -380,32 +380,49 @@ function set_page_title(w){
     }
 }
 
-function create_widget(t, parent, depth_in){
+function create_widget(t, parent){
     
-    
-    //var widget_template=tmaster.build_template(t);
-    var widget_template=tmaster.build_object(t);
-//    widget_template.build(t.ui_opts);
+    var promise=new Promise(function(resolv,reject){
+	
+	console.log("Building widget " + t.type);
 
-    var depth=t.depth===undefined ? depth_in : t.depth;
-    
-    if(parent!==undefined){
-	if(t.depth===undefined && parent.depth!==undefined)
-	    depth=parent.depth+1;
-	widget_template.parent=parent;
-    }
-    if(depth===undefined)
-	depth=0;
+	function build_widget(w){
+	    console.log("Building widget " + t.type + " tpl name = " + w.name) ;
+	    //w.ui_root=ce("div"); w.ui_root.innerHTML=w.name + ", " + w.type + " : " + dump_error(w.value);
+	    //w.build({recurse:true});
+	    
+	    //create_ui({},widget_template, depth);
+	    resolv(w);
+	}
 
-    create_ui({},widget_template, depth);
-    return widget_template;
+	if(parent===undefined)
+	    build_object(t)
+	    .then(function(w){
+		build_widget(w);
+	    })
+	    .catch(function(error){
+		reject(error);
+	    });
+	else	    
+	    parent.create_child(t)
+	    .then(function(w){
+		build_widget(w);
+	    })
+	    .catch(function(error){
+		reject(error);
+	    });
+    });
+    
+    return promise;
 }
 
 
 function create_item_ui(ui_opts, tpl_node){
-    
-    var ui;
+    tpl_node.ui_opts=ui_opts;
+    return tpl_node.build({ recurse : true});
 
+    var ui;
+    
     if(tpl_node.builders!==undefined){
 
 	var nb=0;
@@ -471,12 +488,15 @@ child_container.prototype.replace_child_com=function(child){
 };
 
 
-function attach_ui(tpl, node){
+function attach_ui(tpl, node, oldnode){
     //document.body.appendChild(tpl.ui_root, node);
     var estring="";
     if(tpl!==undefined){
 	if(tpl.ui_root!==undefined){
-	    node.appendChild(tpl.ui_root);
+	    if(oldnode!==undefined)
+		node.replaceChild(tpl.ui_root, oldnode);
+	    else
+		node.appendChild(tpl.ui_root);
 	    tpl.trigger("view_update");
 	    tpl.view_update_childs();
 	    return;
@@ -504,32 +524,36 @@ function get_ico_string(tpl){
     return undefined;
 }
 
+function get_icon(opts){
+    
+    var ico;
+    
+    if( opts.fa_icon !==undefined){
+	ico=ce('span');
+	ico.className="text-primary fa fa-"+opts.fa_icon;
+	return ico;
+    }
+    
+    if(è(opts.icon)){
+	ico= ce("img");
+	ico.src=opts.icon;
+	ico.className="ico";
+	if(è(opts.icon_size))
+	    ico.style.width=opts.icon_size;
+	return ico;
+    }
+    
+    return ico;
+}
+
+
 function get_ico(tpl){
     
     var ico;
     
     if(è(tpl.ui_opts)){
-	if( tpl.ui_opts.fa_icon !==undefined){
-	    ico=ce('span');
-	    ico.className="text-primary fa fa-"+tpl.ui_opts.fa_icon;
-	    //ico.className="fa fa-"+tpl.ui_opts.fa_icon;
-	    return ico;
-	    //ui_name_text.innerHTML='<span class="fa fa-'+ui_opts.fa_icon+'"> </span>';
-	    //ui_name_text.innerHTML='<i class="icon-'+ui_opts.fa_icon+'"> </i>';
-	    //var fas=cc("span",ui_name,true);
-	    //fas.className="fa fa-"
-	}
-	
-	if(è(tpl.ui_opts.icon)){
-	    ico= ce("img");
-	    ico.src=tpl.ui_opts.icon;
-	    ico.className="ico";
-	    if(è(tpl.ui_opts.icon_size))
-		ico.style.width=tpl.ui_opts.icon_size;
-
-	    return ico;
-	}
-
+	ico=get_icon(tpl.ui_opts);
+	if(ico!==undefined) return ico;
     }
     if(è(tmaster.icons)){
 	if(typeof tmaster.icons[tpl.type] != 'undefined'){
@@ -582,6 +606,69 @@ function add_close_button(e, node, prep){
 }
 
 
+template_object.prototype.create_ui=function(){
+    var tpl_root=this;
+    var depth=tpl_root.depth=tpl_root.parent!==undefined? tpl_root.parent.depth+1 : 0;
+    if(tpl_root.ui_opts===undefined) tpl_root.ui_opts={};
+    var ui_opts=tpl_root.ui_opts;        
+
+    var sliding = (typeof ui_opts.sliding!='undefined') ? ui_opts.sliding : false;
+    var sliding_dir = (typeof ui_opts.sliding_dir != 'undefined') ? ui_opts.sliding_dir : "v";
+    var animate=è(ui_opts.sliding_animate) ? ui_opts.sliding_animate : false;
+    var slided=(typeof ui_opts.slided === 'undefined') ? true : ui_opts.slided;// = true; ui_opts.slided;
+    var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
+    var root_node = è(ui_opts.root_node) ? ui_opts.root_node : "div";
+    
+    var sliding_stuff=[];
+    var item_ui,ui_childs,slide_button,ui_root,ui_name,ui_content;
+
+    //The main widget div
+    clear_events(tpl_root);
+
+    
+    setup_container();
+    
+    if(ui_opts.root_element!==undefined && tpl_root.parent !== undefined){
+	if(tpl_root.parent.get===undefined){
+	    throw Error(tpl_root.name + " : undefined get on parent type "+tpl_root.parent.type+" name "+tpl_root.parent.name+ " parent of  " + tpl_root.type);
+	    
+	}else{
+	    
+	    var re=tpl_root.parent.get(ui_opts.root_element);
+	    if(re===undefined){
+		throw "Eroor : " + tpl_root.name + " : error, root_element ["+ui_opts.root_element+"] is invalid ! ";
+	    }
+	    ui_root=tpl_root.ui_root=re.ui_root;
+	}
+    }else{
+	ui_root=tpl_root.ui_root=ce(root_node);
+	
+	//console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
+	//ui_root.style.display="relative";
+	ui_root.style.zIndex=depth;
+	//ui_root.className="db";// container-fluid";
+	if(ui_opts.panel) ui_root.add_class("db panel panel-default");
+	
+	if(è(tpl_root.type)){
+	    ui_root.setAttribute("data-type", tpl_root.type);
+	    //ui_root.setAttribute("data-tpl", tpl_root.type);
+	    //console.log(tpl_root.name + " set type to " + tpl_root.type);
+	}
+	
+	//	if(è(tpl_root.template_name))
+	    //	    ui_root.setAttribute("data-tpl", tpl_root.template_name);
+	
+	if(depth==0) ui_root.add_class("root");
+	
+	if(typeof ui_opts.root_classes != 'undefined')
+	    add_classes(ui_opts.root_classes, ui_root);
+	
+	if(typeof ui_opts.width != 'undefined') ui_root.style.width=ui_opts.width;
+    }
+    
+    ui_content=ui_root;
+    
+}
 
 function create_ui(global_ui_opts, tpl_root, depth){
 
@@ -881,6 +968,11 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	
 	
 	if(tpl_root.toolbar !== undefined){
+
+	    var tb=tpl_root.toolbar;
+	    tpl_root.toolbar_widget=create_widget({ type : 'toolbar', elements : {}}, this);
+	    
+	    return;
 	    
 	    var base_uri=window.location.href.split()[0];
 	    var to = base_uri.lastIndexOf('/');
@@ -896,7 +988,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    document.body.style.paddingTop="70px";
 	    //console.log("count " + base_uri.length + " last/ " + to + " uri " + base_uri);
 	    
-	    var tb=tpl_root.toolbar;
+	    
 	    var toolbar=tpl_root.ui_toolbar=cc("nav",ui_root,true);
 	    toolbar.className="navbar"; //navbar-fixed-top" ;
 
@@ -925,9 +1017,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 	    var tita=tb.nava=cc("a",navhead); tita.className="navbar-brand";
 	    tita.setAttribute("href","javascript:void(0)");
-
-	    
-	    
 
 	    var dnav=tb.dnav=cc("div", cnt); dnav.className="collapse navbar-collapse";  dnav.id=togid;
 
@@ -1019,7 +1108,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		var li=item.li=cc("li",ul);
 		li.ti=item;
 		var tita=item.a=cc("a",li);
-
+		tita.setAttribute("href","javascript:void(0)");
 		if(item.name!==undefined)
 		    tita.innerHTML=item.name;
 		else{
@@ -1545,32 +1634,22 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    tpl_root.ui_subtitle=cc('small',tpl_root.ui_title_name);
 	
 	tpl_root.subtitle=subtitle;
+	//console.log("Set subtitle to " + subtitle);
 	tpl_root.ui_subtitle.innerHTML=subtitle;
 	
 	// if(è(tpl_root.rebuild_name))
 	//     tpl_root.rebuild_name();
     }
     
-    tpl_root.set_title=function(title, subtitle){
-	
-	if(title!==undefined){
-	    tpl_root.name=title;
-	}
-	if(subtitle!==undefined){
-	    tpl_root.subtitle=subtitle;
-	}
+    tpl_root.listen("name_changed", function(){
 	
 	if(è(tpl_root.rebuild_name))
 	    tpl_root.rebuild_name();
 	else
 	    setup_title();
-	//setup_save();
-	tpl_root.trigger("name_changed", title);
-	    
-	//	span.appendChild( document.createTextNode("some new content") );
-    }
+    });
     
-    
+		    
     function setup_intro(node){
 
     	if(è(tpl_root.intro)){
@@ -1669,6 +1748,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		ui_name=tpl_root.ui_name=cc( name_node, ui_root);
 		
 		if(tpl_root.toolbar){
+		    return;
 		    tpl_root.toolbar.nava.parentNode.replaceChild(ui_name, tpl_root.toolbar.nava);
 		    tpl_root.toolbar.nava=ui_name;
 		}
@@ -1681,6 +1761,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    //if(!ui_opts.label) ui_name.className="row";
 
 	    if(tpl_root.toolbar!==undefined){
+		return;
+		
 		ui_name.style.cursor='pointer';
 		ui_name.addEventListener('click',function(){
 		    if(ui_opts.child_item!==undefined){
@@ -1730,9 +1812,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    
 	    tpl_root.rebuild_name=function(){
 		
-		//console.log("rebuild name " + tpl_root.name);
+		//console.log("rebuild name " + tpl_root.name + " ui_name = " + tpl_root.ui_name);
 		//ui_name.innerHTML="";
-		var name_node;
+ 		var name_node;
 		
 		if(!ui_opts.label){
 		}else
@@ -1753,9 +1835,9 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		}
 
 		var ui_name_text=tpl_root.ui_title_name;
-
-	//	if(ui_name_text.innerHTML===undefined)
-		    ui_name_text.innerHTML=get_name_text()+" ";
+		
+		//	if(ui_name_text.innerHTML===undefined)
+		ui_name_text.innerHTML=get_name_text()+" ";
 		// else
 		//     ui_name_text.innerHTML+=get_name_text()+" ";
 		
@@ -2088,7 +2170,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	}
 	
 	
-	var child_toolbar = (ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
+	var child_toolbar = false ;//(ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
 
 	
 	function add_child_common(e, ui, prep){
@@ -2112,13 +2194,15 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    }
 	    return true;
 	}
-
+	
 	
 	function create_childs_div(){
-	    		if(ù(ui_childs.div)){
-		    var child_node_type = è(ui_opts.child_node_type) ? ui_opts.child_node_type : "div"
-		    ui_childs.div=ce(child_node_type); 
-		    //ui_childs.div.className="container-fluid";
+	    if(ù(ui_childs.div)){
+		var child_node_type = è(ui_opts.child_node_type) ? ui_opts.child_node_type : "div"
+		ui_childs.div=ce(child_node_type); 
+
+		console.log( tpl_root.name + "("+tpl_root.name +") : Created child div");
+		//ui_childs.div.className="container-fluid";
 		    
 		    if(typeof ui_opts.child_classes != 'undefined'){
 			//console.log("ADDING CHILD CLASSES "+ JSON.stringify(ui_opts.child_classes)+ " to " + tpl_root.name );
@@ -2203,7 +2287,8 @@ function create_ui(global_ui_opts, tpl_root, depth){
 
 		if(ui===undefined) ui=e.ui_root;
 		if(prep===undefined){
-		    prep=e.ui_opts.prep;
+		    if(e.ui_opts!==undefined)
+			prep=e.ui_opts.prep;
 		    if(prep===undefined)
 			prep=false;
 		}
@@ -2212,7 +2297,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 		this.add_child_com(e);
 		
 		create_childs_div();
-		//console.log(tpl_root.name + " Adding child " + e.name);
+		//console.log(tpl_root.name + " Adding child " + e.name + " ui is " + ui);
 		prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	    }
 	    
@@ -2949,38 +3034,44 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	    throw (tpl_root.name +" Invalid child view type : " + cvtype);
 	    break;
 	}
-
-
-
+	
+	function build_child_ui(el){
+	    
+	}
+	
 	function build_childs_ui(){
-	    for (var e in tpl_root.elements){
-		
-		
+	    
+	    for(var e in tpl_root.elements){
 		var el=tpl_root.elements[e];
-		
-		el.parent=tpl_root;
-		el.key=e;
-		if(el.ui_opts===undefined) el.ui_opts={};
-		
-		if(ui_opts.type=='edit'){
-		    el.ui_opts.type='edit';
-		}
 
-		var ui;
-		if(el.ui_opts.create!==false)
-		    ui=create_ui(global_ui_opts,el, depth+1);
-
-		if(ù(ui)){
-		    //console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
-		}else{
-		    ui_childs.add_child(el,ui);
+		if(el.ui_opts===undefined || el.ui_opts.create!==false){
+	    
 		    
+		    el.parent=tpl_root;
+		    el.key=e;
+		    if(el.ui_opts===undefined) el.ui_opts={};
+		    
+		    if(ui_opts.type=='edit'){
+			el.ui_opts.type='edit';
+		    }
+		    
+		    var ui;
+		    
+		    ui=create_ui(global_ui_opts,el, depth+1);
+	    
+		    // if(ù(ui)){
+		    //     //console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
+		    // }else{
+		    
+		    if(el.ui_opts.attach!==false)
+			ui_childs.add_child(el,ui);
 		    //var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
+		    //console.log(tpl_root.name +  " adding child " + el.name + " OK!");
+		    
 		}
-		//console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 	    }
 	}
-
+	
 	if(tpl_root.ui_opts.build_childs!==false)
 	    build_childs_ui();
 	else console.log("Not building childs for " + tpl_root.name);
@@ -3023,7 +3114,7 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	tpl_root.elements[child_key]=tpl;
 
 	child.ui_root.parentNode.replaceChild(tpl.ui_root, child.ui_root);
-	console.log("Repalced child  key "+ child_key + " N=" + tpl.name + " old was " + child.name );
+	//console.log("Repalced child  key "+ child_key + " N=" + tpl.name + " old was " + child.name );
 	 
     }
 

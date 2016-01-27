@@ -1,6 +1,6 @@
-<!doctype html>
+<!DOCTYPE html>
 
-<html>	  
+<html lang="en">	  
   <head>	
     <% include ./parts/head %>
     <title> <%= tpl_name %> </title>
@@ -31,31 +31,30 @@
 </head>
 
   <body>
-  <div id="content">
-    <% if(header===true){ %>
-    <header>
-      <% include parts/header %>
-    </header>
-    <% } %>
+  <!-- <div id="content" class="container-fluid"> -->
+  <!--   <% if(header===true){ %> -->
+  <!--   <header> -->
+  <!--     <% include parts/header %> -->
+  <!--   </header> -->
+  <!--   <% } %> -->
 
     
-    <!-- <main id="content" class="container-fluid"></main> -->
-    <!-- <script> document.getElementById("content").appendChild(create_widget("login").ui_root);</script> -->
+  <!--   <\!-- <main id="content" class="container-fluid"></main> -\-> -->
+  <!--   <\!-- <script> document.getElementById("content").appendChild(create_widget("login").ui_root);</script> -\-> -->
     
-  </div>
-  <footer>
-      <% include parts/footer %>
-    </footer>
+  <!-- </div> -->
+  <!-- <footer> -->
+  <!--     <% include parts/footer %> -->
+  <!--   </footer> -->
 
-  </body>
-  <!-- <div id="bg"></div> -->
+  <!-- </body> -->
+  <!-- <\!-- <div id="bg"></div> -\-> -->
   
   <script>
-    window.sadira.listen("ready", function(){
-	window.sadira.setup_root_widget("<%= tpl_name %>");
-    });
-
-</script>
+   // window.sadira.listen("ready", function(){
+	//window.sadira.setup_root_widget("<%= tpl_name %>");
+   // });
+  </script>
     
 
 </html>

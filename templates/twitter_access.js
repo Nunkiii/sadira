@@ -1,0 +1,10 @@
+({ name:"Twitter credentials",
+  elements:{ id:{ name:"Id",
+      type:"string" },
+    token:{ name:"Token",
+      type:"string" },
+    displayName:{ name:"Display name",
+      type:"string" },
+    userName:{ name:"User name",
+      type:"string" } },
+  key:"twitter_access" })

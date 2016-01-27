@@ -74,7 +74,7 @@ server.prototype.disconnect = function(cb) {
 server.prototype.connect = function(cb, options_in) {
     var mongo=this;
     
-    if(è(mongo.client)) cb("Mongo server already connected!");
+    if(mongo.client!==undefined) cb("Mongo server already connected!");
     var cfg=this.config;
     
     try{
@@ -103,15 +103,17 @@ server.prototype.connect = function(cb, options_in) {
 
 	if(è(options_in))for (var oi in options_in) options[oi]=options_in[oi];
 	
-	//console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
+	console.log("Connecting to mongo : " + url + " options " + JSON.stringify(options));
 	mongo.url=url;
 	MongoClient.connect(url, options, function(err, db) {
-	    if(err){
+	    console.log("OK connected");
+	    if(err!==null){
 		var em="Mongo error while opening DB [" + dbname + "] : " + err;
 		console.log(em);
 		mongo.db=undefined;
 		return cb(em);
 	    }
+
 	    mongo.db=db;
 	    cb(null,mongo);
 	    
@@ -122,15 +124,60 @@ server.prototype.connect = function(cb, options_in) {
     }
 }
 
+function get_field(path){
+    var pparts=path.split('.');
+
+    if(pparts.length===1) return pparts[0];
+    else{
+	var f='els.'+pparts[0];
+	for(var p=1;p<pparts.length;p++)
+	    f+='.els.'+pparts[p];
+    }
+    return f;
+}
+
+function create_fields(opts){
+  var fields={};
+    if(opts.fields !== undefined){
+	opts.fields.forEach(function(f){
+	    
+	    if(f.path!==undefined){
+		f.dbpath=get_field(f.path);
+		fields[f.dbpath]="1";//opts[field];
+	    }
+	});
+	//console.log("Fields query is " + JSON.stringify(fields));
+    }
+    return fields;
+}
+
 function create_query(opts){
     var op='';
+
     var q={};
     
     if(opts.id!==undefined){
+	//console.log("Looking UNIQUE ID " + opts.id);
 	q._id=ObjectID(opts.id);
+	
+    }
 
-    }else{
-	if(è(opts.path)){
+    if(opts.path!==undefined){
+	
+	
+	if(Array.isArray(opts.path)){
+	    //console.log("ARRAY PATH  " + JSON.stringify(opts.path));
+	    opts.path.forEach(function(f){
+		//console.log("---> ADD PATH  " + JSON.stringify(f) + " name " + f.name + " V " + f.value );
+		
+		q[f.name]=f.value;
+
+
+		//console.log("sooo Query is " + JSON.stringify(q) );
+	    });
+	    
+	}else{
+	    //console.log("SINGLE PATH  " + opts.path);
 	    var splitpath=opts.path.split('.');
 	    
 	    for(var pe=0;pe<splitpath.length;pe++){
@@ -140,6 +187,7 @@ function create_query(opts){
 	    q[op]=opts.value;
 	}
     }
+    
     
     //console.log("Query is " + JSON.stringify(q) );
     
@@ -181,31 +229,46 @@ server.prototype.write_doc=function(doc,a,b){
 	cb("No such collection [" + coll + "]");
 	return;
     }
-
+    
+  
     //console.log("Collection " + coll + " ready to write data ...");
     
-    if(doc.id()!==undefined){
+    if(doc.id()!==undefined && !doc.lock){
+	doc.lock=true;
 	var q={ _id : doc.id() };
 	this.db.collection(coll).findOneAndUpdate(q,data, options, function(err, result){
-	    if(err) cb(err);
+	    if(err){
+		doc.lock=false;
+		cb(err);
+	    }
 	    else{
 		if(result.value!==null)
 		    set_template_data(doc,result.value);
 		else
 		    console.log("Collection " + coll + " null value ");
+		//if(doc.name==="db")console.log(doc.name + " t " + doc.type+" : UPDATED " + doc.id() + " DATA " + JSON.stringify(data) );
+		    
+		doc.lock=false;
 		cb(null,doc);
 	    }
 	});
     }
-    else
+    else{
+	
+	data._id=new ObjectID();
+	
 	this.db.collection(coll).insertOne(data, options, function(err, result){
 	    if(err) cb(err);
 	    else{
 		if(result.ops.length===1){
 		    
-		    //console.log("docs = " + JSON.stringify(result.ops[0]));
-		    set_template_data(doc, result.ops[0]);
+		    //console.log("inserted  = " + JSON.stringify(result));
+		    //set_template_data(doc, result.ops[0]);
 		    //console.log("Collection " + coll + " insert data OK ");// + JSON.stringify(doc));
+		    
+		    doc.db.id=data._id; //result.ops[0]._id;
+		    //console.log(doc.name + " t " + doc.type+" : wrOTE FIRST TIME to mongodb " + doc.id() );
+		    console.log("Wrote to Mongo " + doc.name + " ID " + doc.db.id);
 		    cb(null, doc);
 		}else
 		    cb("result.ops has a problem...?");
@@ -214,8 +277,8 @@ server.prototype.write_doc=function(doc,a,b){
 		
 	    }
 	});
-    
-    
+    }
+	
     return doc;
 }
 
@@ -262,23 +325,30 @@ server.prototype.write_doc=function(doc,a,b){
 server.prototype.find=function(opts, cb){
 
     var mongo=this;
-    if(opts.user===null) opts.user=mongo.default_user;
     
-    //console.log("FIND opts=" + JSON.stringify(opts));
+    if(opts.user===null || opts.user===undefined)
+	if(mongo.sad.users!==undefined)
+	    opts.user=mongo.sad.users.everybody;
+    
+    //console.log("FIND user = " + JSON.stringify(opts.user));
+    
     var q=create_query(opts);
+    var f=create_fields(opts);
+
+    //console.log("FIND opts =" + JSON.stringify(opts.path)+ ": query = ["+JSON.stringify(q)+"] f=[" +JSON.stringify(f)+"] N="+0);
+    
     //console.log(type+ " : finding " + op + " = " + value);
 
-    var user=opts.user!==undefined ? opts.user : mongo.default_user;
-    
-    
+    var user=opts.user;
     var coll=opts.collection!==undefined ? opts.collection : opts.type;
     
     //console.log("FIND user = " + JSON.stringify(user));
     
     function get_docs(){
 	//var q={};
-	//console.log("Mongo find collection ["+coll+"] : query = ["+JSON.stringify(q)+"]");
-	mongo.db.collection(coll).find(q, {}, function(err, cursor){
+	
+
+	mongo.db.collection(coll).find(q, f, function(err, cursor){
 
 	    if(err){
 		console.log("ERROR MONGO " + err);
@@ -293,8 +363,9 @@ server.prototype.find=function(opts, cb){
 		    console.log("ERROR MONGO COUNT " + err);
 		    return cb(err);
 		}
+
 		
-		console.log("Getting docs from collection [" + coll + "] N= " + n);
+		
 		var objects=[];
 		
 		cursor.each(function(err, d){
@@ -306,62 +377,83 @@ server.prototype.find=function(opts, cb){
 		    if(!d){
 			return cb(null,objects);
 		    }
-		    console.log(" D=" + JSON.stringify(d));
+		    //console.log(" D=" + JSON.stringify(d));
 		    if(d.db!==undefined){
 			if(d.db.p!==undefined){
 			    var p=new perm(d.db.p);
 			    if(p.check(user,'r')){
 				objects.push(d);
-			}
+			    }
 			    else
-				console.log("Perm not granted for user "+user.get_login_name() +" ! " + p);
+				console.log("Perm not granted for user "+ user.get_login_name() + " P=" 
+					    //+" user groups : " + JSON.stringify(user.elements.groups) +" ! permission= "
+					    + p);
 			}else
 			    objects.push(d);
 		    }else
 			objects.push(d);
 		});
-		
-		
 	    });
 	});
 	
     }
 
-    mongo.db.collection("collections").findOne( { 'els.name.value' : coll },{}, function(err, data){
+    mongo.db.collection("collections").findOne( { 'name' : coll },{}, function(err, data){
 	if(err) return cb(err);
-
+	
 	if(data){
-	    console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
-	    var col=create_object_from_data(data);
-
+	    //console.log("GET COLLECTION Data = " + JSON.stringify(data, null, 5));
+	    
 	    function continue_stuff(){
-		var p=new perm( col.db.p );
+		
+		var p=new perm( data.db.p );
+		
+		//console.log("["+coll+"]Setting perm " + JSON.stringify(data.db.p)  + " : " + p);
 
-		if(p.check(user,'r')){
-		    //var db_coll=data.els.name.value;
-		    console.log("Granted for collection " + coll);// + " db collection " + db_coll);
-		    return get_docs();
-		}
-		else
-		    return cb("Not enough rights to list the collection ["+coll+"]!");
-	    }
-
-	    if(col.db.p===undefined){
-		console.log("p field not exists for collection " + coll + " creating : grants = " + JSON.stringify(col.db.grants));
-		col.grant(col.db.grants, function(e){
-		    if(e){
-			sad.log("!!grant error " + e);
-			return cb("Granting error ! " + e);
+		if(user!==undefined){
+		    
+		    if(p.check(user,'r')){
+			//var db_coll=data.els.name.value;
+			//console.log("Granted for collection " + coll);// + " db collection " + db_coll);
 		    }
-		    console.log("Saving collection ["+coll+"] : " + JSON.stringify(col));
-		    col.save(function (error){
-			if(error!==null)
-			    return cb("Error saving collection item " + error);
-			console.log("Apllyed grants ok to " + coll.name);
-			continue_stuff();
-		    });
-		    //delete obj.db.grants;
-		    //cb(null);
+		    else{
+			console.log("Checking user " + user.get_login_name() + " Not enough rights to list the collection ["+coll+"]! P=" + p + "Ugroups = " + JSON.stringify(user.elements.groups));
+			return cb("Not enough rights to list the collection ["+coll+"]!");
+		    }
+		}else{
+		    //console.log("Undefined User ---> Granted for collection " + coll);// + " db collection " + db_coll);
+		}
+		
+		return get_docs();
+	    }
+	    
+	    if(data.db.p===undefined){
+		
+		create_object_from_data(data).then(function(col){
+		
+		    if(col.db.grants!==undefined){
+			console.log("p field not exists for collection " + coll + " creating : grants = " + JSON.stringify(col.db.grants));
+			
+			col.grant(col.db.grants, function(e){
+			    if(e){
+				sad.log("!!grant error " + e);
+				return cb("Granting error ! " + e);
+			    }
+			    return continue_stuff();
+			    console.log("Saving collection ["+coll+"] : " + JSON.stringify(col));
+			    
+
+			    col.save(function (error){
+				if(error!==null)
+				    return cb("Error saving collection item " + error);
+				console.log("Apllyed grants ok to " + col.name);
+				data.db.p=col.db.p;
+				continue_stuff();
+			    });
+			    //delete obj.db.grants;
+			    //cb(null);
+			});
+		    }
 		});
 		
 		
@@ -371,8 +463,6 @@ server.prototype.find=function(opts, cb){
 	    console.log("Collection [" + coll + "] : No permission set (-> implicit allow!)");
 	    return get_docs();
 	}
-	
-	
     });
 }
 
@@ -380,15 +470,15 @@ server.prototype.find=function(opts, cb){
 server.prototype.find1=function(opts, cb){
 
     var q=create_query(opts);
-    
+    var f=create_fields(opts);    
     var coll=opts.collection!==undefined ? opts.collection : opts.type;
-    //console.log(" find1 " + JSON.stringify(q) + " col = " + coll);
-    this.db.collection(coll).findOne(q, {}, function (err, data){
+    
+    this.db.collection(coll).findOne(q, f, function (err, data){
 
 	if(err) return cb(err);
 
 	if(!data) return cb(null,undefined);
-	
+	//console.log(" find1 " + JSON.stringify(q) + " col = " + coll + "["+JSON.stringify(data)+"]");
 	cb(null,data);
 	
     });

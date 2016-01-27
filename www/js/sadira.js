@@ -1,64 +1,238 @@
 // Sadira astro-web framework - Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013) - INAF/IASF Bologna, Italy.
 
+var sadira_root_template = {
+    
+    name : "Sadira",
+    //type : "sadira_home",
+    ui_opts : {
+	
+	
+    },
+    usi : {
+	elements : {
+	    toolbar : {
+		//name : "Main TB",
+		type : "toolbar",
+
+		ui_opts : {
+		    char_icon : "<font color='red'>ॐ</font>", //"❄",
+		    //icon_size : "2em",
+		    //fa_icon : 'globe',
+		    root_classes : ['navbar-dark bg-inverse navbar-fixed-top'],
+		    
+		},
+
+		elements : {
+		    right:{
+			type : 'toolbar_section',
+			
+			ui_opts : {
+			    //fa_icon : 'globe',
+			    root_classes : ['nav navbar-nav pull-right']
+			},
+			elements : {
+			    net : {
+				type : "dropdown",
+				name : "Connection",
+				ui_opts : {
+				    fa_icon : 'globe',
+				    type:"toolbar" 
+				},
+				usi : { elements : {
+				    login : {
+					ui_opts : {fa_icon : "paw"},
+					name : "Login",
+					type : "dropdown_item"
+				    }
+				}},
+				items : [{ label : "Login", fa_icon : "user"}]
+			    }
+			    //login : {name : "Log in",type : 'login' },
+			    //logout : {name : "Log out",type : 'logout' },
+			    //newacc : { name : "Create new account", type : "signup" },
+			    //home : { name : "User homepage", type : "user_home" },
+			    //storage : { name : "Storage", type : "storage" }
+			}
+		    },
+		    //widget_builder : function() { this.ui_root.add_class('navbar-right'); }
+		}
+	    },
+	    footer : {
+		type : 'string',
+		ui_opts : {
+		    root_node : "footer",
+		    render_name : false,
+		    item_classes : "text-muted",
+		    text_node : 'p'
+		},
+		value : '<span class="fa fa-linux"></span> (c) 2013-2016 -- <a href="mailto:sprimont@iasfbo.inaf.it"> Pierre-G. Sprimont</a>,<a href="mailto:davide.ricci82@gmail.com"> Davide Ricci</a>,<a href="mailto:nicastro@iasfbo.inaf.it"> Luciano Nicastro</a> @<a href="http://www.iasfbo.inaf.it" target="_blank">INAF/IASF</a>, Bologna, Italy. <span class="fa fa-linux"></span>'
+	    }
+	}
+    },
+    widget_builder : function(ok, fail){
+	var root_widget=this;
+	this.wait("Init...");
+	
+	new_event(this,"ready");
+	new_event(this,"user_login");
+	new_event(this,"user_logout");	
+
+	root_widget.usi.visible=cc("div",this.ui_root);
+	//root_widget.usi.visible.innerHTML="<h1>Initializing</h1>";
+	//this.set_subtitle("Helllllllooooooooooooooo");
+	
+	root_widget.ui_root.style.marginTop="50px";
+	root_widget.ui_root.style.marginBottom="50px";
+	
+	root_widget.show_widget=function(w){
+	    root_widget.ui_root.replaceChild(w.ui_root,root_widget.usi.visible);
+	    this.wait(false);
+	}
+
+	root_widget.setup_storage=function(){
+	    var storage_tpl={ type : 'storage', ui_opts : {close : true}};
+	    create_widget(storage_tpl).then(function (obj){
+		root_widget.storage=obj
+	    }).catch(function(e){
+		root_widget.error_page(e, {name : "Creating storage..."});
+	    });
+	    
+	};
+	
+	root_widget.change_root_widget=function(widget, url){
+	    body_node.replaceChild(widget.ui_root,sadira.root_widget.ui_root);
+	    if(url!==undefined)
+		window.history.pushState({},"",url);
+	}
+	
+	
+	root_widget.error_page=function(msg, opts){
+	    create_widget('error_page').then(function(w){
+		w.set_value(msg );
+		if(opts!==undefined)
+		    w.set_title(opts.name,opts.subtitle);
+
+		root_widget.show_widget(w);
+
+		// if(w.ui_root!==undefined){
+		//     w.ui_root.innerHTML+="<div class='panel panel-danger'>"+ msg.lineNumber + " ---------> " +dump_error(msg)+"</div>";
+		//     body_node.appendChild(w.ui_root);
+		// }else
+		//     body_node.innerHTML+="<div class='panel panel-danger'>"+ msg.lineNumber + " ---------> " +dump_error(msg)+"</div>";
+
+		
+	    }).catch( function (e){
+		
+		//var error_txt="<div class='panel panel-danger'>"+dump_error(e)+"</div>";
+		root_widget.message(e.stack, { type : "danger", title : e+""});
+	    });
+	    
+	}
+	root_widget.trigger("ready", window.sadira);
+	console.log("sadira ready....");
+	ok();
+    }
+    
+};
+
 
 
 (function(){
     
-    //console.log("Create template master...");
-
     window.tmaster=new local_templates();
-    window.tmaster.add_templates(base_templates);
-    var sadira=window.sadira = {};
     
-    new_event(window.sadira,"ready");
-    new_event(window.sadira,"user_login");
-    new_event(window.sadira,"user_logout");
+    window.build_object=function(){ return tmaster.build_object.apply(tmaster,arguments); }
+    window.create_object=function(){ return tmaster.create_object.apply(tmaster,arguments); }
+    window.create_object_from_data=function(){ return tmaster.create_object_from_data.apply(tmaster,arguments); }
+    
+    
+    window.addEventListener("load",function(){
+	
+	var body_node=document.getElementsByTagName('body')[0];
+	//body_node.innerHTML="<div class='jumbotron'><h2> Sadira startup <small>please wait...</small></h2></div>";
 
-    sadira.setup_storage=function(){
-	var storage_tpl={ type : 'storage', ui_opts : {close : true}};
-	sadira.storage=create_widget(storage_tpl);
-    };
+	create_widget({
+	    name : "Sadira startup",
+	    subtitle : "please wait...",
+	    ui_opts : {
+		root_classes : "jumbotron",// name_node : "h2",
+		char_icon : "<font color='red'>ॐ</font>", //"❄",
+		intro_stick : true
+	    }
+	}).then(function(w){
+	    body_node.appendChild(w.ui_root);
+	    window.root_widget=w;
+	    
 
-    sadira.setup_root_widget=function(tpl_name){
-    	var w;
+	    create_widget(sadira_root_template,w).then(function(root_widget){
+		body_node.innerHTML="";
+		var top=cc("div", body_node); top.className='pos-f-t';
+		top.appendChild(root_widget.usi.elements.toolbar.ui_root);
+		body_node.appendChild(root_widget.ui_root);
+		body_node.appendChild(root_widget.usi.elements.footer.ui_root);
+
+		window.sadira=window.root_widget=root_widget;
+		
+		//return;
+		
+		var base_uri=window.location.href;
+		
+		var split = base_uri.split('/');
+		var protocol=split[0];
+		var host=split[1];
+		var ncom=split.length-3;
+		var coms=[];
+		for(var i=3;i<3+ncom-1;i++)
+		    coms.push(split[i]);
+		
+		var last=split[split.length-1];
+		var argsplit=last.split("?");
+		var args;
+		if(argsplit.length===2){
+		    args=argsplit[1];
+		    coms.push(argsplit[0]);
+		}else
+		    coms.push(argsplit[0]);
+		
+		var widget_name=coms[coms.length-1];
+		
+		create_widget(widget_name).then(function(w){
+		    root_widget.show_widget(w);
+		    //root_widget.set_title(w.name);
+		    window.document.title=w.name;
+		}).catch(function(e){
+		    //console.log("III"+dump_error(e));
+		    root_widget.error("<strong>Error building"+widget_name+"</strong><br/>"+dump_error(e));
+		    
+		});
+		
+		
+	    }).catch(function(e){
+		w.intro="<p>Sorry, we cannot start the Sadira toolkit.</p>";
+		w.set_subtitle("Error !");
+		w.error(e);
+	    });
+	}).catch(function(e){
+	    console.log("Very bad start : " + dump_error(e));
+	});
+	
+	
+	return;
+	
 	try{
-	    var widget_template=sadira.root_widget=tmaster.build_object(tpl_name);
-	    if(widget_template.toolbar===undefined){
-		widget_template.toolbar={   };
-	    }
 	    
-	    var tb=widget_template.toolbar;
-	    if(tb.elements===undefined) tb.elements={} ;
-	    if(widget_template.ui_opts===undefined){
-		widget_template.ui_opts = { name_node : 'h3'} ;
+	    attach_ui(root_widget, body_node);
 		
-	    }
-	    else
-		widget_template.ui_opts.name_node='h3';
+	    //attach_ui(widget_template, body_node);
 	    
-	    tb.ui_opts={ toolbar_classes : ["navbar-inverse navbar-fixed-top"] };
 	    
-	    //      var right_nav=tb.create_navbar('navbar-nav navbar-right');
-
-	    var lnav=tb.elements.login_nav = {
-		name : "User access",
-		fa_icon : 'globe',
-		pos : 'right',
-		elements : {
-		    login : {name : "Log in",type : 'login' },
-		    logout : {name : "Log out",type : 'logout' },
-		    newacc : { name : "Create new account", type : "signup" },
-		    home : { name : "User homepage", type : "user_home" },
-		    storage : { name : "Storage", widget : sadira.storage }
-		}
-		
-	    };
+	    return;
 	    
 	    function user_login(u){
 		//lnav.fa_icon='user';
-		tb.set_item_name(lnav, "<strong>" + u.id + "</strong>");
+		//tb.set_item_name(lnav, "<strong>" + u.id + "</strong>");
 		lnav.icon.style.color='springgreen';
-
+		
 		lnav.elements.login.li.style.display='none';
 		lnav.elements.newacc.li.style.display='none';
 		lnav.elements.logout.li.style.display='';
@@ -83,54 +257,29 @@
 		user_logout();
 	    });
 	    
-	    //       var ul=tb.create_item(login_nav, right_nav);
-	    //       tb.fill_elements(login_nav.subul, login_nav.elements);
-	    
-	    /*
-	      var login_w=tmaster.build_template('login');
-	      
-	      login_w.ui_opts.name_node='a';
-	      login_w.ui_opts.root_node='li';
-	      login_w.ui_opts.sliding=true;
-	      login_w.ui_opts.sliding_animate=true;
-	      login_w.ui_opts.sliding_dir='h';
-	      login_w.ui_opts.slided=false;
-	      
-	      create_ui({}, login_w);
-	      var sp=ce('span'); sp.className='caret';
-	      login_w.ui_root.appendChild(sp);
-	      login_w.ui_name.style.display='inline-block';
-	      
-       //right_nav.appendChild(login_w.ui_root);
-       tb.unav.appendChild(login_w.ui_root);
-	    */
-	    
-	    create_ui({},widget_template);
+		
+	    create_ui({},root_widget);
 	    
 	    window.sadira.user!==undefined ? user_login() : user_logout();
 	    
 	    widget_template.interpret_url();
-	    attach_ui(widget_template, document.getElementsByTagName('body')[0]);
-
+		attach_ui(widget_template, body_node);
+	    
 	    window.sadira.session_start();
 	}
 	catch(error){
 	    console.log("Error build widget !  " + dump_error(error));
-	    w=create_widget('error_page');
-	    w.set_value("<div class='panel-heading'>While building widget ["+tpl_name+"] : </div><div class='panel-content'>" + dump_error(error) + "</div>" );
-	    //document.getElementById("content").appendChild(w.ui_root);
-	    document.getElementsByTagName('body')[0].appendChild(w.ui_root);
+	    sadira.error_page("<div class='panel-heading'>While building widget ["+tpl_name+"] : </div><div class='panel-content'>" + dump_error(error) + "</div>");
 	}
-    }
-    
-    sadira.session_start=function(opts){
-
-	var check_session=new request({ cmd : "/api/session/info" });
 	
-	check_session.execute(function(error, res){
+	sadira.session_start=function(opts){
+
+	    var check_session=new request({ cmd : "/api/session/info" });
 	    
-	    if(sadira.user!==undefined) delete sadira.user;
-	    
+	    check_session.execute(function(error, res){
+		
+		if(sadira.user!==undefined) delete sadira.user;
+		
 	    if(error){
 		sadira.root_widget.message(error, { type : 'warning', title : 'Session register', last : 3000});
 		// var ep=create_widget('error_page');
@@ -143,11 +292,7 @@
 		console.log("Session check : " + JSON.stringify(res));
 		
 		if(res.error){
-		    var ep=create_widget('error_page');
-		    ep.set_value(res.error);
-		    //document.getElementById("content")
-		    window.document.body.appendChild(ep.ui_root);
-		    //login.debug(res.error) ;
+		    sadira.error_page(res.err, { name : "Session error "});
 		}
 		else{
 		    if(res.user!=="none"){
@@ -159,17 +304,16 @@
 		}
 		
 	    }
-	    
-	});
-    }
-    
-    window.addEventListener("load",function(){
-	window.sadira.setup_storage();
-	window.sadira.trigger("ready", window.sadira);
-	console.log("sadira ready....");
+		
+	    });
+	}
+	
+	
+	//window.sadira.setup_storage();
+	
     });
 })();
- 
+
     
 
 

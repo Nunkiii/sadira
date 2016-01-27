@@ -2,284 +2,107 @@
   Sadira system templates
 */
 
-var crypto = require('crypto');
+template_object.prototype.save=function(a,b){
+  var dbn=this.db.name!==undefined ? this.db.name : 'data';
+  sadira.mongo[dbn].write_doc(this,a,b);
+  return this;
+}
 
-module.exports={
+template_object.prototype.id=function(){
+  return this.db.id;
+}
 
-    test : {
-	elements : {
-	    do : {type : "double"},
-	    re : {type : "double"},
-	    mi : {type : "double"},
-	    fa : {type : "double"},
-	    sol : {type : "double"},
-	    la : {type : "double"},
-	    si : {type : "double"},
-	}
-    },
+template_object.prototype.per=function(){
+  return this.db.p;
+}
 
-    group_data : {
-	name : "User groups",
-	name : "Groups",
-	subtitle : "User groups the user belongs to",
-	object_builder : function (gd){
-	    gd.add_group=function(gname){
-		
-	    };
-	    //sadira.mongo.find1({ type:'group', value
-	}
+template_object.prototype.grant=function(rules, cb){
+    var obj=this;
+    if(rules===undefined){
+	rules=this.db.grants;
+    }
+    if(rules===undefined){
+	return cb(null);
+    }
+    var nr=rules.length;
+    function res_cb(e){
 	
-    },
-
-    api_provider : {
-	object_builder : function (aprov){
-	    /*
-	    aprov.register_route=function(sad){
-		console.log(aprov.name + " : registering route");
-		sad.app.all('/api/'+aprov.name+'/:api_name', function(req, res, next) {
-		    console.log("route called " + req.params.api_name);
-		    var api=aprov.get(req.params.api_name);
-		    if(api===undefined)
-			return res.json({ error : aprov.name + " : unknown api : " + req.params.api_name });
-		    
-		    return api.api_handler(req, res, next);
-		});
-	    }
-	    */
-	}
-    },
-    
-    api : {
-	object_builder : function (){
-	    console.log("api object_builder ...");
-	    var api=this;
-	    this.handle_api=function(h){
-		console.log("Handling API !!");
-		api.api_handler=h;
-	    }
-	}
-    },
-
-    setup : {
-	name : "setup",
-	type : "api_provider",
-	elements : {
-	    
-	    config_toolbars : {
-		type : "api",
-		object_builder : function(){
-		    this.handle_api( function(req, res){
-			sad.mongo.find_group(gname, function(err, group){
-			});
-		    });
-		}
-		
-	    }
-	}
-    },
-
-    session : {
-
-	name : "session",
-	type : "api_provider",
-
-	elements : {
-	    info : {
-		type : "api",
-		object_builder : function(){
-		    console.log("Session info build");
-		    this.handle_api( function(req, res){
-			
-			if(req.user===undefined){
-			    return res.json({user : "none"});
-			}
-			var uobj=create_object_from_data(req.user);
-			//console.log("Session info request " + JSON.stringify(req.user));
-			var uname=uobj.get_login_name!==undefined ? uobj.get_login_name() : "Invalid user";
-			return res.json( { user : uname, id : uobj.id() });
-		    });
-		}
-		
-	    },
-	    get_toolbar_items : {
-		type : 'api',
-		object_builder : function(){
-		    this.handle_api( function(req, res){
-			if(req.user===undefined)
-			return res.json([]);
-			var ugroups=req.user.els.groups.els;
-			var tb_tools=[];
-			var ng=0;for (var gid in ugroups)ng++;
-			for (var gid in ugroups){
-			    req.sad.mongo.find1({ collection : 'Groups', id : gid}, function(err, group){
-				if(err!==null)
-				    return res.json({error : err});
-				tb_tools.push({id : gid, name : group.name});
-				ng--;
-				if(ng==0)
-				    return res.json(tb_tools);
-			    });
-			    
-			}
-		    });
-		    
-		    
-		}
-	    }
-	}
-	
-    },
-    
-    db : {
-
-	name : "dbcom",
-	type : "api_provider",
-	
-	elements : {
-	    
-	    get : {
-		
-		type : "api",
-		object_builder : function(){
-		    this.handle_api( function(req, res){
-			
-			var inp=get_json_parameters(req);
-			var coll=inp["collection"];
-
-			
-			if(coll===undefined) coll="collections";
-			
-			console.log("Looking for collection " + coll);
-			var uobj=create_object_from_data(req.user);
-			req.sad.mongo.sys.find({ collection : coll, user : uobj}, function(err, colls){
-			    
-			    if(err)
-				return res.json({error : err});
-			    
-			    colls.forEach(function(d){
-				delete d.db;
-			    });
-			    
-			    return res.json(colls);
-			});
-		    });
-		    
-		}
-	    	
-	    }
-	    
-	}
-    },
-    
-    template_object : {
-
-	name : "My Template Object",
-	subtitle : "A Sadira/tk object template",
-	intro : "Description of object functionality here.",
-
-	db : {
-	    grants : [['g','everybody','r'],['g','admin','w']],
-	    collection : "templates"
-	},
-	elements : {
-	    name :{
-		name : "Template key",
-		//intro : "<p>The template <i>nickname</i>, should be written in <pre><code> type='';</code></pre> declarations in client widgets.</p><p>No   Space  , No camelCase Please, but <strong>do what you want</strong> finally</p>",
-		type : "string",
-		holder_value: "Write template key name here... ",
-		ui_opts : {
-		    type : "edit"
-		}
-	    },
-	    code : {
-		name : "Template source code",
-		type : 'code'
-	    }
-	}
-    },
-
-    user_home : {
-	apis : {
-	    get_toolbar : function(req, res){
-		return res.json({ hello : "world"});
-	    }
-	},
-	object_builder : function (uhome, app){
-	    
-	}
-    },
-    
-    colormap : {
-
-	object_builder : function (cmap, app){
-
-	    cmap.register_collection=function(){
-		var c={
-		    type : "db_collection",
-		    db : {
-			grants : [['g','everybody','r'],['g','admin','w']],
-			collection : "collections"
-		    },
-		    elements : {
-			name : { value : "colormap"},
-			template : { value : "api_provider"},
-		    }
-		};
-		
-		var col=create_object(c, function (e){
-		    app.mongo.write_doc(c, function(err, doc){
-			if(err) app.log("Error " + err);
-		    });
-		    
-		});
-
-	    }
-	    
-	    //console.log("Building colormap...");
-	    cmap.load_json=function(file){
-	// return;
-	// 	var cmo=create_object("db");
-	// 	cmo.name="X";
-	// 	cmo.collection("colormaps");
-	// 	cmo.save();
-		
-	// 	cmo=create_object("string");
-	// 	cmo.name="X";
-	// 	cmo.collection("colormaps");
-	// 	cmo.save();
-		
-		// 	return;
-		
-		var fs=require('fs');
-		fs.readFile(file,'utf8', function (err, data) {
-		    if (err) throw err;
-		    var jdata=JSON.parse(data);
-		    var cmaps=jdata.doc.ColorMap;
-		    
-		    cmaps.forEach(function(cm){
-			var cmo=create_object("colormap");
-			//cmo.collection("colormaps");
-			cmo.name=cm['@name'];
-			cmo.value=[];
-			cm.Point.forEach(function(cmp){
-			    cmo.value.push([cmp['@r'],cmp['@g'],cmp['@b'],cmp['@o'],cmp['@x']]);
-			});
-			cmo.save();
-			
-			console.log(JSON.stringify(cmo));
-		    });
-		    
-		    
-		});
-		
-	    }
-	    
-	}
-	
+    if(e) return cb(e);
+	nr--;
+	if(nr===0) cb(null);
     }
     
+    rules.forEach(function(r){
+	r[0]==='u' ?
+	    obj.grant_user(r[1],r[2],res_cb) :
+	    obj.grant_group(r[1],r[2],res_cb);
+    });
+}
+
+template_object.prototype.grant_user=function(uname, gr, cb){
+  var obj=this;
+  if(gr===undefined) gr='r';
+    sadira.find_user(uname, function(err, user){
+
+    if(err) return cb!==undefined? cb(err): console.log("grant error " + err);
+    if(obj.db.p===undefined) obj.db.p=new perm();
+    var g={}; g[gr]={u : [user._id] };
+    obj.db.p.grant(g);
+    if(cb!==undefined)cb(null);
+  });
+};
+
+template_object.prototype.grant_group=function(gname, gr, cb){
+    var obj=this;
+
+    if(gr===undefined) gr='r';
+    sadira.group_id(gname, function(err, group_id){
+	console.log("granting group " + gname + " id " + group_id);
+	if(err)
+	    return cb!==undefined? cb(err): console.log("grant error " + err);
+	if(obj.db.p===undefined) obj.db.p=new perm();
+	var g={}; g[gr]={g : [group_id] };
+	obj.db.p.grant(g);
+	if(cb!==undefined)cb(null);
+    });
     
+};
+
+template_object.prototype.collection=function(cname){
+    return this.db.collection;//===undefined? obj.type : obj.db.collection; 
 }
 
 
+    
+    // obj.set_grants=function(cb){
+    // 	var o=this;
+    // 	if(o.db.grants!==undefined){
+    // 	    //console.log("We have grants : "+JSON.stringify(o.db.grants)+" P= ["+o.db.p+"]");
+    
+    // 	    if(o.db.p===undefined){
+    // 		//console.log("Applying grants "+JSON.stringify(o.db.grants)+" to ["+o.name+"] !! ");
+    // 		o.grant(o.db.grants, function(e){
+    // 		    if(e!=null){
+    // 			sad.log("!!grant error " + e);
+    // 			return cb(e);
+    // 			//return cb(e);
+    // 		    }
+    // 		    o.save(cb);
+    
+    // 		    //console.log("Apllyed grants ok to " + obj.name);
+    // 		    //delete obj.db.grants;
+    // 		    //cb(null);
+    // 		});
+    // 	    }
+    // 	}
+    
+    //}
+    
+    // obj.handle_request=function(req_name, req_cb){
+    // 	if(obj.apis===undefined) obj.apis={};
+    // 	obj.apis[req_name]=req_cb;
+    // };
+    
+    
+    //obj.db.perm.grant();
 

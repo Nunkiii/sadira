@@ -224,11 +224,11 @@ var test_tpl={
 
 window.sadira.listen("ready", function(){
     console.log("Building....");
-     var test=tmaster.build_template(test_tpl);
-     document.body.appendChild(create_ui({},test));
-     test.trigger("view_update");
+    var test=create_widget(test_tpl);
+    document.body.appendChild(test.ui_root);
+    test.trigger("view_update");
      
-   });
+});
 
   </script>
 </body>

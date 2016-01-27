@@ -37,7 +37,7 @@ exports.init=function(pkg, sad, cb){
 			else{
 			    console.log("User not found ! " + id);
 	//done("User (id + "+id+") not found !");
-			    done(null,{});
+			    done(null,{ type : 'user'});
 			}
 		    }
 		    
@@ -283,6 +283,8 @@ exports.init=function(pkg, sad, cb){
     // LOGOUT ==============================
     // =====================================
     app.get('/logout', function(req, res) {
+	
+	sad.log("User logout " + req.user ) ;
 	req.logout();
 	return res.json({info : "Logout success"});
 	//res.redirect('/');
