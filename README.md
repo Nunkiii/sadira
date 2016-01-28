@@ -14,7 +14,7 @@ The main 'inaccessible' goal of *quarklib* is to provide the scientific communit
 
 ECMAScript has become a powerfull high-level language with its increasing just-in-time compilation and hardware-acceleration features on web browsers and server interpretors. The growing set of "JS-enabled" technologies available on the browser and the server provides a powerfull, theoretically *platform-agnostic* user-interface, consisting in rich CSS-driven html content, hardware-accelerated WebGL/WebCL computations, and also new possibilities of client/server socket programming with websockets and webrtc. 
 
-From this renewed viewpoint, *sadira* is the latest implementation of the *quarklib* project, now using JS-based server and client code and the latest web technologies to create a *lower* codeline count, still providing a powerfull system, in comparison with an equivalent native c++/networked/platform-specific ui-toolkit implementation. 
+>From this renewed viewpoint, *sadira* is the latest implementation of the *quarklib* project, now using JS-based server and client code and the latest web technologies to create a *lower* codeline count, still providing a powerfull system, in comparison with an equivalent native c++/networked/platform-specific ui-toolkit implementation. 
 
 A pure web application has the natural advantage to be  *installation-free*, web-storage beeing used for local serialization :  for example, to recover the UI state. Furthermore, web applications are natively *multi-platform*, code needs ony be written once.
 
@@ -93,11 +93,40 @@ Big binary buffers cannot be transfered in one piece, they need to be sliced in 
 ##HTML user interface builder 
 ##Data storage 
 
-##Installation
+## Troubleshooting
+
 
 Git clone or download the zip project's file.
 
+    sudo apt-get install redis
+    sudo apt-get install nodejs npm
+
+    npm install mongodb express express-session method override cookie-parser body-parser connect-logger minimist 
+    npm install connect-redis passport http-proxy websocket method override ejs  es6-promise tosource  socket.io 
+    npm install passport-local passport-facebook passport-google-oauth owasp-password-strength-test
+
+    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+
+    sed -i 's|/path/to/key.pem|./key.pem|g' ./sadira.conf
+    sed -i 's|/path/to/cert.pem|./cert.pem|g' ./sadira.conf
+    sed -i 's|\"http_proxy\" : true|\"http_proxy\" : false|g' ./sadira.conf
+
+
 ##Examples
 
-To do.
+	sudo ./sadira.js --cf sadira.conf
 
+
+##Troubleshooting
+
+###You can't see the page
+
+Maybe you have an apache server running
+
+Solution: 
+
+	  sudo serviche apache2 stop
+
+###Fatal : HTTP create Error: bind EACCES
+
+Solution: make sure that you run sadira as superuser

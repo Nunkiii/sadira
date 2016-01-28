@@ -42,10 +42,15 @@ var sadira_root_template = {
 				    login : {
 					ui_opts : {fa_icon : "paw"},
 					name : "Login",
-					type : "dropdown_item"
+					type : "widget_launcher",
+					usi : {
+					    launch : {
+						type : 'login'
+					    }
+					}
 				    }
 				}},
-				items : [{ label : "Login", fa_icon : "user"}]
+				//items : [{ label : "Login", fa_icon : "user"}]
 			    }
 			    //login : {name : "Log in",type : 'login' },
 			    //logout : {name : "Log out",type : 'logout' },
@@ -202,7 +207,7 @@ var sadira_root_template = {
 		    window.document.title=w.name;
 		}).catch(function(e){
 		    //console.log("III"+dump_error(e));
-		    root_widget.error("<strong>Error building"+widget_name+"</strong><br/>"+dump_error(e));
+		    root_widget.error("<strong>Error building "+widget_name+"</strong><br/>"+dump_error(e));
 		    
 		});
 		

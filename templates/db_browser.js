@@ -16,19 +16,34 @@
     		    tb:{
 			ui_opts : {root_classes : ["pull-right"]},
     			type:"toolbar_section",
-    			elements:{ db_select:{ type:"db_select",
-    					      ui_opts:{ type:"toolbar",
-    							fa_icon:"hand-pointer-o" } },
-    				   add:{ type:"dropdown",
-    					name:"Create",
-    					 ui_opts:{ fa_icon:"plus",
-    						   type:"toolbar" },
-    					 items:[ { label:"New MongoDB database",
-    						   icon:"/sadira/icons/brands/logo-mongodb.png" },
-    						 { label:"New MariaDB database",
-    						   icon:"/sadira/icons/brands/mariadb.png" } ]
-    				       }
-    				 }
+    			elements:{
+			    db_select:{ type:"db_select",
+    					ui_opts:{ type:"toolbar",
+    						  fa_icon:"hand-pointer-o" } },
+    			    add:{
+				type:"dropdown",
+    				name:"Create",
+    				ui_opts:{ fa_icon:"plus",
+    					  type:"toolbar" },
+    				items:[ { label:"New MongoDB database",
+    					  icon:"/sadira/icons/brands/logo-mongodb.png" },
+    					{ label:"New MariaDB database",
+    					  icon:"/sadira/icons/brands/mariadb.png" } ],
+				usi : { elements : {
+				    login : {
+					ui_opts : {fa_icon : "paw"},
+					name : "Login",
+					type : "widget_launcher",
+					usi : {
+					    launch : {
+						type : 'login'
+					    }
+					}
+				    }
+				}},
+
+    			    }
+    			}
     		    }
     		}
     	    },

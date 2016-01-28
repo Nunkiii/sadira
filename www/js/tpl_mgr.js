@@ -1088,10 +1088,21 @@ local_templates.prototype.build_object=function(template, opt){
 			
 			break;
 		    case 'usi' :
-			struct.usi=new template_object();
-			if(obj.elements!==undefined && is_object===false)
-			    update_childs(struct.usi,"elements",obj.elements);
+			if(struct.usi===undefined)
+			    struct.usi=new template_object();
 
+			for(var e in obj)
+			    if(e!=='elements'){
+				if(struct.usi[e]===undefined) struct.usi[e]={};
+				nj++;
+				update_structure(struct.usi[e],obj[e], true, is_object).then(function(){
+				    done_job();
+				}).catch(function(e){fail(e)});
+			    }else
+				if(is_object===false)
+				    update_childs(struct.usi,"elements",obj.elements);
+			
+			
 			break;
 		    case 'elements' :
 			
@@ -1263,7 +1274,7 @@ local_templates.prototype.build_object=function(template, opt){
 		    }else update();
 		    
 		}).catch(function(e){
-		    console.log("Update struct error " + e);
+		    console.log("Update struct error " + dump_error(e));
 		    reject(e)
 		});
 		

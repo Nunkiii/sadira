@@ -114,12 +114,12 @@ exports.init=function(pkg, sad, cb){
 	    if (user===undefined || user===null)
 		return done(null, false, "User not found !");
 	    
-	    var user_object=create_object_from_data(user);
-	    //console.log("---> User is " + JSON.stringify(user));
-	    var loca=user_object.get('local');
-	    //for(var p in loca) console.log("P G " + p);
+	    create_object_from_data(user).then(function(user_object){
+		//console.log("---> User is " + JSON.stringify(user));
+		var loca=user_object.get('local');
+		//for(var p in loca) console.log("P G " + p);
 	    
-	    loca.check_password(hashpass, function(error, match){
+		loca.check_password(hashpass, function(error, match){
 		    if(error)
 			return done(null, false, "checkpass error : "+error );
 		    
@@ -128,10 +128,14 @@ exports.init=function(pkg, sad, cb){
 			return done(null, user, "Yeah!Login!!");
 		    }
 		    
-		//console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
+		    //console.log("checkpass match = " + match + " NOOOOOOOooooooo !!!!");    
 		    return done(null, false, "Oops! Wrong password");
 		    
 		});
+	    }).catch(function(errpr){
+		return done(null, false, "create user error : "+error );
+	    });
+	    
 	});
 	
     }));

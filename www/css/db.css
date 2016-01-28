@@ -116,13 +116,11 @@ On top of bootsrap 3
 	cursor: pointer;
 }
 
-
+/*
 h1 > small {
-  
   margin-left : 1em;
-  
 }
-
+*/
 
 span.fa{
   margin-right: .4em;
