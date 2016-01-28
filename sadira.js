@@ -299,7 +299,7 @@ var _sadira = function(){
 		if(err) {
 		    return reject("Error loading builtin template " + err);
 		}
-		console.log("Reading  " + tpl_name);// ""data.slice(0,50));
+		//console.log("Reading  " + tpl_name);// ""data.slice(0,50));
 		try{
 		    var object_code=eval(data+"");
 		
@@ -321,7 +321,7 @@ var _sadira = function(){
     multi(load_builtin_template, builtin_templates).then(function(){
 	sad.log("Done initializing builtin templates");
 
-	for(var t in tmaster.templates) console.log("T " + t);
+	//for(var t in tmaster.templates) console.log("T " + t);
 	sad.cluster.isMaster ? sad.start_master() : sad.start_worker();
     }).catch(function(err){
 	sad.log("Fatal error while initializing sadira : " +dump_error(err));
@@ -514,7 +514,7 @@ _sadira.prototype.start_master = function (){
 		var t=sad.tmaster.templates[tname];
 		
 		
-		console.log("name " + tname + " key " + t.key + " : " + t.name + ":\n------------------");
+		//console.log("name " + tname + " key " + t.key + " : " + t.name + ":\n------------------");
 		create_object("template_object").then(function(obj){
 		    obj.name=t.key;
 		    obj.subtitle=t.name;
@@ -722,7 +722,7 @@ _sadira.prototype.initialize_templates = function (){
 			obj.register().then(function(){
 			    obj.db_update();
 			    nf--;
-			    sad.log("Processed template ["+f+"] : remains " + nf);
+			    //sad.log("Processed template ["+f+"] : remains " + nf);
 			    cont(obj);
 			}).catch(function(e){
 			    return die("Error loading ASCII template ["+f+"]" + dump_error(e));
@@ -1120,53 +1120,52 @@ _sadira.prototype.check_user = function(user_name, groups){
 
 		create_object("user").then(function(usr){
 
-		    console.log("created user "+ user_name+" ...");
+
 		    usr.name=user_name;
-		    console.log("created user "+ user_name+" ...");
+
 
 		    try{
 			usr.set('nick', user_name);
-
-		    console.log("created user "+ user_name+" ...");
-		    usr.db.collection="users";
-		    console.log("created user "+ user_name+" ...");
-		    usr.db.name="sys";
-		    console.log("created user "+ user_name+" ...");
-		    var local_access=usr.get('credentials').get('local');
-
-		    console.log("created user "+ user_name+" ...");
+			
+			//console.log("created user "+ user_name+" ...");
+			usr.db.collection="users";
+			
+			usr.db.name="sys";
+			
+			var local_access=usr.get('credentials').get('local');
+			
+			
 		    
-		    if(local_access===undefined){
-			console.log("creating LA "+ user_name+" ...");
-			create_object("local_access").then(function(local_access){
-			    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
-			    usr.get('credentials').add('local',local_access);
-			    console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
+			if(local_access===undefined){
 			    
-			    local_access.set('username',user_name);
-			    console.log("Getting groups " + usr.elements.groups );
-			    var ugroups=usr.get('groups');
-			    console.log("Getting groups " + usr.elements.groups + " OK");
-
-			    for(var i=0;i<groups.length;i++){
-				//groups.forEach(function(g){
-				var g=groups[i];
-				var apgroup=app.groups[g];
+			    create_object("local_access").then(function(local_access){
+				//console.log("CREATED LA " + local_access.name + " LA type " + local_access.type );
+				usr.get('credentials').add('local',local_access);
 				
-				if(apgroup!==undefined){
-				    app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name());
-				    ugroups.add_link(apgroup);
-
-				    // ,function(e){
-				    // 	console.log("Addlink error " + e);
-				    // 	reject(err);
-				    // });
-				    app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name() + "DONE");
-				}
-				else{
+				local_access.set('username',user_name);
+				
+				var ugroups=usr.get('groups');
+				//console.log("Getting groups " + usr.elements.groups + " OK");
+				
+				for(var i=0;i<groups.length;i++){
+				    //groups.forEach(function(g){
+				    var g=groups[i];
+				    var apgroup=app.groups[g];
+				    
+				    if(apgroup!==undefined){
+					app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name());
+					ugroups.add_link(apgroup);
+					
+					// ,function(e){
+					// 	console.log("Addlink error " + e);
+					// 	reject(err);
+					// });
+					app.log("Adding group " + apgroup.name + " to user " + usr.get_login_name() + "DONE");
+				    }
+				    else{
 				    app.log("Unknown group " + g + " groups are : ");
-				    for (var gn in app.groups)
-					app.log("GROUP " + gn);
+				    // for (var gn in app.groups)
+				    // 	app.log("GROUP " + gn);
 				}
 				
 			    };
@@ -1401,7 +1400,7 @@ _sadira.prototype.setup_database=function(close_cb){
 	n+=s.data.length; app[s.key]={};
     });
     
-    app.log("Checking database ... ("+n+" objects)");
+    app.log("Checking sanity of database ( checking "+n+" objects)");
 //    close_cb(null); return;
     
     
@@ -1412,7 +1411,7 @@ _sadira.prototype.setup_database=function(close_cb){
 	}
 	
 	n--;
-	app.log("Done ["+key+"]["+h+"]. remaining " + n);
+	//app.log("Done ["+key+"]["+h+"]. remaining " + n);
 	if(n===0){
 	    var sid=0;
 	    
@@ -1456,7 +1455,7 @@ _sadira.prototype.setup_database=function(close_cb){
 			    
 			});
 		    }else{
-			console.log("Undef obj !!");
+//			console.log("Undef obj !!");
 			ng--;
 			if(ng===0){
 			    sid++;
@@ -1488,14 +1487,15 @@ _sadira.prototype.setup_database=function(close_cb){
 
 		app.tmaster.create_object_from_data(col===undefined ? obj : col).then(function(o){
 		    obj.o=o;
-		    app.log("Saving new default object " + o.name + " type " + o.type);
+		    
 		    if(col===undefined){
+			app.log("Saving new default object " + o.name + " type " + o.type);
 			o.save(function(err,oo){
 			    if(err===null){
 				app.log("Resetted default object name " + oo.name + " type " + oo.type);
 				done(key, oo, oo.name);
 			    }else{
-				app.log("Errir save " + err);
+				app.log("Error object save " + err);
 				close_cb(err);
 			    }
 			});
@@ -1587,7 +1587,7 @@ _sadira.prototype.load_mongodb = function (cb){
 
 	databases.forEach(function(db_name){
 	    sad.mongo[db_name]=new mongo_pack.server(sad.options,sad, {db_name : db_name});
-	    console.log("Created a new MongoDB database!" );
+	    //console.log("Created a new MongoDB database!" );
 	    sad.mongo[db_name].connect(function(error, mongo){
 		
 		if(error)
