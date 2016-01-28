@@ -1,6 +1,6 @@
 ({ name:"SoftName",
   type:"url",
-  ui_opts:{ icon:"/sadira/icons/brands/nodejs.svg",
+  ui_opts:{ icon:"/icons/brands/nodejs.svg",
     intro_stick:true,
     icon_size:"6em",
     name_node:"h4" },

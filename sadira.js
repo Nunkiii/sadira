@@ -230,7 +230,7 @@ var _sadira = function(){
 	post_handlers : [],
 	//ncpu : system_ncpu, //using number of cpu present in system by default
 	ncpu : 1, //Using a single thread by default.
-	html_rootdir : '/var/www', //process.cwd()+'/www', //This is the root directory for all the served files.
+	html_rootdir : 'www', // '/var/www', //process.cwd()+'/www', //This is the root directory for all the served files.
 	file_server : true,
 	bootstrap : true
     }; 
@@ -849,7 +849,8 @@ _sadira.prototype.load_routes = function (){
 	var p=get_parameters(req);
 	var header=(p.header!==undefined)? p.header:false;
 	var ejs_data={ tpl_name : req.params.tpl_name, header : header};
-	console.log("render widget : " + req.params.tpl_name  );
+	
+	console.log("render widget : " + req.params.tpl_name  + " : " + req.url  );
 	//sad.set_user_data(req,ejs_data);
 	res.render('widget.ejs', ejs_data ); // load the index.ejs file
     });
@@ -1977,31 +1978,34 @@ _sadira.prototype.load_default_route=function(){
 //Here we should detect if the user is not trying to get something like ../../etc/passwd
 //It seems that url.parse did the check for us (?) : uri is trimmed of the ../../
 
+//Content-types used by the built-in http file server.
+//The second boolean  member is used to specify if a cache http header is appended for this file type.
+
+    
+
+var content_types = {
+    '.html': [ "text/html;charset=utf-8", false],
+    '.css':  [ "text/css", false],
+    '.js':   ["text/javascript;charset=utf-8", false],
+    '.jpg':   ["image/jpeg", true],
+    '.JPG':   ["image/jpeg", true],
+    '.jpeg':  [ "image/jpeg", true],
+    '.ico' : ["image/x-icon", true],
+    '.png':   ["image/png", true],
+    '.svg':   ["image/svg+xml", true],
+    '.woff' : ['application/font-woff', true],
+    '.woff2' : ['application/font-woff2', true],
+    '.eot'  : ['application/vnd.ms-fontobject', true],
+    '.ttf'  : ['application/x-font-ttf', true]
+};
+
 _sadira.prototype.file_server = function(request, res){
     var sad=this;
-    //console.log("Builtin service : " + sadira.html_rootdir + "  uri " + uri);
+    
     var uri = unescape(url.parse(request.url).pathname);
     var filename = path.join(sad.options.html_rootdir, uri);
     
-    //Content-types used by the built-in http file server.
-    //The second boolean  member is used to specify if a cache http header is appended for this file type.
-    
-    var content_types = {
-	'.html': [ "text/html;charset=utf-8", false],
-	'.css':  [ "text/css", false],
-	'.js':   ["text/javascript;charset=utf-8", false],
-	'.jpg':   ["image/jpeg", true],
-	'.JPG':   ["image/jpeg", true],
-	'.jpeg':  [ "image/jpeg", true],
-	'.ico' : ["image/x-icon", true],
-	'.png':   ["image/png", true],
-	'.svg':   ["image/svg+xml", true],
-	'.woff' : ['application/font-woff', true],
-	'.woff2' : ['application/font-woff2', true],
-	'.eot'  : ['application/vnd.ms-fontobject', true],
-	'.ttf'  : ['application/x-font-ttf', true]
-    };
-    
+    console.log("File service : " + sadira.html_rootdir + "  uri " + uri);
     
     fs.exists(filename, function(exists) {
 	

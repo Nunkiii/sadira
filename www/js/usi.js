@@ -371,7 +371,7 @@ template_object.prototype.message=function(msg, opts_in){
 	    close : true,
 	    //label : true,
 	    name_node : "h4",
-	    root_classes : ["card card-inverse card-"+opts.type+" vertical_center"],
+	    root_classes : ["card card-inverse card-"+opts.type],
 
 	    name_classes : ["card-header text-"+opts.type+""],
 	    wrap_classes : ["card-block"],

@@ -1,7 +1,7 @@
 ({
   key:"db_mongo",
   name:"MongoDB Database",
-  ui_opts:{ icon:"/sadira/icons/brands/logo-mongodb.png" },
+  ui_opts:{ icon:"/icons/brands/logo-mongodb.png" },
   elements:{
     name:{ type:"string",
 	   name:"Database key",

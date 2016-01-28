@@ -2,10 +2,11 @@
     key:"db_browser",
     name:"DB manager",
   //type:"view",
-    ui_opts:{ //root_classes:[ "container-fluid" ],
-	      child_classes:[ "row" ],
-	      fa_icon:"database"
-	    },
+    ui_opts:{
+	root_classes:[ "" ],
+	child_classes:[ "row" ],
+	fa_icon:"database"
+    },
     usi : {
     	elements : { 
     	    toolbar:{
@@ -26,9 +27,9 @@
     				ui_opts:{ fa_icon:"plus",
     					  type:"toolbar" },
     				items:[ { label:"New MongoDB database",
-    					  icon:"/sadira/icons/brands/logo-mongodb.png" },
+    					  icon:"/icons/brands/logo-mongodb.png" },
     					{ label:"New MariaDB database",
-    					  icon:"/sadira/icons/brands/mariadb.png" } ],
+    					  icon:"/icons/brands/mariadb.png" } ],
 				usi : { elements : {
 				    login : {
 					ui_opts : {fa_icon : "paw"},
