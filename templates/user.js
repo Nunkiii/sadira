@@ -1,4 +1,6 @@
 ({
+    key:"user",
+    
     name:"User information",
     ui_opts:{ child_view_type:"div",
 	      root_classes:[ "container-fluid" ],
@@ -43,6 +45,5 @@
 	    return "Unknown";
 	}
 	ok();
-    },
-    key:"user"
+    }
 })

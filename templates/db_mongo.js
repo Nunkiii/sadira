@@ -1,49 +1,49 @@
 ({
-  key:"db_mongo",
-  name:"MongoDB Database",
-  ui_opts:{ icon:"/icons/brands/logo-mongodb.png" },
-  elements:{
-    name:{ type:"string",
-	   name:"Database key",
-	   ui_opts:{ label:true } },
-    browser:{
-      type:"data_nav",
-      ui_opts:{
-	root_classes:[ "col-md-5" ],
-	child_classes:[ "container-fluid" ],
-	render_name:false },
-      elements:{}
+    key:"db_mongo",
+    name:"MongoDB Database",
+    ui_opts:{ icon:"/icons/brands/logo-mongodb.png" },
+    elements:{
+	name:{ type:"string",
+	       name:"Database key",
+	       ui_opts:{ label:true } },
+	browser:{
+	    type:"data_nav",
+	    ui_opts:{
+		root_classes:[ "col-md-4" ],
+		child_classes:[ "container-fluid" ],
+		render_name:false },
+	    elements:{}
+	},
+	selected_object_cnt:{
+	    ui_opts:{
+		root_classes:[ "col-md-8" ],
+		child_classes:[ "container-fluid" ]
+	    },
+	    elements:{ selected_object:{ type:"view" } } }
     },
-    selected_object_cnt:{
-      ui_opts:{
-	root_classes:[ "col-md-7" ],
-	child_classes:[ "container-fluid" ]
-      },
-      elements:{ selected_object:{ type:"view" } } }
-  },
-  widget_builder:function (ok, fail){
-    //this.wait("Waiting for the One...");
-    
-    var db_b=this;
-    var dbb=this.get('browser');
-    var selobj=db_b.get("selected_object");
-    var tb_body=dbb.get("table");
-    
-    dbb.set_data_source(this);
-    tb_body.set_title("Collections");
-	    
-    dbb.listen('crossfilter_ready', function(){
-      dbb.add_dimension({
-	column : 'name', name : "Object name"
+    widget_builder:function (ok, fail){
+	//this.wait("Waiting for the One...");
+	
+	var db_b=this;
+	var dbb=this.get('browser');
+	var selobj=db_b.get("selected_object");
+	var tb_body=dbb.get("table");
+	
+	dbb.set_data_source(this);
+	tb_body.set_title("Collections");
+	
+	dbb.listen('crossfilter_ready', function(){
+	    dbb.add_dimension({
+		column : 'name', name : "Object name"
       });
-      
-      // dbb.add_dimension(
-      //     {
+	    
+	    // dbb.add_dimension(
+	    //     {
       // 	column : '_id', name : "Object ID"
-      //     }
-      // );
-    });
-    
+	    //     }
+	    // );
+	});
+	
     
     function get_collections(){
 		var dbname=db_b.val('name');

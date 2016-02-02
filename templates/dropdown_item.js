@@ -10,9 +10,18 @@
 	new_event(this,'click');
 	var a=this.ui_root;
 	a.href="javascript:void(0)";
+	
+	
+	ddi.set_caption=function(name, ico){
+	    ddi.ui_root.innerHTML="";
+	    if(ico!==undefined) ddi.ui_root.appendChild(ico);
+	    
+	    ddi.ui_root.innerHTML+=name;
+	}
+
 	var ico=get_icon(this.ui_opts);
-	if(ico!==undefined) a.appendChild(ico);
-	a.innerHTML+=this.name;
+	ddi.set_caption(this.name, ico);
+	
 	a.addEventListener('click',function(){ddi.trigger('click'); });
 	ok();
     }

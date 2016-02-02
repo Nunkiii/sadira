@@ -15,7 +15,7 @@
 		ui_opts : { root_classes : ["bg-faded"]},
     		elements : {
     		    tb:{
-			ui_opts : {root_classes : ["pull-right"]},
+			//ui_opts : {root_classes : ["pull-right"]},
     			type:"toolbar_section",
     			elements:{
 			    db_select:{ type:"db_select",
@@ -30,19 +30,21 @@
     					  icon:"/icons/brands/logo-mongodb.png" },
     					{ label:"New MariaDB database",
     					  icon:"/icons/brands/mariadb.png" } ],
-				usi : { elements : {
-				    login : {
-					ui_opts : {fa_icon : "paw"},
-					name : "Login",
-					type : "widget_launcher",
-					usi : {
-					    launch : {
-						type : 'login'
-					    }
-					}
-				    }
-				}},
-
+				// usi : {
+				//     elements : {
+				// 	login : {
+				// 	    ui_opts : {fa_icon : "paw"},
+				// 	    name : "Login",
+				// 	    type : "widget_launcher",
+				// 	    usi : {
+				// 		launch : {
+				// 		    type : 'login'
+				// 		}
+				// 	    }
+				// 	}
+				//     }
+				// },
+				
     			    }
     			}
     		    }

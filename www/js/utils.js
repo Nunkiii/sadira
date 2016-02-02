@@ -1,5 +1,12 @@
 var nodejs= typeof module !== 'undefined' && typeof GLOBAL !== 'undefined'; //Checking if we are in Node
 
+function S(tpl, sname){
+    if(tpl.strings===undefined) return 'No strings ( so no ' + sname + ')';
+    if(tpl.strings[sname]===undefined) return 'Unknown string ' + sname;
+    //console.log("Setting text to " + tpl.strings[sname] );
+    return tpl.strings[sname];
+}
+
 
 function add_classes(classes, class_node){
     
@@ -933,7 +940,7 @@ if(nodejs){
 	
 	r.execute(function(err, data){
 	    if(err)return cb(err);
-	    if(data.error) return cb(data.error);
+	    if(data.error) return cb("server error : " +data.error);
 	    cb(null,data);
 	});
     }

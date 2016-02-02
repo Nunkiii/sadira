@@ -112,9 +112,10 @@
 	    dropdown.setup_list();
 
 	    
+	    
 	    if(dropdown.ui_opts.type==="toolbar"){
 		var rt=ce('li'); rt.className="nav-item dropdown";
-		var a=cc('a',rt);
+		var a=dropdown.a=cc('a',rt);
 		a.className='nav-link dropdown-toggle';
 		a.href="javascript:void(0)";
 		a.setAttribute('data-toggle',"dropdown");
@@ -128,9 +129,10 @@
 		rt.appendChild(ul);
 		delete dropdown.ui_root;
 		dropdown.ui_root=rt; //.parentNode.replaceChild( rt, dropdown.ui_root);
+
 		
-		console.log("Configured toolbar dropdown !");
-		console.log("DONE DROPDOWN BUILD");
+		//console.log("Configured toolbar dropdown !");
+		
 		ok();
 	    }else{
 

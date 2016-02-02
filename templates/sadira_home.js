@@ -1,12 +1,13 @@
 ({
     key:"sadira_home",
-    subtitle:"INAF/IASF-Bologna — <i>Astro-web-software </i>",
+    //subtitle:
     name:"Sadira",
     type:"html",
     url:"/welcome.html",
     ui_opts:{
-	item_classes : ["container-fluid"],
-	icon:"/icons/iasfbo.png"
+	//root_classes : ["container-fluid"],
+	icon:"/icons/iasfbo.png",
+	item_first : true
     },
 
     // toolbar:{

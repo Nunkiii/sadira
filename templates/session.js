@@ -10,10 +10,9 @@
 		       if(req.user===undefined){
 			   return res.json({user : "none"});
 		       }
-		       var uobj=create_object_from_data(req.user);
+		       //var uobj=create_object_from_data(req.user);
 		       //console.log("Session info request " + JSON.stringify(req.user));
-		       var uname=uobj.get_login_name!==undefined ? uobj.get_login_name() : "Invalid user";
-		       return res.json( { user : uname, id : uobj.id() });
+		       return res.json( { user : req.user.get_login_name(), id : req.user.id() });
 		   });
 		   ok();
 	       } },

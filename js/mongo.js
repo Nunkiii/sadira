@@ -326,17 +326,18 @@ server.prototype.find=function(opts, cb){
 
     var mongo=this;
     
-    if(opts.user===null || opts.user===undefined)
+    if(opts.user===null || opts.user===undefined){
 	if(mongo.sad.users!==undefined)
 	    opts.user=mongo.sad.users.everybody;
-    
-    //console.log("FIND user = " + JSON.stringify(opts.user));
+    }
+
+    if(opts.user!==undefined)
+	console.log("FIND user = " + opts.user.get_login_name());
     
     var q=create_query(opts);
     var f=create_fields(opts);
-
-    //console.log("FIND opts =" + JSON.stringify(opts.path)+ ": query = ["+JSON.stringify(q)+"] f=[" +JSON.stringify(f)+"] N="+0);
     
+    //console.log("FIND opts =" + JSON.stringify(opts.path)+ ": query = ["+JSON.stringify(q)+"] f=[" +JSON.stringify(f)+"] N="+0);
     //console.log(type+ " : finding " + op + " = " + value);
 
     var user=opts.user;
@@ -417,7 +418,8 @@ server.prototype.find=function(opts, cb){
 			//console.log("Granted for collection " + coll);// + " db collection " + db_coll);
 		    }
 		    else{
-			console.log("Checking user " + user.get_login_name() + " Not enough rights to list the collection ["+coll+"]! P=" + p + "Ugroups = " + JSON.stringify(user.elements.groups));
+			console.log("Checking user " + user +
+				    " Not enough rights to list the collection ["+coll+"]! P=" + p + "Ugroups = " + JSON.stringify(user.elements.groups));
 			return cb("Not enough rights to list the collection ["+coll+"]!");
 		    }
 		}else{

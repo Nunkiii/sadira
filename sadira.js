@@ -682,7 +682,7 @@ _sadira.prototype.start_master = function (){
 	
 	sad.cluster.on('listening', function(worker, address) {
 	    
-	    sad.log("A worker is now connected to " + address.address + ":" + address.port);
+	    sad.log("A worker is now connected to " + JSON.stringify(address));//.address + ":" + address.port);
 	    
 	    worker.online=true;
 	    sad.nworkers++;
@@ -1658,16 +1658,27 @@ _sadira.prototype.load_apis = function (cb){
 	    }
 	    
 	    sad.app.all('/api/:provider/:api', function(req, res, next) {
-		//if(req.user!==undefined) req.user=create_object_from_data(req.user); //.build({recurse : true});
+		//req.user=create_object_from_data(req.user); //.build({recurse : true});
+
+		if(req.user===undefined){
+		    if(sad.users["everybody"]===undefined)
+			return req.json({error : "BUG: No everybody user !"});
+		    else
+			req.user=sad.users["everybody"];
+		}
 		
 		var provider=sad.apis[req.params.provider];
+
 		//console.log("Looking for provider " + req.params.provider + " got " + JSON.stringify(provider));
 		
 		if(provider===undefined) return res.json({error : "unknown api provider " + req.params.provider });
+
 		var api=provider.get(req.params.api);
-		if(api===undefined) return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
+		if(api===undefined)
+		    return res.json({error : "provider ["+req.params.provider+"] unknown api " + req.params.api});
+
 		//console.log("Api handler : " + JSON.stringify(api));
-		return api.api_handler(req,res,next);
+		return api.api_handler.call(sad, req,res,next);
 	    });
 	
 	    cb(null);
@@ -2005,7 +2016,7 @@ _sadira.prototype.file_server = function(request, res){
     var uri = unescape(url.parse(request.url).pathname);
     var filename = path.join(sad.options.html_rootdir, uri);
     
-    console.log("File service : " + sadira.html_rootdir + "  uri " + uri);
+    console.log("File service : " + uri);
     
     fs.exists(filename, function(exists) {
 	
@@ -2015,7 +2026,6 @@ _sadira.prototype.file_server = function(request, res){
 	    // sad.error_404(res, uri, function() {
 	    // 	res.end();
 	    // });
-	    
 	    res.writeHead(404, {"Content-Type": "text/plain"});
 	    res.write("Unavailable resource ["+uri+"] !\n");
 	    res.end();
@@ -2086,11 +2096,11 @@ _sadira.prototype.create_http_server = function(cb){
 		var proxy_config={
 		    target :  ù(sad.options.http_proxy_url) ? "http://localhost:8000" : "http://" + sad.options.http_proxy_url 
 		};
-		sad.log("starting HTTP server on port " + http_port + " -> proxy to " + proxy_config.target);
+		sad.log("Starting HTTP server on port " + http_port + " -> proxy to " + proxy_config.target);
 		sad.http_proxy=http_proxy.createServer(proxy_config);
 		sad.http_proxy.on('error', handle_proxy_error);
 	    }else 
-		sad.log("starting HTTP server on port " + http_port + " NO proxy.");
+		sad.log("Starting HTTP server on port " + http_port + " NO proxy.");
 	    
 	    try{
 		var http = require('http');
@@ -2227,7 +2237,6 @@ _sadira.prototype.create_webrtc_server=function() {
     
     var io = require('socket.io').listen(sad.options.webrtc_port);
     
-    
     io.sockets.on('connection', function (cnx) {
 	//socket.emit('news', { hello: 'world' });
 	
@@ -2236,8 +2245,7 @@ _sadira.prototype.create_webrtc_server=function() {
 	cnx.on('message', function (data) {
       
 	    try{
-		
-		//sad.log("Incoming message, creating datagram");
+		sad.log("WebRTC: Incoming message, creating datagram");
 		
 		var dgram=new DGM.datagram();
 		

@@ -12,8 +12,8 @@ exports.init=function(pkg, sad, cb){
     var mongo=sad.mongo.sys;
     var app=sad.app;
     var passport=sad.passport;
-    
-    console.log("Register login serialize funcs...");
+  
+    //console.log("Register login serialize funcs...");
     
     passport.serializeUser(function(user, done) {
 	console.log("Serialize USER ! " + user.db.id);
@@ -25,18 +25,23 @@ exports.init=function(pkg, sad, cb){
 	mongo.find1({ type : "users", id : id},
 		    //done
 		    
-		    function(err, user) {
+		    function(err, user_data) {
 			
 			if(err){
 			    console.log("Error looking up user " + err);
 			    done(err);
 			}
-			
-			if(user!==undefined)
-			    done(err, user);
+			if(user_data!==undefined){
+			    create_object_from_data(user_data).then(function(user){
+				return done(err, user);
+			    }).catch(function(e){
+				done(e);
+			    });
+				
+			}
 			else{
 			    console.log("User not found ! " + id);
-	//done("User (id + "+id+") not found !");
+			    //done("User (id + "+id+") not found !");
 			    done(null,{ type : 'user'});
 			}
 		    }
@@ -106,17 +111,17 @@ exports.init=function(pkg, sad, cb){
 	
 	//console.log("Login init for " + email + " pass " + hashpass);
 
-	sad.find_user(email,function(err, user) {
+	sad.find_user(email,function(err, udata) {
 	    if (err){
-		console.log("Error looking for user " + err);
+		console.log("DB error looking for user " + err);
 		return done(err);
 	    }
-	    if (user===undefined || user===null)
-		return done(null, false, "User not found !");
+	    if (udata===undefined || udata===null)
+		return done(null, false, "User ["+email+"] not found !");
 	    
-	    create_object_from_data(user).then(function(user_object){
+	    create_object_from_data(udata).then(function(user){
 		//console.log("---> User is " + JSON.stringify(user));
-		var loca=user_object.get('local');
+		var loca=user.get('local');
 		//for(var p in loca) console.log("P G " + p);
 	    
 		loca.check_password(hashpass, function(error, match){
@@ -262,9 +267,12 @@ exports.init=function(pkg, sad, cb){
 		    //return next(err);
 		}
 		// 	//var ejsd={}; sad.set_user_data(req,ejsd);
-		var uobj=create_object_from_data(user);
-	     	res.json({ user : { id : user._id, login_name : uobj.get_login_name()} });
-		res.end();
+		create_object_from_data(user).then(function(uobj){
+	     	    res.json({ user : { id : user._id, login_name : uobj.get_login_name()} });
+		    res.end();
+		}).catch(function(e){
+		    console.log();
+		});
 	    });
 	    
 	})(req, res, next);
