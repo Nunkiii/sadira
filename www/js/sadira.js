@@ -241,16 +241,18 @@ var sadira_root_template = {
 	    //w.setup_title();
 
 	    try{
-		if(w.usi.elements.toolbar === undefined){
-		    if(w.ui_name!==undefined){
-			toolbar.ui_root.replaceChild(w.ui_name, toolbar.ui_name);
+		if(w.usi!==undefined && w.usi.elements!==undefined){
+		    if(w.usi.elements.toolbar === undefined){
+			if(w.ui_name!==undefined){
+			    toolbar.ui_root.replaceChild(w.ui_name, toolbar.ui_name);
+			}
+		    }else{
+			var wtb=w.usi.elements.toolbar;
+			toolbar.ui_root.replaceChild(wtb.ui_name, toolbar.ui_name);
+			for(var e in wtb.elements)
+			    toolbar.ui_childs.div.prependChild(wtb.elements[e].ui_root);
+			wtb.hide();
 		    }
-		}else{
-		    var wtb=w.usi.elements.toolbar;
-		    toolbar.ui_root.replaceChild(wtb.ui_name, toolbar.ui_name);
-		    for(var e in wtb.elements)
-			toolbar.ui_childs.div.prependChild(wtb.elements[e].ui_root);
-		    wtb.hide();
 		}
 		
 		root_widget.show_widget(w);
