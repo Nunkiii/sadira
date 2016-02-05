@@ -35,8 +35,8 @@
 	dbb.listen('crossfilter_ready', function(){
 	    dbb.add_dimension({
 		column : 'name', name : "Object name"
-      });
-	    
+	    });
+      
 	    // dbb.add_dimension(
 	    //     {
       // 	column : '_id', name : "Object ID"
@@ -45,12 +45,12 @@
 	});
 	
     
-    function get_collections(){
-		var dbname=db_b.val('name');
-		//db_b.message("Loading dbname " + dbname);
-	    	var r=new request({ cmd : '/api/dbcom/list', args : { db : { name : dbname} } });
+	function get_collections(){
+	    var dbname=db_b.val('name');
+	    //db_b.message("Loading dbname " + dbname);
+	    var r=new request({ cmd : '/api/dbcom/list', args : { db : { name : dbname} } });
 		dbb.wait("Loading collections...");
-		r.execute(function(err, col_data){
+	    r.execute(function(err, col_data){
 		    dbb.wait(false);
 		    if(err){
 			db_b.message(dump_error(err), { type : 'danger', title : 'Error query'});

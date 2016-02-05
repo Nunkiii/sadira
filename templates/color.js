@@ -1,7 +1,10 @@
-({ key:"color",
-  widget_builder:function (ui_opts, tpl_item){
+({
+  key:"color",
+  widget_builder:function (ok, fail){
     //console.log(tpl_item.name + " color builder " + tpl_item.value);
-
+    var tpl_item=this;
+    var ui_opts=tpl_item.ui_opts;
+    
     var ui=tpl_item.ui=ce("div"); ui.className="color_container";
     var cui=ce("input"); cui.type="color";
     ui.appendChild(cui);
@@ -58,5 +61,5 @@
     }
 
     tpl_item.set_value();
-    return tpl_item.ui;
+    ok(tpl_item.ui);
 } })

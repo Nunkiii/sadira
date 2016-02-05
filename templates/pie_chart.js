@@ -1,6 +1,6 @@
 ({ name:"Pie Chart",
   ui_opts:{ root_classes:[ "container-fluid" ] },
-  widget_builder:function (){
+  widget_builder:function (ok, fail){
 	    var pchart=this;
 	    
 	    var width = 300,
@@ -182,6 +182,7 @@
 		}
 	    }
 	    this.set_data(randomData());
-	    return ui;
+      ok(ui);
+      
 	},
   key:"pie_chart" })

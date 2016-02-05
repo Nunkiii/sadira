@@ -71,7 +71,7 @@
 		    dbb.message(col_data.error, { type : 'danger', title : 'Error query'});
 		    return;
 		}
-		console.log("Got DATA " + JSON.stringify(col_data) + " L= " + col_data.data.length);
+		//console.log("Got DATA " + JSON.stringify(col_data) + " L= " + col_data.data.length);
 		//chooser.collection_data=result;
 		if(col_data.data.length>0){
 		    col_data.head[0].show=false;

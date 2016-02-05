@@ -1,6 +1,6 @@
 ({ ui_opts:{},
   key:"progress",
-  widget_builder:function (){
+  widget_builder:function (ok, fail){
     var prog=this;
     //var ui=prog.ui=ce("div");
     //ui.className="progress";
@@ -36,5 +36,5 @@
     prog.setup_ui();
     prog.set_value();
     
-    return cui;
+      ok(cui);
 } })

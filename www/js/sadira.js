@@ -106,18 +106,13 @@ var sadira_root_template = {
 	new_event(this,"user_login");
 	new_event(this,"user_logout");	
 
-	root_widget.usi.visible=cc("div",this.ui_root);
+	//root_widget.usi.visible=cc("div",this.ui_root);
 	//root_widget.usi.visible.innerHTML="<h1>Initializing</h1>";
 	//this.set_subtitle("Helllllllooooooooooooooo");
 	
 	root_widget.ui_root.style.marginTop="55px";
 	root_widget.ui_root.style.marginBottom="50px";
 	
-	root_widget.show_widget=function(w){
-	    root_widget.ui_root.replaceChild(w.ui_root,root_widget.usi.visible);
-	    this.wait(false);
-	}
-
 	root_widget.setup_storage=function(){
 	    var storage_tpl={ type : 'storage', ui_opts : {close : true}};
 	    create_widget(storage_tpl).then(function (obj){
@@ -234,32 +229,6 @@ var sadira_root_template = {
 
 
 	root_widget.setup_widget=function(w){
-	    //toolbar.ui_name.innerHTML="Hello";
-	    //root_widget.set_title(w.name);
-	    window.document.title=w.name;
-	    //w.ui_opts.node_name="h4";
-	    //w.setup_title();
-
-	    try{
-		if(w.usi!==undefined && w.usi.elements!==undefined){
-		    if(w.usi.elements.toolbar === undefined){
-			if(w.ui_name!==undefined){
-			    toolbar.ui_root.replaceChild(w.ui_name, toolbar.ui_name);
-			}
-		    }else{
-			var wtb=w.usi.elements.toolbar;
-			toolbar.ui_root.replaceChild(wtb.ui_name, toolbar.ui_name);
-			for(var e in wtb.elements)
-			    toolbar.ui_childs.div.prependChild(wtb.elements[e].ui_root);
-			wtb.hide();
-		    }
-		}
-		
-		root_widget.show_widget(w);
-	    }
-	    catch(e){
-		console.log("Err " + e);
-	    }
 	}
 	
 	logout.hide();
@@ -336,7 +305,11 @@ var sadira_root_template = {
 		var main_toolbar=root_widget.get("toolbar");
 		
 		create_widget({ type : widget_name, ui_opts : { name_node : "a", name_classes : ["navbar-brand"]} }).then(function(w){
-		    root_widget.setup_widget(w);
+		    window.document.title=w.name;
+		    root_widget.item_ui=w.ui_root;
+		    root_widget.ui_root.appendChild(w.ui_root);
+		    root_widget.integrate_widget(w);
+		    
 		}).catch(function(e){
 		    //console.log("III"+dump_error(e));
 		    root_widget.error("<strong>Error building "+widget_name+"</strong><br/>"+dump_error(e));

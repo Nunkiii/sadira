@@ -9,7 +9,7 @@
 	var parent=wl.get_top_parent('toolbar');if(parent===undefined) return fail("Cannot find a parent toolbar");
 	var target=parent.parent;if(target===undefined) return fail("Found toolbar has no parent");
 	var launch=wl.usi.launch;if(launch===undefined) return fail("No launch object on template usi");
-	
+    
 	if(launch.ui_opts===undefined) launch.ui_opts={}; launch.ui_opts.close=true;
 	var ico=get_icon(wl.ui_opts);
 	
@@ -22,16 +22,22 @@
 	    wl.parent.error(e);
 	    wl.set_caption(wl.name, ico);
 	});
-
+	
 	this.listen('click', function(){
-
+	    
 	    //target.message("Lauch : " + JSON.stringify(launch));
+	    
 	    create_widget(launch).then(function(w){
+
+		target.show_widget(w);
+		return;
 		
 		w.listen('close', function(){
 		    w.ui_root.parentNode.removeChild(w.ui_root);
+		    //wl.hide_content(false);
 		});
-		target.ui_root.prependChild(w.ui_root);
+		//wl.hide_content();
+		target.ui_root.appendChild(w.ui_root);
 		//insertAfter(parent.ui_root, w.ui_root);
 	    }).catch(function(e){
 		target.error(dump_error(e));

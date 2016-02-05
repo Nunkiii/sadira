@@ -1,7 +1,7 @@
 ({
     key:"view",
     name : "Doc view",
-    //ui_opts : { fa_icon : 'file'},
+    ui_opts : { fa_icon : 'file'},
     usi : {
 	elements : {
 	    toolbar : {
@@ -16,7 +16,7 @@
 		    tbs : {
 			type : "toolbar_section",
 			ui_opts : {
-			    root_classes : ["pull-right"]
+			    //root_classes : ["pull-right"]
 			},
 			elements : {
 			    doc_tools : {
@@ -47,7 +47,7 @@
 	    if(loading) return;
 	    loading=true;
 	    view.clear();
-	    view.wait("Loading ...");
+	    view.wait("Loading document ....");
 	    //view.message("Loading doc OPTS=" + JSON.stringify(opts));
 	    get_document(opts, function(err, doc_data){
 		loading=false;
@@ -55,7 +55,7 @@
 		if(err) return view.error( "<strong>While getting document</strong>" + err);
 		//view.message(JSON.stringify(doc_data), {title : "Doc data received"});
 		if(doc_data.length===0){
-		    view.warning("No document found " + JSON.stringify(opts));
+		    view.set_subtitle("No document found " + JSON.stringify(opts));
 		    return;
 		}
 		    
@@ -66,31 +66,22 @@
     
 	this.show_doc=function(){
 	    //view.message(JSON.stringify(view.doc_data));
+	    view.wait("Preparing document ....");
+	    
+	    if(view.doc_data.ui_opts===undefined) view.doc_data.ui_opts={};
+	    view.doc_data.ui_opts.name_node='a';
+	    view.doc_data.ui_opts.name_classes='navbar-brand';
 	    
 	    create_object_from_data(view.doc_data).then(function(docw){
-		view.docw=docw;
-
-		//if(docw.ui_name!==undefined)
-		  //  docw.ui_root.removeChild(docw.ui_name);
-
-		view.ui_root.replaceChild(docw.ui_root, doc_content);
-		doc_content=docw.ui_root;
 		
-		var tb=view.get("toolbar");
-		//console.log("LOC " + document.location + " TB " + this.usi.elements.toolbar.ui_root);
-		if(tb===undefined){
-		    view.error("No toolbar !");
-		}else{
-		    if(tb.ui_opts===undefined) tb.ui_opts={};
-		    if(docw.ui_opts!==undefined){
-			tb.ui_opts.fa_icon=docw.ui_opts.fa_icon;
-			tb.ui_opts.icon=docw.ui_opts.icon;
-			//view.message("Changinf icon to " + JSON.stringify( tb.ui_opts));
-			tb.rebuild_name();//setup_icon();
-		    }
-		    tb.set_title(docw.name, docw.type);
-		    
-		}
+		view.docw=docw;
+		view.ui_root.appendChild(docw.ui_root);
+		view.wait(false);
+		
+		view.integrate_widget(docw);
+
+		
+		return;
 
 		//view.setup_tools();
 	    }).catch(function(e){

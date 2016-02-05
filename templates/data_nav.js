@@ -1,136 +1,152 @@
 ({
-    name:"Data browse",
-    ui_opts:{ root_classes:[ "container-fluid" ],
-	      fa_icon:"database" },
+    key:"data_nav",
+ //   name:"Data browse",
+    ui_opts:{
+	//root_classes:[ "container-fluid" ],
+	//fa_icon:"database"
+    },
     elements:{
-	filters:{ name:"Cross Filter",
-		  ui_opts:{ child_classes:[ "row" ] },
-		  elements:{},
-		  widget_builder:function (ok, fail){
-		      
-		      new_event(this, 'update');
-		      var filters=this;
-		      var nav = filters.get_parent();
-		      var tbody = nav.get('table');
-		      //var tbody = table.get('body');
-		      //var particles=this.parent.get('particles');
-		      filters.views=[];
+	filters:{
+	    name:"Cross Filter",
+	    ui_opts:{ child_classes:[ "row" ] },
+	    elements:{},
 
-		      filters.hide();
-		      
-		      filters.create=function(f){
+	    widget_builder:function (ok, fail){
+		
+		new_event(this, 'update');
+		var filters=this;
+		var nav = filters.get_parent();
+		var tbody = nav.get('table');
+		//var tbody = table.get('body');
+		//var particles=this.parent.get('particles');
+		filters.views=[];
+		
+		filters.hide();
+		
+		filters.create=function(f){
 
-			  if(f.plot === undefined) return;
+		    var prom=new Promise(function(yes, no){
+		    
+			if(f.plot === undefined) return;
+			
+			filters.hide(false);
+			var view_tpl;
+		    
+			if(f.plot === "pie"){
+			    view_tpl={
+				
+				type : "pie_chart",
+				ui_opts : {
+				    fa_icon : 'pie-chart',
+				    root_classes : ["col-sm-6"],
+				    
+				},
+				
+			    };
+			    
+			}else if(f.plot === "vector"){
+			    view_tpl={
+				type : 'vector',
+				ui_opts : {
+				    fa_icon : 'bar-chart',
+				    root_classes : ["col-sm-4"],
+				    enable_selection : true,
+				    yscale : 'log'
+				},
+				elements : {
+				    btns : {
+					elements : {
+					    reset : {
+						type : 'action',
+						name : 'Reset',
+						ui_opts : { item_classes : ["btn btn-xs btn-primary"]}
+					    } 
+					}
+				    }
+				}
+			    };
+			}
+			
+			// var pie_view=create_widget(pie_tpl, filters);
+			// pie_view.set_title(f.name, f.column);
+			// filters.ui_childs.add_child(pie_view);
+			// return;
+			var grd=nav.groups[f.column].all(); //top(Infinity);
+			
+			function update(){
+			    tbody.set_data(nav.dimensions[f.column].top(Infinity));
+			    filters.set_subtitle( nav.all.value()+"/"+nav.data.data.length);
+			    //table.set_subtitle( nav.all.value()+"/"+nav.data.data.length);
+			    
+			    filters.trigger('update', f);
+			    
+			}
+			
+			if(view_tpl!==undefined){
+			    
+			    create_widget(view_tpl, filters).then(function(view){
+				filters.views.push(view)
+				
+				view.set_title(f.name, f.column);
+				filters.ui_childs.add_child(view);
+				
+				view.column=f.column;
+				
+				if(f.plot === "pie"){
+				    view.set_data(nav.groups[f.column].top(Infinity));
+				}
+				
+				
+				if(f.plot === "vector"){
+				    view.get('lines').hide();
+				    
+				    view.listen("selection_change", function(sel){
+					nav.dimensions[f.column].filterRange(sel);
+					filters.views.forEach(function(fv){
+					    if(fv.name!==f.name){
+						if(fv.type==='vector')
+						    fv.config_range();
+						else if(fv.type==='pie_chart'){
+						    fv.set_data(nav.groups[fv.column].top(Infinity));
+						}
+					}
+					});
+					
+					update();
+				    });
+				    
+				    view.get('reset').listen('click', function(){
+					nav.dimensions[f.column].filterAll();
+					filters.views.forEach(function(fv){
+					    if(fv.type==='vector')
+						fv.config_range();
+					});
+					update();
+				    });
+				    
+				    //console.log("GRD " + JSON.stringify(grd));
+				    view.y_range= f.y_range; //===undefined ? [0, 10] : f.y_range;
+				    console.log("ADD PP");
+				    view.add_plot_points(grd, {x_id : 'key', y_id : 'value', label : f.name } ).then(function(np){
+					yes();
+					console.log("ADD PP OK");
+				    }).catch(no);
+				    
+				    //vec_view.
+				}
+				
+			    }).catch(no);
+			    
+			}
+		    });
 
-			  filters.hide(false);
-			  var view_tpl;
-			  
-			  if(f.plot === "pie"){
-			      view_tpl={
-				  
-				  type : "pie_chart",
-				  ui_opts : {
-				      fa_icon : 'pie-chart',
-				      root_classes : ["col-sm-6"],
-				      
-				  },
-
-			      };
-
-			  }else if(f.plot === "vector"){
-			      view_tpl={
-				  type : 'vector',
-				  ui_opts : {
-				      fa_icon : 'bar-chart',
-				      root_classes : ["col-sm-4"],
-				      enable_selection : true,
-				      yscale : 'log'
-				  },
-				  elements : {
-				      btns : {
-					  elements : {
-					      reset : {
-						  type : 'action',
-						  name : 'Reset',
-						  ui_opts : { item_classes : ["btn btn-xs btn-primary"]}
-					      } 
-					  }
-				      }
-				  }
-			      };
-			  }
-			  
-			  // var pie_view=create_widget(pie_tpl, filters);
-			  // pie_view.set_title(f.name, f.column);
-			  // filters.ui_childs.add_child(pie_view);
-			  // return;
-			  var grd=nav.groups[f.column].all(); //top(Infinity);
-			  
-			  function update(){
-			      tbody.set_data(nav.dimensions[f.column].top(Infinity));
-			      filters.set_subtitle( nav.all.value()+"/"+nav.data.data.length);
-			      //table.set_subtitle( nav.all.value()+"/"+nav.data.data.length);
-
-			      filters.trigger('update', f);
-			      
-			  }
-			  
-			  if(view_tpl!==undefined){
-			      
-			      var view=create_widget(view_tpl, filters);
-			      filters.views.push(view)
-
-			      view.set_title(f.name, f.column);
-			      filters.ui_childs.add_child(view);
-
-			      view.column=f.column;
-			      
-			      if(f.plot === "pie"){
-				  view.set_data(nav.groups[f.column].top(Infinity));
-			      }
-			      
-			      
-			      if(f.plot === "vector"){
-				  view.get('lines').hide();
-				  view.listen("selection_change", function(sel){
-				      nav.dimensions[f.column].filterRange(sel);
-				      filters.views.forEach(function(fv){
-					  if(fv.name!==f.name){
-					      if(fv.type==='vector')
-						  fv.config_range();
-					      else if(fv.type==='pie_chart'){
-						  fv.set_data(nav.groups[fv.column].top(Infinity));
-					      }
-					  }
-				      });
-				      
-				      update();
-				  });
-				  
-				  view.get('reset').listen('click', function(){
-				      nav.dimensions[f.column].filterAll();
-				      filters.views.forEach(function(fv){
-					  if(fv.type==='vector')
-					      fv.config_range();
-				      });
-				      update();
-				  });
-				  
-				  //console.log("GRD " + JSON.stringify(grd));
-				  view.y_range= f.y_range; //===undefined ? [0, 10] : f.y_range;
-				  view.add_plot_points(grd, {x_id : 'key', y_id : 'value', label : f.name } );
-				  //vec_view.
-			      }
-
-			      
-
-			  }
-			  
-		      };
-
-		      ok();
-		  }
-		},
+		    return prom;
+		    
+		};
+		
+		ok();
+	    }
+	},
 	table:{
 	    type:"table",
 	    elements:{}
@@ -222,5 +238,7 @@
 	    }
 	});
 	ok();
-    },
-    key:"data_nav" })
+    }
+
+
+})

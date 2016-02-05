@@ -125,6 +125,19 @@ function clone_obj(obj) {
     //   return new_obj;
 }
 
+function format_byte_number(v){
+    var u=["","k","M","G","T"];
+    var id=0,idmax=4;
+    var val=v, unit='byte';
+    while(val>=1024 && id<idmax){
+	val=val/1024.0;
+	id++;
+    };
+    val=Math.floor(val*100)/100.0;
+    if(val>1) unit+="s";
+    return  val+ " " +u[id]+unit;
+};
+
 function b64ToUint6 (nChr) {
 
     return nChr > 64 && nChr < 91 ?

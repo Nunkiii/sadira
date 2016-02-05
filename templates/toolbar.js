@@ -25,7 +25,7 @@
 	var tbid=Math.random().toString(36).substring(2);
 	var but=ce("button");
 
-	but.className="navbar-toggler hidden-sm-up";// pull-right";
+	but.className="navbar-toggler hidden-sm-up pull-right";
 	but.setAttribute('data-toggle','collapse');
 	but.setAttribute('data-target','#'+tbid);
 

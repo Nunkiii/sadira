@@ -1,42 +1,49 @@
 ({
     key:"login",
     name:"Log into Sadira",
-    intro:"<p>Enter your username/email and password :</p>",
+    subtitle:"Enter your username/email and password :",
     ui_opts:{
 	name_node:"h3",
 	fa_icon:"sign-in",
-	root_classes:[ "container-fluid card nomargin nopadding" ],
+	root_classes:[ "card nomargin nopadding" ],
 	name_classes:[ "card-header" ],
-	child_node_type:"form",
-	child_classes:[ "col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 form-horizontal" ],
-	intro_stick:true
+	child_classes:[ "card-block"],
+	//intro_stick:true
     },
     elements:{
-	user:{ type:"string",
-	       name:"",
-	       holder_value:"username or e-mail",
-	       ui_opts:{ type:"edit",
+	form : {
+	    ui_opts : {
+		child_node_type:"form",
+		child_classes:[ "col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 form form-horizontal" ],
+	    },
+	    elements : {
+		user:{ type:"string",
+		       name:"",
+		       holder_value:"username or e-mail",
+		       ui_opts:{ type:"edit",
 			 root_classes:[ "input-group vertical_margin" ],
-			 label:true,
-			 fa_icon:"user",
+				 label:true,
+				 fa_icon:"user",
 			 label_node:"span",
-			 name_classes:[ "input-group-addon" ] } },
-	password:{ name:"",
-		   type:"password",
-		   ui_opts:{ type:"edit",
-			     root_classes:[ "input-group vertical_margin" ],
-			     label:true,
+				 name_classes:[ "input-group-addon" ] } },
+		password:{ name:"",
+			   type:"password",
+			   ui_opts:{ type:"edit",
+				     root_classes:[ "input-group vertical_margin" ],
+				     label:true,
 			     fa_icon:"key",
-			     label_node:"span",
-			     name_classes:[ "input-group-addon" ] },
-		   holder_value:"password" },
-	login:{
-	    name:"Log in !",
-	    type:"action",
-	    ui_opts:{ root_classes:[ "vertical_margin" ],
-		      wrap:true,
-		      wrap_classes:[ "input-group-btn text-right" ],
-		      item_classes:[ "btn btn-success" ] } }
+				     label_node:"span",
+				     name_classes:[ "input-group-addon" ] },
+			   holder_value:"password" },
+		login:{
+		    name:"Log in !",
+		    type:"action",
+		    ui_opts:{ root_classes:[ "vertical_margin" ],
+			      wrap:true,
+			      wrap_classes:[ "input-group-btn text-right" ],
+			      item_classes:[ "btn btn-success" ] } }
+	    }
+	}
     },
     widget_builder:function (ok, fail){
 	var login=this;

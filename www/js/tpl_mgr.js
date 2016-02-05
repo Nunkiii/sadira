@@ -990,64 +990,83 @@ local_templates.prototype.build_object=function(template, opt){
 		var nj=0;
 		
 		function update_childs(struct,p,obj){
+		    
 		    if(struct[p]===undefined) struct[p]= {}; //new template_object();
 		    //var nj=0;
 		    //for(var c in obj) nj++;
 		    var els=struct[p];
-		    for(var c in obj){
-			//console.log("Child " + c + " = " + obj[c] + " obj is " + JSON.stringify(obj));
-			
-			var child=obj[c];
-			if(child!==undefined){
-			    //if(els[c]===undefined) els[c]=new template_object();
+
+		    function process_child(c){
+			var prom=new Promise(function(oui, non){
 			    
-			    if(child.type!==undefined){
+			    var child=obj[c];
+			    if(child!==undefined){
+				//if(els[c]===undefined) els[c]=new template_object();
 				
-				
-				if(els[c]===undefined){
-				    nj++;
-				    //console.log("Try creating child " + c);
+				if(child.type!==undefined){
 				    
-				    struct.create_child(child, c).then(function(no){
-					//console.log(" " + c + " ---------------------| create child received " + no.data);
-					//console.log("Created child["+c+"] [" + no.type + "] cons : " + no.constructor);
-					done_job();
-						//nj--;if(nj===0) ok(); else console.log("remains " + nj);
+				
+				    if(els[c]===undefined){
+					//nj++;
+					//console.log("Try creating child " + c);
 					
-						//update_structure(child, no.data, true, is_object).then(function(){
- 						//    console.log("Done update_struct child [" + no.child.name + "] build : " + no.child.build
-						//		+ " : " + no.child.constructor);
-						// done_job();
-						//}).catch(function(e){fail(e)});
-					//els[c]=no;
-				    }).catch(function(e){
-					console.log("Error create child " + dump_error(e));
-					fail(e);
-				    });
+					struct.create_child(child, c).then(function(no){
+					    //console.log(" " + c + " ---------------------| create child received " + no.data);
+					    //console.log("Created child["+c+"] [" + no.type + "] cons : " + no.constructor);
+					    //done_job();
+					    oui();
+					    //nj--;if(nj===0) ok(); else console.log("remains " + nj);
+					
+					    //update_structure(child, no.data, true, is_object).then(function(){
+ 					    //    console.log("Done update_struct child [" + no.child.name + "] build : " + no.child.build
+					    //		+ " : " + no.child.constructor);
+					    // done_job();
+					    //}).catch(function(e){fail(e)});
+					    //els[c]=no;
+					}).catch(function(e){
+					    console.log("Error create child " + dump_error(e));
+					    non(e);
+					});
+				    }else{
+					//nj++;
+					update_structure(els[c], child, true, codef).then(function(){
+					    //nj--;if(nj===0) ok();else console.log("remains " + nj);
+					    oui(); //done_job();
+					}).catch(function(e){non(e)});
+					//els[c]=new template_object();
+				    }
+				    //console.log("After building child " + c + ' substruct ' + JSON.stringify(child));
 				}else{
-				    nj++;
+				    if(els[c]===undefined) els[c]=new template_object();
+				    //nj++;
 				    update_structure(els[c], child, true, codef).then(function(){
 					//nj--;if(nj===0) ok();else console.log("remains " + nj);
-					done_job();
-				    }).catch(function(e){fail(e)});
-				    //els[c]=new template_object();
+					oui();
+					//done_job();
+					
+				    }).catch(function(e){non(e)});
 				}
-				//console.log("After building child " + c + ' substruct ' + JSON.stringify(child));
+				
 			    }else{
-				if(els[c]===undefined) els[c]=new template_object();
-				nj++;
-				update_structure(els[c], child, true, codef).then(function(){
-				    //nj--;if(nj===0) ok();else console.log("remains " + nj);
-				    done_job();
-				    
-				}).catch(function(e){fail(e)});
+				console.log(tpl.name + "["+tpl.type+"] Strange element " + c + " undef !");
+				oui();
+				//nj--;if(nj===0) ok();else console.log("remains " + nj);
 			    }
 			    
-			}else{
-			    console.log(tpl.name + "["+tpl.type+"] Strange element " + c + " undef !");
-			    //nj--;if(nj===0) ok();else console.log("remains " + nj);
-			}
+			    
+			});
+			return prom;
 		    }
+
+		    var job_args=[];
+		    for(var c in obj){
+			job_args.push(c);
+			//console.log("Child " + c + " = " + obj[c] + " obj is " + JSON.stringify(obj));
+		    }
+		    nj++;
+		    series(process_child, job_args).then(function(){
+			done_job();
+		    }).catch(function(e){fail(e);})
 		}
 		
 		

@@ -1,24 +1,29 @@
-({ name:"Sym nav",
-  subtitle:"geant4 sym data view",
-  ui_opts:{ name_classes:[ "vertical_margin" ],
-    child_view_type:"tabbed" },
-  elements:{ source:{ type:"data_source" },
-    browser:{ type:"data_nav" },
-    particles:{ name:"Particles 3D",
-      ui_opts:{ root_classes:"container-fluid",
-        item_bottom:true,
-        item_classes:"container-fluid" },
-      elements:{ toolbar:{ ui_opts:{},
-          elements:{ enable:{ type:"bool",
-              ui_opts:{ type:"edit",
-                label:true },
-              name:" Enable " } } } },
-      widget_builder:function (){
-		    var particles=this;
-		    
-		    
-		    var nav=this.parent.get('browser');
-		    var filters=nav.get('filters');
+({
+    name:"Sym nav",
+    subtitle:"geant4 sym data view",
+    ui_opts:{
+	fa_icon : "globe",
+	//name_classes:[ "vertical_margin" ],
+	child_view_type:"tabbed"
+    },
+    elements:{
+	source:{ type:"data_source" },
+	browser:{ type:"data_nav", name : "Data browser" },
+	particles:{ name:"Particles 3D",
+		    ui_opts:{ root_classes:"container-fluid",
+			      item_bottom:true,
+			      item_classes:"container-fluid" },
+		    elements:{ toolbar:{ ui_opts:{},
+					 elements:{ enable:{ type:"bool",
+							     ui_opts:{ type:"edit",
+								       label:true },
+							     name:" Enable " } } } },
+		    widget_builder:function (ok, fail){
+			var particles=this;
+			
+			
+			var nav=this.parent.get('browser');
+			var filters=nav.get('filters');
 		    var enable=particles.get("enable");
 		    
 		    filters.listen('update',function(f){
@@ -104,15 +109,17 @@
 		    
 		    
 
-		    return renderer.domElement;
-
-		} } },
-  widget_builder:function (o, nav){
-
-	    var nav=this.get('browser');
-	    var source=this.get('source');
-	    nav.set_data_source(source);
-	    var binsize=1;
+	  ok(renderer.domElement);
+	  
+      }
+	      }
+	   },
+   widget_builder:function (ok, fail){
+       
+       var nav=this.get('browser');
+       var source=this.get('source');
+       nav.set_data_source(source);
+       var binsize=1;
 	    
 	    nav.listen('crossfilter_ready', function(){
 
@@ -235,5 +242,7 @@
 
 
 	    });
-	},
+
+       ok();
+   },
   key:"geant_nav" })

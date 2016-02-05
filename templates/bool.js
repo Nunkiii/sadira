@@ -1,4 +1,4 @@
-({ widget_builder:function (){
+({ widget_builder:function (ok, fail){
 	    var tpl_item=this;
 	    var ui_opts=tpl_item.ui_opts;
 	    tpl_item.ui_root.add_class('checkbox');
@@ -64,7 +64,7 @@
 		return tpl_item.ui;
 	    else {
 		tpl_item.ui_name.prependChild(tpl_item.ui);
-	    }
-	    
+  }
+    ok();
 	},
   key:"bool" })
