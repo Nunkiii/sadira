@@ -1,17 +1,16 @@
 ({
     key:"db_browser",
     name:"DB manager",
-  //type:"view",
+    //type:"view",
     ui_opts:{
 	root_classes:[ "" ],
 	child_classes:[ "row" ],
-	fa_icon:"database"
+	fa_icon: "database"
     },
     usi : {
     	elements : { 
     	    toolbar:{
     		type : "toolbar",
-
 		ui_opts : { root_classes : ["bg-faded"]},
     		elements : {
     		    tb:{

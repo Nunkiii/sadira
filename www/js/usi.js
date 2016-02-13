@@ -114,7 +114,8 @@ template_object.prototype.build_childs_ui=function(cnt){
 			if(el.ui_opts.attach!==false){
 			    if(tpl_root.ui_childs!==undefined)
 				tpl_root.ui_childs.add_child(el,el.ui_root);
-			    else console.log(tpl_root.type + " No ui child to attach " + el.type );
+			    else
+				;//console.log(tpl_root.type + " No ui child to attach " + el.type );
 			}
 			//var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
 			//console.log(tpl_root.name +  " adding child " + el.name + " OK!");
