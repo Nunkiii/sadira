@@ -1,6 +1,7 @@
 ({ name:"Select a file",
   ui_opts:{ fa_icon:"file" },
-  widget_builder:function (ui_opts, tpl_item){
+   widget_builder:function (ok, fail){
+  var tpl_item=this;
 	    new_event(tpl_item, 'changed');
 	    var sp=ce("span");
 	    sp.className="btn btn-default btn-file";
@@ -17,6 +18,6 @@
 		tpl_item.trigger('change', evt);
 	    });
 	    
-	    return sp;
+	    ok(sp);
 	},
   key:"local_file" })

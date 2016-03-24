@@ -699,9 +699,10 @@
 		
 		var buf=[];
 		//p.le.elements.enable.set_title(p.label);
-		p.le.elements.line_color.set_value(p.stroke);
+		//p.le.elements.line_color.set_value(p.stroke);
 		
-		if(p.le.elements.enable.value && p.data.length!==0){
+		//if(p.le.elements.enable.value && p.data.length!==0){
+		if( p.data.length!==0){
 		    p.path=context.append("path");
 		    p.path.attr("stroke", p.stroke);
 		    p.path.attr("stroke-width", p.stroke_width);

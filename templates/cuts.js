@@ -1,0 +1,13 @@
+({ type:"labelled_vector",
+  value:[ 0,
+    0 ],
+  value_labels:[ "Low",
+    "High" ],
+  min:"-100000",
+  max:"100000",
+  step:"100",
+  ui_opts:{ editable:true,
+    label:true,
+    item_classes:[ "inline" ] },
+  key:"cuts",
+  widget_builder:function (ok, fail){ ok(); } })

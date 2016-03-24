@@ -1,12 +1,13 @@
-({ key:"action",
-   widget_builder:function (ok,fail){
-      var action=this;
-      var ui_opts=action.ui_opts;
-      var ui;
-      var bnode=è(ui_opts.button_node) ? ui_opts.button_node : "button";
+({
+  key:"action",
+  widget_builder:function (ok,fail){
+    var action=this;
+    var ui_opts=action.ui_opts;
+    var ui;
+    var bnode=è(ui_opts.button_node) ? ui_opts.button_node : "button";
     
     if(è(action.link)){
-	
+      
 	ui = action.ui=ce("a");
 	ui.href=action.link;
 
@@ -32,7 +33,7 @@
 	ui.className="btn btn-default btn-sm";
     else
 	if(è(ui_opts.wrap_classes)){
-	    add_classes(ui_opts.item_classes, ui);
+      add_classes(ui_opts.item_classes, ui);
 	    delete ui_opts.item_classes;
 	}
 

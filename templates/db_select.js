@@ -5,7 +5,7 @@
     widget_builder:function (ok, fail){
 	var db_select=this;
 	
-	console.log("SELECT DB BUILD///");
+	
 	
 	//db_select.hide();
 	
@@ -50,7 +50,7 @@
 	    });
 	}
 	
-	console.log("DONE SELECT DB BUILD///");
+	
 	ok();
 	
     }

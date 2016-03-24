@@ -1,11 +1,15 @@
 ({
+    key:"labelled_vector",
     serialize_fields:[ "value_labels" ],
     serialize_childs:false,
+    value_labels : [],
     elements:{},
-    key:"labelled_vector",
     widget_builder:function (ok, fail){
 	
 	var lvec=this;
+
+	console.log("Building labelled vector !");
+	
 	var ui_opts=this.ui_opts;
 	//console.log(lvec.name + ' lvec builder before ! events =  ' + JSON.stringify(lvec.event_callbacks));
 
@@ -17,9 +21,10 @@
 	    
 	    if(typeof nv !='undefined'){
 		
-	    //console.log(lvec.name + " : TPLI set value " + JSON.stringify(nv));
+		//console.log(lvec.name + " : TPLI set value " + JSON.stringify(nv));
 		this.value=nv;
 		var l=this.value.length;
+
 		var ll=this.value_labels.length;
 		
 		if(nv.length>ll){
@@ -87,6 +92,8 @@
 	    //var vui=create_ui(ui_opts, lvec.inputs[v]);
 	    
 	}
+
+	lvec.log("Creating LVEC");
 	
 	multi(create_lv_item,itpls).then(function(res){
 	    res.forEach(function(w,v){

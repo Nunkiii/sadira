@@ -1,62 +1,67 @@
 ({
     key:"db_browser",
     name:"DB manager",
-    //type:"view",
+    type:"view",
     ui_opts:{
 	root_classes:[ "" ],
 	child_classes:[ "row" ],
 	fa_icon: "database"
     },
-    usi : {
-    	elements : { 
-    	    toolbar:{
-    		type : "toolbar",
-		ui_opts : { root_classes : ["bg-faded"]},
-    		elements : {
-    		    tb:{
-			//ui_opts : {root_classes : ["pull-right"]},
-    			type:"toolbar_section",
-    			elements:{
-			    db_select:{ type:"db_select",
-    					ui_opts:{ type:"toolbar",
-    						  fa_icon:"hand-pointer-o" } },
-    			    add:{
-				type:"dropdown",
-    				name:"Create",
-    				ui_opts:{ fa_icon:"plus",
-    					  type:"toolbar" },
-    				items:[ { label:"New MongoDB database",
-    					  icon:"/icons/brands/logo-mongodb.png" },
-    					{ label:"New MariaDB database",
-    					  icon:"/icons/brands/mariadb.png" } ],
-				// usi : {
-				//     elements : {
-				// 	login : {
-				// 	    ui_opts : {fa_icon : "paw"},
-				// 	    name : "Login",
-				// 	    type : "widget_launcher",
-				// 	    usi : {
-				// 		launch : {
-				// 		    type : 'login'
-				// 		}
-				// 	    }
-				// 	}
-				//     }
-				// },
+    // usi : {
+    // 	elements : { 
+    // 	    toolbar:{
+    // 		type : "toolbar",
+    // 		ui_opts : { root_classes : ["bg-faded"]},
+    // 		elements : {
+    // 		    tb:{
+    // 			//ui_opts : {root_classes : ["pull-right"]},
+    // 			type:"toolbar_section",
+    // 			elements:{
+    // 			    db_select:{ type:"db_select",
+    // 					ui_opts:{ type:"toolbar",
+    // 						  fa_icon:"hand-pointer-o" } },
+    // 			    add:{
+    // 				type:"dropdown",
+    // 				name:"Create",
+    // 				ui_opts:{ fa_icon:"plus",
+    // 					  type:"toolbar" },
+    // 				items:[ { label:"New MongoDB database",
+    // 					  icon:"/icons/brands/logo-mongodb.png" },
+    // 					{ label:"New MariaDB database",
+    // 					  icon:"/icons/brands/mariadb.png" } ],
+    // 				// usi : {
+    // 				//     elements : {
+    // 				// 	login : {
+    // 				// 	    ui_opts : {fa_icon : "paw"},
+    // 				// 	    name : "Login",
+    // 				// 	    type : "widget_launcher",
+    // 				// 	    usi : {
+    // 				// 		launch : {
+    // 				// 		    type : 'login'
+    // 				// 		}
+    // 				// 	    }
+    // 				// 	}
+    // 				//     }
+    // 				// },
 				
-    			    }
-    			}
-    		    }
-    		}
-    	    }
-    	}
-    },
+    // 			    }
+    // 			}
+    // 		    }
+    // 		}
+    // 	    }
+    // 	}
+    //},
     
     // elements:{
     // 	db_select:{ type:"db_select" }
     // },
     
     widget_builder:function (ok, fail){
+
+	this.load_doc({ db : 'sys', collection : "mongo_databases"});
+	
+	return ok();
+	
 	//console.log("DB_BROWSER BUILD!");
 	var browser=this;
 	//return ok();
@@ -76,7 +81,7 @@
 	
 	db_select.listen("database_selected", function(db){
 	    if(view===undefined){
-		create_widget({type : 'view'}).then(function(v){
+		create_widget({type : 'view'},  browser).then(function(v){
 		    view=v;
 		    browser.item_ui=view.ui_root;
 		    browser.ui_root.appendChild(view.ui_root);

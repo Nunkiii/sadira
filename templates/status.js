@@ -1,5 +1,5 @@
 ({ key:"status",
-  widget_builder:function (){
+  widget_builder:function (ok, fail){
     var tpl_item=this;
     var ui=tpl_item.ui=ce("span");ui.add_class("status");
     var flag=cc("span",ui);flag.add_class("flag");
@@ -16,6 +16,6 @@
 	    txt.innerHTML="unknown";
 	flag.style.backgroundColor=tpl_item.value;
     }
-    tpl_item.set_value();
-    return ui;
+      tpl_item.set_value();
+      ok(ui);
 } })

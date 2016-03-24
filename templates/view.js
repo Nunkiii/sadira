@@ -6,7 +6,7 @@
 	elements : {
 	    toolbar : {
 		name : "View TB",
-		type : 'toolbar',
+	type : 'toolbar',
 		//name : view.docw.name === undefined ? "Unnamed document" : view.docw.name,
 		//subtitle : view.docw.subtitle,
 		//ui_opts : { fa_icon :view.docw.ui_opts.fa_icon, icon : view.docw.ui_opts.icon },
@@ -52,7 +52,11 @@
 	    get_document(opts, function(err, doc_data){
 		loading=false;
 		view.wait(false);
-		if(err) return view.error( "<strong>While getting document</strong>" + err);
+		if(err){
+		    
+		    view.error( "<strong>While getting document</strong>" + err);
+		    return cb(err);
+		}
 		//view.message(JSON.stringify(doc_data), {title : "Doc data received"});
 		if(doc_data.length===0){
 		    view.set_subtitle("No document found " + JSON.stringify(opts));
@@ -60,15 +64,18 @@
 		}
 		    
 		view.doc_data=doc_data[0];
-		view.show_doc();
+		view.show_doc(cb);
 	    });
 	}
     
-	this.show_doc=function(){
+	this.show_doc=function(cb){
 	    //view.message(JSON.stringify(view.doc_data));
 	    view.wait("Preparing document ....");
 	    
-	    if(view.doc_data.ui_opts===undefined) view.doc_data.ui_opts={};
+	    if(view.doc_data.ui_opts===undefined)
+		view.doc_data.ui_opts={};
+
+	    //view.doc_data.ui_opts.close=view.ui_opts.close;
 	    view.doc_data.ui_opts.name_node='a';
 	    view.doc_data.ui_opts.name_classes='navbar-brand';
 	    
@@ -79,14 +86,15 @@
 		view.wait(false);
 		
 		view.integrate_widget(docw);
-
 		
-		return;
+		if(cb!==undefined)
+		    return cb();
 
 		//view.setup_tools();
 	    }).catch(function(e){
 		console.log("Error show doc: " + dump_error(e));
-		view.message("<strong>Building object template:</strong> " + view.doc_data.type + dump_error(e), { type : "danger"})
+		view.message("<strong>Building object template:</strong> " + view.doc_data.type + dump_error(e), { type : "danger"});
+		cb(e);
 	    });
 	}
 	

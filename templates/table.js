@@ -1,61 +1,93 @@
 ({
   name:"Data table",
-  ui_opts:{
-    root_classes:[ "container-fluid" ],
-    child_classes:[ "row vertical_margin vertical_padding" ],
-    item_classes:[ "big_vertical_margin" ] },
-  elements:{ nav:{ ui_opts:{ child_classes:[ "container-fluid vertical_margin vertical_padding" ],
-			     item_classes:[ "container-fluid big_vertical_margin" ],
-        in_root:"prepend" },
-		   elements:{ opts:{ name:"Config",
-				     ui_opts:{ root_classes:[ "container-fluid" ],
-					       child_classes:[ "container-fluid panel panel-info vertical_padding vertical_margin" ],
-					       name_node:"div",
-					       sliding:true,
-					       slided:false,
-					       label:true },
-				     elements:{ page_size:{ ui_opts:{ label:true,
-								      type:"edit",
-								      item_classes:[ "input-sm form-inline inline" ] },
-							    name:"Page size ",
-							    type:"double",
-							    min:5,
-							    max:200,
-							    step:1,
-							    value:10 } } },
-			      page_nav:{ ui_opts:{ root_classes:[ "col-sm-4 col-xs-12" ],
-						   
-            child_classes:[ "row" ] },
-          elements:{ left_nav:{ type:"action",
-              name:"<span class='fa fa-chevron-left'></span>",
-              ui_opts:{ item_classes:[ "btn btn-primary" ],
-                root_classes:[ "col-xs-3" ] } },
-            page_select:{ ui_opts:{ label:true,
-                type:"edit",
-                root_classes:[ "col-xs-6" ],
-                item_classes:[ "input-sm" ] },
-              type:"double",
-              min:0,
-              max:200,
-              step:1,
-              value:0 },
-            right_nav:{ type:"action",
-              name:"<span class='fa fa-chevron-right'></span>",
-              ui_opts:{ root_classes:[ "col-xs-3 text-right" ],
-                item_classes:[ "btn btn-primary" ] } } } },
-        slider:{ type:"double",
-          min:0,
-          max:100,
-          step:2,
-          ui_opts:{ label:true,
-            input_type:"range",
-            type:"edit",
-            root_classes:[ "col-sm-8 col-xs-12 vertical_margin" ],
-            item_classes:[ "input-sm" ] } } } } },
-
+    ui_opts:{
+	root_classes:[ "container-fluid" ],
+	child_classes:[ "row vertical_margin vertical_padding" ],
+	item_classes:[ "big_vertical_margin" ]
+    },
+    elements:{
+	nav:{
+	    ui_opts:{
+		child_classes:[ "container-fluid vertical_margin vertical_padding" ],
+		item_classes:[ "container-fluid big_vertical_margin" ],
+		in_root:"prepend"
+	    },
+	    elements:{
+		opts:{
+		    name:"Config",
+		    ui_opts:{
+			root_classes:[ "container-fluid" ],
+			child_classes:[ "container-fluid panel panel-info vertical_padding vertical_margin" ],
+			name_node:"div",
+			sliding:true,
+			slided:false,
+			label:true
+		    },
+		    elements:{
+			page_size:{
+			    ui_opts:{ label:true,
+				      type:"edit",
+				      item_classes:[ "input-sm form-inline inline" ] },
+			    name:"Page size ",
+			    type:"double",
+			    min:5,
+			    max:200,
+			    step:1,
+			    value:10
+			}
+		    }
+		},
+		page_nav:{
+		    ui_opts:{
+			root_classes:[ "col-sm-4 col-xs-12" ],
+			child_classes:[ "row" ]
+		    },
+		    elements:{
+			left_nav:{ type:"button",
+				   //name:"<span class='fa fa-chevron-left'></span>",
+				   ui_opts:{
+				       fa_icon : "chevron-left",
+				       type:"primary",
+				       root_classes:[ "col-xs-3" ]
+				   }
+				 },
+			page_select:{
+			    ui_opts:{ label:true,
+				      type:"edit",
+				      render_name : false,
+				      root_classes:[ "col-xs-6" ],
+				      item_classes:[ "input-sm" ]
+				      
+				    },
+			    type:"double",
+			    min:0,
+			    max:20000,
+			    step:1,
+			    value:0
+			},
+			right_nav:{ type:"button",
+				    //name:"<span class='fa fa-chevron-right'></span>",
+				    ui_opts:{
+					fa_icon : "chevron-right",
+					root_classes:[ "col-xs-3" ],
+					type:"primary"
+				    }
+				  }
+		    }
+		},
+		slider:{ type:"double",
+			 min:0,
+			 max:100,
+			 step:2,
+			 ui_opts:{ render_name : false,
+				   input_type:"range",
+				   type:"edit",
+				   root_classes:[ "col-sm-8 col-xs-12 vertical_margin" ],
+				   item_classes:[ "input-sm" ] } } } } },
+    
    widget_builder:function (ok, fail){
-	    // var car=ce('div'); car.className='carousel slide';car.setAttribute("data-ride", "carousel");car.setAttribute("data-interval", false); car.id='car0'
-	    // //var car_ind=cc('ol',car); car_ind.className='carousel-indicator';
+       // var car=ce('div'); car.className='carousel slide';car.setAttribute("data-ride", "carousel");car.setAttribute("data-interval", false); car.id='car0'
+       // //var car_ind=cc('ol',car); car_ind.className='carousel-indicator';
 	    // var car_in=tb_body.car_in=cc('div',car); car_in.className='carousel-inner'; car_in.setAttribute("role", "listbox");
 	    // var cac=tb_body.lefta=cc('a',car); cac.className='left carousel-control'; cac.setAttribute("role", "button"); cac.setAttribute("data-slide", "prev");
 		    // cac.setAttribute("href", "#car0");

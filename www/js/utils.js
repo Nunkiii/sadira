@@ -959,3 +959,229 @@ if(nodejs){
     }
     
 }
+
+function get_margins(s){
+    var w=0,h=0;
+    w=parseFloat(s.getPropertyValue("margin-left"))+parseFloat(s.getPropertyValue("margin-right"));
+    h=parseFloat(s.getPropertyValue("margin-top"))+parseFloat(s.getPropertyValue("margin-bottom"));
+    return {w: w, h: h};
+    
+}
+
+function get_paddings(s){
+    var w=0,h=0;
+    w=parseFloat(s.getPropertyValue("padding-left"))+parseFloat(s.getPropertyValue("padding-right"));
+    h=parseFloat(s.getPropertyValue("padding-top"))+parseFloat(s.getPropertyValue("padding-bottom"));
+    return {w: w, h: h};
+    
+}
+
+function get_borders(s){
+    var w=0,h=0;
+    w=parseFloat(s.getPropertyValue("border-left-width"))+parseFloat(s.getPropertyValue("border-right-width"));
+    h=parseFloat(s.getPropertyValue("border-top-width"))+parseFloat(s.getPropertyValue("border-bottom-width"));
+    return {w: w, h: h};
+}
+
+
+function get_overflow(wg){
+    var s=window.getComputedStyle(wg,null);
+    var m=get_margins(s);
+    var p=get_paddings(s);
+    var b=get_borders(s);
+    var o={w: m.w+b.w+p.w, h: m.h+b.h+p.h, sty : s, m : m, p : p, b : b};
+    //console.log("overflow " + JSON.stringify(o,null,2));
+    return o;
+}
+
+
+function divider(cnt, frac, or, heightf){
+
+    var ho=ù(or)? false : or;
+    if(ù(frac)) frac=50.0;
+
+    var div=this;
+
+    new_event(this,"drag_start");
+    new_event(this,"drag_end");
+    new_event(this,"drag");
+    
+    var mouseconf=false;
+
+    this.set_orientation=function(or){
+	ho=or;
+	//this.update();
+    }
+	var HH;
+
+    this.update=function() {
+
+	if(HH===undefined)HH=cnt.clientHeight; //parseFloat(divnoded.sty.height)+divnoded.h
+	//if(ù(ho)) throw("No direction !") ; //ho=false;
+	var htop=heightf();
+
+	//console.log("HH is " + HH);
+	
+	if(isNaN(htop) ){
+	    console.log("Nan value for htop !");
+	    return;
+	}
+
+	var head=document.body.querySelector("header");
+	var foot=document.body.querySelector("footer");
+
+	var wh=window.innerHeight+"px";	
+	var hstring="calc( "+wh;
+	if(è(head)){
+	    var hs=window.getComputedStyle(head,null);
+	    hstring+=" - "+ hs.height;
+	}
+	//console.log("Head height " + JSON.stringify(hs,null,5));
+	if(è(foot)){
+	    var fs=window.getComputedStyle(foot,null);
+	    hstring+=" - "+ fs.height;
+	}
+
+	hstring+=" - " + htop +"px - 20px )";
+	//console.log("Head height " + hs.height + "footer height " + fs.height + " window " + wh + " htop " + htop);
+	//console.log("Setting height to ["+hstring+"]");
+
+	
+	hstring="400px";
+
+	var l=this.left, r=this.right;
+	var divnode = this.divnode;
+	
+	if(ho){
+	    //divnode.style.height="3px";
+	    //divnode.style.width = "100%";
+	}else{
+	    //divnode.style.height = "calc(100% - 1em)";
+	    //divnode.style.top = "0px";
+	    //divnode.style.width="3px";
+	}
+	
+
+	var cntd=get_overflow(cnt);
+	var leftd=get_overflow(l);
+	var rightd=get_overflow(r);
+	var divnoded=get_overflow(divnode);
+	
+	//var sty=document.defaultView.getComputedStyle(cnt);
+	
+
+	// parseFloat(cntd.sty.paddingTop)+parseFloat(cntd.sty.paddingBottom)+
+	//     parseFloat(cntd.sty.marginTop)+parseFloat(cntd.sty.marginBottom)
+	//     : parseFloat(cntd.sty.paddingLeft)+parseFloat(cntd.sty.paddingRight)+
+	//     parseFloat(cntd.sty.marginRight)+parseFloat(cntd.sty.marginLeft);
+	//var cnth=parseFloat(sty.height);
+	//	var divh=sty.height;
+	
+	
+	//sty=document.defaultView.getComputedStyle(l);
+
+	//var ml=ho?get_margins(leftd.sty).h:get_margins(leftd.sty).w;
+
+	//var divh=get_inner_dim(leftd.sty,ho);
+	//console.log("Container : w=" + w + " mtot = " + ml );//+ " sty =  " + JSON.stringify(sty));
+	//console.log("Left : w=" + sty.width + " mtot = " + ml + " clientw=" + this.left.clientWidth);
+
+	//var mr=ho?get_margins(rightd.sty).h:get_margins(rightd.sty).w;
+
+	//console.log("Right : w=" + sty.width + " mtot = " + mr + " clientw=" + this.right.clientWidth);
+	//sty=document.defaultView.getComputedStyle(divnode);
+	
+	
+	//if(ho) wp-=0;
+	//console.log("Width tot margins : " + (leftd.w+cntd.w) + " divp="+divp + " nrl " + mrl + " divw " + divw);
+
+	//var cntpad=ho? cntd.m.h+cntd.b.h : cntd.m.w+cntd.b.w;
+	var cntpad=ho? cntd.p.h : cntd.p.w; 
+
+	var wreal=ho?parseFloat(cntd.sty.height):parseFloat(cntd.sty.width);
+	// var wreal=ho?
+	//     cnt.clientHeight
+	//     :cnt.clientWidth;
+	//var w=wreal-cntpad;
+
+	
+
+ 	var divw=ho?
+	    parseFloat(divnoded.sty.height)+divnoded.h
+	    :parseFloat(divnoded.sty.width)+divnoded.w;
+	//var wp=wreal-mr-ml-divw;
+	
+	var wp= ho ? HH : wreal-cntpad-divw;
+	
+	if(ho){
+	    var wl=(frac/100.0*wp);//-leftd.h; //-cntd.w;
+	    var wr=((1.0-frac/100.0)*wp);//-rightd.h; //-cntd.w;
+	}else{
+	    var wl=(frac/100.0*wp);//-leftd.w; //-cntd.w;
+	    var wr=((1.0-frac/100.0)*wp);//-rightd.w; //-cntd.w;
+	}
+
+	//console.log("Wcont = " + wreal + " padd " + cntpad + " divw " + divw + " -> " + wp + " WL=" + wl + " WR="+wr + " WSUM=" + (wl+wr) );
+	//console.log("HO [[" + ho +"]] wl=" + wl + " wr=" + wr + " wt=" + (wl+wr) + " wl+wr+marg="+ (wl+wr+mr+ml)+" wcnt= " + w);
+	l.style.flex = "0 1 "+wl + 'px';
+	r.style.flex = "0 1 "+wr + 'px';
+	
+
+	//console.log("HO= "+ho+" frac "+frac+" divw=" + divw + "  wp=" + wp + " mr="+ mr + " ml " + ml +" wcnt= " + w);
+
+	if(!mouseconf){
+
+	    mouseconf=true;
+	    //console.log("Creating drag events");
+	    divnode.addEventListener('mousedown', function(e) {
+
+
+		e.preventDefault();
+		var last = ho? e.pageY : e.pageX;
+		//console.log("DRAG BEGIN " + last);
+		
+		document.documentElement.add_class('dragging');
+		document.documentElement.addEventListener('mousemove', on_move, true);
+		document.documentElement.addEventListener('mouseup', on_up, true);
+		
+		div.trigger("drag_start");
+		
+		function on_move(e) {
+		    
+		    e.preventDefault();
+		    e.stopPropagation();
+
+		    var pos=(ho ? e.pageY : e.pageX);
+		    var delta = pos - last;
+		    last = pos;
+		    //delta -= last;
+
+		    var sty=document.defaultView.getComputedStyle(cnt);
+		    var ma=get_margins(sty);
+		    
+		    var m=ho? ma.h:ma.w; //(sty.marginBottom+sty.marginTop) : (sty.marginLeft+sty.marginRight);
+		    var sz=ho? sty.height : sty.width;
+		    frac += delta /  (parseFloat(sz)-m) * 100;
+		    //console.log("delta="+delta + " m= " + m + " dim " + sty.width + " frac " + frac);		    
+		    div.trigger("drag");
+		    div.update(ho);
+		    
+		}
+		
+		function on_up(e) {
+		    e.preventDefault();
+		    e.stopPropagation();
+		    document.documentElement.remove_class('dragging');
+		    //document.documentElement.className = document.documentElement.className.replace(/\bdragging\b/, '');
+		    document.documentElement.removeEventListener('mousemove', on_move, true);
+		    document.documentElement.removeEventListener('mouseup', on_up, true);
+		    //console.log("Done move..."); 
+		    div.trigger("drag_end");
+		}
+		
+	    }, false);
+	}
+    }
+
+}
+

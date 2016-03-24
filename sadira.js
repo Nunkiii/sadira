@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // This is Qk/Sadira.
-// Written by Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013-2015) @ INAF/CNR, Bologna, Italy.
+// Written by Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013-2015) @ INAF, Bologna, Italy.
 
 var fs = require("fs");
 var path = require("path");
@@ -479,12 +479,62 @@ _sadira.prototype.start_session_handling = function (){
     
 }
 
+_sadira.prototype.import_old_templates = function (){
+    GLOBAL.builders={};
+
+    //var tpls=require('../XD-1/www/js/xd1_templates');
+    
+    //require('../XD-1/www/js/xd1_layer');
+    //require('../XD-1/www/js/xd1_sbig');
+    //require('../XD-1/www/js/xd1');
+    //require('../XD-1/www/js/image_reduction');
+
+    var tpls=require('../minispectro/www/js/videocap');
+    
+    var toSource = require('tosource');
+    var nt=0;
+
+    function create_obj(t, tname){
+		console.log("name " + tname + " key " + t.key + " : " + t.name + ":\n------------------");
+	create_object("template_object").then(function(obj){
+	    obj.name=t.key;
+	    obj.subtitle=t.name;
+	    
+	    if(builders[tname]!==undefined)
+		t.widget_builder=builders[tname];
+
+	    if(t.widget_builder===undefined) t.widget_builder=function(ok, fail){ ok(); };
+	    
+	    
+	    obj.set("code",toSource(t));
+	    //break;
+		    
+	    obj.write_source_file("templates/");
+	    
+	    console.log("Source : " + toSource(t));
+	    //console.log("DATA:" +  JSON.stringify(get_template_data(obj), null, 5));
+	    
+	    //if(t.widget_builder)
+	    //		console.log("BUILDER : " + t.widget_builder.toString());
+	    
+	    nt++;
+	}).catch(function(e){ console.log("Hoooo : " + e);});
+
+    }
+    
+    for (var tname in tpls){
+	var t=tpls[tname];
+	t.key=tname;
+	create_obj(t,tname);
+	
+    }
+}
+
 /* Start master process */
 
 _sadira.prototype.start_master = function (){
 
     var sad=this;
-    var toSource = require('tosource');
     
     sad.load_mongodb(function(error){
 	if(error){
@@ -859,28 +909,32 @@ _sadira.prototype.load_routes = function (){
 
     sad.app.get('/evolve_templates',  function(req, res, next) {
 	
-	var toSource = require('tosource');
-	var fs = require('fs');
+	//sad.import_old_templates();
+
+	res.json({ msg : "disabled"});
+	
+	// var toSource = require('tosource');
+	// var fs = require('fs');
 	
 	
-	for(var tplname in sad.tmaster.templates){
+	// for(var tplname in sad.tmaster.templates){
 
-	    var tpl=sad.tmaster.templates[tplname];
+	//     var tpl=sad.tmaster.templates[tplname];
 
-	    if(tpl.widget_builder===undefined){
-		//if();
-	    }
+	//     if(tpl.widget_builder===undefined){
+	// 	//if();
+	//     }
 	    
-	    var fname="sadira/www/js/templates/"+tplname+".js";
-	    console.log("writing file " + fname );
-	    fs.writeFile(fname, "("+toSource(tpl)+")", function(err) {
-		if(err) {
-		    return console.log(err);
-		}
-	    });
+	//     var fname="sadira/www/js/templates/"+tplname+".js";
+	//     console.log("writing file " + fname );
+	//     fs.writeFile(fname, "("+toSource(tpl)+")", function(err) {
+	// 	if(err) {
+	// 	    return console.log(err);
+	// 	}
+	//     });
 
 	    
-	};
+	// };
 	
 	
     });

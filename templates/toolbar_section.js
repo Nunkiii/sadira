@@ -6,8 +6,8 @@
 	child_view_type:"root"
     },
     widget_builder:function (ok, fail) {
-
-	console.log("TBS BUILD");
+	
+	
 	var p=this.get_parent();
 	if(p.type!=="toolbar"){
 	    if(p.toolbar !== undefined){
@@ -15,7 +15,7 @@
 		//p.toolbar.dnav.prependChild(this.ui_root);
 	    }
 	}
-	console.log("TBS DONE");
+	
 	ok();
     }
     

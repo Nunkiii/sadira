@@ -1,5 +1,5 @@
 ({ name:"Number",
-  subtitle:"Not set",
+   //subtitle:"Not set",
   ui_opts:{ root_classes:[ "form-group" ] },
   widget_builder:function (ok, fail){
 

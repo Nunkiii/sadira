@@ -342,6 +342,7 @@ local_templates.prototype.get_template=function(ttype){
 		else
 		    console.log("Loading Template "+ ttype + "...");//" CODE_DATA : " +  code_data);
 		get_document({ collection : "templates", path : [{ name : 'name', value : ttype}]}, function(err, tpl_data){
+		    
 		    if(window.root_widget!==undefined)
 			root_widget.wait(false);
 		    
@@ -359,15 +360,18 @@ local_templates.prototype.get_template=function(ttype){
 			return reject("Template not found [" + ttype + "] : ");
 		    
 		    var code_data=tpl_data[0].els.code.value;
-		    
+
+		    root_widget.wait("Building template " + ttype);
 		    
 		    
 		    var tpl_code;
-		    try{ 
+		    try{
+			
 			tpl_code=eval(code_data);//"try{ " + code_data + "}catch(e){console.log('EVALERR: ' + e);}");
 			//console.log("Eval "+ttype+" DONE !");
 			lt.set_template(ttype,tpl_code);
 			resolv(lt.templates[ttype]);
+			root_widget.wait(false);
 		    }
 		    catch(e){
 			console.log("Error EVAL " + dump_error(e));
@@ -712,6 +716,7 @@ template_object.prototype.build=function(opts_in){
 
 	var opts=opts_in===undefined? {}:opts_in;
 	
+	//console.log(tpl_node.name + " t " + tpl_node.type + " build!");
 	
 	if(opts.recurse===true){
 	    function build_child(c){
@@ -721,7 +726,7 @@ template_object.prototype.build=function(opts_in){
 	    }
 	    var childs=[];
 	    for(var e in tpl_node.elements){
-		//console.log("Building " + tpl_node.elements[e].type);
+		//console.log("Building ["+e+"]" + tpl_node.elements[e].type);
 		childs.push(tpl_node.elements[e]);
 	    }
 	    if(childs.length===0) return build_object();
@@ -736,17 +741,20 @@ template_object.prototype.build=function(opts_in){
 	}else build_object();
 
 	function build_object(){
+
 	    //console.log(tpl_node.name + " t " + tpl_node.type + " build object");
+
 	    // tpl_node.common_builder.call(tpl_node);
 	    
 	    // if(nodejs)
 	    // 	tpl_node.common_object_builder.call(tpl_node);
 	    
-	    if(tpl_node.builders===undefined) return ok();
+	    if(tpl_node.builders===undefined)
+		return ok();
 		
 	    function run_builder(b){
 		var p=new Promise(function(good,bad){
-		    //console.log("\x1b[31;1m Calling builder for " + tpl_node.type + " recurse " + opts.recurse+"\x1b[0m");
+		    //console.log("\x1b[31;1m Calling builder for " + tpl_node.type + " N " + tpl_node.name+ " recurse " + opts.recurse+"\x1b[0m");
 		    var it=setInterval(function(){
 			console.log("Still calling build on " + tpl_node.type + " N " + tpl_node.name);
 		    }, 1000);
@@ -771,6 +779,7 @@ template_object.prototype.build=function(opts_in){
 	    }).catch(function(e){
 		fail(e);
 	    });
+
 	    return;
 	    
 	    //console.log(this.name + " t " + this.type + " build NB=" + bl);
@@ -819,7 +828,7 @@ template_object.prototype.build=function(opts_in){
 //     return objects;
 // }
 
-local_templates.prototype.create_object_from_data=function(data){
+local_templates.prototype.create_object_from_data=function(data, parent){
     var lt=this;
     
     var promise = new Promise(function(resolve,reject){
@@ -839,7 +848,7 @@ local_templates.prototype.create_object_from_data=function(data){
 		if(nodejs)
 		    obj.build( {recurse : true}).then(function(o){ conclude(); }).catch(reject);
 		else{
-		    obj.create_ui().then(function(){
+		    obj.create_ui(parent).then(function(){
 			conclude();
 		    }).catch(reject);
 		}
@@ -864,7 +873,7 @@ local_templates.prototype.create_object_from_data=function(data){
 local_templates.prototype.create_object=function(template){
     var lt=this;
     var promise=new Promise(function(resolv, reject){
-
+	
 	lt.build_object(template).then(function(object){
 	    
 	    object.build({recurse: true}).then(function(){
@@ -1070,7 +1079,9 @@ local_templates.prototype.build_object=function(template, opt){
 		}
 		
 		
-		//console.log(object.name + "["+object.type+"] update_structure with tpl " + JSON.stringify(tpl));// + " builder " + tpl.object_builder);
+		//console.log(object.name + "["+object.type+"] update_structure with tpl "+ " builder " + tpl.widget_builder);
+
+		//+ JSON.stringify(tpl));// 
 		for(var p in tpl){
 		    
 		    var obj=tpl[p];

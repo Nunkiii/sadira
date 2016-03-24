@@ -170,6 +170,26 @@ pre {
   padding : 0px;
 }
 
+.startup {
+position: relative;
+top: 50%;
+height: 100vh;
+line-height: 30vh;
+border-top : 20vh solid lightgray;
+border-bottom : 20vh solid lightgray;
+vertical-align: middle;
+text-align: center;
+}
+
+.full_page {
+  position:absolute;
+      top:0;
+          bottom:0;
+	      left:0;
+	          right:0;
+		      overflow:hidden;
+		
+	   }		
 
 .table_cell {
   padding : .5em;

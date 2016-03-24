@@ -1489,7 +1489,6 @@ function create_ui(global_ui_opts, tpl_root, depth){
 	//console.log(tpl_root.name + " SETUP BBOX div is " + tpl_root.bbox.ui_childs.div );
     }
 
-
     tpl_root.add_bbox_item=function(item, key){
 	setup_bbox();
 	tpl_root.bbox.add_child(item, key);

@@ -4,7 +4,7 @@
     ui_opts:{ update_label:true },
     widget_builder:function (ok, fail){
 
-	console.log("DROPDOWN BUILD");
+	//console.log("DROPDOWN BUILD");
 	
 	var dropdown=this;
 
@@ -54,7 +54,7 @@
 		var ico=get_icon(item);
 		if(ico!==undefined) a.appendChild(ico);
 		a.innerHTML+=item.label;
-		console.log("Adding item " + item.label);
+		//console.log("Adding item " + item.label);
 		a.setAttribute('data-id',id);
 		a.addEventListener('click', function(){
 		    //select( dd.items(li.getAttribute('data-id')));
@@ -75,7 +75,7 @@
 		
 		if(dropdown.items===undefined) return;
 		var id=0;
-		console.log("Settig up set items ! " + dropdown.items.length);
+		//console.log("Settig up set items ! " + dropdown.items.length);
 		dropdown.items.forEach(function(item){
 		    dropdown.add_item(item, id);
 		    id++;
@@ -142,7 +142,7 @@
 		// },3000);
 		
 		// return;
-		console.log("DONE DROPDOWN BUILD");
+		//console.log("DONE DROPDOWN BUILD");
 		ok(div);
 
 	    }

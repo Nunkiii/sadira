@@ -1,6 +1,7 @@
 ({ key:"text",
-  widget_builder:function (ui_opts, tpl_item){
-
+   widget_builder:function (ok, fail){
+       var tpl_item=this;
+       var ui_opts=this.ui_opts;
     var div=tpl_item.ui=ce("div");
     var ui=tpl_item.preui=cc("pre",div);
     //ui.innerHTML="Hello!!!!!!!!!!!!!!"
@@ -43,5 +44,5 @@
     }
 
     tpl_item.set_value();
-    return tpl_item.ui;
+       ok(tpl_item.ui);
 } })

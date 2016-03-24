@@ -24,13 +24,13 @@
 	
 	var tbid=Math.random().toString(36).substring(2);
 	var but=ce("button");
-
+	
 	but.className="navbar-toggler hidden-sm-up pull-right";
 	but.setAttribute('data-toggle','collapse');
 	but.setAttribute('data-target','#'+tbid);
 
 	but.innerHTML="&#9776;";
-
+	
 	cnt.appendChild(but);
 	
 	//var sp=cc("span",but); sp.className="sr-only"; sp.innerHTML="Toggle navigation";
@@ -54,8 +54,21 @@
 	
 	//console.log("Building toolbar " + this.name + " OKOK ");
 
+	if(this.ui_opts!== undefined && this.ui_opts.close===true){
+	    create_widget({
+		type : 'toolbar_section',
+		ui_opts : {},
+		elements : {
+		    close : { type : 'button', ui_opts : { fa_icon : "close"}
+			    }
+		}
+	    }, tb).then(
+		function(tbsec){
+		    tb.log("Created close section");
+		});
+	}
 	
 	ok();
-    //ok(cnt);
+	    //ok(cnt);
     }
 })

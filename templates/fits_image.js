@@ -1,0 +1,13 @@
+({ elements:{ fits_file:{ name:"FITS file",
+      type:"local_file",
+      ui_opts:{ editable:true } },
+    fits_meta:{ name:"Image location",
+      elements:{ du:{ name:"Data unit",
+          type:"double",
+          min:"0",
+          max:"64",
+          step:"1" } } },
+    image:{ name:"Image",
+      type:"image" } },
+  key:"fits_image",
+  widget_builder:function (ok, fail){ ok(); } })

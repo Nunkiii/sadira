@@ -1,6 +1,6 @@
 ({ ui_opts:{ type:"edit" },
   key:"combo",
-  widget_builder:function (){
+  widget_builder:function (ok, fail){
       var combo=this;
       var ui_opts=combo.ui_opts;
       var ui;
@@ -136,5 +136,5 @@
 
     combo.set_options();
     combo.set_default_value();
-    return ui;
+    ok(ui);
 } })

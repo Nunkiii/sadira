@@ -1,6 +1,8 @@
 ({ key:"date",
-  widget_builder:function (ui_opts, date){
+   widget_builder:function (ok, fail){
 
+      var date=this;
+      var ui_opts=date.ui_opts;
     date.ui= ui_opts.type==='edit' ? ce("input") : ce("span");
     date.ui.type="date";
 
@@ -21,5 +23,5 @@
     config_common_input(date);
     
 
-    return date.ui;
+       ok(date.ui);
 } })

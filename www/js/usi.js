@@ -1,4 +1,65 @@
 
+function storage_serialize(item, object){
+    var obj_data=get_template_data(object);
+    var bs=BSON.serialize(obj_data);
+    var b64=ab2b64(bs);
+    localStorage.setItem(item, b64);
+};
+
+function storage_deserialize(item, opts){
+    
+    if(opts===undefined) opts={};
+    
+    try{
+	var storage_string=localStorage.getItem(item);
+	
+	if(storage_string===null){
+	    console.log("Cannot get storage string " + item);
+	    return undefined;
+	}
+	//this.debug("storage string not found : " + item );
+	else{
+	    var odata=BSON.deserialize(base64DecToArr(storage_string));
+	    if(opts.data===true) return odata;
+	    var o=opts.object;
+	    if(o===undefined)
+		o=tmaster.create_object_from_data(odata);
+	    
+	    else{
+		// var oldo=o;
+		
+		// o=tmaster.create_object_from_data(odata);
+		// //var or=o.ui_root; //.parentNode;
+		// if(o.key!==undefined){
+		//     oldo.parent.update_child(o,oldo.key);
+		// }
+
+		// delete oldo;
+		//delete o.ui_root;
+		//delete o.ui_name;
+		//delete o.ui_childs;
+
+		//console.log("loading ["+item+"] on " + o.name +" data : " + JSON.stringify(odata));
+		set_template_data(o, odata);
+
+		//create_ui({},o);
+		//o.parentNode.replaceChild(or,o.ui_root);
+		
+	    }
+	    // if(o.rebuild_name!==undefined)
+	    // 	o.rebuild_name();
+	    return o;
+	    
+	}
+    }
+    catch (e){
+	throw Error("While loading browser data @ " + item + ": " + dump_error(e));
+    }
+
+    return undefined;
+};
+
+
 function create_widget(t, parent){
     
     var promise=new Promise(function(resolv,reject){
@@ -6,11 +67,25 @@ function create_widget(t, parent){
 	if(t===undefined)
 	    return console.log("Building UNDEFINED widget !!");
 	
-	//console.log("Building widget " + t.type);
-
+	//console.log("Building widget " + t.type + " EXT SCR ? " + t.ext_scripts);
+	
+	
 	function build_widget(w){
 	    //console.log("Building widget " + t.type + " tpl name = " + w.name) ;
 	    //w.ui_root=ce("div"); w.ui_root.innerHTML=w.name + ", " + w.type + " : " + dump_error(w.value);
+	   
+	    if(w.ext_scripts!==undefined){
+		
+		w.ext_scripts.forEach(function(scr){
+		    console.log("Loading ext script [" + scr + "]");
+		    var fileref=document.createElement('script');
+		    fileref.setAttribute("type","text/javascript");
+		    fileref.setAttribute("src", scr);
+		    if (typeof fileref!=="undefined")
+			document.getElementsByTagName("head")[0].appendChild(fileref);
+		});
+	    }
+
 	    try{
 		w.create_ui().then(function(){resolv(w);}).catch(function(e){reject(e);});
 	    }
@@ -147,9 +222,11 @@ template_object.prototype.build_childs_ui=function(cnt){
 
 
 
-template_object.prototype.create_ui=function(){
+template_object.prototype.create_ui=function(parent){
 
     var tpl_root=this;
+
+    if(parent!==undefined) this.parent=parent;
     
     var prom = new Promise(function(ok,fail){
 	
@@ -223,6 +300,7 @@ template_object.prototype.create_ui=function(){
 	    tpl_root.setup_title();
 	    tpl_root.setup_childs().then(function(){
 		tpl_root.setup_item().then(function(){
+		    tpl_root.setup_save();
 		    ok();
 		}).catch(fail);
 	    }).catch(fail);
@@ -230,6 +308,20 @@ template_object.prototype.create_ui=function(){
     });
     
     return prom;
+    
+}
+
+
+template_object.prototype.view_update_childs=function(){
+    
+	//this.trigger("view_update");
+    for (var e in this.elements){
+	//console.log(this.name + " update childs for " + e);
+	if(this.elements[e].trigger!==undefined)
+	    this.elements[e].trigger("view_update");
+	if(this.elements[e].view_update_childs!==undefined)
+	    this.elements[e].view_update_childs();
+    }
     
 }
 
@@ -461,8 +553,6 @@ template_object.prototype.load_browser_data=function(){
     
 }
 
-
-
 template_object.prototype.setup_title=function(){
     var tpl_root=this;
     var ui_opts=tpl_root.ui_opts;    
@@ -492,7 +582,7 @@ template_object.prototype.setup_title=function(){
 	    
 	    //name_node=è(ui_opts.title_node) ? ui_opts.title_node : 'div';  //(è(ui_opts.label) ?  "label": hnode);
 	}
-	var tb=tpl_root.get("toolbar");
+	var tb=tpl_root.get_toolbar();
 
 	if(tb!==undefined ){
 	    if(tb.ui_root!==undefined){
@@ -503,6 +593,7 @@ template_object.prototype.setup_title=function(){
 		})
 		tb.ui_opts.fa_icon=tpl_root.ui_opts.fa_icon;
 		tb.ui_opts.icon=tpl_root.ui_opts.icon;
+		tb.ui_opts.close=tpl_root.ui_opts.close;
 		tb.set_title(tpl_root.name,tpl_root.subtitle);
 		tb.rebuild_name();
 		
@@ -550,9 +641,16 @@ template_object.prototype.setup_title=function(){
     }
 }
 
+template_object.prototype.log=function(msg){
+//    console.log(this.type + "["+this.name+"] : " + msg);
+
+}
+
 template_object.prototype.get_toolbar=function(){
-    if(this.usi!==undefined && this.usi.elements!==undefined && this.usi.elements.toolbar!==undefined)
+    if(this.usi!==undefined && this.usi.elements!==undefined){
+	//this.log("Toolbar is " + this.usi.elements.toolbar);
 	return this.usi.elements.toolbar;
+    }
 }
 
 template_object.prototype.hide_content=function(hide){
@@ -570,13 +668,17 @@ template_object.prototype.integrate_widget=function(w){
 
     if(toolbar===undefined) return;
 
+    toolbar.name=w.name;
+    toolbar.subtitle=w.subtitle;
+    
+    
 //    this.message("Tb name is " + toolbar.ui_name.innerHTML);
 //    return;
 
     var wtb=w.get_toolbar();
     
     if(wtb!==undefined){
-	
+
 	toolbar.ui_root.replaceChild(wtb.ui_name, toolbar.ui_name);
 
 	for(var e in wtb.elements)
@@ -595,9 +697,47 @@ template_object.prototype.integrate_widget=function(w){
 	    toolbar.ui_name=w.ui_name;
 	    
 	}
+	if(w.usi===undefined) w.usi={};
+	if(w.usi.elements===undefined) w.usi.elements={};
+
+	this.log("Setting toolbar to " + w.name);
+	
+	w.usi.elements.toolbar=toolbar;
     }
     
 }
+
+template_object.prototype.browse=function(w){
+    var o=this;
+    var tb=this.get_toolbar();
+    this.log("BROWSE TBN " + tb.name + " --> widget " + w.name);
+    this.last_ui=this.ui_childs.div;
+
+    var new_name=ce("div");
+    
+    var last_a=cc("a",new_name); last_a.href="javascript:void(0)";
+    tb.ui_root.replaceChild(new_name, tb.ui_name);
+    //last_a.appendChild(tb.ui_name);
+    last_a.innerHTML=tb.ui_name.innerHTML;
+
+    last_a.addEventListener("clicked", function(){
+	o.log("reverting UI...");
+	o.ui_root.replaceChild(o.last_ui, w.ui_root);
+    });
+
+    new_name.innerHTML+="/";
+    new_name.appendChild(w.ui_name);
+    
+    //tb.ui_name.innerHTML="";//+="/"+w.name;
+    //tb.ui_name.appendChild(last_a);
+    //tb.ui_name.innerHTML+="/"+w.name;
+    
+    
+    o.ui_root.replaceChild(w.ui_root, o.ui_childs.div);
+	
+}
+    
+
 
 template_object.prototype.show_widget=function(w){
     var tpl=this;
@@ -633,7 +773,7 @@ template_object.prototype.rebuild_name=function(){
     var ui_opts=tpl_root.ui_opts;
     var ui_name=tpl_root.ui_name;    
     
-    //console.log("rebuild name " + tpl_root.name + " ui_name = " + tpl_root.ui_name.nodeName);
+    this.log("rebuild name close " + ui_opts.close );
     //ui_name.innerHTML="";
     var name_node;
     
@@ -657,7 +797,7 @@ template_object.prototype.rebuild_name=function(){
     
     ui_name.innerHTML=" "+tpl_root.get_name_text()+" ";
     
-    if(ui_opts.close)
+    if(ui_opts.close===true)
 	add_close_button(tpl_root,ui_name);
     
     if(è(tpl_root.subtitle)){
@@ -857,18 +997,18 @@ template_object.prototype.setup_intro=function(node){
     }
 }
 
-template_object.prototype.add_close_button=function(e, node, prep){
+// template_object.prototype.add_close_button=function(e, node, prep){
 
-    var tpl_root=this;
-    var ui_opts=tpl_root.ui_opts;
-}
+//     var tpl_root=this;
+//     var ui_opts=tpl_root.ui_opts;
+// }
 
 function add_close_button(e, node, prep){
 
     prep = prep || false;
     e.ui_opts.close=true;
 
-    //console.log(e.name + " : adding CLOSE X");
+    e.log("  adding CLOSE X");
     if(node.has_button===undefined){
 	node.has_button=true; 
 	
@@ -897,9 +1037,9 @@ template_object.prototype.switch_edit_mode=function(){
     var ui_opts=tpl_root.ui_opts;
     
     if(ui_opts.type=="edit"){
-	ui_opts.type=global_ui_opts.type="short";
+	ui_opts.type="short";
     }else{
-	ui_opts.type=global_ui_opts.type="edit";
+	ui_opts.type="edit";
     }
     
     //console.log("switching edit mode to " + ui_opts.type);
@@ -907,23 +1047,30 @@ template_object.prototype.switch_edit_mode=function(){
     
 }
 
-template_object.prototype.switch_edit_mode=function(){
-    var tpl_root=this;
-    var ui_opts=tpl_root.ui_opts;
-
-    tpl_root.enable=function(state){
-	if(!state)
-	    this.ui_root.add_class("disabled");
-	else
-	    this.ui_root.remove_class("disabled");
-    }
+template_object.prototype.enable=function(state){
+    if(!state)
+	this.ui_root.add_class("disabled");
+    else
+	this.ui_root.remove_class("disabled");
 }
+
+// template_object.prototype.switch_edit_mode=function(){
+//     var tpl_root=this;
+//     var ui_opts=tpl_root.ui_opts;
+
+//     tpl_root.enable=function(state){
+// 	if(!state)
+// 	    this.ui_root.add_class("disabled");
+// 	else
+// 	    this.ui_root.remove_class("disabled");
+//     }
+// }
 
 template_object.prototype.rebuild=function (){
     var tpl_root=this;
     var ui_opts=tpl_root.ui_opts;
     
-    tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
+  //  tpl_root.ui_opts.slided=slided;//!tpl_root.slided;
     //console.log("Rebuild " + tpl_root.name+"  slided = " + slided);
     
     tpl_root.ui_root_old=tpl_root.ui_root;
@@ -931,9 +1078,9 @@ template_object.prototype.rebuild=function (){
     
     delete tpl_root.ui_name;
     
-    if(ui_opts.type!==undefined)global_ui_opts.type =ui_opts.type;
+    //if(ui_opts.type!==undefined)global_ui_opts.type =ui_opts.type;
     
-    tpl_root.create_ui(global_ui_opts,tpl_root, depth ).then(function(){
+    tpl_root.create_ui().then(function(){
 	
 	//tpl_root.parent.ui_childs.div.replaceChild(tpl_root.ui_root, oldroot);
 	if(tpl_root.parent && tpl_root.parent.ui_childs){
@@ -965,8 +1112,20 @@ template_object.prototype.setup_childs=function (){
 
     //console.log(this.name + " setup childs " + JSON.stringify(this));
     var tpl_root=this;
+    var ui_name=this.ui_name;
+    var ui_root=this.ui_root;
 
+
+    
     var prom=new Promise(function(ok, fail){
+	
+	function on_ui_childs_ready(){
+	    if(tpl_root.ui_opts.label && ui_childs.div){ 
+	    ui_childs.div.style.display="none";
+	    }
+	}
+	
+
 	
 	var ui_opts=tpl_root.ui_opts;
 	
@@ -2132,11 +2291,253 @@ template_object.prototype.setup_item=function(){
 }
 
 
+function set_modal(w, ui){
+    ui.parentNode.replaceChild(w.ui_root, ui);
+    w.listen('close', function(){
+	w.ui_root.parentNode.replaceChild(ui,w.ui_root);
+    });
+}
+
+
+template_object.prototype.replace_name_widget=function(w){
+    var tpl_root=this;
+    //return;
+    //tpl_root.bbox.hide(true);
+    tpl_root.bbox.ui_childs.div.style.display='none'; 
+
+    var tb=this.get_toolbar();
+    
+    if(tb!==undefined)
+	insertAfter(tb.ui_root, w.ui_root);
+    else
+	insertAfter(tpl_root.ui_name, w.ui_root);
+    
+    //tpl_root.ui_name.parentNode.replaceChild(w.ui_root, tpl_root.ui_name);
+    w.listen('close', function(){
+	//w.ui_root.parentNode.replaceChild(tpl_root.ui_name,w.ui_root);
+	tpl_root.bbox.ui_childs.div.style.display=''; 
+	w.ui_root.parentNode.removeChild(w.ui_root);
+    });
+    return w;
+}
+
+
+
+// template_object.prototype.attach_bbox=function(){
+// }
+
+template_object.prototype.setup_bbox=function(cb){
+    var obj=this;
+    
+    if(this.bbox===undefined){
+	var box_opts={};
+	var tb=this.get_toolbar();
+	if(tb!==undefined){
+	    box_opts.child_classes = "nav navbar-nav btn-group pull-right";
+	    box_opts.child_node_type='ul';
+	    btn_node='li';
+	}else{
+	    box_opts.child_classes = "btn-group pull-right";
+	}
+	
+	// is localStorage available?
+	create_widget({
+	    ui_opts : box_opts,
+	    elements : {},
+	    type : 'button_box'
+	}).then(function(bb){
+	    
+	    obj.bbox=bb;
+	    console.log(obj.name + " attach BBOX is " + bb.ui_childs.div);
+	    //if(this.bbox===undefined)return;
+	    
+	    // if(bb.ui_childs.div===undefined)
+	    // 	return;
+	    var tb=obj.get_toolbar();
+	    
+	    var node= (tb!==undefined) ?
+		tb.ui_childs.div : ( obj.ui_title_name!==undefined ? obj.ui_title_name : obj.ui_root);
+	    
+	    console.log(obj.name + " ATTACH BBOX div is " + obj.bbox.ui_childs.div + " node " + node );
+	    //for (var p in this.bbox.elements) console.log("BBOX P " + p );
+	    
+	    node.appendChild(bb.ui_root);//childs.div);
+	    
+	    cb(bb);
+	});
+    }else cb(this.bbox);
+    //console.log(this.name + " SETUP BBOX div is " + this.bbox.ui_childs.div );
+}
+
+template_object.prototype.add_bbox_item=function(item, key){
+    var obj=this;
+    this.setup_bbox(function(bb){
+	bb.add_child(item, key);
+	//obj.attach_bbox();
+    });
+}
+    
+template_object.prototype.setup_save=function(){
+
+    var obj=this;
+    
+    if(obj.ui_opts.save===undefined) return;
+    
+    if (window.localStorage === undefined) {
+	widget.debug("Error setting up save : browser storage is not available !");
+	return;
+    }
+    
+    this.setup_bbox(function(bbox){
+	
+	var path=obj.path();
+	//console.log(this.name +  " : setup save ! path= " + path );
+	
+	var saved_doc=storage_deserialize(path);
+	
+	function setup_saved_doc(){
+	    // if(obj.base_name===undefined)
+	    // 	obj.base_name=obj.name;
+	    // if(obj.base_name===undefined) obj.base_name=saved_doc.name;
+	    
+	    obj.set_title(obj.name, saved_doc.name);
+	}
+	
+	if(saved_doc !== undefined){
+	    //obj.debug("Recovering from doc " + saved_doc.name + " id " + saved_doc.val('id'));
+	    if(saved_doc.store_deserialize({object : obj}) === undefined ){
+		delete saved_doc;
+		saved_doc=undefined;
+		
+		
+	    }else{
+	    
+		setup_saved_doc();
+	    }
+	    //obj.debug("Recovering OK! " + obj.base_name);
+	}
+	
+	var btn_node;
+	var tpl_root=obj;
+	var ui_opts=obj.ui_opts;
+	//    obj.bbox.add_child(
+	var tb=obj.get_toolbar();
+	
+	series(create_widget, [
+	    {
+		type : "button",
+		
+		ui_opts : {
+		    tip : 'Save ' + ui_opts.save,	
+		    root_node : tb===undefined? 'button' : 'li',
+		    name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-save text-success'></it> Save</a>",
+		    type : tb===undefined? ['xs','success'] : undefined,
+		    fa_icon : tb===undefined? "save": undefined
+		},
+		widget_builder : function(ok, fail){
+		    this.listen('click', function(){
+			create_widget({
+			    type : "object_save",
+			    collection : ui_opts.save,
+			    depth : (tpl_root.depth+1),
+			    ui_opts : {
+				close : true,
+			    },
+			    widget_builder : function(ok, fail){
+				if(saved_doc!==undefined)
+				    this.get('name').input_value(saved_doc.name);
+				this.listen('save_doc',function(doc){
+				    doc.store_serialize(tpl_root);
+				    storage_serialize(path, doc);
+				    saved_doc=doc;
+				    
+				    setup_saved_doc();
+				    //object_save.get('name').populate();
+				    //object_save.get('name').hide();
+				    tpl_root.message(doc.name + " written in collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+				    this.trigger('close');
+				    
+				});
+				ok();
+			    }
+			}).then(function(object_save){
+			    obj.replace_name_widget(object_save);
+			});
+		    });
+		    ok();
+		}
+		
+	    },// tpl_root.bbox), 'save');
+	    //			   tpl_root.bbox.add_child(create_widget(
+	    {
+		//name : "",
+		type : "button",
+		
+		ui_opts : {
+		    tip : 'Load ' + ui_opts.save,
+		    root_node : tb===undefined? 'button' : 'li',
+		    name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Open</a>",
+		    type : tb===undefined? ['xs','info'] : undefined,
+		    fa_icon : tb===undefined? "folder-open": undefined
+		},
+		widget_builder : function(ok, fail){
+		    
+		    var box=this.parent;
+		    
+		    this.listen('click', function(){
+			create_widget({
+			    name : 'Load from webstorage',
+			    type : "object_loader",
+			    collection : ui_opts.save,
+			    depth : (tpl_root.depth+1),
+			    ui_opts : {
+				close : true,
+			    },
+			    widget_builder : function(ok, fail){
+				if(saved_doc!==undefined)
+				    this.get('name').input_value(saved_doc.name);
+				
+			    }
+			}).then(function(loader){
+			    obj.replace_name_widget(loader);
+			    
+			    loader.listen('load_doc',function(doc){
+				//console.log("Restoring doc " + doc.val("id"));
+				tpl_root.message(doc.name + " : loading from collection" + ui_opts.save, { type : 'info', title : 'Loading', wait : true});
+				doc.store_deserialize({object : tpl_root});
+				storage_serialize(path, doc);
+				saved_doc=doc;
+				setup_saved_doc();
+				
+				tpl_root.message(doc.name + " laoded from collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+				loader.trigger('close');
+			    });
+			    
+			});
+		    });
+		    
+		    ok();
+		}
+		
+	    
+	    }]).then(function(items){
+		tpl_root.bbox.add_child(items[0],'save');
+		tpl_root.bbox.add_child(items[1],'load');
+		console.log(tpl_root.name + " SETUP BBOX SAVELOAD div is " + tpl_root.bbox.ui_childs.div );
+	    });
+	
+	//obj.attach_bbox();
+    });
+}
+
+
 template_object.prototype.setup_sliiiding=function(){
+
     var tpl_root=this;
     var ui_opts=tpl_root.ui_opts;
     
     function update_sliding_arrows(){
+	
 	if(slide_button!==undefined){
 	    
 	    slide_button.className="text-info fa sliding_icon";

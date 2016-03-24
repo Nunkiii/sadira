@@ -36,7 +36,7 @@
       name:"Info",
       type:"text" } },
   key:"socket",
-  widget_builder:function (){
+  widget_builder:function (ok, fail){
   
     //console.log("sadira link constructor !");
     var socket=this;
@@ -232,8 +232,8 @@
 	    
 	};
 	
-	if(è(ecb)) ecb();
+    if(è(ecb)) ecb();
     }
-
+      ok();
 
 } })

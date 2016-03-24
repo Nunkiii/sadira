@@ -1,13 +1,14 @@
-({ widget_builder:function (ok, fail){
-	    var tpl_item=this;
-	    var ui_opts=this.ui_opts===undefined?{}:this.ui_opts;
-	    var ui=ce("div");
-	    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
+({
+  widget_builder:function (ok, fail){
+    var tpl_item=this;
+    var ui_opts=this.ui_opts===undefined?{}:this.ui_opts;
+    var ui=ce("div");
+    ui_opts.type=ui_opts.type ? ui_opts.type : "short";
     
 	    //ui.className="html_content";
-	    
-	    tpl_item.set_value=function(nv){
-		if(typeof nv !='undefined')
+    
+    tpl_item.set_value=function(nv){
+      if(typeof nv !='undefined')
 		    tpl_item.value=nv;
 
 		

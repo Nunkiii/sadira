@@ -1,8 +1,8 @@
-// Sadira astro-web framework - Pierre Sprimont <sprimont@iasfbo.inaf.it> (2013) - INAF/IASF Bologna, Italy.
+// Qk web toolkit - (C) Pierre Sprimont <sprimont@email.ru> 
 
 var sadira_root_template = {
     
-    name : "Sadira",
+    name : "Qk",
     ui_opts : {
 	
 	
@@ -32,7 +32,7 @@ var sadira_root_template = {
 			elements : {
 			    net : {
 				type : "dropdown",
-				name : "Connection",
+				name : "Qk net",
 				ui_opts : {
 				    fa_icon : 'globe',
 				    type:"toolbar" 
@@ -233,6 +233,7 @@ var sadira_root_template = {
 	
 	logout.hide();
 	root_widget.session_start();
+    	root_widget.setup_storage();
 	
 	root_widget.trigger("ready", window.sadira);
 	console.log("sadira ready....");
@@ -258,17 +259,17 @@ var sadira_root_template = {
 	//body_node.innerHTML="<div class='jumbotron'><h2> Sadira startup <small>please wait...</small></h2></div>";
 
 	create_widget({
-	    name : "Sadira startup",
+	    name : "Qk toolkit startup <br/>",
 	    subtitle : "please wait...",
 	    ui_opts : {
-		root_classes : "jumbotron",// name_node : "h2",
-		char_icon : "<font color='red'>ॐ</font>", //"❄",
+		root_classes : "full_page",// name_node : "h2",
+		char_icon : "<font color='red'><strong>ॐ</strong></font>", //"❄",
+		name_classes : ["startup"],
 		intro_stick : true
 	    }
 	}).then(function(w){
 	    body_node.appendChild(w.ui_root);
 	    window.root_widget=w;
-	    
 
 	    create_widget(sadira_root_template,w).then(function(root_widget){
 
@@ -318,7 +319,7 @@ var sadira_root_template = {
 		
 		
 	    }).catch(function(e){
-		w.intro="<p>Sorry, we cannot start the Sadira toolkit.</p>";
+		w.intro="<p>Sorry, we cannot start the Qk toolkit.</p>";
 		w.set_subtitle("Error ! ");
 		w.error(e);
 	    });
