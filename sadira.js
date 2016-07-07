@@ -33,8 +33,6 @@ var logger = require('connect-logger');
 
 var tpl=require('./js/tpl');
 
-
-
 /*
   Headers to add to allow cross-origin requests.
 */
@@ -480,7 +478,8 @@ _sadira.prototype.start_session_handling = function (){
 }
 
 _sadira.prototype.import_old_templates = function (){
-    GLOBAL.builders={};
+    
+    //GLOBAL.builders={};
 
     //var tpls=require('../XD-1/www/js/xd1_templates');
     
@@ -489,7 +488,8 @@ _sadira.prototype.import_old_templates = function (){
     //require('../XD-1/www/js/xd1');
     //require('../XD-1/www/js/image_reduction');
 
-    var tpls=require('../minispectro/www/js/videocap');
+    var tpls=require('../nunki/www/js/nunki');
+    var builders=require('../nunki/www/js/nunki_widget');
     
     var toSource = require('tosource');
     var nt=0;
@@ -502,8 +502,11 @@ _sadira.prototype.import_old_templates = function (){
 	    
 	    if(builders[tname]!==undefined)
 		t.widget_builder=builders[tname];
-
-	    if(t.widget_builder===undefined) t.widget_builder=function(ok, fail){ ok(); };
+      
+	    if(t.widget_builder===undefined)
+		t.widget_builder=function(ok, fail){
+		    ok();
+		};
 	    
 	    
 	    obj.set("code",toSource(t));
@@ -612,7 +615,23 @@ _sadira.prototype.start_master = function (){
 		    sad.log("Checking everybody... ");
 		    sad.check_user('everybody',['everybody']).then(function(everybody){
 			start_cluster();
-			sad.log("Master ready !");
+
+
+			sad.initialize_plugins(function(error){
+			    
+			    if(error){
+				sad.log("Fatal : Plugin Init error " + error  );
+				process.exit(1);
+				return;
+			    }
+			    
+			    //sad.load_default_route();
+
+			    sad.log("Master ready !");
+			});
+			
+			
+			
 			
 		    }).catch(function(err){ cb(err);});
 		}).catch(function(err){

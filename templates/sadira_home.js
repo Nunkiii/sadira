@@ -1,12 +1,12 @@
 ({
     key:"sadira_home",
     //subtitle:
-    name:"Sadira",
+    name:"Qk",
     type:"html",
     url:"/welcome.html",
     ui_opts:{
 	//root_classes : ["container-fluid"],
-	icon:"/icons/iasfbo.png",
+	//icon:"/icons/iasfbo.png",
 	item_first : true
     },
 
@@ -31,14 +31,14 @@
     // 							sock_mgr:{ type:"socket_manager" },
     // 							      nunki:{ type:"nunki",
     // 								      link:true } } } } } },
-    elements:{
-	deps:{
-	    name:"Software deps",
-	    type:"soft_links",
-	    ui_opts:{
-		item_classes:[ "container-fluid" ],
-		name_node:"h2"
-	    }
-	}
-    }
+    // elements:{
+    // 	deps:{
+    // 	    name:"Software deps",
+    // 	    type:"soft_links",
+    // 	    ui_opts:{
+    // 		item_classes:[ "container-fluid" ],
+    // 		name_node:"h2"
+    // 	    }
+    // 	}
+    // }
 })

@@ -1,9 +1,13 @@
 ({
     key:"db_collection",
     name:"Object collection",
+    
     ui_opts:{
-	fa_icon:"reorder",
-	mini_elm:"description"
+	fa_icon: "reorder",
+	mini_elm: "description",
+	build_childs : false,
+	root_classes : "container-fluid",
+	child_classes : "row"
     },
     elements:{
 	// name:{
@@ -11,31 +15,55 @@
 	//     type:"string",
 	//     holder_value:"Enter name here",
 	//     ui_opts:{ label:true } },
-	template:{ name:"Collection template",
-		   type:"string",
-		   ui_opts:{ label:true } },
-	db:{ name:"Database",
-	     ui_opts:{ label:true } },
-	// 	       },
-	// usi : {
-	  browser:{ type:"data_nav",
-		    ui_opts:{ fa_icon:"doc",
-			      root_classes:[ "col-md-3" ],
-			      child_classes:[ "container-fluid" ] } },
-	  selected_object_cnt:{ ui_opts:{ root_classes:[ "col-md-9" ],
-					  child_classes:[ "container-fluid" ] },
-				elements:{ selected_object:{ type:"view" } } }
-	  
-      },
+	template:{
+	    name:"Collection template",
+	    type:"string",
+	    ui_opts:{
+		label:true
+	    }
+	},
+	db:{
+	    name:"Database",
+	    ui_opts:{ label:true }
+	},
+    },
+    usi : {
+	elements : {
+	    browser:{
+		type:"data_nav",
+		ui_opts:{
+		    fa_icon:"doc",
+		    root_classes:[ "col-md-3" ],
+		    child_classes:[ "container-fluid" ]
+		}
+	    },
+	    selected_object_cnt:{
+		ui_opts:{
+		    root_classes:[ "col-md-9" ],
+		    child_classes:[ "container-fluid" ]
+		},
+		elements:{
+		    selected_object:{
+			type:"view"
+		    }
+		}
+	    }
+	}
+    },
+
     widget_builder:function (ok, fail){
-	  //this.wait("Waiting for the One...");
-	  
-	  var db_b=this;
-	  var dbb=this.get('browser');
-	  var selobj=db_b.get("selected_object");
-	  var tb_body=dbb.get("table");
-	  
-	  dbb.set_data_source(this);
+	//this.wait("Waiting for the One...");
+	
+	var db_b=this;
+	var dbb=this.get('browser');
+	var selobj=db_b.get("selected_object");
+	var selobj_cnt=db_b.get("selected_object_cnt");
+	var tb_body=dbb.get("table");
+	
+	this.add_child(dbb);
+	this.add_child(selobj_cnt);
+	
+	dbb.set_data_source(this);
 	//this.get('table').set_title("Documents");
 	
 	dbb.listen('crossfilter_ready', function(){
@@ -51,7 +79,7 @@
 	});
 	
 	
-	function get_documents(){
+	db_b.get_documents=function(){
 	    var col_name=db_b.name;
 	    var dbname="sys";//db_b.val('name');
 	    
@@ -103,7 +131,7 @@
   
 	  this.listen('data_loaded', function(d){
 	      //db_b.message("Data loaded " + JSON.stringify(d));
-	      get_documents();
+	      db_b.get_documents();
 	  });
 
 	ok();

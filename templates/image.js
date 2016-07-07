@@ -7,20 +7,23 @@
 	render_name:true,
 	child_classes:[ "container-fluid" ],
 	root_classes:[ "container-fluid" ],
-	icon:"/sadira/icons/mat_float.svg"
+	icon:"/icons/mat_float.svg"
     },
     ext_scripts : ["/js/community/fits.js"],
     events:[ "image_ready" ],
     elements:{
-	source:{ subtitle:"Select a FITS image file on your local filesystem :",
-		 name:"FITS file",
-		 type:"local_file",
-		 ui_opts:{ editable:false,
-			   sliding:false,
-			   slided:false,
-			   type:"edit",
-			   root_classes:[ "col-md-12" ],
-			   child_classes:[ "inline" ] } },
+
+	source:{
+	    subtitle:"Select a FITS image file on your local filesystem :",
+	    name:"FITS file",
+	    type:"local_file",
+	    ui_opts:{
+		editable:false,
+		type:"edit",
+		root_classes:[ "col-md-12" ],
+		child_classes:[ "inline" ]
+	    }
+	},
 	keys:{
 	    name:"Metadata",
 	    type:"text",

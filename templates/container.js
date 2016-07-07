@@ -1,6 +1,6 @@
 ({
   key:"container",
-  child_type:undefined,
+  child_type: undefined,
   
   ui_opts:{
     child_view_type:"dummy",

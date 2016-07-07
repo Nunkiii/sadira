@@ -7,56 +7,60 @@ function storage_serialize(item, object){
 };
 
 function storage_deserialize(item, opts){
-    
-    if(opts===undefined) opts={};
-    
-    try{
-	var storage_string=localStorage.getItem(item);
+    var p=new Promise(function(ok, fail){
 	
-	if(storage_string===null){
-	    console.log("Cannot get storage string " + item);
-	    return undefined;
-	}
-	//this.debug("storage string not found : " + item );
-	else{
-	    var odata=BSON.deserialize(base64DecToArr(storage_string));
-	    if(opts.data===true) return odata;
-	    var o=opts.object;
-	    if(o===undefined)
-		o=tmaster.create_object_from_data(odata);
+	if(opts===undefined) opts={};
+	
+	try{
+	    var storage_string=localStorage.getItem(item);
 	    
+	    if(storage_string===null){
+		console.log("Cannot get storage string " + item);
+		return undefined;
+	    }
+	    //this.debug("storage string not found : " + item );
 	    else{
-		// var oldo=o;
+		var odata=BSON.deserialize(base64DecToArr(storage_string));
+		if(opts.data===true)
+		    return ok(odata);
 		
-		// o=tmaster.create_object_from_data(odata);
-		// //var or=o.ui_root; //.parentNode;
-		// if(o.key!==undefined){
-		//     oldo.parent.update_child(o,oldo.key);
-		// }
-
-		// delete oldo;
-		//delete o.ui_root;
-		//delete o.ui_name;
-		//delete o.ui_childs;
-
-		//console.log("loading ["+item+"] on " + o.name +" data : " + JSON.stringify(odata));
-		set_template_data(o, odata);
-
-		//create_ui({},o);
-		//o.parentNode.replaceChild(or,o.ui_root);
+		var o=opts.object;
+		if(o===undefined){
+		    tmaster.create_object_from_data(odata).then(ok).catch(fail);
+		}
+		else{
+		    // var oldo=o;
+		    
+		    // o=tmaster.create_object_from_data(odata);
+		    // //var or=o.ui_root; //.parentNode;
+		    // if(o.key!==undefined){
+		    //     oldo.parent.update_child(o,oldo.key);
+		    // }
+		    
+		    // delete oldo;
+		    //delete o.ui_root;
+		    //delete o.ui_name;
+		    //delete o.ui_childs;
+		    
+		    //console.log("loading ["+item+"] on " + o.name +" data : " + JSON.stringify(odata));
+		    set_template_data(o, odata);
+		    ok(o);
+		    //create_ui({},o);
+		    //o.parentNode.replaceChild(or,o.ui_root);
+		    
+		}
+		// if(o.rebuild_name!==undefined)
+		// 	o.rebuild_name();
+		
 		
 	    }
-	    // if(o.rebuild_name!==undefined)
-	    // 	o.rebuild_name();
-	    return o;
-	    
 	}
-    }
-    catch (e){
-	throw Error("While loading browser data @ " + item + ": " + dump_error(e));
-    }
-
-    return undefined;
+	catch (e){
+	    fail("While loading browser data @ " + item + ": " + dump_error(e));
+	}
+    });
+    
+    return p;
 };
 
 
@@ -125,7 +129,7 @@ template_object.prototype.setup_icon=function(node){
 
     var tpl_root=this;
     var icui=get_ico(tpl_root);
-
+    
     //
     if(icui!==undefined){
 	//tpl_root.ui_name.appendChild(icui);return;
@@ -175,7 +179,7 @@ template_object.prototype.build_childs_ui=function(cnt){
 		//el.key=e;
 		if(el.ui_opts===undefined) el.ui_opts={};
 		
-		//console.log(tpl_root.type + " + Create UI for " + el.type);
+		//console.log(tpl_root.type + " + Create UI for " + el.type + " name " + el.name);
 		if(el.ui_root!==undefined){
 		    console.log(el.type + " has already been built !");
 		    ok();
@@ -185,8 +189,10 @@ template_object.prototype.build_childs_ui=function(cnt){
 			// if(ù(ui)){
 			//     //console.log("Error creating child " + el.name + " on " + tpl_root.name + " ! ");
 			// }else{
+
+			//console.log(tpl_root.type + " + Created UI for " + el.type + " name " + el.name);
 			
-			if(el.ui_opts.attach!==false){
+			if(el.ui_opts.attach!==false && tpl_root.ui_opts.display_childs!==false){
 			    if(tpl_root.ui_childs!==undefined)
 				tpl_root.ui_childs.add_child(el,el.ui_root);
 			    else
@@ -195,7 +201,10 @@ template_object.prototype.build_childs_ui=function(cnt){
 			//var xx=ce('span');xx.innerHTML="<small>"+e+"</small>";el.ui_root.prependChild(xx);
 			//console.log(tpl_root.name +  " adding child " + el.name + " OK!");
 			ok();
-		    }).catch(fail);
+		    }).catch(function(){
+			console.log("Error create UI for " + el.type + " : " + el.name);
+			fail();
+		    });
 	    }
 	});
 	
@@ -268,9 +277,12 @@ template_object.prototype.create_ui=function(parent){
 		ui_root=tpl_root.ui_root=re.ui_root;
 	    }
 	}else{
-	    ui_root=tpl_root.ui_root=ce(root_node);
+	    ui_root=document.createElement(root_node);
+	    //console.log("UI root is ["+ui_root+"]");
+	    //tpl_root.ui_root=ce(root_node);
+	    tpl_root.ui_root=ui_root;
 	    
-	    //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " opts " + tpl_root.ui_opts + " global opts " + JSON.stringify(global_ui_opts));
+	    //console.log("create UI " + tpl_root.name + " type " + tpl_root.type + " root [" + ui_root + "] root node [" + root_node + "]");
 	    //ui_root.style.display="relative";
 	    ui_root.style.zIndex=20-depth;
 	    //ui_root.className="db";// container-fluid";
@@ -301,6 +313,7 @@ template_object.prototype.create_ui=function(parent){
 	    tpl_root.setup_childs().then(function(){
 		tpl_root.setup_item().then(function(){
 		    tpl_root.setup_save();
+		    //console.log(tpl_root.type + " + Created UI for " + tpl_root.type + " name " + tpl_root.name);
 		    ok();
 		}).catch(fail);
 	    }).catch(fail);
@@ -692,8 +705,9 @@ template_object.prototype.integrate_widget=function(w){
 
 	    
 	    //this.message("TB name is " + toolbar.ui_name.innerHTML + " replace with " + w.ui_name.innerHTML);
-	    toolbar.ui_root.replaceChild(w.ui_name, toolbar.ui_name);
-	    //toolbar.ui_name.parentNode.replaceChild(w.ui_name, toolbar.ui_name);
+	    //toolbar.ui_root.replaceChild(w.ui_name, toolbar.ui_name);
+
+	    toolbar.ui_name.parentNode.replaceChild(w.ui_name, toolbar.ui_name);
 	    toolbar.ui_name=w.ui_name;
 	    
 	}
@@ -1109,8 +1123,8 @@ child_container.prototype.add_child_com=function(child){
 
 
 template_object.prototype.setup_childs=function (){
-
-    //console.log(this.name + " setup childs " + JSON.stringify(this));
+    
+    //console.log(this.name + " setup childs for " + this.type);
     var tpl_root=this;
     var ui_name=this.ui_name;
     var ui_root=this.ui_root;
@@ -1128,17 +1142,25 @@ template_object.prototype.setup_childs=function (){
 
 	
 	var ui_opts=tpl_root.ui_opts;
+	// if(ui_opts.display_childs===undefined)
+	//     ui_opts.display_childs=false;
+
+	// if(ui_opts.display_childs===false){
+	//     return ok();
+	// }
+	
+	var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
 	
 	var ui_childs=tpl_root.ui_childs= new child_container(tpl_root);
 
 	new_event(tpl_root, 'add_child');
 	new_event(tpl_root, 'remove_child');
         
-	if(ui_opts.display_childs===false){
-	    ui_childs.add_child=function(){};
-	    ui_childs.remove_child=function(){};
-	    return;
-	}
+	// if(ui_opts.display_childs===false){
+	//     ui_childs.add_child=function(){};
+	//     ui_childs.remove_child=function(){};
+	//     return;
+	// }
 	
 	
 	var child_toolbar = false ;//(ui_opts.child_toolbar!==undefined) ? ui_opts.child_toolbar : (tpl_root.toolbar!==undefined);
@@ -1193,7 +1215,7 @@ template_object.prototype.setup_childs=function (){
 	    }
 	    
 	}
-	var cvtype = tpl_root.ui_opts.child_view_type ? tpl_root.ui_opts.child_view_type : "div";
+
 	
 	//console.log(this.name + " building childs /// " + cvtype);
 	switch(cvtype){
@@ -1255,6 +1277,7 @@ template_object.prototype.setup_childs=function (){
 	    
 	case "div":
 	    //	ui_childs=tpl_root.ui_childs={};
+	    create_childs_div();
 	    
 	    ui_childs.add_child=function(e,ui,prep){
 
@@ -1269,8 +1292,8 @@ template_object.prototype.setup_childs=function (){
 		if(!add_child_common(e,ui,prep)) return;
 		this.add_child_com(e);
 		
-		create_childs_div();
-		//console.log(tpl_root.name + " Adding child " + e.name + " ui is " + ui);
+		
+		//console.log(tpl_root.name + " Adding child " + e.name + " ui is " + ui + " ui_root " + e.ui_root);
 		prep ? ui_childs.div.prependChild(ui) : ui_childs.div.appendChild(ui);
 	    }
 	    
@@ -2356,9 +2379,9 @@ template_object.prototype.setup_bbox=function(cb){
 	    var tb=obj.get_toolbar();
 	    
 	    var node= (tb!==undefined) ?
-		tb.ui_childs.div : ( obj.ui_title_name!==undefined ? obj.ui_title_name : obj.ui_root);
+		tb.ui_childs.div : ( obj.ui_name!==undefined ? obj.ui_name : obj.ui_root);
 	    
-	    console.log(obj.name + " ATTACH BBOX div is " + obj.bbox.ui_childs.div + " node " + node );
+	    console.log(obj.name + " ATTACH BBOX to node " + obj.bbox.ui_childs.div + " node " + node );
 	    //for (var p in this.bbox.elements) console.log("BBOX P " + p );
 	    
 	    node.appendChild(bb.ui_root);//childs.div);
@@ -2387,146 +2410,138 @@ template_object.prototype.setup_save=function(){
 	widget.debug("Error setting up save : browser storage is not available !");
 	return;
     }
+
+    return;
     
-    this.setup_bbox(function(bbox){
+    function setup_bbox(){
+	obj.setup_bbox(function(bbox){
 	
-	var path=obj.path();
-	//console.log(this.name +  " : setup save ! path= " + path );
-	
-	var saved_doc=storage_deserialize(path);
-	
-	function setup_saved_doc(){
-	    // if(obj.base_name===undefined)
-	    // 	obj.base_name=obj.name;
-	    // if(obj.base_name===undefined) obj.base_name=saved_doc.name;
+	    var path=obj.path();
+	    //console.log(this.name +  " : setup save ! path= " + path );
 	    
-	    obj.set_title(obj.name, saved_doc.name);
-	}
-	
-	if(saved_doc !== undefined){
-	    //obj.debug("Recovering from doc " + saved_doc.name + " id " + saved_doc.val('id'));
-	    if(saved_doc.store_deserialize({object : obj}) === undefined ){
-		delete saved_doc;
-		saved_doc=undefined;
-		
-		
-	    }else{
 	    
-		setup_saved_doc();
-	    }
-	    //obj.debug("Recovering OK! " + obj.base_name);
-	}
-	
-	var btn_node;
-	var tpl_root=obj;
-	var ui_opts=obj.ui_opts;
-	//    obj.bbox.add_child(
-	var tb=obj.get_toolbar();
-	
-	series(create_widget, [
-	    {
-		type : "button",
-		
-		ui_opts : {
-		    tip : 'Save ' + ui_opts.save,	
-		    root_node : tb===undefined? 'button' : 'li',
-		    name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-save text-success'></it> Save</a>",
-		    type : tb===undefined? ['xs','success'] : undefined,
-		    fa_icon : tb===undefined? "save": undefined
-		},
-		widget_builder : function(ok, fail){
-		    this.listen('click', function(){
-			create_widget({
-			    type : "object_save",
-			    collection : ui_opts.save,
-			    depth : (tpl_root.depth+1),
-			    ui_opts : {
-				close : true,
-			    },
-			    widget_builder : function(ok, fail){
-				if(saved_doc!==undefined)
-				    this.get('name').input_value(saved_doc.name);
-				this.listen('save_doc',function(doc){
-				    doc.store_serialize(tpl_root);
-				    storage_serialize(path, doc);
-				    saved_doc=doc;
-				    
-				    setup_saved_doc();
-				    //object_save.get('name').populate();
-				    //object_save.get('name').hide();
-				    tpl_root.message(doc.name + " written in collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
-				    this.trigger('close');
-				    
-				});
-				ok();
-			    }
-			}).then(function(object_save){
-			    obj.replace_name_widget(object_save);
-			});
-		    });
-		    ok();
-		}
-		
-	    },// tpl_root.bbox), 'save');
-	    //			   tpl_root.bbox.add_child(create_widget(
-	    {
-		//name : "",
-		type : "button",
-		
-		ui_opts : {
-		    tip : 'Load ' + ui_opts.save,
-		    root_node : tb===undefined? 'button' : 'li',
-		    name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Open</a>",
-		    type : tb===undefined? ['xs','info'] : undefined,
-		    fa_icon : tb===undefined? "folder-open": undefined
-		},
-		widget_builder : function(ok, fail){
+	    
+	    
+	    var btn_node;
+	    var tpl_root=obj;
+	    var ui_opts=obj.ui_opts;
+	    //    obj.bbox.add_child(
+	    var tb=obj.get_toolbar();
+	    
+	    series(create_widget, [
+		{
+		    type : "button",
 		    
-		    var box=this.parent;
-		    
-		    this.listen('click', function(){
-			create_widget({
-			    name : 'Load from webstorage',
-			    type : "object_loader",
-			    collection : ui_opts.save,
-			    depth : (tpl_root.depth+1),
-			    ui_opts : {
-				close : true,
-			    },
-			    widget_builder : function(ok, fail){
-				if(saved_doc!==undefined)
-				    this.get('name').input_value(saved_doc.name);
-				
-			    }
-			}).then(function(loader){
-			    obj.replace_name_widget(loader);
-			    
-			    loader.listen('load_doc',function(doc){
-				//console.log("Restoring doc " + doc.val("id"));
-				tpl_root.message(doc.name + " : loading from collection" + ui_opts.save, { type : 'info', title : 'Loading', wait : true});
-				doc.store_deserialize({object : tpl_root});
-				storage_serialize(path, doc);
-				saved_doc=doc;
-				setup_saved_doc();
-				
-				tpl_root.message(doc.name + " laoded from collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
-				loader.trigger('close');
+		    ui_opts : {
+			tip : 'Save ' + ui_opts.save,	
+			root_node : tb===undefined? 'button' : 'li',
+			name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-save text-success'></it> Save</a>",
+			type : tb===undefined? ['xs','success'] : undefined,
+			fa_icon : tb===undefined? "save": undefined
+		    },
+		    widget_builder : function(ok, fail){
+			this.listen('click', function(){
+			    create_widget({
+				type : "object_save",
+				collection : ui_opts.save,
+				depth : (tpl_root.depth+1),
+				ui_opts : {
+				    close : true,
+				},
+				widget_builder : function(ok, fail){
+				    if(saved_doc!==undefined)
+					this.get('name').input_value(saved_doc.name);
+				    
+				    this.listen('save_doc',function(doc){
+					//doc.store_serialize(tpl_root);
+					storage_serialize(path, doc);
+					//saved_doc=doc;
+					//doc.set_subtitle("");
+					//setup_saved_doc();
+					//object_save.get('name').populate();
+					//object_save.get('name').hide();
+					tpl_root.message(doc.name + " written in collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+					this.trigger('close');
+				    
+				    });
+				    ok();
+				}
+			    }).then(function(object_save){
+				obj.replace_name_widget(object_save);
 			    });
-			    
 			});
-		    });
+			ok();
+		    }
 		    
-		    ok();
-		}
+		},// tpl_root.bbox), 'save');
+		//			   tpl_root.bbox.add_child(create_widget(
+		{
+		    //name : "",
+		    type : "button",
 		
+		    ui_opts : {
+			tip : 'Load ' + ui_opts.save,
+			root_node : tb===undefined? 'button' : 'li',
+			name : tb===undefined? '' : "<a href='javascript:void(0)'><it class='fa fa-folder-open text-info'></it> Open</a>",
+			type : tb===undefined? ['xs','info'] : undefined,
+			fa_icon : tb===undefined? "folder-open": undefined
+		    },
+		    widget_builder : function(ok, fail){
+		    
+			var box=this.parent;
+			
+			this.listen('click', function(){
+			    create_widget({
+				name : 'Load from webstorage',
+				type : "object_loader",
+				collection : ui_opts.save,
+				depth : (tpl_root.depth+1),
+				ui_opts : {
+				    close : true,
+				},
+				widget_builder : function(ok, fail){
+				    if(saved_doc!==undefined)
+					this.get('name').input_value(saved_doc.name);
+				    
+				}
+			    }).then(function(loader){
+				obj.replace_name_widget(loader);
+				
+				loader.listen('load_doc',function(doc){
+				    //console.log("Restoring doc " + doc.val("id"));
+				    obj.message(doc.name + " : loading from collection" + ui_opts.save, { type : 'info', title : 'Loading', wait : true});
+				    storage_deserialize(path, {object : obj}).then(function(o){});
+				    
+				    //storage_serialize(path, doc);
+				    //saved_doc=doc;
+				    //setup_saved_doc();
+				    
+				    obj.message(doc.name + " laoded from collection" + ui_opts.save, { type : 'success', title : 'Done', last : 2000});
+				    loader.trigger('close');
+				});
+				
+			    });
+			});
+			
+			ok();
+		    }
+		    
+		    
+		}]).then(function(items){
+		    tpl_root.bbox.add_child(items[0],'save');
+		    tpl_root.bbox.add_child(items[1],'load');
+		    console.log(tpl_root.name + " SETUP BBOX SAVELOAD div is " + tpl_root.bbox.ui_childs.div );
+		});
 	    
-	    }]).then(function(items){
-		tpl_root.bbox.add_child(items[0],'save');
-		tpl_root.bbox.add_child(items[1],'load');
-		console.log(tpl_root.name + " SETUP BBOX SAVELOAD div is " + tpl_root.bbox.ui_childs.div );
-	    });
+		//obj.attach_bbox();
+	});
 	
-	//obj.attach_bbox();
+    }
+    
+    storage_deserialize(path, {object : obj}).then(function(saved_doc){
+	setup_bbox();
+    }).catch(function(){
+	setup_bbox();
     });
 }
 
@@ -2780,6 +2795,7 @@ function config_common_input(tpl_item){
 
 	tpl_item.ui.addEventListener("input",function(){
 	    tpl_item.trigger('input',this.value); 
+	    tpl_item.set_value(this.value); 
 	},false);
 
 	//tpl_item.ui_root.add_class('form-inline');

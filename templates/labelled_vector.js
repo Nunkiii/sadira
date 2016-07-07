@@ -4,11 +4,14 @@
     serialize_childs:false,
     value_labels : [],
     elements:{},
+    ui_opts : {
+	
+    },
     widget_builder:function (ok, fail){
 	
 	var lvec=this;
 
-	console.log("Building labelled vector !");
+	//console.log("Building labelled vector !");
 	
 	var ui_opts=this.ui_opts;
 	//console.log(lvec.name + ' lvec builder before ! events =  ' + JSON.stringify(lvec.event_callbacks));
@@ -83,7 +86,7 @@
 		value : lvec.value[v],
 		ui_opts : {
 		    label : true,
-		    
+		    root_classes : ['inline'],
 		    item_classes : ['inline'],
 		    editable : ui_opts.editable,
 		    type: ui_opts.type

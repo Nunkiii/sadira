@@ -1,1 +1,4 @@
-({ key:"angle" })
+({
+    key:"angle",
+    type : "double"
+})

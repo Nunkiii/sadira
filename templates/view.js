@@ -57,7 +57,7 @@
 		    view.error( "<strong>While getting document</strong>" + err);
 		    return cb(err);
 		}
-		//view.message(JSON.stringify(doc_data), {title : "Doc data received"});
+		view.message(JSON.stringify(doc_data), {title : "Doc data received"});
 		if(doc_data.length===0){
 		    view.set_subtitle("No document found " + JSON.stringify(opts));
 		    return;

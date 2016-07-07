@@ -165,6 +165,7 @@ datagram.prototype.serialize = function(){
 
 	
 	if(this.data!=null){
+	    //console.log("copy data ! type = " + typeof this.data);
 	    //if(typeof this.data == 'Buffer')
 	    this.data.copy(this.buffer, data_start);
 	    // else

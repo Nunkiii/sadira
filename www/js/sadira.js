@@ -14,7 +14,7 @@ var sadira_root_template = {
 		type : "toolbar",
 
 		ui_opts : {
-		    char_icon : "<font color='red'>ॐ</font>", //"❄",
+		    char_icon : "<font color='springgreen'>ヅ</font>", //"❄",
 		    //icon_size : "2em",
 		    //fa_icon : 'globe',
 		    root_classes : ['navbar-dark bg-inverse navbar-fixed-top'],
@@ -28,22 +28,33 @@ var sadira_root_template = {
 			ui_opts : {
 			    //fa_icon : 'globe',
 			    root_classes : ['nav navbar-nav pull-right']
+			    
 			},
 			elements : {
 			    net : {
 				type : "dropdown",
-				name : "Qk net",
+				name : "Sign in",
 				ui_opts : {
 				    fa_icon : 'globe',
-				    type:"toolbar" 
+				    type:"toolbar",
+				    align : "right"
+				},
+				widget_builder : function(ok, fail){
+				    //alert("Net menu build !");
+				    ok();
 				},
 				usi : {
 				    elements : {
 					login : {
+					    name : "Login",
 					    type : "widget_launcher",
 					    usi : {
 						launch : {
-						    type : 'login'
+						    type : 'login',
+						    widget_builder : function(ok, fail){
+							alert("Login build !");
+							ok();
+						    }
 						}
 					    }
 					},
@@ -64,7 +75,7 @@ var sadira_root_template = {
 					    }
 					}
 
-					    
+					
 				    }
 				},
 				//items : [{ label : "Login", fa_icon : "user"}]
@@ -87,7 +98,8 @@ var sadira_root_template = {
 		    item_classes : "text-muted",
 		    text_node : 'p'
 		},
-		value : '<small><span class="fa fa-linux"></span> (c) 2013-2016 -- <a href="mailto:sprimont@iasfbo.inaf.it"> Pierre-G. Sprimont</a>,<a href="mailto:davide.ricci82@gmail.com"> Davide Ricci</a>,<a href="mailto:nicastro@iasfbo.inaf.it"> Luciano Nicastro</a> @<a href="http://www.iasfbo.inaf.it" target="_blank">INAF/IASF</a>, Bologna, Italy. <span class="fa fa-linux"></span></small>'
+		value : '<small><span class="fa fa-linux text-success"></span> (c) 2013-2016 -- <a href="mailto:sprimont@email.ru"> Pierre-G. Sprimont</a>,<a href="mailto:davide.ricci82@gmail.com"> Davide Ricci</a></small>'
+//,<a href="mailto:nicastro@iasfbo.inaf.it"> Luciano Nicastro</a> @<a href="http://www.iasfbo.inaf.it" target="_blank">INAF/IASF</a>, Bologna, Italy.
 	    }
 	}
     },
@@ -262,8 +274,8 @@ var sadira_root_template = {
 	    name : "Qk toolkit startup <br/>",
 	    subtitle : "please wait...",
 	    ui_opts : {
-		root_classes : "full_page",// name_node : "h2",
-		char_icon : "<font color='red'><strong>ॐ</strong></font>", //"❄",
+		//root_classes : "full_page",// name_node : "h2",ॐ
+		char_icon : "<font color='red'><strong>ヅ</strong></font>", //"❄",
 		name_classes : ["startup"],
 		intro_stick : true
 	    }

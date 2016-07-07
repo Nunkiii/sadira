@@ -47,6 +47,8 @@
     },
     widget_builder:function (ok, fail){
 	var login=this;
+
+	alert("LOGIN BUILD");
 	
 	///////////////////////////////////////////////////////////////
 	//User Login/Logout stuff

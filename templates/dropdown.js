@@ -7,16 +7,19 @@
 	//console.log("DROPDOWN BUILD");
 	
 	var dropdown=this;
-
-	
+	var opts=this.ui_opts;
+  
 	create_widget({
 	    type : 'button', ui_opts : {  name : this.ui_opts.name, type : this.ui_opts.type || ['default']}
 	}).then(function(b){
-
+	    
 	    var div=bdiv=ce("div"); div.className="dropdown";
 	    div.appendChild(b.ui_root);
 	    var ul=dropdown.ul=cc('div',div);
+
 	    ul.className='dropdown-menu';
+	    if(opts.align  && opts.align==="right")
+		ul.add_class("dropdown-menu-right");
 	    new_event(dropdown,'select');
 
 	    //console.log("Created BUT !!" + b.type);

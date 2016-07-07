@@ -419,7 +419,9 @@ server.prototype.find=function(opts, cb){
 		    }
 		    else{
 			console.log("Checking user " + user +
-				    " Not enough rights to list the collection ["+coll+"]! P=" + p + "Ugroups = " + JSON.stringify(user.elements.groups));
+				    " Not enough rights to list the collection ["+coll+"]! P=" + p );
+				    //+ "Ugroups = " + JSON.stringify(user.elements.groups
+				    
 			return cb("Not enough rights to list the collection ["+coll+"]!");
 		    }
 		}else{

@@ -1,12 +1,15 @@
 ({
+    
     key:"db_browser",
-    name:"DB manager",
-    type:"view",
+    name:"mongo_databases",
+    type:"db_collection",
+
     ui_opts:{
 	root_classes:[ "" ],
 	child_classes:[ "row" ],
 	fa_icon: "database"
     },
+    
     // usi : {
     // 	elements : { 
     // 	    toolbar:{
@@ -58,7 +61,9 @@
     
     widget_builder:function (ok, fail){
 
-	this.load_doc({ db : 'sys', collection : "mongo_databases"});
+	this.get_documents();
+	
+	//this.load_doc({ db : 'sys', collection : "mongo_databases"});
 	
 	return ok();
 	

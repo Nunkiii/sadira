@@ -1,0 +1,138 @@
+ {
+    "project_name" : "Sadira",
+    "project_key" : "qk",
+    "http_port": 9999,
+    "https_port": 10000,
+    "websocket" : true,
+    "webrtc" : false,
+    "http_proxy" : false,
+    "https_proxy" : false,
+
+    "http_proxy_url" : "localhost:8000",
+    "https_proxy_url" : "localhost:8443",
+
+    "ssl" : {
+	"key_file" : "/home/nunki/prog/sadira/ssl/keys/key.pem",
+	"cert_file" : "/home/nunki/prog/sadira/ssl/keys/cert.pem"
+    },
+    
+    "redis" : {
+	"host" : "localhost",
+	"port" : 6379
+    },
+    "ncpu" : 1, 
+
+    "mongo" : {
+	"opts" : {
+	    "mongo_host" : "localhost",
+	    "mongo_port" : 27017,
+	    "replica_set_enable" : false,
+	    "replica_set" :[
+		{
+		    "ip" : "192.168.166.230",
+		    "options" : { "safe":true, "auto_reconnect": true }
+		},
+		{
+		    "ip" : "192.168.166.231",
+		    "options" : { "safe":true, "auto_reconnect": true }
+		},
+		{
+			"ip" : "192.168.166.232",
+		    "options" : { "safe":true, "auto_reconnect": true }
+		}
+	    ]
+	}
+    },
+    
+    "plugins" : {
+	"login" : {
+	    "enabled" : true,
+	    "file" : "/home/nunki/prog/sadira/handlers/login.js",
+	    "opts" : {
+		"realm" : "xd1",
+		
+		"facebookAuth" : {
+		    "clientID"      : "1528834000739310", 
+		    "clientSecret"  : "612dcc5e86f804792f37efeb2246c50f", 
+		    "callbackURL"   : "https://sadira.iasfbo.inaf.it/auth/facebook/callback"
+		},
+		
+		"twitterAuth" : {
+		    "consumerKey"       : "your-consumer-key-here",
+		    "consumerSecret"    : "your-client-secret-here",
+		    "callbackURL"       : "http://localhost:8080/auth/twitter/callback"
+		},
+		
+		"googleAuth" : {
+		    "clientID"      : "your-secret-clientID-here",
+		    "clientSecret"  : "your-client-secret-here",
+		    "callbackURL"   : "http://localhost:8080/auth/google/callback"
+		}
+		
+	    }
+	},
+	"gloria" : {
+	    "enabled" : false,
+	    "file" : "/home/fullmoon/prog/dev/node-gloria-dbms/handlers/gloria_get_handlers.js",
+	    "opts" : {
+		"sql_server_opts" : {
+		    "host"     : "localhost",
+		    "user"     : "gloriausr",
+		    "password" : "GLORIA2011",
+		    "database" : "gloriadb"
+		}
+	    }
+	},
+	"gloria2" : {
+	    "enabled" : false,
+	    "file" : "/home/fullmoon/prog/dev/node-gloria-dbms/handlers/gloria_handlers.js",
+	    "opts" : {
+		"sql_server_opts" : {
+		    "host"     : "localhost",
+		    "user"     : "gloriausr",
+		    "password" : "GLORIA2011",
+		    "database" : "gloriadb"
+		},
+		"upload_dir" : "/data/gloria/"
+	    }
+	},
+	"nilde" :  {
+	    "enabled" : false,
+	    "file" : "/home/fullmoon/prog/dev/node-nilde/handlers/nilde_api.js",
+	    "opts" : {
+		"sql_server_opts" : {
+		    "host"     : "localhost",
+		    "user"     : "nilde",
+		    "password" : "",
+		    "database" : "nilde"
+		}
+	    }
+	},
+	"fits" : {
+	    "enabled" : true,
+	    "file" : "/home/nunki/prog/sadira/js/fits.js"
+	},
+	"chat" : {
+	    "enabled" : false,
+	    "file" : "/home/fullmoon/prog/dev/sadira/dialogs/chat.js"
+	},
+	"cmap" : {
+	    "enabled" : false,
+	    
+	    "file" : "/home/nunki/prog/XD-1/tmp/cmap.js"
+	},
+	"sbig" : {
+	    "enabled" : true,
+	    "file" : "/home/nunki/prog/nunki/dialogs/sbig.js",
+	    "driver" : "/home/nunki/prog/node-sbig/build/Release/sbig",
+	    "opts" : {
+		"master" : true,
+		"client" : true,
+		"redis" : {
+		    "host" : "localhost",
+		    "port" : 6379
+		}
+	    }
+	}
+    }
+}

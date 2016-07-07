@@ -17,7 +17,7 @@
           min:"0",
           max:"1.0",
           step:"0.01",
-          value:".1",
+          value:"1.0",
           ui_opts:{ input_type:"range",
             editable:true,
             type:"short",

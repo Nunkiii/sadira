@@ -4,7 +4,7 @@
 
     widget_builder : function(ok, fail){
 	var wl=this;
-	//console.log("WL build");
+	console.log("WL build : " + wl.name + " uiroot " + wl.ui_root);
 	
 	var parent=wl.get_top_parent('toolbar');if(parent===undefined) return fail("Cannot find a parent toolbar");
 	var target=parent.parent;if(target===undefined) return fail("Found toolbar has no parent");
